@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class VideoController extends Controller
 {
@@ -34,7 +35,19 @@ class VideoController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        // Validación
+        $data = $request->validate([
+            'url' => 'required',
+            'event_id' => 'required',
+        ]);
+
+        // Almacenar datos en la BD (sin modelos)
+        DB::table('videos')->insert([
+            'url' => $data['url'],
+            'event_id' => $data['event_id'],
+        ]);
+
+        return redirect()->action('App\Http\Controllers\EventController@index');
     }
 
     /**

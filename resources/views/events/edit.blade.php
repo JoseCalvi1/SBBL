@@ -75,6 +75,34 @@
                 <input type="submit" class="btn btn-primary" value="Actualizar evento">
             </div>
         </form>
+
+        <form method="POST" action="{{ route('videos.store') }}" enctype="multipart/form-data" novalidate>
+            @csrf
+
+            <div class="form-group">
+                <label for="url">Id del video</label>
+
+                <input type="hidden" name="event_id" id="event_id" value="{{ $event->id }}">
+
+                <input type="text"
+                    name="url"
+                    class="form-control @error('url') is-invalid @enderror"
+                    id="url"
+                    placeholder="Id del video"
+                    value="{{ $event->url }}"
+                    />
+
+                    @error('url')
+                        <span class="invalid-feedback d-block" role="alert">
+                            <strong>{{$message}}</strong>
+                        </span>
+                    @enderror
+            </div>
+
+            <div class="form-group">
+                <input type="submit" class="btn btn-primary" value="Añadir video">
+            </div>
+        </form>
     </div>
 </div>
 

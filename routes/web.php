@@ -31,3 +31,5 @@ Route::get('/profiles/{profile}', [App\Http\Controllers\ProfileController::class
 Route::get('/profiles/{profile}/edit', [App\Http\Controllers\ProfileController::class, 'edit'])->name('profiles.edit');
 Route::put('/profiles/{profile}', [App\Http\Controllers\ProfileController::class, 'update'])->name('profiles.update');
 
+
+Route::post('/videos', [App\Http\Controllers\VideoController::class, 'store'])->name('videos.store');
