@@ -16,6 +16,7 @@ class CreateVideosTable extends Migration
         Schema::create('videos', function (Blueprint $table) {
             $table->id();
             $table->string('url');
+            $table->foreignId('event_id')->references('id')->on('events');
             $table->timestamps();
         });
     }

@@ -71,7 +71,7 @@ class EventController extends Controller
      */
     public function show(Event $event)
     {
-        $videos = Video::all();
+        $videos = DB::select('select * from videos where event_id = '.$event->id);
 
         return view('events.show', compact('event', 'videos'));
     }
