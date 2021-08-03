@@ -10,7 +10,7 @@
     </div>
 
     <div class="container nuevas-recetas">
-        <h2 class="titulo-categoria text-uppercase mb-4 mt-4">Últimos eventos</h2>
+        <h2 class="titulo-categoria text-uppercase mb-4 mt-4">Próximos eventos</h2>
 
         <div class="owl-carousel owl-theme">
                 @foreach ($nuevos as $nuevo)
@@ -23,7 +23,28 @@
                                 <p>{{ $nuevo->location }}</p>
                                 <p><event-date fecha="{{ $nuevo->date }}"></event-date></p>
 
-                                <a href="" class="btn btn-primary d-block font-weight-bold text-uppercase">Ver evento</a>
+                                <a href="{{ route('events.show', ['event' => $nuevo->id]) }}" class="btn btn-primary d-block font-weight-bold text-uppercase">Ver evento</a>
+                            </div>
+                        </div>
+                @endforeach
+        </div>
+    </div>
+
+    <div class="container nuevas-recetas">
+        <h2 class="titulo-categoria text-uppercase mb-4 mt-4">Eventos realizados</h2>
+
+        <div class="owl-carousel owl-theme">
+                @foreach ($antiguos as $antiguo)
+                        <div class="card">
+                            <img src="/storage/{{ $antiguo->imagen }}"  class="card-img-top">
+
+                            <div class="card-body">
+                                <h3>{{ $antiguo->name }}</h3>
+
+                                <p>{{ $antiguo->location }}</p>
+                                <p><event-date fecha="{{ $antiguo->date }}"></event-date></p>
+
+                                <a href="{{ route('events.show', ['event' => $antiguo->id]) }}" class="btn btn-primary d-block font-weight-bold text-uppercase">Ver evento</a>
                             </div>
                         </div>
                 @endforeach

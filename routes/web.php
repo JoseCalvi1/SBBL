@@ -21,7 +21,10 @@ Route::get('/home', [App\Http\Controllers\InicioController::class, 'index'])->na
 
 Route::get('/events', [App\Http\Controllers\EventController::class, 'index'])->name('events.index');
 Route::get('/events/create', [App\Http\Controllers\EventController::class, 'create'])->name('events.create');
+Route::get('/events/{event}', [App\Http\Controllers\EventController::class, 'show'])->name('events.show');
 Route::post('/events', [App\Http\Controllers\EventController::class, 'store'])->name('events.store');
+Route::get('/events/{event}/edit', [App\Http\Controllers\EventController::class, 'edit'])->name('events.edit');
+Route::put('/events/{event}', [App\Http\Controllers\EventController::class, 'update'])->name('events.update');
 
 
 Route::get('/profiles/{profile}', [App\Http\Controllers\ProfileController::class, 'show'])->name('profiles.show');

@@ -70,7 +70,7 @@ class EventController extends Controller
      */
     public function show(Event $event)
     {
-        //
+        return view('events.show', compact('event'));
     }
 
     /**
@@ -81,7 +81,7 @@ class EventController extends Controller
      */
     public function edit(Event $event)
     {
-        //
+        return view('events.edit', compact('event'));
     }
 
     /**
@@ -93,7 +93,27 @@ class EventController extends Controller
      */
     public function update(Request $request, Event $event)
     {
-        //
+        // Validación
+        $data = $request->validate([
+            'name' => 'required|min:6',
+            'location' => 'required',
+        ]);
+
+        // Si el usuario sube nueva imagen
+        if($request['imagen'])
+        {
+            $ruta_imagen = $request['imagen']->store('upload-events', 'public');
+            $event->imagen = $ruta_imagen;
+        }
+
+        // Asignar los valores
+        $event->name = $data['name'];
+        $event->location = $data['location'];
+
+        $event->save();
+
+        // Redireccionar
+        return redirect()->action('App\Http\Controllers\EventController@index');
     }
 
     /**

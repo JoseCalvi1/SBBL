@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Event;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 
 class InicioController extends Controller
@@ -14,9 +15,13 @@ class InicioController extends Controller
      */
     public function index()
     {
-        $nuevos = Event::latest()->take(5)->get();
+        $all = Event::all();
+        $hoy = Carbon::today();
 
-        return view('inicio.index', compact('nuevos'));
+        $antiguos = $all->where("date", "<", Carbon::now());
+        $nuevos = $all->where("date", ">=", Carbon::now());
+
+        return view('inicio.index', compact('nuevos', 'antiguos'));
     }
 
     /**
