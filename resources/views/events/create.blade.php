@@ -38,11 +38,29 @@
                     name="location"
                     class="form-control @error('location') is-invalid @enderror"
                     id="location"
-                    placeholder="Título evento"
+                    placeholder="Lugar del evento"
                     value="{{old('location')}}"
                     />
 
                     @error('location')
+                        <span class="invalid-feedback d-block" role="alert">
+                            <strong>{{$message}}</strong>
+                        </span>
+                    @enderror
+            </div>
+
+            <div class="form-group">
+                <label for="event_date">Fecha del evento</label>
+
+                <input type="date"
+                    name="event_date"
+                    class="form-control @error('event_date') is-invalid @enderror"
+                    id="event_date"
+                    placeholder="Título evento"
+                    value="{{old('event_date')}}"
+                    />
+
+                    @error('event_date')
                         <span class="invalid-feedback d-block" role="alert">
                             <strong>{{$message}}</strong>
                         </span>

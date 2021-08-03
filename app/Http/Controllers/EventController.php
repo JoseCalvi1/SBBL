@@ -42,6 +42,7 @@ class EventController extends Controller
         $data = $request->validate([
             'name' => 'required|min:6',
             'location' => 'required',
+            'event_date' => 'required',
         ]);
 
         // Obtener ruta de la imagen
@@ -54,6 +55,7 @@ class EventController extends Controller
         DB::table('events')->insert([
             'name' => $data['name'],
             'location' => $data['location'],
+            'date' => $data['event_date'],
             'imagen' => $ruta_imagen,
         ]);
 

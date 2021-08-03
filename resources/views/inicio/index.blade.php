@@ -21,6 +21,7 @@
                                 <h3>{{ $nuevo->name }}</h3>
 
                                 <p>{{ $nuevo->location }}</p>
+                                <p><event-date fecha="{{ $nuevo->date }}"></event-date></p>
 
                                 <a href="" class="btn btn-primary d-block font-weight-bold text-uppercase">Ver evento</a>
                             </div>

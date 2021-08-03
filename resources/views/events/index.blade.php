@@ -15,6 +15,7 @@
                 <tr>
                     <th scole="col">Título</th>
                     <th scole="col">Location</th>
+                    <th scole="col">Fecha</th>
                     <th scole="col">Acciones</th>
                 </tr>
             </thead>
@@ -24,6 +25,7 @@
                     <tr>
                         <td>{{ $event->name }}</td>
                         <td>{{ $event->location }}</td>
+                        <td><event-date fecha="{{ $event->date }}"></event-date></td>
                         <td>
 
                         </td>
