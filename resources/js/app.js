@@ -4,6 +4,9 @@
  * building robust, powerful web applications using Vue and Laravel.
  */
 
+import 'owl.carousel';
+import Vue from 'vue/dist/vue.js';
+
 require('./bootstrap');
 
 window.Vue = require('vue');
@@ -21,6 +24,7 @@ window.Vue = require('vue');
 
 Vue.component('region-component', require('./components/RegionComponent.vue').default);
 
+
 /**
  * Next, we will create a fresh Vue application instance and attach it to
  * the page. Then, you may begin adding components to this application
@@ -29,4 +33,25 @@ Vue.component('region-component', require('./components/RegionComponent.vue').de
 
 const app = new Vue({
     el: '#app',
+});
+
+// Carousel con OWL
+jQuery(document).ready(function() {
+    jQuery('.owl-carousel').owlCarousel({
+        margin: 10,
+        loop: true,
+        autoplay: true,
+        autoplayHoverPause: true,
+        responsive: {
+            0: {
+                items: 1
+            },
+            600: {
+                items: 2
+            },
+            1000: {
+                items: 3
+            },
+        }
+    });
 });

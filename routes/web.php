@@ -17,7 +17,12 @@ Route::get('/', [App\Http\Controllers\InicioController::class, 'index'])->name('
 
 Auth::routes();
 
-Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
+Route::get('/home', [App\Http\Controllers\InicioController::class, 'index'])->name('inicio.index');
+
+Route::get('/events', [App\Http\Controllers\EventController::class, 'index'])->name('events.index');
+Route::get('/events/create', [App\Http\Controllers\EventController::class, 'create'])->name('events.create');
+Route::post('/events', [App\Http\Controllers\EventController::class, 'store'])->name('events.store');
+
 
 Route::get('/profiles/{profile}', [App\Http\Controllers\ProfileController::class, 'show'])->name('profiles.show');
 Route::get('/profiles/{profile}/edit', [App\Http\Controllers\ProfileController::class, 'edit'])->name('profiles.edit');

@@ -16,6 +16,8 @@
     <link rel="dns-prefetch" href="//fonts.gstatic.com">
     <link href="https://fonts.googleapis.com/css?family=Nunito" rel="stylesheet">
 
+    @yield('styles')
+
     <!-- Styles -->
     <link href="{{ asset('css/app.css') }}" rel="stylesheet">
 </head>
@@ -52,9 +54,17 @@
                                 </li>
                             @endif
                         @else
+
+                                @if (Auth::user()->is_admin)
+                                    <li class="nav-item">
+                                        <a class="nav-link" href="{{ route('events.index') }}">
+                                            {{ 'EVENTOS' }}
+                                        </a>
+                                    </li>
+                                @endif
                             <li class="nav-item dropdown">
                                 <a id="navbarDropdown" class="nav-link dropdown-toggle" href="#" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" v-pre>
-                                    {{ Auth::user()->name }}
+                                    {{ strtoupper(Auth::user()->name) }}
                                 </a>
 
                                 <div class="dropdown-menu dropdown-menu-right" aria-labelledby="navbarDropdown">

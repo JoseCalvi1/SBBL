@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\c;
+use App\Models\Event;
 use Illuminate\Http\Request;
 
 class InicioController extends Controller
@@ -14,7 +14,9 @@ class InicioController extends Controller
      */
     public function index()
     {
-        return view('inicio.index');
+        $nuevos = Event::latest()->take(5)->get();
+
+        return view('inicio.index', compact('nuevos'));
     }
 
     /**
