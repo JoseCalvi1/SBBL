@@ -54,13 +54,23 @@
     <div class="container-fluid nuevas-recetas" style="background-color: #a7a4a4">
         <div class="row">
             <div class="col-md-6">
-                <h2 class="titulo-categoria text-uppercase my-4 mx-5 text-white" style="border-bottom: 0px !important; font-weight:bold;">Sobre nosotros</h2>
-                <p class="my-4 mx-5 text-white" style="font-size: 1.2em; font-weight:bold;">Lorem ipsum dolor sit amet, consectetur adipiscing elit. Suspendisse a elit vel tortor condimentum imperdiet. Quisque sodales convallis nisl, at egestas sem finibus a. Sed venenatis mauris massa, et auctor orci lobortis quis.
-                    Curabitur consequat tempus blandit. Morbi id sem a magna dapibus consectetur. Nunc a eleifend neque, et placerat massa. Nulla ut porta dui, non sagittis diam. Q
-                    uisque suscipit enim in ipsum mattis, quis efficitur urna viverra. Vestibulum varius eget nulla egestas finibus. Morbi sodales vel nulla at eleifend. Quisque molestie euismod libero, id laoreet nunc dictum at.</p>
+                <div class="my-4 mx-5 text-white" style="font-size: 1.2em; font-weight:bold;"><h3><b>¡Hola bladers!</b></h3>
+
+                    <br>Bienvenidos a la Spanish Beyblade Battling League, o más sencillo, la SBBL.
+
+                    <br><br>La SBBL es una liga/organización creada con el objetivo de reunir a todos los bladers residentes en España dentro de una comunidad más grande y fuerte.
+
+                    Con esto intentaríamos conseguir llevar a cabo mayor número de eventos, quedadas y torneos en todo nuestro país.
+
+                    <br><br>Si eres blader, resides en España y buscas una liga donde competir y disfrutar del beyblade con otrxs como tú, este es tu sitio.
+
+                    <br><br>!Únete a la SBBL!</p>
+                </div>
             </div>
             <div class="col-md-6">
-                <img src="../images/sbbl.png" class="w-75">
+                <div class="my-4" style="display: grid; place-content:center;">
+                    <iframe src="https://discord.com/widget?id=839848018538659840&theme=dark" width="100%" height="400" allowtransparency="true" frameborder="0" sandbox="allow-popups allow-popups-to-escape-sandbox allow-same-origin allow-scripts"></iframe>
+                </div>
             </div>
         </div>
     </div>
