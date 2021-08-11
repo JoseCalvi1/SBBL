@@ -32,6 +32,24 @@
             </div>
 
             <div class="form-group">
+                <label for="region_id">Región</label>
+
+                <select name="region_id" id="region_id" class="form-control @error('nombre') is-invalid @enderror">
+                        <option disabled selected>- Selecciona -</option>
+
+                    @foreach ($regions as $region)
+                        <option value="{{ $region->id }}">{{ $region->name }}</option>
+                    @endforeach
+                </select>
+
+                    @error('region_id')
+                        <span class="invalid-feedback d-block" role="alert">
+                            <strong>{{$message}}</strong>
+                        </span>
+                    @enderror
+            </div>
+
+            <div class="form-group">
                 <label for="location">Lugar del evento</label>
 
                 <input type="text"

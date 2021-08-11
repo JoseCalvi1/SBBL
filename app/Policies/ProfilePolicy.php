@@ -16,7 +16,7 @@ class ProfilePolicy
      * @param  \App\Models\User  $user
      * @return \Illuminate\Auth\Access\Response|bool
      */
-    public function viewAny(User $user)
+    public function viewAny(User $user, Profile $profile)
     {
         //
     }

@@ -20,7 +20,7 @@
                             <div class="card-body">
                                 <h3>{{ $nuevo->name }}</h3>
 
-                                <p>{{ $nuevo->location }}</p>
+                                <p>{{ $nuevo->location }} <b>({{ $nuevo->region->name }})</b></p>
                                 <p><event-date fecha="{{ $nuevo->date }}"></event-date></p>
 
                                 <a href="{{ route('events.show', ['event' => $nuevo->id]) }}" class="btn btn-primary d-block font-weight-bold text-uppercase">Ver evento</a>

@@ -13,4 +13,9 @@ class Event extends Model
     {
         return $this->hasMany(Video::class, 'event_id');
     }
+
+    public function region()
+    {
+        return $this->belongsTo(Region::class, 'region_id');
+    }
 }

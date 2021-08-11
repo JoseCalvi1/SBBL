@@ -16,6 +16,11 @@
 
         <div class="event-meta mt-2">
             <p>
+                <span class="font-weight-bold text-primary">Región:</span>
+                    {{ $event->region->name }}
+            </p>
+
+            <p>
                 <span class="font-weight-bold text-primary">Lugar:</span>
                     {{ $event->location }}
             </p>

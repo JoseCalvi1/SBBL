@@ -9,7 +9,7 @@
 
 <h2 class="text-center mb-5">Editar evento: {{ $event->titulo }}</h2>
 
-<div class="row justify-content-center mt-5">
+<div class="row justify-content-center mt-5" style="margin-right: 0px !important;">
     <div class="col-md-8">
     <form method="POST" action="{{ route('events.update', ['event' => $event->id]) }}" enctype="multipart/form-data" novalidate>
         @csrf
@@ -34,6 +34,28 @@
             </div>
 
             <div class="form-group">
+                <label for="region_id">Región</label>
+
+                <select name="region_id" id="region_id" class="form-control @error('nombre') is-invalid @enderror">
+                    @if ($event->region)
+                        <option value="{{ $event->region->id }}">{{ $event->region->name }}</option>
+                    @else
+                        <option disabled selected>- Selecciona -</option>
+                    @endif
+
+                    @foreach ($regions as $region)
+                        <option value="{{ $region->id }}">{{ $region->name }}</option>
+                    @endforeach
+                </select>
+
+                    @error('region_id')
+                        <span class="invalid-feedback d-block" role="alert">
+                            <strong>{{$message}}</strong>
+                        </span>
+                    @enderror
+            </div>
+
+            <div class="form-group">
                 <label for="location">Lugar del evento</label>
 
                 <input type="text"
@@ -45,6 +67,24 @@
                     />
 
                     @error('location')
+                        <span class="invalid-feedback d-block" role="alert">
+                            <strong>{{$message}}</strong>
+                        </span>
+                    @enderror
+            </div>
+
+            <div class="form-group">
+                <label for="event_date">Fecha del evento</label>
+
+                <input type="date"
+                    name="event_date"
+                    class="form-control @error('event_date') is-invalid @enderror"
+                    id="event_date"
+                    placeholder="Título evento"
+                    value="{{ $event->date }}"
+                    />
+
+                    @error('event_date')
                         <span class="invalid-feedback d-block" role="alert">
                             <strong>{{$message}}</strong>
                         </span>

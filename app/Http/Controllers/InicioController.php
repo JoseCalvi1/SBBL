@@ -25,6 +25,22 @@ class InicioController extends Controller
     }
 
     /**
+     * Display a listing of the resource.
+     *
+     * @return \Illuminate\Http\Response
+     */
+    public function events()
+    {
+        $all = Event::all();
+        $hoy = Carbon::today();
+
+        $antiguos = $all->where("date", "<", Carbon::now());
+        $nuevos = $all->where("date", ">=", Carbon::now());
+
+        return view('inicio.events', compact('nuevos', 'antiguos'));
+    }
+
+    /**
      * Show the form for creating a new resource.
      *
      * @return \Illuminate\Http\Response

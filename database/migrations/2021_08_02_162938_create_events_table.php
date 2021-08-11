@@ -18,6 +18,7 @@ class CreateEventsTable extends Migration
             $table->string('name');
             $table->string('imagen')->nullable();
             $table->string('location')->nullable();
+            $table->foreignId('region_id')->nullable()->constrained()->onDelete('cascade');
             $table->date('date')->nullable();
             $table->string('beys')->nullable();
             $table->timestamps();

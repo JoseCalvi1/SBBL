@@ -19,7 +19,9 @@ class ProfileController extends Controller
      */
     public function index()
     {
-        //
+        $bladers = Profile::all();
+
+        return view('profiles.index', compact('bladers'));
     }
 
     /**
@@ -51,9 +53,7 @@ class ProfileController extends Controller
      */
     public function show(Profile $profile)
     {
-        $region = Region::find($profile->region_id);
-
-        return view('profiles.show', compact('profile', 'region'));
+        return view('profiles.show', compact('profile'));
     }
 
     /**
@@ -95,7 +95,7 @@ class ProfileController extends Controller
             $array_imagen = ['imagen' => $ruta_imagen];
         }
 
-        // Asignar nombre y url
+        // Asignar nombre
         auth()->user()->name = $data['nombre'];
         auth()->user()->save();
 
@@ -110,8 +110,7 @@ class ProfileController extends Controller
         );
 
         // Guardar información
-
-        return redirect()->action('App\Http\Controllers\InicioController@index');
+        return redirect()->action('App\Http\Controllers\ProfileController@show', $profile);
     }
 
     /**

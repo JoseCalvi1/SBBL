@@ -54,11 +54,28 @@
                                 </li>
                             @endif
                         @else
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ route('inicio.index') }}">
+                                {{ 'INICIO' }}
+                            </a>
+                        </li>
+
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ route('inicio.events') }}">
+                                {{ 'EVENTOS' }}
+                            </a>
+                        </li>
+
+                            <li class="nav-item">
+                                <a class="nav-link" href="{{ route('profiles.index') }}">
+                                    {{ 'BLADERS' }}
+                                </a>
+                            </li>
 
                                 @if (Auth::user()->is_admin)
                                     <li class="nav-item">
                                         <a class="nav-link" href="{{ route('events.index') }}">
-                                            {{ 'EVENTOS' }}
+                                            {{ 'ADMIN' }}
                                         </a>
                                     </li>
                                 @endif
