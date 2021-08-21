@@ -93,6 +93,10 @@ class ProfileController extends Controller
             $ruta_imagen = $request['imagen']->store('upload-profiles', 'public');
 
             $array_imagen = ['imagen' => $ruta_imagen];
+
+        } elseif ($request['default_img'])
+        {
+            $array_imagen = ['imagen' => 'upload-profiles/'.$request['default_img'].'.jpg'];
         }
 
         // Asignar nombre

@@ -68,8 +68,10 @@
                 </div>
             </div>
             <div class="col-md-6">
-                <div class="my-4" style="display: grid; place-content:center;">
-                    <iframe src="https://discord.com/widget?id=839848018538659840&theme=dark" width="100%" height="400" allowtransparency="true" frameborder="0" sandbox="allow-popups allow-popups-to-escape-sandbox allow-same-origin allow-scripts"></iframe>
+                <div style="display: grid; place-content:center; justify-content:center; margin:20% 0; !important;">
+                    <a style="font-size:2em; font-weight: bold; text-decoration:none; color: white;" target="_blank" href="https://discord.gg/ve7dgpCF9x"><i class="fab fa-discord"></i> Discord SBBL</a>
+                    <a style="font-size:2em; font-weight: bold; text-decoration:none; color: white;" target="_blank" href="https://www.instagram.com/sbbl_oficial/"><i class="fab fa-instagram"></i>  Instagram SBBL</a>
+                    <a style="font-size:2em; font-weight: bold; text-decoration:none; color: white;" target="_blank" href=""><i class="fab fa-twitter"></i>  Twitter SBBL</a>
                 </div>
             </div>
         </div>
