@@ -7,7 +7,7 @@
 
         <div class="row">
                 @foreach ($bladers as $blader)
-                        <div style="width: 22% !important;" class="card col-md-3 py-2 m-2">
+                        <div class="card col-md-3 py-2 mb-2">
                             @if ($blader->imagen)
                                 <img src="/storage/{{ $blader->imagen }}"  class="card-img-top">
                             @else
@@ -17,6 +17,7 @@
                             <div class="card-body">
                                 <h3><b>{{ $blader->user->name }}</b></h3>
                                 <h4>Región: {{ ($blader->region) ? $blader->region->name : 'No definida'}}</h4>
+                                <h4>Puntos: {{ $blader->points }}</h4>
                             </div>
                         </div>
                 @endforeach

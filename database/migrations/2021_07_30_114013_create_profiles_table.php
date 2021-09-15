@@ -23,6 +23,7 @@ class CreateProfilesTable extends Migration
             $table->id();
             $table->foreignId('user_id')->references('id')->on('users');
             $table->string('imagen')->nullable();
+            $table->integer('points')->default(0);
             $table->foreignId('region_id')->nullable()->constrained()->onDelete('cascade');
             $table->timestamps();
         });

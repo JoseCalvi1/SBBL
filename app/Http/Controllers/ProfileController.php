@@ -19,7 +19,7 @@ class ProfileController extends Controller
      */
     public function index()
     {
-        $bladers = Profile::all();
+        $bladers = Profile::orderBy('points', 'DESC')->get();
 
         return view('profiles.index', compact('bladers'));
     }
