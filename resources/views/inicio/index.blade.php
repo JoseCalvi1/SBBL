@@ -51,9 +51,9 @@
         </div>
     </div>
 
-    <div class="container-fluid nuevas-recetas" style="background-color: #a7a4a4">
+    <div class="container-fluid nuevas-recetas my-2 pb-2" style="background-color: #a7a4a4">
         <div class="row">
-            <div class="col-md-6">
+            <div class="text-center">
                 <div class="my-4 mx-5 text-white" style="font-size: 1.2em; font-weight:bold;"><h3><b>¡Hola bladers!</b></h3>
 
                     <br>Bienvenidos a la Spanish Beyblade Battling League, o más sencillo, la SBBL.
@@ -66,13 +66,9 @@
 
                     <br><br>!Únete a la SBBL!</p>
                 </div>
-            </div>
-            <div class="col-md-6">
-                <div style="display: grid; place-content:center; justify-content:center; margin:20% 0; !important;">
-                    <a style="font-size:2em; font-weight: bold; text-decoration:none; color: white;" target="_blank" href="https://discord.gg/ve7dgpCF9x"><i class="fab fa-discord"></i> Discord SBBL</a>
-                    <a style="font-size:2em; font-weight: bold; text-decoration:none; color: white;" target="_blank" href="https://www.instagram.com/sbbl_oficial/"><i class="fab fa-instagram"></i>  Instagram SBBL</a>
-                    <a style="font-size:2em; font-weight: bold; text-decoration:none; color: white;" target="_blank" href=""><i class="fab fa-twitter"></i>  Twitter SBBL</a>
-                </div>
+                    <a style="display: inline-block; font-size:2em; font-weight: bold; text-decoration:none; color: white;" target="_blank" href="https://discord.gg/ve7dgpCF9x"><i class="fab fa-discord"></i> Discord SBBL</a>&nbsp;&nbsp;&nbsp;
+                    <a style="display: inline-block; font-size:2em; font-weight: bold; text-decoration:none; color: white;" target="_blank" href="https://www.instagram.com/sbbl_oficial/"><i class="fab fa-instagram"></i>  Instagram SBBL</a>&nbsp;&nbsp;&nbsp;
+                    <a style="display: inline-block; font-size:2em; font-weight: bold; text-decoration:none; color: white;" target="_blank" href=""><i class="fab fa-twitter"></i>  Twitter SBBL</a>
             </div>
         </div>
     </div>

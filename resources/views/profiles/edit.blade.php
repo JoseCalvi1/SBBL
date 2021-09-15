@@ -79,7 +79,7 @@
                 </div>
 
 
-                <div class="form-group mt-4">
+                <!-- <div class="form-group mt-4">
                     <label for="imagen">Tu imagen</label>
                     <input
                         id="imagen"
@@ -98,7 +98,7 @@
                                     </span>
                             @enderror
                     @endif
-                </div>
+                </div> -->
 
                 <div class="form-group">
                     <input type="submit" class="btn btn-primary" value="Actualizar perfil">

@@ -23,5 +23,19 @@ class UserSeed extends Seeder
             'is_admin' => true,
             'password' => Hash::make('josecalvi1'),
         ]);
+
+        $user = User::create([
+            'name' => 'Test1',
+            'email' => 'test1@test1.com',
+            'is_admin' => true,
+            'password' => Hash::make('josecalvi1'),
+        ]);
+
+        $user = User::create([
+            'name' => 'Test2',
+            'email' => 'test2@test2.com',
+            'is_admin' => true,
+            'password' => Hash::make('josecalvi1'),
+        ]);
     }
 }

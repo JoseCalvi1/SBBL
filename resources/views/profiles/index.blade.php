@@ -7,7 +7,7 @@
 
         <div class="row">
                 @foreach ($bladers as $blader)
-                        <div class="card col-md-3 py-2 m-2">
+                        <div style="width: 22% !important;" class="card col-md-3 py-2 m-2">
                             @if ($blader->imagen)
                                 <img src="/storage/{{ $blader->imagen }}"  class="card-img-top">
                             @else

@@ -6,7 +6,7 @@
 
         <div class="row">
                 @foreach ($antiguos as $antiguo)
-                        <div class="col-md-4 card m-2">
+                        <div class="col-md-4 card m-2" style="padding:0px !important; max-width: 30%;">
                             <img src="/storage/{{ $antiguo->imagen }}"  class="card-img-top">
 
                             <div class="card-body">
