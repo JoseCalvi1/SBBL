@@ -121,6 +121,20 @@ trix-editor {
   color: #FFF;
 }
 
+#exTab2 a {
+  color: black !important;
+  text-decoration: none !important;
+  margin-right: 10px !important;
+}
+
+#exTab2 li {
+  padding: 5px 10px;
+}
+
+#exTab2 li.active {
+  border-bottom: 3px solid #ED4646 !important;
+}
+
 /*!
  * Bootstrap v4.6.0 (https://getbootstrap.com/)
  * Copyright 2011-2021 The Bootstrap Authors
