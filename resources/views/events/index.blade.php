@@ -29,6 +29,7 @@
                         <td>
                             <a href="{{ route('events.show', ['event' => $event->id]) }}" class="btn btn-success mb-2 d-block">Ver</a>
                             <a href="{{ route('events.edit', ['event' => $event->id]) }}" class="btn btn-dark mb-2 d-block">Editar</a>
+                            <event-delete event-id={{ $event->id }}></event-delete>
                         </td>
                     </tr>
                 @endforeach

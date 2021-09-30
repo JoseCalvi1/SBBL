@@ -27,6 +27,7 @@ Route::get('/events/{event}', [App\Http\Controllers\EventController::class, 'sho
 Route::post('/events', [App\Http\Controllers\EventController::class, 'store'])->name('events.store');
 Route::get('/events/{event}/edit', [App\Http\Controllers\EventController::class, 'edit'])->name('events.edit');
 Route::put('/events/{event}', [App\Http\Controllers\EventController::class, 'update'])->name('events.update');
+Route::delete('/events/{event}', [App\Http\Controllers\EventController::class, 'destroy'])->name('events.destroy');
 
 Route::get('/profiles', [App\Http\Controllers\ProfileController::class, 'index'])->name('profiles.index');
 Route::get('/profiles/{profile}', [App\Http\Controllers\ProfileController::class, 'show'])->name('profiles.show');

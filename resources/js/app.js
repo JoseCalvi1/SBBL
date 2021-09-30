@@ -4,6 +4,9 @@
  * building robust, powerful web applications using Vue and Laravel.
  */
 
+import VueSweetalert2 from 'vue-sweetalert2';
+import 'sweetalert2/dist/sweetalert2.min.css';
+
 import 'owl.carousel';
 
 require('./bootstrap');
@@ -21,8 +24,10 @@ window.Vue = require('vue').default;
 // const files = require.context('./', true, /\.vue$/i)
 // files.keys().map(key => Vue.component(key.split('/').pop().split('.')[0], files(key).default))
 
+Vue.use(VueSweetalert2);
 Vue.component('example-component', require('./components/ExampleComponent.vue').default);
 Vue.component('event-date', require('./components/EventDate.vue').default);
+Vue.component('event-delete', require('./components/EventDelete.vue').default);
 
 /**
  * Next, we will create a fresh Vue application instance and attach it to

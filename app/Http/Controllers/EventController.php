@@ -138,6 +138,8 @@ class EventController extends Controller
      */
     public function destroy(Event $event)
     {
-        //
+        $event->delete();
+
+        return redirect()->action('App\Http\Controllers\EventController@index');
     }
 }
