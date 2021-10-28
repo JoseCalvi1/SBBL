@@ -18,4 +18,8 @@ class Event extends Model
     {
         return $this->belongsTo(Region::class, 'region_id');
     }
+
+    public function assists() {
+        return $this->belongsToMany(User::class, 'assist_event');
+    }
 }

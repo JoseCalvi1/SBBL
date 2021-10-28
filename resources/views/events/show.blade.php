@@ -31,6 +31,10 @@
                 <event-date fecha="{{ $event->date }}"></event-date>
             </p>
 
+            <p>
+                <assist-button></assist-button>
+            </p>
+
         </div>
             </div>
         </div>

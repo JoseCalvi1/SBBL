@@ -28,6 +28,7 @@ Vue.use(VueSweetalert2);
 Vue.component('example-component', require('./components/ExampleComponent.vue').default);
 Vue.component('event-date', require('./components/EventDate.vue').default);
 Vue.component('event-delete', require('./components/EventDelete.vue').default);
+Vue.component('assist-button', require('./components/AssistButton.vue').default);
 
 /**
  * Next, we will create a fresh Vue application instance and attach it to
@@ -38,6 +39,11 @@ Vue.component('event-delete', require('./components/EventDelete.vue').default);
 const app = new Vue({
     el: '#app',
 });
+
+jQuery('.like-btn').on('click', function() {
+    jQuery(this).toggleClass('like-active');
+ });
+
 
 // Carousel con OWL
 jQuery(document).ready(function() {
