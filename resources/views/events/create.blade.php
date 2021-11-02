@@ -86,7 +86,7 @@
             </div>
 
 
-            <div class="form-group mt-4">
+            <!-- <div class="form-group mt-4">
                 <label for="imagen">Selecciona una imagen</label>
                 <input
                     id="imagen"
@@ -98,6 +98,22 @@
                             <strong>{{$message}}</strong>
                         </span>
                 @enderror
+            </div> -->
+
+            <div class="form-group">
+                <label for="imagen">Imagen por defecto</label>
+
+                <select name="imagen" id="imagen" class="form-control @error('imagen') is-invalid @enderror">
+                    <option disabled selected>- Selecciona una imagen -</option>
+                    <option value="quedada">Quedada</option>
+                    <option value="ranking">Ranking</option>
+                </select>
+
+                    @error('imagen')
+                        <span class="invalid-feedback d-block" role="alert">
+                            <strong>{{$message}}</strong>
+                        </span>
+                    @enderror
             </div>
 
             <div class="form-group">

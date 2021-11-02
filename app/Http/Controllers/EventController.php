@@ -51,9 +51,15 @@ class EventController extends Controller
         ]);
 
         // Obtener ruta de la imagen
-        $ruta_imagen = "No hay imagen";
+        /*$ruta_imagen = "No hay imagen";
         if($request['imagen']) {
             $ruta_imagen = $request['imagen']->store('upload-events', 'public');
+        }*/
+
+        // Si el usuario sube una imagen
+        if($request['imagen'])
+        {
+            $ruta_imagen = 'upload-events/'.$request['imagen'].'.jpg';
         }
 
         // Almacenar datos en la BD (sin modelos)
@@ -111,11 +117,10 @@ class EventController extends Controller
             'event_date' => 'required',
         ]);
 
-        // Si el usuario sube nueva imagen
+        // Si el usuario sube una imagen
         if($request['imagen'])
         {
-            $ruta_imagen = $request['imagen']->store('upload-events', 'public');
-            $event->imagen = $ruta_imagen;
+            $event->imagen = 'upload-events/'.$request['imagen'].'.jpg';
         }
 
         // Asignar los valores

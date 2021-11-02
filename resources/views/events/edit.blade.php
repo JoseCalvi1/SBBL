@@ -92,23 +92,20 @@
             </div>
 
 
-            <div class="form-group mt-4">
-                <label for="imagen">Selecciona una imagen</label>
-                <input
-                    id="imagen"
-                    type="file"
-                    class="form-control @error('imagen') is-invalid @enderror"
-                    name="imagen" />
+            <div class="form-group">
+                <label for="imagen">Imagen por defecto</label>
 
-                    <div class="mt-4">
-                        <p>Imagen Actual:</p>
-                        <img src="/storage/{{ $event->imagen }}" style="width: 300px;">
-                    </div>
-                @error('imagen')
+                <select name="imagen" id="imagen" class="form-control @error('imagen') is-invalid @enderror">
+                    <option disabled selected>- Selecciona una imagen -</option>
+                    <option value="quedada">Quedada</option>
+                    <option value="ranking">Ranking</option>
+                </select>
+
+                    @error('imagen')
                         <span class="invalid-feedback d-block" role="alert">
                             <strong>{{$message}}</strong>
                         </span>
-                @enderror
+                    @enderror
             </div>
 
             <div class="form-group">
