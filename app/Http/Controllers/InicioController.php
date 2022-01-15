@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Event;
+use App\Models\Profile;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 
@@ -18,10 +19,11 @@ class InicioController extends Controller
         $all = Event::all();
         $hoy = Carbon::today();
 
+        $bladers = Profile::orderBy('points', 'DESC')->paginate(10);
         $antiguos = $all->where("date", "<", Carbon::now());
         $nuevos = $all->where("date", ">=", Carbon::now());
 
-        return view('inicio.index', compact('nuevos', 'antiguos'));
+        return view('inicio.index', compact('bladers', 'nuevos', 'antiguos'));
     }
 
     /**

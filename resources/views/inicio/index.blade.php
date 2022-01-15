@@ -10,6 +10,26 @@
     </div>
 
     <div class="container nuevas-recetas">
+        <h2 class="titulo-categoria text-uppercase mb-4 mt-4">Ranking SBBL</h2>
+
+        <div class="owl-carousel owl-theme">
+                @foreach ($bladers as $blader)
+                        <div class="card">
+                            <img src="/storage/{{ $blader->imagen }}"  class="card-img-top">
+
+                            <div class="card-body">
+                                <h3>{{ $blader->user->name }}</h3>
+
+                                <h4>Región: {{ ($blader->region) ? $blader->region->name : 'No definida'}}</h4>
+                                <h4>Puntos: {{ $blader->points }}</h4>
+
+                            </div>
+                        </div>
+                @endforeach
+        </div>
+    </div>
+
+    <div class="container nuevas-recetas">
         <h2 class="titulo-categoria text-uppercase mb-4 mt-4">Próximos eventos</h2>
 
         <div class="owl-carousel owl-theme">
