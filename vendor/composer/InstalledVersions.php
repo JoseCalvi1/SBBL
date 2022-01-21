@@ -25,16 +25,25 @@ class InstalledVersions
 private static $installed = array (
   'root' => 
   array (
-    'pretty_version' => '1.0.0+no-version-set',
-    'version' => '1.0.0.0',
+    'pretty_version' => 'dev-master',
+    'version' => 'dev-master',
     'aliases' => 
     array (
     ),
-    'reference' => NULL,
+    'reference' => '728532041c53ea3bcd6c9e2ca1095bc1d87fd12a',
     'name' => 'laravel/laravel',
   ),
   'versions' => 
   array (
+    'artesaos/seotools' => 
+    array (
+      'pretty_version' => 'v0.20.2',
+      'version' => '0.20.2.0',
+      'aliases' => 
+      array (
+      ),
+      'reference' => '94fbb3b331dab7433b335a9aafd74a312a5525fe',
+    ),
     'asm89/stack-cors' => 
     array (
       'pretty_version' => 'v2.0.3',
@@ -464,12 +473,12 @@ private static $installed = array (
     ),
     'laravel/laravel' => 
     array (
-      'pretty_version' => '1.0.0+no-version-set',
-      'version' => '1.0.0.0',
+      'pretty_version' => 'dev-master',
+      'version' => 'dev-master',
       'aliases' => 
       array (
       ),
-      'reference' => NULL,
+      'reference' => '728532041c53ea3bcd6c9e2ca1095bc1d87fd12a',
     ),
     'laravel/sail' => 
     array (

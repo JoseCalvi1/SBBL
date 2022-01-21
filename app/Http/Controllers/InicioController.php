@@ -16,7 +16,8 @@ class InicioController extends Controller
      */
     public function index()
     {
-        $all = Event::all();
+
+        $all = Event::orderBy('id', 'DESC')->get();
         $hoy = Carbon::today();
 
         $bladers = Profile::orderBy('points', 'DESC')->paginate(5);

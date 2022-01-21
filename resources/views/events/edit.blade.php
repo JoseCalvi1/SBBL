@@ -99,6 +99,7 @@
                     <option disabled selected>- Selecciona una imagen -</option>
                     <option value="quedada">Quedada</option>
                     <option value="ranking">Ranking</option>
+                    <option value="duelo">Duelo</option>
                 </select>
 
                     @error('imagen')

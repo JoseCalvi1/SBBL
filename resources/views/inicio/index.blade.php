@@ -1,5 +1,12 @@
 @extends('layouts.app')
 
+@section('head')
+    <meta name="description" content="Organización oficial de Beyblade España"/>
+    <meta name="keywords" content="sbbl, beyblade, españa, torneo, liga, discord, app, web, evento, ranking, español, hasbro, takara, tomy, burst"/>
+    <meta name="author" content="José A. Calvillo Olmedo" />
+    <meta name="copyright" content="SBBL - José A. Calvillo Olmedo" />
+@endsection
+
 @section('styles')
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/OwlCarousel2/2.3.4/assets/owl.carousel.min.css" integrity="sha512-tS3S5qG0BlhnQROyJXvNjeEM4UpMXHrQfTGmbQ1gKmelCxlSEBUaxhRBj/EFTzpbP4RVSrpEikbmdJobCvhE3g==" crossorigin="anonymous" />
 @endsection
@@ -11,8 +18,8 @@
 
     <div class="container">
         <div class="row">
-    <div class="col-md-9">
-    <div class="row nuevas-recetas">
+    <div class="col-md-8 p-2">
+    <div class="row m-0">
         <h2 class="titulo-categoria text-uppercase mb-4 mt-4">Próximos eventos</h2>
 
         <div class="owl-carousel owl-theme">
@@ -33,7 +40,7 @@
         </div>
     </div>
 
-    <div class="row nuevas-recetas">
+    <div class="row m-0">
         <h2 class="titulo-categoria text-uppercase mb-4 mt-4">Eventos realizados</h2>
 
         <div class="owl-carousel owl-theme">
@@ -54,6 +61,7 @@
         </div>
     </div>
 </div>
+<div class="col-md-1"></div>
 <div class="col-md-3 nuevas-recetas">
     <h2 class="titulo-categoria text-uppercase mb-4 mt-4">Top 5 SBBL</h2>
     <div style="width: 100%;color:rgb(196, 196, 2);border:2px solid rgb(196, 196, 2);"><span style="font-weight:bold;border-right:2px solid rgb(196, 196, 2);padding:2px 4px">1º</span><span style="padding: 2px 4px;">{{ $bladers[0]->user->name }} <span style="float: right;padding-right:2px;">{{ $bladers[0]->points }} ptos</span></span></div>

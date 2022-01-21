@@ -20,6 +20,7 @@
             @else
                 Por definir
             @endif</h3>
+            <h3 class="text-center mb-2 mt-5 mt-md-0 text-primary">Puntos: {{ $profile->points }}</h3>
             <a href="{{ route('profiles.edit', ['profile' => Auth::user()->id]) }}" class="btn btn-outline-info mr-2 text-uppercase font-weight-bold w-100">
                 Editar perfil
             </a>
