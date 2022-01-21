@@ -61,21 +61,50 @@
                 </div>
             </div>
         </div>
-        <div class="col-md-12 nuevas-recetas">
-            <h2 class="titulo-categoria text-uppercase mb-4 mt-4">Top 5 SBBL</h2>
+        <div class="col-md-12 text-center">
+            <h3 class="titulo-categoria text-uppercase mb-4 mt-4">Top 5 SBBL</h3>
+            <div class="row" style="align-items: center;display: flex;justify-content: center;">
+                <div class="col-md-2 text-center top-1 ranking-card m-2">
+                    <h2 class="font-weight-bold">1º</h2>
+                    <h3>{{ $bladers[0]->user->name }}</h3>
+                    <h4>{{ ($bladers[0]->region) ? $bladers[0]->region->name : 'No definida'}}</h4>
+                    <h2>{{ $bladers[0]->points }}<span style="font-size:0.5em">pts</span></h2>
+                </div>
+                <div class="col-md-2 text-center top-2 ranking-card m-2">
+                    <h2 class="font-weight-bold">2º</h2>
+                    <h3>{{ $bladers[1]->user->name }}</h3>
+                    <h4>{{ ($bladers[1]->region) ? $bladers[1]->region->name : 'No definida'}}</h4>
+                    <h2>{{ $bladers[1]->points }}<span style="font-size:0.5em">pts</span></h2>
+                </div>
+                <div class="col-md-2 text-center top-3 ranking-card m-2">
+                    <h2 class="font-weight-bold">3º</h2>
+                    <h3>{{ $bladers[2]->user->name }}</h3>
+                    <h4>{{ ($bladers[2]->region) ? $bladers[2]->region->name : 'No definida'}}</h4>
+                    <h2>{{ $bladers[2]->points }}<span style="font-size:0.5em">pts</span></h2>
+                </div>
+                <div class="col-md-2 text-center ranking-card m-2">
+                    <h2 class="font-weight-bold">4º</h2>
+                    <h3>{{ $bladers[3]->user->name }}</h3>
+                    <h4>{{ ($bladers[3]->region) ? $bladers[3]->region->name : 'No definida'}}</h4>
+                    <h2>{{ $bladers[3]->points }}<span style="font-size:0.5em">pts</span></h2>
+                </div>
+                <div class="col-md-2 text-center ranking-card m-2">
+                    <h2 class="font-weight-bold">5º</h2>
+                    <h3>{{ $bladers[4]->user->name }}</h3>
+                    <h4>{{ ($bladers[4]->region) ? $bladers[4]->region->name : 'No definida'}}</h4>
+                    <h2>{{ $bladers[4]->points }}<span style="font-size:0.5em">pts</span></h2>
+                </div>
+            </div>
 
-            <div class="col-md-2 text-center top-1"><h3>{{ $bladers[0]->user->name }}</h3></div>
-
-
-
-            <div style="width: 100%;color:rgb(196, 196, 2);border:2px solid rgb(196, 196, 2);"><span style="font-weight:bold;border-right:2px solid rgb(196, 196, 2);padding:2px 4px">1º</span><span style="padding: 2px 4px;">{{ $bladers[0]->user->name }} <span style="float: right;padding-right:2px;">{{ $bladers[0]->points }} ptos</span></span></div>
-            <div style="width: 100%;color:rgb(71, 71, 70);border:2px solid rgb(71, 71, 70);"><span style="font-weight:bold;border-right:1px solid rgb(71, 71, 70);padding:2px 4px">2º</span><span style="padding: 2px 4px;">{{ $bladers[1]->user->name }} <span style="float: right;padding-right:2px;">{{ $bladers[1]->points }} ptos</span></span></div>
-            <div style="width: 100%;color:rgb(126, 77, 3);border:2px solid rgb(126, 77, 3);"><span style="font-weight:bold;border-right:1px solid rgb(126, 77, 3);padding:2px 4px">3º</span><span style="padding: 2px 4px;">{{ $bladers[2]->user->name }} <span style="float: right;padding-right:2px;">{{ $bladers[2]->points }} ptos</span></span></div>
-            <div style="width: 100%;color:rgb(36, 35, 35);border:2px solid rgb(36, 35, 35);"><span style="font-weight:bold;border-right:1px solid rgb(36, 35, 35);padding:2px 4px">4º</span><span style="padding: 2px 4px;">{{ $bladers[3]->user->name }} <span style="float: right;padding-right:2px;">{{ $bladers[3]->points }} ptos</span></span></div>
-            <div style="width: 100%;color:rgb(36, 35, 35);border:2px solid rgb(36, 35, 35);"><span style="font-weight:bold;border-right:1px solid rgb(36, 35, 35);padding:2px 4px">5º</span><span style="padding: 2px 4px;">{{ $bladers[4]->user->name }} <span style="float: right;padding-right:2px;">{{ $bladers[4]->points }} ptos</span></span></div>
-
-            <h2 class="titulo-categoria text-uppercase mb-4 mt-4">Top Stamina</h2>
-            <div style="width: 100%;color:rgb(196, 196, 2);border:2px solid rgb(196, 196, 2);"><span style="font-weight:bold;border-right:2px solid rgb(196, 196, 2);padding:2px 4px">1º</span><span style="padding: 2px 4px;">{{ $stamina->user->name }} <span style="float: right;padding-right:2px;">TIEMPO</span></span></div>
+            <h3 class="titulo-categoria text-uppercase mb-4 mt-4">Categorías especiales</h3>
+            <div class="row" style="align-items: center;display: flex;justify-content: center;">
+                <div class="col-md-2 text-center top-1 ranking-card m-2">
+                    <h2 class="font-weight-bold">Top Stamina</h2>
+                    <h3>{{ $stamina->user->name }}</h3>
+                    <h4>{{ ($stamina->region) ? $stamina->region->name : 'No definida'}}</h4>
+                    <h2>2:43:08</span></h2>
+                </div>
+            </div>
         </div>
     </div>
 </div>

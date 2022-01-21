@@ -135,6 +135,28 @@ trix-editor {
   border-bottom: 3px solid #ED4646 !important;
 }
 
+/* RANKING HOME */
+.ranking-card {
+  padding: 10px 5px;
+  background-color: rgba(153, 152, 149, 0.1);
+  margin: 0px auto;
+}
+
+.top-1 {
+  border-top: 4px solid gold;
+  background-color: rgba(255, 217, 0, 0.1);
+}
+
+.top-2 {
+  border-top: 4px solid silver;
+  background-color: rgba(192, 192, 192, 0.1);
+}
+
+.top-3 {
+  border-top: 4px solid #cd7f32;
+  background-color: rgba(205, 127, 50, 0.1);
+}
+
 .like-btn {
   display: inline-block;
   Cursor: pointer;
@@ -7555,6 +7577,7 @@ button.bg-dark:focus {
 }
 
 .position-sticky {
+  position: -webkit-sticky !important;
   position: sticky !important;
 }
 
@@ -7574,8 +7597,9 @@ button.bg-dark:focus {
   z-index: 1030;
 }
 
-@supports (position: sticky) {
+@supports ((position: -webkit-sticky) or (position: sticky)) {
   .sticky-top {
+    position: -webkit-sticky;
     position: sticky;
     top: 0;
     z-index: 1020;
