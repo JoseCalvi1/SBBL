@@ -20,7 +20,8 @@
 
                         <div class="row">
                                 @foreach ($antiguos as $antiguo)
-                                        <div class="col-md-4 card m-2" style="padding:0px !important; max-width: 30%;">
+                                    <div class="col-md-4 p-2">
+                                        <div class="card">
                                             <img src="/storage/{{ $antiguo->imagen }}"  class="card-img-top">
 
                                             <div class="card-body">
@@ -32,6 +33,7 @@
                                                 <a href="{{ route('events.show', ['event' => $antiguo->id]) }}" class="btn btn-primary d-block font-weight-bold text-uppercase">Ver evento</a>
                                             </div>
                                         </div>
+                                    </div>
                                 @endforeach
                         </div>
                     </div>
@@ -43,7 +45,8 @@
 
                         <div class="row">
                                 @foreach ($nuevos as $nuevo)
-                                        <div class="col-md-4 card m-2" style="padding:0px !important; max-width: 30%;">
+                                    <div class="col-md-4 p-2">
+                                        <div class="card">
                                             <img src="/storage/{{ $nuevo->imagen }}"  class="card-img-top">
 
                                             <div class="card-body">
@@ -55,6 +58,7 @@
                                                 <a href="{{ route('events.show', ['event' => $nuevo->id]) }}" class="btn btn-primary d-block font-weight-bold text-uppercase">Ver evento</a>
                                             </div>
                                         </div>
+                                    </div>
                                 @endforeach
                         </div>
                     </div>
