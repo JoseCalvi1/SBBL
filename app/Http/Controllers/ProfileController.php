@@ -4,7 +4,9 @@ namespace App\Http\Controllers;
 
 use App\Models\Profile;
 use App\Models\Region;
+use App\Models\Versus;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class ProfileController extends Controller
 {
@@ -53,7 +55,9 @@ class ProfileController extends Controller
      */
     public function show(Profile $profile)
     {
-        return view('profiles.show', compact('profile'));
+        $versus = Versus::where('user_id_1', '=' , $profile->user_id)->orWhere('user_id_2', '=' , $profile->user_id)->get();
+
+        return view('profiles.show', compact('profile','versus'));
     }
 
     /**

@@ -29,6 +29,13 @@ Route::get('/events/{event}/edit', [App\Http\Controllers\EventController::class,
 Route::put('/events/{event}', [App\Http\Controllers\EventController::class, 'update'])->name('events.update');
 Route::delete('/events/{event}', [App\Http\Controllers\EventController::class, 'destroy'])->name('events.destroy');
 
+Route::get('/versus', [App\Http\Controllers\VersusController::class, 'index'])->name('versus.index');
+Route::get('/versus/create', [App\Http\Controllers\VersusController::class, 'create'])->name('versus.create');
+Route::get('/versus/{duel}', [App\Http\Controllers\VersusController::class, 'show'])->name('versus.show');
+Route::post('/versus', [App\Http\Controllers\VersusController::class, 'store'])->name('versus.store');
+Route::get('/versus/{duel}/edit', [App\Http\Controllers\VersusController::class, 'edit'])->name('versus.edit');
+Route::put('/versus/{duel}', [App\Http\Controllers\VersusController::class, 'update'])->name('versus.update');
+
 Route::get('/profiles', [App\Http\Controllers\ProfileController::class, 'index'])->name('profiles.index');
 Route::get('/profiles/{profile}', [App\Http\Controllers\ProfileController::class, 'show'])->name('profiles.show');
 Route::get('/profiles/{profile}/edit', [App\Http\Controllers\ProfileController::class, 'edit'])->name('profiles.edit');

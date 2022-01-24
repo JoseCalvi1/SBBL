@@ -22,4 +22,9 @@ class Event extends Model
     public function assists() {
         return $this->belongsToMany(User::class, 'assist_event');
     }
+
+    public function event()
+    {
+        return $this->belongsToMany(Versus::class, 'event_id');
+    }
 }

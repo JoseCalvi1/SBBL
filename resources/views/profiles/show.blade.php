@@ -27,6 +27,21 @@
 
         </div>
     </div>
+    <h2 class="titulo-categoria text-uppercase mb-4 mt-4">Duelos</h2>
+    <div class="row mt-2">
+        @foreach ($versus as $duel)
+            <div class="col-md-4 pb-2">
+                {{ $duel->another }}
+                <div class="versus-card" style="border: 1px solid black;padding: 5px 10px;">
+                    <p class="mb-1 font-weight-bold"><a style="text-decoration: none;color:black;" href="{{ route('events.show', ['event' => $duel->event->id]) }}">{{ $duel->event->name }}</a></p>
+                    <span style="{{ ($duel->user_id_1 == $duel->winner) ? 'color:green' : 'color:red' }}">{{ $duel->versus_1->name }}</span>
+                    vs
+                    <span style="{{ ($duel->user_id_2 == $duel->winner) ? 'color:green' : 'color:red' }}">{{ $duel->versus_2->name }}</span>
+                    <span class="float-right border-left pl-2"><a style="text-decoration:none;color:black;" href="{{ $duel->url }}">Ver video</a></span>
+                </div>
+            </div>
+        @endforeach
+    </div>
 </div>
 
 

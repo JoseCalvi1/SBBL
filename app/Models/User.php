@@ -60,4 +60,14 @@ class User extends Authenticatable
     {
         return $this->belongsToMany(Event::class, 'assist_event');
     }
+
+    public function versus_1()
+    {
+        return $this->belongsToMany(Versus::class, 'user_id_1');
+    }
+
+    public function versus_2()
+    {
+        return $this->belongsToMany(Versus::class, 'user_id_2');
+    }
 }

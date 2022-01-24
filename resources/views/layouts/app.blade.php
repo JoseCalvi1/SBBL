@@ -75,11 +75,28 @@
                             </li>
 
                                 @if (Auth::user()->is_admin)
-                                    <li class="nav-item">
-                                        <a class="nav-link" href="{{ route('events.index') }}">
+
+                                    <li class="nav-item dropdown">
+                                        <a id="navbarDropdown" class="nav-link dropdown-toggle" href="#" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" v-pre>
                                             {{ 'ADMIN' }}
                                         </a>
+
+                                        <div class="dropdown-menu dropdown-menu-right" aria-labelledby="navbarDropdown">
+                                            <a class="nav-link" href="{{ route('events.index') }}">
+                                                {{ 'EVENTOS' }}
+                                            </a>
+
+                                            <a class="nav-link" href="{{ route('versus.index') }}">
+                                                {{ 'DUELOS' }}
+                                            </a>
+
+                                            <form id="logout-form" action="{{ route('logout') }}" method="POST" class="d-none">
+                                                @csrf
+                                            </form>
+                                        </div>
                                     </li>
+
+
                                 @endif
                             <li class="nav-item dropdown">
                                 <a id="navbarDropdown" class="nav-link dropdown-toggle" href="#" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" v-pre>
