@@ -52,37 +52,64 @@
                         <h2>{{ $bladers[4]->points }}<span style="font-size:0.5em">pts</span></h2>
                     </div>
                 </div>
-
-                <h3 class="titulo-categoria text-uppercase mb-4 mt-4">Categorías especiales</h3>
-                <div class="row" style="align-items: center;display: flex;justify-content: center;">
-                    <div class="col-md-2 text-center top-1 ranking-card m-2">
-                        <h2 class="font-weight-bold">Top Stamina</h2>
-                        <h3>{{ $stamina->user->name }}</h3>
-                        <h4>{{ ($stamina->region) ? $stamina->region->name : 'No definida'}}</h4>
-                        <h2>2:43:08</span></h2>
+            </div>
+        </div>
+    </div>
+            <div class="container-fluid">
+                <div class="row mt-5 mb-5" style="background-color: rgb(205, 127, 50, 0.6)">
+                    <div class="col-md-8 text-white p-4" style="font-size: 1.2em; font-weight:bold;">
+                        <h2>¡VUELVE EL TORNEO NACIONAL DE RESISTENCIA!</h2>
+                        <p>Ha vuelto el torneo donde bladers de toda España compiten por hacer el combo
+                            que más tiempo aguante girando en el estadio.</p>
+                            <p>Graba tu vídeo y envíalo por WeTransfer o compártelo por drive al correo sbbl.oficial@gmail.com</p>
+                            <p>*Plazo disponible hasta el domingo 27 de marzo de 2022*</p>
+                    </div>
+                    <div class="col-md-4 text-center text-white p-4" style="border: unset;">
+                        <div style="border: 5px solid white;">
+                            <h2 class="font-weight-bold">Campeón actual</h2>
+                            <h3>{{ $stamina->user->name }}</h3>
+                            <h4>{{ ($stamina->region) ? $stamina->region->name : 'No definida'}}</h4>
+                            <h2>2:43:08</span></h2>
+                        </div>
                     </div>
                 </div>
             </div>
 
-            <div class="col-md-12 p-2">
+    <div class="container mt-2">
+        <div class="col-md-12 p-4">
             <div class="row m-0">
-                <h2 class="titulo-categoria text-uppercase mb-4 mt-4">Próximos eventos</h2>
+                <div class="col-md-1 text-center">
+                    <h2 style="background-color: #ED4646; color:white; height: 100%;" class="pt-2 pb-2">
+                        <span style="display: block"> P </span>
+                        <span style="display: block"> R </span>
+                        <span style="display: block"> Ó </span>
+                        <span style="display: block"> X </span>
+                        <span style="display: block"> I </span>
+                        <span style="display: block"> M </span>
+                        <span style="display: block"> O </span>
+                        <span style="display: block"> S </span>
+                    </h2>
+                </div>
 
-                <div class="owl-carousel owl-theme">
-                        @foreach ($nuevos as $nuevo)
-                                <div class="card">
-                                    <img src="/storage/{{ $nuevo->imagen }}"  class="card-img-top">
+                <div class="col-md-10">
+                    <div class="row m-0">
+                    <div class="owl-carousel owl-theme">
+                            @foreach ($nuevos as $nuevo)
+                                    <div class="card">
+                                        <img src="/storage/{{ $nuevo->imagen }}"  class="card-img-top" style="opacity: 0.4;">
+                                        <p class="text-center p-4" style="position: absolute;font-weight:900;font-size:2em;">{{ $nuevo->location }} <br>({{ $nuevo->region->name }})</p>
+                                        <div class="card-body">
+                                            <h3>{{ $nuevo->name }}</h3>
 
-                                    <div class="card-body">
-                                        <h3>{{ $nuevo->name }}</h3>
 
-                                        <p>{{ $nuevo->location }} <b>({{ $nuevo->region->name }})</b></p>
-                                        <p><event-date fecha="{{ $nuevo->date }}"></event-date></p>
+                                            <p><event-date fecha="{{ $nuevo->date }}"></event-date></p>
 
-                                        <a href="{{ route('events.show', ['event' => $nuevo->id]) }}" class="btn btn-primary d-block font-weight-bold text-uppercase">Ver evento</a>
+                                            <a href="{{ route('events.show', ['event' => $nuevo->id]) }}" class="btn btn-primary d-block font-weight-bold text-uppercase">Ver evento</a>
+                                        </div>
                                     </div>
-                                </div>
-                        @endforeach
+                            @endforeach
+                    </div>
+                    </div>
                 </div>
             </div>
 
@@ -108,7 +135,6 @@
             </div>
         </div>
     </div>
-</div>
 
     <div class="container-fluid nuevas-recetas my-2 pb-2" style="background-color: #a7a4a4">
         <div class="row">
