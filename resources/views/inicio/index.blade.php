@@ -15,6 +15,22 @@
     <div>
         <img src="../images/banner.jpg" class="w-100">
     </div>
+    <div class="container-fluid" style="background: rgba(128, 128, 128, 0.4)">
+        <div class="row">
+            <ul class="navbar-nav m-auto" style="flex-direction: row;">
+                <li class="nav-item">
+                    <a class="nav-link ml-2 mr-2" style="color: black; font-weight: bold; font-size:1.2em;" href="{{ route('inicio.rules') }}">
+                        {{ 'REGLAMENTO' }}
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link ml-2 mr-2" style="color: black; font-weight: bold; font-size:1.2em;" href="{{ route('inicio.combo') }}">
+                        {{ 'RCG' }}
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </div>
 
     <div class="container">
         <div class="row">

@@ -49,6 +49,16 @@ class InicioController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
+    public function rules()
+    {
+        return view('inicio.rules');
+    }
+
+    /**
+     * Display a listing of the resource.
+     *
+     * @return \Illuminate\Http\Response
+     */
     public function combo()
     {
         return view('inicio.combo');

@@ -63,12 +63,6 @@
                         </li>
 
                         <li class="nav-item">
-                            <a class="nav-link" href="{{ route('inicio.combo') }}">
-                                {{ 'RCG' }}
-                            </a>
-                        </li>
-
-                        <li class="nav-item">
                             <a class="nav-link" href="{{ route('inicio.events') }}">
                                 {{ 'EVENTOS' }}
                             </a>
