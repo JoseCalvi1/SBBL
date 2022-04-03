@@ -130,5 +130,86 @@
         </main>
     </div>
 </body>
+<footer style="background-color:rgb(119, 120, 120)">
+    <div class="container">
+        <div class="row text-white">
+            <div class="col-md-6 col-sm-12 p-5">
+                <h3>Sobre nosotros</h3>
+                <br>Bienvenidos a la Spanish Beyblade Battling League, o más sencillo, la SBBL.
+
+                <br><br>La SBBL es una liga/organización creada con el objetivo de reunir a todos los bladers residentes en España dentro de una comunidad más grande y fuerte.
+
+                Con esto intentaríamos conseguir llevar a cabo mayor número de eventos, quedadas y torneos en todo nuestro país.
+
+                <br><br>Si eres blader, resides en España y buscas una liga donde competir y disfrutar del beyblade con otr@s como tú, este es tu sitio.
+
+                <br><br>!Únete a la SBBL!</p>
+            </div>
+            <div class="col-md-3 col-sm-12 p-5">
+                <h3>Categorías</h3>
+                <ul class="navbar-nav ml-auto">
+                    <li class="nav-item">
+                        <a class="nav-link text-white" href="{{ route('inicio.events') }}">
+                            {{ 'Eventos' }}
+                        </a>
+                    </li>
+
+                    <li class="nav-item">
+                        <a class="nav-link text-white" href="{{ route('profiles.index') }}">
+                            {{ 'Bladers' }}
+                        </a>
+                    </li>
+
+                    <li class="nav-item">
+                        <a class="nav-link text-white" href="{{ route('inicio.events') }}">
+                            {{ 'Duelos' }}
+                        </a>
+                    </li>
+
+                    <li class="nav-item">
+                        <a class="nav-link text-white" href="{{ route('inicio.events') }}">
+                            {{ 'Entrenamiento' }}
+                        </a>
+                    </li>
+                </ul>
+            </div>
+            <div class="col-md-3 col-sm-12 p-5">
+                <h3>Links útiles</h3>
+                <ul class="navbar-nav ml-auto">
+                    <li class="nav-item">
+                        <a class="nav-link text-white" href="{{ route('profiles.show', ['profile' => Auth::user()->id]) }}">
+                            {{ 'Ver perfil' }}
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link text-white" href="{{ route('inicio.rules') }}">
+                            {{ 'Reglamento' }}
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link text-white" href="{{ route('inicio.rules') }}">
+                            {{ 'Contacta con nosotros' }}
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link text-white" href="{{ route('inicio.rules') }}">
+                            {{ 'Política de privacidad' }}
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link text-white" href="{{ route('logout') }}"
+                        onclick="event.preventDefault();
+                                      document.getElementById('logout-form').submit();">
+                         {{ __('Logout') }}
+                        </a>
+                    </li>
+                </ul>
+            </div>
+            <div class="col-md-12 text-center pt-4 pb-2 border-top">
+                Copyright 2022 - Spanish Beyblade Battling League
+            </div>
+        </div>
+    </div>
+</footer>
 @yield('scripts')
 </html>
