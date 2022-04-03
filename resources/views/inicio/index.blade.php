@@ -74,59 +74,74 @@
             <div class="container-fluid">
                 <div class="row mt-5 mb-5" style="background-color: rgb(205, 127, 50, 0.6)">
                     <div class="col-md-8 text-white p-4" style="font-size: 1.2em; font-weight:bold;">
-                        <h2>¡VUELVE EL TORNEO NACIONAL DE RESISTENCIA!</h2>
+                        <h2>¡TORNEO NACIONAL DE RESISTENCIA!</h2>
                         <p>Ha vuelto el torneo donde bladers de toda España compiten por hacer el combo
                             que más tiempo aguante girando en el estadio.</p>
                             <p>Graba tu vídeo y envíalo por WeTransfer o compártelo por drive al correo sbbl.oficial@gmail.com</p>
-                            <p>*Plazo disponible hasta el domingo 27 de marzo de 2022*</p>
+                            <p>*Actualmente no hay plazo disponible*</p>
                     </div>
                     <div class="col-md-4 text-center text-white p-4" style="border: unset;">
                         <div style="border: 5px solid white;">
                             <h2 class="font-weight-bold">Campeón actual</h2>
                             <h3>{{ $stamina->user->name }}</h3>
                             <h4>{{ ($stamina->region) ? $stamina->region->name : 'No definida'}}</h4>
-                            <h2>2:43:08</span></h2>
+                            <h2>3:28:19</h2>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="container">
+                <div class="row border-bottom pb-4">
+                    <div class="col-md-4">
+                        <div class="rrss text-center p-4">
+                            <a style="display: inline-block; font-size:1.2em; font-weight: bold; text-decoration:none; color: rgb(66, 31, 243);" target="_blank" href="https://discord.gg/ve7dgpCF9x"><i class="fab fa-discord" style="font-size:4em;"></i> <br>Únete a nuestro<br><b>Discord</b></a>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="rrss text-center p-4">
+                            <a style="display: inline-block; font-size:1.2em; font-weight: bold; text-decoration:none; color: rgb(160, 0, 112);" target="_blank" href="https://www.instagram.com/sbbl_oficial/"><i class="fab fa-instagram" style="font-size:4em;"></i> <br>Síguenos en<br><b>Instagram</b></a>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="rrss text-center p-4">
+                            <a style="display: inline-block; font-size:1.2em; font-weight: bold; text-decoration:none; color: rgb(207, 1, 1);" target="_blank" href="https://www.youtube.com/channel/UCMXJL2jR3ev0CNbhPrfSOwQ"><i class="fab fa-youtube" style="font-size:4em;"></i> <br> Suscríbete en <br><b>YouTube</b></a>
                         </div>
                     </div>
                 </div>
             </div>
 
     <div class="container mt-2">
-        <div class="col-md-12 p-4">
+        <div class="col-md-12 p-4 text-center">
+            <h3 class="titulo-categoria text-uppercase mb-4 mt-4">Próximos eventos</h3>
             <div class="row m-0">
-                <div class="col-md-1 text-center">
-                    <h2 style="background-color: #ED4646; color:white; height: 100%;" class="pt-2 pb-2">
-                        <span style="display: block"> P </span>
-                        <span style="display: block"> R </span>
-                        <span style="display: block"> Ó </span>
-                        <span style="display: block"> X </span>
-                        <span style="display: block"> I </span>
-                        <span style="display: block"> M </span>
-                        <span style="display: block"> O </span>
-                        <span style="display: block"> S </span>
-                    </h2>
-                </div>
+                @for ($i = 0; $i < 3; $i++)
+                    @if (isset($nuevos[$i]))
+                        <div class="col-md-4 pb-2">
+                            <div class="card">
+                                <span style="width: 100%; background: url('/storage/{{ $nuevos[$i]->imagen }}') bottom center no-repeat;background-size: cover;">
+                                    <p class="text-center p-4 mb-0" style="font-weight:900;font-size:2em;background-color: rgba(0, 0, 0, 0.4);color: white">{{ $nuevos[$i]->location }} <br>{{ $nuevos[$i]->region->name }}</p>
+                                </span>
+                                    <div class="card-body">
+                                    <h3>{{ $nuevos[$i]->name }}</h3>
 
-                <div class="col-md-10">
-                    <div class="row m-0">
-                    <div class="owl-carousel owl-theme">
-                            @foreach ($nuevos as $nuevo)
-                                    <div class="card">
-                                        <img src="/storage/{{ $nuevo->imagen }}"  class="card-img-top" style="opacity: 0.4;">
-                                        <p class="text-center p-4" style="position: absolute;font-weight:900;font-size:2em;">{{ $nuevo->location }} <br>({{ $nuevo->region->name }})</p>
-                                        <div class="card-body">
-                                            <h3>{{ $nuevo->name }}</h3>
-
-
-                                            <p><event-date fecha="{{ $nuevo->date }}"></event-date></p>
-
-                                            <a href="{{ route('events.show', ['event' => $nuevo->id]) }}" class="btn btn-primary d-block font-weight-bold text-uppercase">Ver evento</a>
-                                        </div>
-                                    </div>
-                            @endforeach
+                                    <p><event-date fecha="{{ $nuevos[$i]->date }}"></event-date></p>
+                                </div>
+                                <a href="{{ route('events.show', ['event' => $nuevos[$i]->id]) }}" class="d-block font-weight-bold text-uppercase pt-2 pb-2" style="text-decoration: none; color:white;width: 100%; background-color:rgb(87, 170, 244);">Ver evento</a>
+                            </div>
+                        </div>
+                    @else
+                    <div class="col-md-4  pb-2">
+                        <div class="card">
+                            <div class="card-body">
+                                <h3 class="border-bottom pt-4 pb-5">Prepárate para los nuevos eventos</h3>
+                                <h3 class="pt-5">Próximamente</h3>
+                            </div>
+                        </div>
                     </div>
-                    </div>
-                </div>
+                    @endif
+
+                @endfor
             </div>
 
             <div class="row m-0">
