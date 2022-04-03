@@ -16,6 +16,8 @@
                     <p style="{{ ($duel->user_id_2 == $duel->winner) ? 'color:green' : 'color:red' }}">{{ $duel->versus_2->name }}</p>
                     @if ($duel->url)
                         <a class="d-block font-weight-bold text-uppercase pt-2 pb-2" style="text-decoration: none; color:white;width: 100%; background-color:rgb(87, 170, 244);" href="{{ $duel->url }}">Ver video</a>
+                    @else
+                        <p>*Vídeo disponible próximamente*</p>
                     @endif
                 </div>
             </div>
