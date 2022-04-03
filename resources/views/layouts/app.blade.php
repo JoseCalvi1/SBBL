@@ -161,7 +161,7 @@
                     </li>
 
                     <li class="nav-item">
-                        <a class="nav-link text-white" href="{{ route('inicio.events') }}">
+                        <a class="nav-link text-white" href="{{ route('versus.all') }}">
                             {{ 'Duelos' }}
                         </a>
                     </li>
@@ -177,11 +177,6 @@
                 <h3>Links útiles</h3>
                 <ul class="navbar-nav ml-auto">
                     <li class="nav-item">
-                        <a class="nav-link text-white" href="{{ route('profiles.show', ['profile' => Auth::user()->id]) }}">
-                            {{ 'Ver perfil' }}
-                        </a>
-                    </li>
-                    <li class="nav-item">
                         <a class="nav-link text-white" href="{{ route('inicio.rules') }}">
                             {{ 'Reglamento' }}
                         </a>
@@ -192,15 +187,8 @@
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link text-white" href="{{ route('inicio.rules') }}">
+                        <a class="nav-link text-white" href="{{ route('inicio.privacy') }}">
                             {{ 'Política de privacidad' }}
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link text-white" href="{{ route('logout') }}"
-                        onclick="event.preventDefault();
-                                      document.getElementById('logout-form').submit();">
-                         {{ __('Logout') }}
                         </a>
                     </li>
                 </ul>

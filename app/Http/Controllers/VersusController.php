@@ -24,6 +24,18 @@ class VersusController extends Controller
     }
 
     /**
+     * Display a listing of the resource.
+     *
+     * @return \Illuminate\Http\Response
+     */
+    public function show_all()
+    {
+        $versus = Versus::all();
+
+        return view('versus.all', compact('versus'));
+    }
+
+    /**
      * Show the form for creating a new resource.
      *
      * @return \Illuminate\Http\Response

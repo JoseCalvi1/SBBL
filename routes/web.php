@@ -22,6 +22,7 @@ Route::get('/home', [App\Http\Controllers\InicioController::class, 'index'])->na
 Route::get('/all-events', [App\Http\Controllers\InicioController::class, 'events'])->name('inicio.events');
 Route::get('/random-combo-generator', [App\Http\Controllers\InicioController::class, 'combo'])->name('inicio.combo');
 Route::get('/rules', [App\Http\Controllers\InicioController::class, 'rules'])->name('inicio.rules');
+Route::get('/policy-privacy', [App\Http\Controllers\InicioController::class, 'privacy'])->name('inicio.privacy');
 
 Route::get('/events', [App\Http\Controllers\EventController::class, 'index'])->name('events.index');
 Route::get('/events/create', [App\Http\Controllers\EventController::class, 'create'])->name('events.create');
@@ -37,6 +38,7 @@ Route::get('/versus/{duel}', [App\Http\Controllers\VersusController::class, 'sho
 Route::post('/versus', [App\Http\Controllers\VersusController::class, 'store'])->name('versus.store');
 Route::get('/versus/{duel}/edit', [App\Http\Controllers\VersusController::class, 'edit'])->name('versus.edit');
 Route::put('/versus/{duel}', [App\Http\Controllers\VersusController::class, 'update'])->name('versus.update');
+Route::get('/all-versus', [App\Http\Controllers\VersusController::class, 'show_all'])->name('versus.all');
 
 Route::get('/profiles', [App\Http\Controllers\ProfileController::class, 'index'])->name('profiles.index');
 Route::get('/profiles/{profile}', [App\Http\Controllers\ProfileController::class, 'show'])->name('profiles.show');

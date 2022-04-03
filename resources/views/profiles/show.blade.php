@@ -37,7 +37,9 @@
                     <span style="{{ ($duel->user_id_1 == $duel->winner) ? 'color:green' : 'color:red' }}">{{ $duel->versus_1->name }}</span>
                     vs
                     <span style="{{ ($duel->user_id_2 == $duel->winner) ? 'color:green' : 'color:red' }}">{{ $duel->versus_2->name }}</span>
-                    <span class="float-right border-left pl-2"><a style="text-decoration:none;color:black;" href="{{ $duel->url }}">Ver video</a></span>
+                    @if ($duel->url)
+                        <span class="float-right border-left pl-2"><a style="text-decoration:none;color:black;" href="{{ $duel->url }}">Ver video</a></span>
+                    @endif
                 </div>
             </div>
         @endforeach
