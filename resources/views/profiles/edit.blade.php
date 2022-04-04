@@ -69,6 +69,13 @@
                         <option value="LeanValhalla">Lean Valhalla</option>
                         <option value="RanzoKiyama">Ranzo Kiyama</option>
                         <option value="BellDaikokuten">Bell Daikokuten</option>
+                        <option value="IlliaMao">Illya Mao</option>
+                        <option value="FreeHoya">Free De La Hoya</option>
+                        <option value="Delta">Delta Zakuro</option>
+                        <option value="Hikaru">Hikaru Hasahi</option>
+                        <option value="Arman">Arman Kusaba</option>
+                        <option value="Hyuga">Hyuga Hasahi</option>
+                        <option value="Dante">Dante Koryu</option>
                     </select>
 
                         @error('default_img')
