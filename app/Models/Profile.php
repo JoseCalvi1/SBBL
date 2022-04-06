@@ -23,4 +23,9 @@ class Profile extends Model
     {
         return $this->belongsToMany(Trophy::class, 'profilestrophies', 'profiles_id' /* de profiles */, 'trophies_id' /* de trophies */)->withPivot('count');
     }
+
+    public function challenges()
+    {
+        return $this->belongsToMany(Trophy::class, 'challenges_profiles', 'profiles_id' /* de profiles */, 'challenges_id' /* de challenges */)->withPivot('done');
+    }
 }

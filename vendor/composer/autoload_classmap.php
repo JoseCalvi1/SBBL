@@ -35,6 +35,7 @@ return array(
     'App\\Models\\Event' => $baseDir . '/app/Models/Event.php',
     'App\\Models\\Profile' => $baseDir . '/app/Models/Profile.php',
     'App\\Models\\Region' => $baseDir . '/app/Models/Region.php',
+    'App\\Models\\Trophy' => $baseDir . '/app/Models/Trophy.php',
     'App\\Models\\User' => $baseDir . '/app/Models/User.php',
     'App\\Models\\Versus' => $baseDir . '/app/Models/Versus.php',
     'App\\Models\\Video' => $baseDir . '/app/Models/Video.php',

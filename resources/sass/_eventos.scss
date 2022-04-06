@@ -146,3 +146,19 @@ trix-editor {
     border-top: 4px solid rgba(205, 127, 50) ;
     background-color: rgba(205, 127, 50, 0.1);
 }
+
+.hard {
+    border-left: 4px solid gold;
+    background-color: rgba(255, 217, 0, 0.1);
+    padding: 20px 10px;
+}
+.medium {
+    border-left: 4px solid silver;
+    background-color: rgba(192, 192, 192, 0.1);
+    padding: 20px 10px;
+}
+.easy {
+    border-left: 4px solid rgba(205, 127, 50) ;
+    background-color: rgba(205, 127, 50, 0.1);
+    padding: 20px 10px;
+}

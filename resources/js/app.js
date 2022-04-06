@@ -30,6 +30,8 @@ Vue.component('event-date', require('./components/EventDate.vue').default);
 Vue.component('event-delete', require('./components/EventDelete.vue').default);
 Vue.component('assist-button', require('./components/AssistButton.vue').default);
 Vue.component('generate-button', require('./components/GenerateButton.vue').default);
+Vue.component('check-challenge', require('./components/checkChallenge.vue').default);
+
 
 /**
  * Next, we will create a fresh Vue application instance and attach it to

@@ -167,8 +167,8 @@
                     </li>
 
                     <li class="nav-item">
-                        <a class="nav-link text-white" href="{{ route('inicio.events') }}">
-                            {{ 'Entrenamiento' }}
+                        <a class="nav-link text-white" href="{{ route('challenges.index') }}">
+                            {{ 'Desafíos' }}
                         </a>
                     </li>
                 </ul>

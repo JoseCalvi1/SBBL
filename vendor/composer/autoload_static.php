@@ -559,6 +559,7 @@ class ComposerStaticInite7f146cd756667586734ec7a2e7319e8
         'App\\Models\\Event' => __DIR__ . '/../..' . '/app/Models/Event.php',
         'App\\Models\\Profile' => __DIR__ . '/../..' . '/app/Models/Profile.php',
         'App\\Models\\Region' => __DIR__ . '/../..' . '/app/Models/Region.php',
+        'App\\Models\\Trophy' => __DIR__ . '/../..' . '/app/Models/Trophy.php',
         'App\\Models\\User' => __DIR__ . '/../..' . '/app/Models/User.php',
         'App\\Models\\Versus' => __DIR__ . '/../..' . '/app/Models/Versus.php',
         'App\\Models\\Video' => __DIR__ . '/../..' . '/app/Models/Video.php',

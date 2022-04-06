@@ -28,6 +28,13 @@
                         {{ 'DUELOS' }}
                     </a>
                 </li>
+                @if (isset(Auth::user()->id))
+                <li class="nav-item">
+                    <a class="nav-link ml-2 mr-2" style="color: black; font-weight: bold; font-size:1.2em;" href="{{ route('challenges.index') }}">
+                        {{ 'DESAFÍOS' }}
+                    </a>
+                </li>
+                @endif
                 <li class="nav-item">
                     <a class="nav-link ml-2 mr-2" style="color: black; font-weight: bold; font-size:1.2em;" href="{{ route('inicio.combo') }}">
                         {{ 'RCG' }}
