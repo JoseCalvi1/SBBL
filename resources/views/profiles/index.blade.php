@@ -46,7 +46,7 @@
                     $supremo = 0;
                 @endphp
                 <div class="row">
-                @foreach ($bladers as $blader)
+                @foreach ($bladers_s2 as $blader)
                     <div class="col-md-3 py-2 mb-2">
                         <a href="" style="width:100%;" id="editCompany" data-toggle="modal" data-target='#practice_modal{{ $blader->id }}'>
                         <div class="card" style="{{ ($supremo < 4) ? 'border:2px solid #FFDC00;' : '' }}">
@@ -60,7 +60,7 @@
                                 <h3 class="text-center"><b style="color:#FFDC00;padding">{{ ($supremo < 4) ? '4 SUPREMOS' : '' }}</b></h3>
                                 <h3><b>{{ $blader->user->name }}</b></h3>
                                 <h4>Región: {{ ($blader->region) ? $blader->region->name : 'No definida'}}</h4>
-                                <h4>Puntos: {{ $blader->points }}</h4>
+                                <h4>Puntos: {{ $blader->points_s2 }}</h4>
                             </div>
                         </div>
                     </a>

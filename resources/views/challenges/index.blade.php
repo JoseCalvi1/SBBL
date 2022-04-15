@@ -10,7 +10,15 @@
             <div class="col-md-4 px-2 my-3">
                 <div class="{{ $challenge->difficulty }}">
                     {{ $challenge->name }}
-                    @if (isset($challenge->profiles[0]) && $challenge->profiles[0]->pivot->challenges_id == $challenge->id && $challenge->profiles[0]->pivot->profiles_id == Auth::user()->id)
+                    @php
+                        foreach ($challenge->profiles as $profile) {
+                            if ($profile->id == Auth::user()->id) {
+                                $cprofile = $profile;
+                            }
+                        }
+                    @endphp
+
+                    @if (isset($cprofile) && $cprofile->pivot->challenges_id == $challenge->id && $cprofile->pivot->profiles_id == Auth::user()->id)
                     <form id="formD_{{ $key }}" method="POST" style="float:right;" action="{{ route('challenges.destroy', ['challenges_profiles_id' => $challenge->id]) }}" enctype="multipart/form-data" novalidate>
                         @csrf
                         @method('DELETE')

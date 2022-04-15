@@ -5,6 +5,7 @@ namespace App\Policies;
 use App\Models\Profile;
 use App\Models\User;
 use Illuminate\Auth\Access\HandlesAuthorization;
+use Illuminate\Support\Facades\Auth;
 
 class ProfilePolicy
 {
@@ -53,6 +54,9 @@ class ProfilePolicy
      */
     public function update(User $user, Profile $profile)
     {
+        if (Auth::user()->is_admin == 1) {
+            return Auth::user()->is_admin === 1;
+        }
         // Se revisa si el usuario autenticado es el que quiere modificar el perfil
         return $user->id === $profile->user_id;
     }

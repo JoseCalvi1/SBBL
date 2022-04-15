@@ -85,7 +85,6 @@
                         @enderror
                 </div>
 
-
                 <!-- <div class="form-group mt-4">
                     <label for="imagen">Tu imagen</label>
                     <input

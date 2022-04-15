@@ -22,8 +22,21 @@ class ProfileController extends Controller
     public function index()
     {
         $bladers = Profile::orderBy('points', 'DESC')->get();
+        $bladers_s2 = Profile::orderBy('points_s2', 'DESC')->get();
 
-        return view('profiles.index', compact('bladers'));
+        return view('profiles.index', compact('bladers', 'bladers_s2'));
+    }
+
+    /**
+     * Display a listing of the resource.
+     *
+     * @return \Illuminate\Http\Response
+     */
+    public function indexAdmin()
+    {
+        $profiles = Profile::orderBy('id', 'ASC')->get();
+
+        return view('profiles.indexAdmin', compact('profiles'));
     }
 
     /**
@@ -119,6 +132,31 @@ class ProfileController extends Controller
 
         // Guardar información
         return redirect()->action('App\Http\Controllers\ProfileController@show', $profile);
+    }
+
+    /**
+     * Update the specified resource in storage.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @param  \App\Models\Profile  $profile
+     * @return \Illuminate\Http\Response
+     */
+    public function updatePoints(Request $request, Profile $profile)
+    {
+
+        // Validar
+        $data = request()->validate([
+            'points_s2' => 'required',
+        ]);
+
+        // Asignar los valores
+        $profile->points_s2 = $data['points_s2'];
+
+        $profile->save();
+
+        $profiles = Profile::orderBy('id', 'ASC')->get();
+
+        return view('profiles.indexAdmin', compact('profiles'));
     }
 
     /**

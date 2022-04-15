@@ -53,31 +53,31 @@
                         <h2 class="font-weight-bold">1º</h2>
                         <h3>{{ $bladers[0]->user->name }}</h3>
                         <h4>{{ ($bladers[0]->region) ? $bladers[0]->region->name : 'No definida'}}</h4>
-                        <h2>{{ $bladers[0]->points }}<span style="font-size:0.5em">pts</span></h2>
+                        <h2>{{ $bladers[0]->points_s2 }}<span style="font-size:0.5em">pts</span></h2>
                     </div>
                     <div class="col-md-2 text-center top-2 ranking-card m-2">
                         <h2 class="font-weight-bold">2º</h2>
                         <h3>{{ $bladers[1]->user->name }}</h3>
                         <h4>{{ ($bladers[1]->region) ? $bladers[1]->region->name : 'No definida'}}</h4>
-                        <h2>{{ $bladers[1]->points }}<span style="font-size:0.5em">pts</span></h2>
+                        <h2>{{ $bladers[1]->points_s2 }}<span style="font-size:0.5em">pts</span></h2>
                     </div>
                     <div class="col-md-2 text-center top-3 ranking-card m-2">
                         <h2 class="font-weight-bold">3º</h2>
                         <h3>{{ $bladers[2]->user->name }}</h3>
                         <h4>{{ ($bladers[2]->region) ? $bladers[2]->region->name : 'No definida'}}</h4>
-                        <h2>{{ $bladers[2]->points }}<span style="font-size:0.5em">pts</span></h2>
+                        <h2>{{ $bladers[2]->points_s2 }}<span style="font-size:0.5em">pts</span></h2>
                     </div>
                     <div class="col-md-2 text-center ranking-card m-2">
                         <h2 class="font-weight-bold">4º</h2>
                         <h3>{{ $bladers[3]->user->name }}</h3>
                         <h4>{{ ($bladers[3]->region) ? $bladers[3]->region->name : 'No definida'}}</h4>
-                        <h2>{{ $bladers[3]->points }}<span style="font-size:0.5em">pts</span></h2>
+                        <h2>{{ $bladers[3]->points_s2 }}<span style="font-size:0.5em">pts</span></h2>
                     </div>
                     <div class="col-md-2 text-center ranking-card m-2">
                         <h2 class="font-weight-bold">5º</h2>
                         <h3>{{ $bladers[4]->user->name }}</h3>
                         <h4>{{ ($bladers[4]->region) ? $bladers[4]->region->name : 'No definida'}}</h4>
-                        <h2>{{ $bladers[4]->points }}<span style="font-size:0.5em">pts</span></h2>
+                        <h2>{{ $bladers[4]->points_s2 }}<span style="font-size:0.5em">pts</span></h2>
                     </div>
                 </div>
             </div>
@@ -127,7 +127,7 @@
         <div class="col-md-12 p-4 text-center">
             <h3 class="titulo-categoria text-uppercase mb-4 mt-4">Próximos eventos</h3>
             <div class="row m-0">
-                @for ($i = 0; $i < 3; $i++)
+                @for ($i = 3; $i > 0; $i--)
                     @if (isset($nuevos[$i]))
                         <div class="col-md-4 pb-2">
                             <div class="card">

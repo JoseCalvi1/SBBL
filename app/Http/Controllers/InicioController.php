@@ -20,7 +20,7 @@ class InicioController extends Controller
         $all = Event::orderBy('id', 'DESC')->get();
         $hoy = Carbon::today();
 
-        $bladers = Profile::orderBy('points', 'DESC')->paginate(5);
+        $bladers = Profile::orderBy('points_s2', 'DESC')->paginate(5);
         $stamina = Profile::where('user_id', 1)->first();
         $antiguos = $all->where("date", "<", Carbon::now());
         $nuevos = $all->where("date", ">=", Carbon::now());

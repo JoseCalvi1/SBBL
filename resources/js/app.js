@@ -28,7 +28,6 @@ Vue.use(VueSweetalert2);
 Vue.component('example-component', require('./components/ExampleComponent.vue').default);
 Vue.component('event-date', require('./components/EventDate.vue').default);
 Vue.component('event-delete', require('./components/EventDelete.vue').default);
-Vue.component('assist-button', require('./components/AssistButton.vue').default);
 Vue.component('generate-button', require('./components/GenerateButton.vue').default);
 Vue.component('check-challenge', require('./components/checkChallenge.vue').default);
 
@@ -43,9 +42,6 @@ const app = new Vue({
     el: '#app',
 });
 
-jQuery('.like-btn').on('click', function() {
-    jQuery(this).toggleClass('like-active');
- });
 
 
 // Carousel con OWL

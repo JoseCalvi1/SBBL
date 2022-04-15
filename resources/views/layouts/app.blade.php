@@ -90,6 +90,10 @@
                                                 {{ 'DUELOS' }}
                                             </a>
 
+                                            <a class="nav-link" href="{{ route('profiles.indexAdmin') }}">
+                                                {{ 'PERFILES' }}
+                                            </a>
+
                                             <form id="logout-form" action="{{ route('logout') }}" method="POST" class="d-none">
                                                 @csrf
                                             </form>
@@ -194,7 +198,30 @@
                 </ul>
             </div>
             <div class="col-md-12 text-center pt-4 pb-2 border-top">
-                Copyright 2022 - Spanish Beyblade Battling League
+                <div class="row">
+                <div class="col-md-6 col-sm-12 font-weight-bold">
+                    Copyright 2022 - Spanish Beyblade Battling League
+                </div>
+                <div class="col-md-6 col-sm-12">
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="rrss text-center">
+                                <a style="display: inline-block; font-size:1.2em; font-weight: bold; text-decoration:none; color: white;" target="_blank" href="https://discord.gg/ve7dgpCF9x">Discord <i class="fab fa-discord" style="font-size:1em;"></i></a>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="rrss text-center">
+                                <a style="display: inline-block; font-size:1.2em; font-weight: bold; text-decoration:none; color: white;" target="_blank" href="https://www.instagram.com/sbbl_oficial/">Instagram <i class="fab fa-instagram" style="font-size:1em;"></i></a>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="rrss text-center">
+                                <a style="display: inline-block; font-size:1.2em; font-weight: bold; text-decoration:none; color: white;" target="_blank" href="https://www.youtube.com/channel/UCMXJL2jR3ev0CNbhPrfSOwQ">Youtube <i class="fab fa-youtube" style="font-size:1em;"></i></a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
             </div>
         </div>
     </div>

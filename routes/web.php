@@ -41,9 +41,11 @@ Route::put('/versus/{duel}', [App\Http\Controllers\VersusController::class, 'upd
 Route::get('/all-versus', [App\Http\Controllers\VersusController::class, 'show_all'])->name('versus.all');
 
 Route::get('/profiles', [App\Http\Controllers\ProfileController::class, 'index'])->name('profiles.index');
+Route::get('/profiles-admin', [App\Http\Controllers\ProfileController::class, 'indexAdmin'])->name('profiles.indexAdmin');
 Route::get('/profiles/{profile}', [App\Http\Controllers\ProfileController::class, 'show'])->name('profiles.show');
 Route::get('/profiles/{profile}/edit', [App\Http\Controllers\ProfileController::class, 'edit'])->name('profiles.edit');
 Route::put('/profiles/{profile}', [App\Http\Controllers\ProfileController::class, 'update'])->name('profiles.update');
+Route::put('/profiles-admin/{profile}', [App\Http\Controllers\ProfileController::class, 'updatePoints'])->name('profiles.updatePoints');
 
 Route::get('/challenges', [App\Http\Controllers\ChallengeController::class, 'index'])->name('challenges.index');
 Route::post('/challenges', [App\Http\Controllers\ChallengeController::class, 'store'])->name('challenges.store');
