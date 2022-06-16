@@ -9,9 +9,11 @@
                 <ol>
                     <li> Número máximo de eventos oficiales al mes: <b>2</b>.</li>
                     <li> Número mínimo de blader: <b>4</b>.</li>
-                    <li> Los duelos serán a <b>3 puntos</b> (el primer blader en conseguir 3 puntos ganará).</li>
+                    <li> Los duelos serán a <b>3 puntos</b> (el primer blader en conseguir 3 puntos o más ganará).</li>
                     <li> Final superviviente: <b>1 punto</b> | Final fuera de estadio: <b>1 puntos</b> | Burst Finish: <b>2 puntos</b> (Si el estadio es el DB el final fuera de pista sumará <b>2 puntos</b>).</li>
                     <li> Número máximo de combos por persona: <b>5</b>.</li>
+                    <li> El torneo será un todos contra todos en los que cada ronda se compondrá de duelos entre los bladers siendo tantas rondas sean necesarias para que todos se enfrenten con todos una vez.</li>
+                    <li>Antes de empezar el duelo cada blader decidirá el orden de entre sus 3 o 5 combos enfrentándose a <b>un solo punto</b> el primer combo de cada blader, después el segundo y así hasta llegar a 3 puntos o más.</li>
                     <li> De dichos combos, <b>solo uno podrá ser de doble giro</b>.</li>
                     <li>Los beys de doble giro podrán cambiarse <b>antes de su encuentro</b> independientemente a su posición inicial. Si ambos beys pueden cambiar de giro, ambos contendientes <b>decidirán una señal</b> para cambiar y otra para dejarlo como está.</li>
                     <li>En caso de empate entre 2 combos, <b>se repetirá el combate entre ellos</b> y, si vuelve a haber empate, <b>se pasará a los siguientes combos</b> del orden previamente establecido.</li>
@@ -27,20 +29,34 @@
                     <li><b>No se pueden repetir piezas en un mismo deck ni modificarlas</b>.</li>
                 </ol>
             </div>
-            <div class="col-md-6 col-sm-12">
-                <h3 class="titulo-categoria text-uppercase mb-4 mt-4">Reglamento Duelos</h3>
+            <div class="col-md-6 col-sm-12" id="duelos">
+                <h3 class="titulo-categoria text-uppercase mb-4 mt-4">Duelos</h3>
                 <ol>
                     <li>Un duelo es un combate individual por decks entre <b>dos bladers con las mismas normas y puntuación que en los torneos</b> (3g o 5g)</li>
+                    <li>Si estáis usando 3g y utilizáis los 3 combos se decide un nuevo orden, si es 5g se empieza otra vez con el mismo orden.</li>
                     <li>Cada blader puede participar en un total de <b>6 duelos mensuales</b></li>
                     <li>Dos bladers pueden enfrentarse entre ellos un máximo de <b>una vez a la semana</b></li>
+                    <li>Antes de empezar el duelo cada blader decidirá el orden de entre sus 3 o 5 combos enfrentándose a <b>un solo punto</b> el primer combo de cada blader, después el segundo y así hasta llegar a 3 puntos o más.</li>
                     <li>Al ganador del duelo se le <b>sumará 1 punto</b> en el SBBL-rank</li>
                     <li>El duelo tiene que <b>ser grabado, enseñando los combos antes de emepezar cada combate, y desde el lanzamiento hasta que uno de los beys gane</b>. (Para evitar conflictos futuros y comprobar que los combos son legales)</li>
                 </ol>
             </div>
             <div class="col-md-6 col-sm-12">
-                <h3 class="titulo-categoria text-uppercase mb-4 mt-4">Reglamento Resistencia</h3>
+                <h3 class="titulo-categoria text-uppercase mb-4 mt-4">Duelos por parejas</h3>
+                <ol>
+                    <li>Un duelo por parejas es un combate de 2vs2 en el cual cada blader contará con un único combo a su elección.</li>
+                    <li>El duelo será a 3 puntos por lo que quien llegue antes a  3 o más puntos ganará el duelo.</li>
+                    <li>Tanto ganar por energía, salida de pista o burst contará 1 punto de los 3 necesarios para ganar el duelo.</li>
+                    <li>Los estadios permitidos son: Coloso, Decagone, B-50 Wide y B-00 Big Beystadium.</li>
+                    <li>Cada parejas de bladers puede participar en un total de 1  duelos semanal.</li>
+                    <li>A cada integrante de la pareja ganadora del duelo se le sumará 1 punto en el SBBL-rank.</li>
+                    <li>El duelo tiene que ser grabado, enseñando los combos antes de empezar el combate, y desde el lanzamiento hasta que uno de los beys gane. (Para evitar conflictos futuros y comprobar que los combos son legales).</li>
+                </ol>
+            </div>
+            <div class="col-md-12">
+                <h3 class="titulo-categoria text-uppercase mb-4 mt-4">Torneo de Resistencia</h3>
                 <p>El torneo de resistencia es un evento nacional online que se realiza cada 2 o 3 meses para hacer algo junto con toda la comunidad española.</p>
-                <p>Este consiste en que cada blader realiza un combo a su elección con piezas de la generación burst pudiendo ser estas de Takara Tomy, Hasbro, o marcas fake que se asemejen lo máximo posible a las anteriorexs mencionadas.</p>
+                <p>Este consiste en que cada blader realiza un combo a su elección con piezas de la generación burst pudiendo ser estas de Takara Tomy, Hasbro, o marcas fake que se asemejen lo máximo posible a las anteriores mencionadas.</p>
                 <p>Una vez tenga el combo, el blader tiene que grabarse lanzándolo <b>en un estadio</b> y a ser posible con un cronómetro o reloj al lado para verificar que el video no ha sufrido ninguna manipulación.</p>
                 <p>Este video tiene que ser compartido a la dirección de correo <b>sbbl.oficial@gmail.com</b>.</p>
                 <p>Todos los participantes del torneo recibirán 1 punto en el ranking ya que creemos que lo importante de este tipo de torneo es la participación y ganas de querer hacer algo en comunidad con nuestros compañeros.</p>

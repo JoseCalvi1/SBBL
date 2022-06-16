@@ -91,6 +91,24 @@
                     @enderror
             </div>
 
+            <div class="form-group">
+                <label for="iframe">Iframe</label>
+
+                <input type="text"
+                    name="iframe"
+                    class="form-control @error('iframe') is-invalid @enderror"
+                    id="iframe"
+                    placeholder="Iframe"
+                    value="{{ $event->iframe }}"
+                    />
+
+                    @error('iframe')
+                        <span class="invalid-feedback d-block" role="alert">
+                            <strong>{{$message}}</strong>
+                        </span>
+                    @enderror
+            </div>
+
 
             <div class="form-group">
                 <label for="imagen">Imagen por defecto</label>

@@ -21,6 +21,7 @@ class CreateEventsTable extends Migration
             $table->foreignId('region_id')->nullable()->constrained()->onDelete('cascade');
             $table->date('date')->nullable();
             $table->string('beys')->nullable();
+            $table->text('iframe')->nullable();
             $table->timestamps();
         });
     }

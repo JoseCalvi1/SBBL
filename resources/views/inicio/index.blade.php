@@ -34,6 +34,11 @@
                         {{ 'DESAFÍOS' }}
                     </a>
                 </li>
+                <li class="nav-item">
+                    <a class="nav-link ml-2 mr-2" style="color: black; font-weight: bold; font-size:1.2em;" href="{{ route('inicio.contact') }}">
+                        {{ 'CONTACTA' }}
+                    </a>
+                </li>
                 @endif
                 <li class="nav-item">
                     <a class="nav-link ml-2 mr-2" style="color: black; font-weight: bold; font-size:1.2em;" href="{{ route('inicio.combo') }}">
@@ -127,7 +132,7 @@
         <div class="col-md-12 p-4 text-center">
             <h3 class="titulo-categoria text-uppercase mb-4 mt-4">Próximos eventos</h3>
             <div class="row m-0">
-                @for ($i = 3; $i > 0; $i--)
+                @for ($i = 0; $i < 3; $i++)
                     @if (isset($nuevos[$i]))
                         <div class="col-md-4 pb-2">
                             <div class="card">

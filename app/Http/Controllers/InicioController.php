@@ -6,6 +6,8 @@ use App\Models\Event;
 use App\Models\Profile;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Mail;
 
 class InicioController extends Controller
 {
@@ -42,6 +44,43 @@ class InicioController extends Controller
         $nuevos = $all->where("date", ">=", Carbon::now());
 
         return view('inicio.events', compact('nuevos', 'antiguos'));
+    }
+
+    /**
+     * Display a listing of the resource.
+     *
+     * @return \Illuminate\Http\Response
+     */
+    public function contact()
+    {
+        return view('inicio.contact');
+    }
+
+    public function sendMail(Request $request) {
+
+        $this->validate($request, [
+            'subject' => 'required',
+            'message' => 'required'
+        ]);
+
+        $email = Auth::user()->email;
+
+
+        Mail::send('contact_email',
+             array(
+                 'name' => Auth::user()->name,
+                 'email' => $email,
+                 'subject' => $request->get('asunto'),
+                 'message' => $request->get('mensaje'),
+             ), function($message) use ($request)
+               {
+                    $email = Auth::user()->email;
+                    $message->from($email);
+                    $message->to('sbbl.oficial@gmail.com');
+               });
+
+          return back()->with('success', 'Thank you for contact us!');
+
     }
 
     /**

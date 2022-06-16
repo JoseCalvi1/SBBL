@@ -185,11 +185,13 @@
                             {{ 'Reglamento' }}
                         </a>
                     </li>
+                    @if (isset(Auth::user()->id))
                     <li class="nav-item">
-                        <a class="nav-link text-white" href="{{ route('inicio.rules') }}">
+                        <a class="nav-link text-white" href="{{ route('inicio.contact') }}">
                             {{ 'Contacta con nosotros' }}
                         </a>
                     </li>
+                    @endif
                     <li class="nav-item">
                         <a class="nav-link text-white" href="{{ route('inicio.privacy') }}">
                             {{ 'Política de privacidad' }}
