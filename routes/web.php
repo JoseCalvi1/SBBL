@@ -23,6 +23,7 @@ Route::get('/all-events', [App\Http\Controllers\InicioController::class, 'events
 Route::get('/random-combo-generator', [App\Http\Controllers\InicioController::class, 'combo'])->name('inicio.combo');
 Route::get('/rules', [App\Http\Controllers\InicioController::class, 'rules'])->name('inicio.rules');
 Route::get('/policy-privacy', [App\Http\Controllers\InicioController::class, 'privacy'])->name('inicio.privacy');
+Route::get('/contact-us', [App\Http\Controllers\InicioController::class, 'contact'])->name('inicio.contact');
 
 Route::get('/events', [App\Http\Controllers\EventController::class, 'index'])->name('events.index');
 Route::get('/events/create', [App\Http\Controllers\EventController::class, 'create'])->name('events.create');
@@ -31,6 +32,9 @@ Route::post('/events', [App\Http\Controllers\EventController::class, 'store'])->
 Route::get('/events/{event}/edit', [App\Http\Controllers\EventController::class, 'edit'])->name('events.edit');
 Route::put('/events/{event}', [App\Http\Controllers\EventController::class, 'update'])->name('events.update');
 Route::delete('/events/{event}', [App\Http\Controllers\EventController::class, 'destroy'])->name('events.destroy');
+
+Route::post('/events/{event}', [App\Http\Controllers\EventController::class, 'assist'])->name('events.assist');
+Route::delete('/assist/{event}', [App\Http\Controllers\EventController::class, 'noassist'])->name('events.noassist');
 
 Route::get('/versus', [App\Http\Controllers\VersusController::class, 'index'])->name('versus.index');
 Route::get('/versus/create', [App\Http\Controllers\VersusController::class, 'create'])->name('versus.create');

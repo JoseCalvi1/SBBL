@@ -6,6 +6,7 @@ use App\Models\Event;
 use App\Models\Region;
 use App\Models\Video;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
 class EventController extends Controller
@@ -83,8 +84,10 @@ class EventController extends Controller
     public function show(Event $event)
     {
         $videos = DB::select('select * from videos where event_id = '.$event->id);
+        $assists = $event->users()->get();
+        $suscribe = DB::table('assist_user_event')->where('user_id', Auth::user()->id)->where('event_id', $event->id)->first();
 
-        return view('events.show', compact('event', 'videos'));
+        return view('events.show', compact('event', 'videos', 'assists', 'suscribe'));
     }
 
     /**
@@ -115,6 +118,7 @@ class EventController extends Controller
             'location' => 'required',
             'region_id' => 'required',
             'event_date' => 'required',
+            'iframe' => 'min:6',
         ]);
 
         // Si el usuario sube una imagen
@@ -128,6 +132,7 @@ class EventController extends Controller
         $event->location = $data['location'];
         $event->region_id = $data['region_id'];
         $event->date = $data['event_date'];
+        $event->iframe = $data['iframe'];
 
         $event->save();
 
@@ -146,5 +151,25 @@ class EventController extends Controller
         $event->delete();
 
         return redirect()->action('App\Http\Controllers\EventController@index');
+    }
+
+    public function assist(Request $request, Event $event)
+    {
+        DB::table('assist_user_event')->insert([
+            'user_id' => Auth::user()->id,
+            'event_id' => $event->id,
+        ]);
+
+        return redirect()->back();
+    }
+
+    public function noassist(Event $event)
+    {
+        $sql = DB::table('assist_user_event')
+            ->where('user_id', Auth::user()->id)
+            ->where('event_id', $event->id)
+            ->delete();
+
+        return redirect()->back();
     }
 }

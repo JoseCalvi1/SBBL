@@ -27,4 +27,9 @@ class Event extends Model
     {
         return $this->belongsToMany(Versus::class, 'event_id');
     }
+
+    public function users()
+    {
+        return $this->belongsToMany(User::class, 'assist_user_event', 'event_id' /* de subject */, 'user_id' /* de user */);
+    }
 }
