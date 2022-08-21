@@ -18,8 +18,11 @@ class CreateVersusTable extends Migration
             $table->foreignId('user_id_1')->references('id')->on('users');
             $table->foreignId('user_id_2')->references('id')->on('users');
             $table->integer('winner')->default(0);
-            $table->foreignId('event_id')->references('id')->on('events');
+            $table->foreignId('event_id')->references('id')->on('events')->nullable();
             $table->string('url')->nullable();
+            $table->text('matchup')->nullable();
+            $table->string('status')->nullable();
+            $table->string('result')->nullable();
             $table->timestamps();
         });
     }

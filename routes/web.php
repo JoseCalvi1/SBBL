@@ -55,5 +55,12 @@ Route::get('/challenges', [App\Http\Controllers\ChallengeController::class, 'ind
 Route::post('/challenges', [App\Http\Controllers\ChallengeController::class, 'store'])->name('challenges.store');
 Route::delete('/challenges/{challenges_profiles_id}', [App\Http\Controllers\ChallengeController::class, 'destroy'])->name('challenges.destroy');
 
+Route::get('/generations', [App\Http\Controllers\VersusController::class, 'generation'])->name('generations.index');
+Route::get('/gversus', [App\Http\Controllers\VersusController::class, 'versus'])->name('generations.versus');
+Route::get('/generation/create', [App\Http\Controllers\VersusController::class, 'gcreate'])->name('generations.create');
+Route::post('/generations', [App\Http\Controllers\VersusController::class, 'gstore'])->name('generations.gstore');
+Route::get('/generations/{versus}/edit', [App\Http\Controllers\VersusController::class, 'gedit'])->name('generations.edit');
+Route::put('/generations/{versus}', [App\Http\Controllers\VersusController::class, 'gupdate'])->name('generations.update');
+
 
 Route::post('/videos', [App\Http\Controllers\VideoController::class, 'store'])->name('videos.store');
