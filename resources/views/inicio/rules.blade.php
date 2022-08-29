@@ -62,6 +62,23 @@
                 <p>Todos los participantes del torneo recibirán 1 punto en el ranking ya que creemos que lo importante de este tipo de torneo es la participación y ganas de querer hacer algo en comunidad con nuestros compañeros.</p>
                 <p>Y por supuesto, el ganador recibirá 1 punto extra para el ranking.</p>
             </div>
+            <div class="col-md-12">
+                <h3 class="titulo-categoria text-uppercase mb-4 mt-4">Reglamento Generations</h3>
+                <ol>
+                    <li>Las reglas son las mismas que con los duelos normales (puntos en el combate, grabación, etc) pero con algunas excepciones</li>
+                    <li>Los duelos están limitados a uno cada 14 días</li>
+                    <li>Los decks están compuestos por combos en los que cada uno de ellos tiene que tener un layer de diferente generación (pudiendo llevar por ejemplo un disco de db con un layer de choz)</li>
+                    <li>Generaciones: Single/Dual/God Layer, Remakes/ChoZ, GT, Sparking y DB/BU</li>
+                    <li>Hay 5 grupos por lo que cada combo tendrá un layer de cada uno de ellos</li>
+                    <li>Para competir en esta modalidad es necesario crear un duelo desde <a href="{{ route('generations.create') }}">este apartado</a></li>
+                    <li>El sistema aleatorizará los emparejamientos debiendo seguir el orden establecido enfrentando las diferentes categorías entre sí</li>
+                    <li>En el duelo se enfrentarán todos los combos y al final se realizará un recuento de cada emparejamiento para determinar al ganador siendo 10 el máximo de puntos que un blader puede ganar si sus combos ganan todos por burst o fuera de pista</li>
+                    <li>Al finalizar el duelo, el blader creador del mismo tendrá que introducir los resultados poniendo primero su puntuación, un guión y la puntuación del jugador 2</li>
+                    <li>Por ejemplo, si yo he creado el duelo y he conseguido 2 puntos y mi rival 4, debo introducir 2 - 4 en el resultado</li>
+                    <li>Una vez hecho esto se tiene que clicar en el botón de cerrar duelo para que cambie de estado a enviado</li>
+                    <li>El duelo aparecerá como enviado a los administradores que en cuanto revisen que la grabación es correcta, confirmarán el duelo y se le sumará 1 punto al ganador en el ranking exclusivo</li>
+                </ol>
+            </div>
         </div>
     </div>
 

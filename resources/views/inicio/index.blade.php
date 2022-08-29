@@ -91,11 +91,13 @@
             <div class="container-fluid">
                 <div class="row mt-5 mb-5" style="background-color: rgb(205, 127, 50, 0.6)">
                     <div class="col-md-8 text-white p-4" style="font-size: 1.2em; font-weight:bold;">
-                        <h2>¡TORNEO NACIONAL DE RESISTENCIA!</h2>
-                        <p>Ha vuelto el torneo donde bladers de toda España compiten por hacer el combo
-                            que más tiempo aguante girando en el estadio.</p>
-                            <p>Graba tu vídeo y envíalo por WeTransfer o compártelo por drive al correo sbbl.oficial@gmail.com</p>
-                            <p>*Actualmente no hay plazo disponible*</p>
+                        <h2 style="font-size: 2em; font-weight:bold;">SBBL GENERATIONS</h2>
+                        <p>¿Te gustaría volver a competir con Victory Valkyrie, Storm Spriggan o Lost Longinus?</p>
+                        <p>¡Este es tu momento!</p>
+                        <p>Desde hoy, en la SBBL podrás disfrutar de su nueva competición exclusiva eligiendo tus mejores combinaciones de toda la generación Burst<br>
+                        desde Valtryek (Single Layer) hasta Zest Achilles (BU)</p>
+                        <p>Las reglas están disponibles en <a style="text-decoration: none; color: black" href="{{ route('inicio.rules') }}">el siguiente apartado</a></p>
+                        <p><a style="text-decoration: none; color: black" href="{{ route('generations.versus') }}">¡Empieza a competir en el ranking exclusivo!</a></p>
                     </div>
                     <div class="col-md-4 text-center text-white p-4" style="border: unset;">
                         <div style="border: 5px solid white;">

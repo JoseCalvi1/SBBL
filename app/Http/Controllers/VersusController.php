@@ -138,7 +138,7 @@ class VersusController extends Controller
         $versus = Versus::where('status', '!=' , null)->orderBy('created_at', 'DESC')->get();
 
         $create = Versus::where('status', '!=' , null)
-                        ->orWhere('user_id_1', '=', Auth::user()->id)
+                        ->where('user_id_1', '=', Auth::user()->id)
                         ->orWhere('user_id_2', '=', Auth::user()->id)
                         ->orderBy('created_at', 'DESC')
                         ->first();
@@ -155,7 +155,13 @@ class VersusController extends Controller
 
     public function gcreate()
     {
-        $users = User::all();
+        $create = Versus::where('status', '!=' , null)
+                        ->where('user_id_1', '=', Auth::user()->id)
+                        ->orWhere('user_id_2', '=', Auth::user()->id)
+                        ->orderBy('created_at', 'DESC')
+                        ->first();
+
+        $users = User::where('id', '!=', Auth::user()->id)->get();
 
         return view('generations.create', compact('users'));
     }
