@@ -25,7 +25,7 @@ class InicioController extends Controller
         $bladers = Profile::orderBy('points_s2', 'DESC')->paginate(5);
         $stamina = Profile::where('user_id', 1)->first();
         $antiguos = $all->where("date", "<", Carbon::now());
-        $nuevos = $all->where("date", ">=", Carbon::now());
+        $nuevos = $all->where("date", ">=", Carbon::now()->subDays(1));
 
         return view('inicio.index', compact('bladers', 'stamina', 'nuevos', 'antiguos'));
     }
@@ -37,11 +37,11 @@ class InicioController extends Controller
      */
     public function events()
     {
-        $all = Event::all();
+        $all = Event::orderBy('date', 'DESC')->get();
         $hoy = Carbon::today();
 
         $antiguos = $all->where("date", "<", Carbon::now());
-        $nuevos = $all->where("date", ">=", Carbon::now());
+        $nuevos = $all->where("date", ">=", Carbon::now()->subDays(1));
 
         return view('inicio.events', compact('nuevos', 'antiguos'));
     }
@@ -57,29 +57,6 @@ class InicioController extends Controller
     }
 
     public function sendMail(Request $request) {
-
-        $this->validate($request, [
-            'subject' => 'required',
-            'message' => 'required'
-        ]);
-
-        $email = Auth::user()->email;
-
-
-        Mail::send('contact_email',
-             array(
-                 'name' => Auth::user()->name,
-                 'email' => $email,
-                 'subject' => $request->get('asunto'),
-                 'message' => $request->get('mensaje'),
-             ), function($message) use ($request)
-               {
-                    $email = Auth::user()->email;
-                    $message->from($email);
-                    $message->to('sbbl.oficial@gmail.com');
-               });
-
-          return back()->with('success', 'Thank you for contact us!');
 
     }
 

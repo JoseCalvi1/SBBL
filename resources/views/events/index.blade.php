@@ -2,6 +2,7 @@
 
 
 @section('content')
+@if (Auth::user()->is_admin)
 <div class="py-4">
     <h2 class="text-center mb-2">Administra los eventos</h2>
 
@@ -38,5 +39,9 @@
 
     </div>
 </div>
-
+@else
+header("Location: /");
+die();
+@endif
 @endsection
+	

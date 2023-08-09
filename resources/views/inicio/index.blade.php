@@ -101,7 +101,7 @@
                     </div>
                     <div class="col-md-4 text-center text-white p-4" style="border: unset;">
                         <div style="border: 5px solid white;">
-                            <h2 class="font-weight-bold">Campeón actual</h2>
+                            <h2 class="font-weight-bold">Torneo resistencia</h2>
                             <h3>{{ $stamina->user->name }}</h3>
                             <h4>{{ ($stamina->region) ? $stamina->region->name : 'No definida'}}</h4>
                             <h2>3:28:19</h2>
@@ -114,7 +114,7 @@
                 <div class="row border-bottom pb-4">
                     <div class="col-md-4">
                         <div class="rrss text-center p-4">
-                            <a style="display: inline-block; font-size:1.2em; font-weight: bold; text-decoration:none; color: rgb(66, 31, 243);" target="_blank" href="https://discord.gg/ve7dgpCF9x"><i class="fab fa-discord" style="font-size:4em;"></i> <br>Únete a nuestro<br><b>Discord</b></a>
+                            <a style="display: inline-block; font-size:1.2em; font-weight: bold; text-decoration:none; color: rgb(66, 31, 243);" target="_blank" href="https://discord.gg/vXhY4nGSwZ"><i class="fab fa-discord" style="font-size:4em;"></i> <br>Únete a nuestro<br><b>Discord</b></a>
                         </div>
                     </div>
                     <div class="col-md-4">

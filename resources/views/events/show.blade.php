@@ -11,6 +11,7 @@
             </div>
             <div class="col-md-7">
                 <h1 class="text-center mb-4">{{ $event->name }}</h1>
+             @if(Auth::user() && $event->date > $hoy)
                 @if (!$suscribe)
                         <form method="POST" action="{{ route('events.assist', ['event' => $event->id]) }}" enctype="multipart/form-data" novalidate style="text-align: center;">
                             @csrf
@@ -25,6 +26,7 @@
                             <button type="submit" class="btn btn-danger mr-2 text-uppercase font-weight-bold m-1 flex-right">No asistiré</button>
                         </form>
                     @endif
+           @endif
 
     <div class="row">
             <div class="col-md-6">
@@ -51,7 +53,7 @@
                 <h4 style="font-weight: bold">Listado de participantes</h4>
                 @if (count($assists) > 0)
                     @foreach ($assists as $assist)
-                        {{ $assist->name.' ('.$assist->profile->points_s2.' puntos)' }} <br>
+                        {{ $assist->name.' ('.$assist->profile->points_s2.' puntos)' }} @if (Auth::user()->is_admin) <b>{{ $assist->email }}</b> @endif <br>
                     @endforeach
                 @else
                     Aún no hay participantes inscritos
@@ -81,3 +83,4 @@
     </article>
 
 @endsection
+	

@@ -34,7 +34,7 @@ class ProfileController extends Controller
      */
     public function indexAdmin()
     {
-        $profiles = Profile::orderBy('id', 'ASC')->get();
+        $profiles = Profile::orderBy('points_s2', 'DESC')->get();
 
         return view('profiles.indexAdmin', compact('profiles'));
     }
@@ -68,7 +68,10 @@ class ProfileController extends Controller
      */
     public function show(Profile $profile)
     {
-        $versus = Versus::where('user_id_1', '=' , $profile->user_id)->orWhere('user_id_2', '=' , $profile->user_id)->get();
+        $versus = Versus::where('status', null)->where(
+           function($query) use ($profile) {
+             return $query->where('user_id_1', '=' , $profile->user_id)->orWhere('user_id_2', '=' , $profile->user_id);
+            })->get();
 
         return view('profiles.show', compact('profile','versus'));
     }

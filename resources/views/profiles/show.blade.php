@@ -45,9 +45,13 @@
     <div class="row mt-2">
         @foreach ($versus as $duel)
             <div class="col-md-4 pb-2">
-                {{ $duel->another }}
+                {{-- $duel->another --}}
                 <div class="versus-card" style="border: 1px solid black;padding: 5px 10px;">
+                   @if($duel->event->id)
                     <p class="mb-1 font-weight-bold"><a style="text-decoration: none;color:black;" href="{{ route('events.show', ['event' => $duel->event->id]) }}">{{ $duel->event->name }}</a></p>
+                   @else
+                    <p class="mb-1 font-weight-bold">GENERATIONS</p>
+                   @endif
                     <span style="{{ ($duel->user_id_1 == $duel->winner) ? 'color:green' : 'color:red' }}">{{ $duel->versus_1->name }}</span>
                     vs
                     <span style="{{ ($duel->user_id_2 == $duel->winner) ? 'color:green' : 'color:red' }}">{{ $duel->versus_2->name }}</span>
@@ -62,3 +66,4 @@
 
 
 @endsection
+			

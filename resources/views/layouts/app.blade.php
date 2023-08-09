@@ -14,9 +14,25 @@
     <!-- Scripts -->
     <script src="{{ asset('js/app.js') }}" defer></script>
 
+     <!-- AdSense -->
+     <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7050675485532592"
+     crossorigin="anonymous"></script>
+
     <!-- Fonts -->
     <link rel="dns-prefetch" href="//fonts.gstatic.com">
     <link href="https://fonts.googleapis.com/css?family=Nunito" rel="stylesheet">
+
+    <link rel="shortcut icon" type="image/png" href="{{ asset('/images/sbbl.png') }}">
+
+    <!-- Global site tag (gtag.js) - Google Analytics -->
+   <script async src="https://www.googletagmanager.com/gtag/js?id=G-KSK91ZXWE3"></script>
+   <script>
+     window.dataLayer = window.dataLayer || [];
+     function gtag(){dataLayer.push(arguments);}
+     gtag('js', new Date());
+
+     gtag('config', 'G-KSK91ZXWE3');
+   </script>
 
     @yield('styles')
 
@@ -74,6 +90,8 @@
                                 </a>
                             </li>
 
+                              
+
                             <li class="nav-item dropdown">
                                 <a id="navbarDropdown" class="nav-link dropdown-toggle" href="#" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" v-pre>
                                     {{ 'GENERATIONS' }}
@@ -91,8 +109,8 @@
                                 </div>
                             </li>
 
-                                @if (Auth::user()->is_admin)
-
+                             
+@if (Auth::user()->is_admin)  
                                     <li class="nav-item dropdown">
                                         <a id="navbarDropdown" class="nav-link dropdown-toggle" href="#" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" v-pre>
                                             {{ 'ADMIN' }}
@@ -225,7 +243,7 @@
                     <div class="row">
                         <div class="col-md-4">
                             <div class="rrss text-center">
-                                <a style="display: inline-block; font-size:1.2em; font-weight: bold; text-decoration:none; color: white;" target="_blank" href="https://discord.gg/ve7dgpCF9x">Discord <i class="fab fa-discord" style="font-size:1em;"></i></a>
+                                <a style="display: inline-block; font-size:1.2em; font-weight: bold; text-decoration:none; color: white;" target="_blank" href="https://discord.gg/vXhY4nGSwZ">Discord <i class="fab fa-discord" style="font-size:1em;"></i></a>
                             </div>
                         </div>
                         <div class="col-md-4">

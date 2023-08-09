@@ -9,6 +9,8 @@
     <a href="{{ route('generations.create') }}" class="btn btn-outline-danger mr-2 mb-4 text-uppercase font-weight-bold">
         Crear duelo
     </a>
+@elseif ($diasDiferencia < 13)
+   <p>Podrás participar en otro duelo en {{ 15 - $diasDiferencia  }} días</p>
 @endif
     <div class="row mt-2">
         @foreach ($versus as $duel)
@@ -31,6 +33,7 @@
                         <a class="d-block font-weight-bold text-uppercase pt-2 pb-2" style="text-decoration: none; color:white;width: 100%; background-color:red;" href="{{ route('generations.edit', ['versus' => $duel->id]) }}">Ver duelo</a>
                     @elseif (Auth::user()->is_admin && $duel->status == 'Pendiente')
                     <form method="POST" action="{{ route('generations.update', ['versus' => $duel->id]) }}" enctype="multipart/form-data" novalidate>
+                        <a class="d-block font-weight-bold text-uppercase pt-2 pb-2" style="text-decoration: none; color:white;width: 100%; background-color:red;" href="{{ route('generations.edit', ['versus' => $duel->id]) }}">Ver duelo</a>
                         @csrf
                         @method('PUT')
                         <div class="form-group">
@@ -53,3 +56,4 @@
 
 @endsection
 
+	

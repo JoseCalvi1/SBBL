@@ -20,7 +20,7 @@ class VersusController extends Controller
      */
     public function index()
     {
-        $versus = Versus::all();
+        $versus = Versus::orderBy('id', 'DESC')->where('status', '=' , null)->get();
 
         return view('versus.index', compact('versus'));
     }
@@ -32,7 +32,7 @@ class VersusController extends Controller
      */
     public function show_all()
     {
-        $versus = Versus::all();
+        $versus = Versus::orderBy('id', 'DESC')->where('status', '=' , null)->get();
 
         return view('versus.all', compact('versus'));
     }
@@ -119,7 +119,7 @@ class VersusController extends Controller
         return redirect()->action('App\Http\Controllers\VersusController@index');
     }
 
-    // SBBL Generations
+// SBBL Generations
 
     /**
      * Display a listing of the resource.
@@ -128,7 +128,7 @@ class VersusController extends Controller
      */
     public function generation()
     {
-        $bladers = Profile::orderBy('points_g1', 'DESC')->get();
+        $bladers = Profile::orderBy('points_g1', 'DESC')->paginate(20);
 
         return view('generations.index', compact('bladers'));
     }
@@ -143,7 +143,7 @@ class VersusController extends Controller
                         ->orderBy('created_at', 'DESC')
                         ->first();
 
-        $diasDiferencia = 14;
+        $diasDiferencia = 6;
         if($create) {
             $hoy = Carbon::parse(Carbon::now());
             $duelo = Carbon::parse($create->created_at);

@@ -19,6 +19,7 @@
                 <div class="row">
                 @foreach ($bladers as $blader)
                     <div class="col-md-3 py-2 mb-2">
+                       <a href="" style="width:100%;" id="editCompany" data-toggle="modal" data-target='#practice_modal{{ $blader->id }}'>
                         <div class="card" style="{{ ($supremo < 4) ? 'border:2px solid #FFDC00;' : '' }}">
                             @if ($blader->imagen)
                                 <img src="/storage/{{ $blader->imagen }}"  class="card-img-top">
@@ -33,6 +34,7 @@
                                 <h4>Puntos: {{ $blader->points }}</h4>
                             </div>
                         </div>
+                      </a>
                     </div>
                         @php
                             $supremo += 1;

@@ -5,12 +5,18 @@ namespace App\Http\Controllers;
 use App\Models\Event;
 use App\Models\Region;
 use App\Models\Video;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
 class EventController extends Controller
 {
+
+    public function __construct()
+    {
+        $this->middleware('auth');
+    }
     /**
      * Display a listing of the resource.
      *
@@ -18,9 +24,8 @@ class EventController extends Controller
      */
     public function index()
     {
-        $events = Event::all();
-
-        return view('events.index', compact('events'));
+       $events = Event::orderBy('date', 'DESC')->get();
+       return view('events.index', compact('events'));
     }
 
     /**
@@ -85,9 +90,14 @@ class EventController extends Controller
     {
         $videos = DB::select('select * from videos where event_id = '.$event->id);
         $assists = $event->users()->get();
-        $suscribe = DB::table('assist_user_event')->where('user_id', Auth::user()->id)->where('event_id', $event->id)->first();
-
-        return view('events.show', compact('event', 'videos', 'assists', 'suscribe'));
+        $hoy = Carbon::now()->subDay()->format('Y-m-d');
+        if(Auth::user()) {
+           $suscribe = DB::table('assist_user_event')->where('user_id', Auth::user()->id)->where('event_id', $event->id)->first();
+        } else {
+           $suscribe[] = 0;
+        }
+        
+        return view('events.show', compact('event', 'videos', 'assists', 'suscribe', 'hoy'));
     }
 
     /**
@@ -173,3 +183,4 @@ class EventController extends Controller
         return redirect()->back();
     }
 }
+		

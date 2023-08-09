@@ -7,7 +7,7 @@
 
     <div class="col-md-10 mx-auto bg-white p-3">
         <a href="{{ route('versus.create') }}" class="btn btn-outline-primary mr-2 mb-4 text-uppercase font-weight-bold">
-            Crear duelo
+            Crear evento
         </a>
 
         <table class="table">

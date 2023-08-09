@@ -62,5 +62,4 @@ Route::post('/generations', [App\Http\Controllers\VersusController::class, 'gsto
 Route::get('/generations/{versus}/edit', [App\Http\Controllers\VersusController::class, 'gedit'])->name('generations.edit');
 Route::put('/generations/{versus}', [App\Http\Controllers\VersusController::class, 'gupdate'])->name('generations.update');
 
-
 Route::post('/videos', [App\Http\Controllers\VideoController::class, 'store'])->name('videos.store');
