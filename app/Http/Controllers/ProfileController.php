@@ -21,10 +21,9 @@ class ProfileController extends Controller
      */
     public function index()
     {
-        $bladers = Profile::orderBy('points', 'DESC')->get();
-        $bladers_s2 = Profile::orderBy('points_s2', 'DESC')->get();
+        $bladers = Profile::orderBy('id', 'ASC')->get();
 
-        return view('profiles.index', compact('bladers', 'bladers_s2'));
+        return view('profiles.index', compact('bladers'));
     }
 
     /**
@@ -34,9 +33,16 @@ class ProfileController extends Controller
      */
     public function indexAdmin()
     {
-        $profiles = Profile::orderBy('points_s2', 'DESC')->get();
+        $profiles = Profile::orderBy('points_s3', 'DESC')->get();
 
         return view('profiles.indexAdmin', compact('profiles'));
+    }
+
+    public function indexAdminX()
+    {
+        $profiles = Profile::orderBy('points_x1', 'DESC')->get();
+
+        return view('profiles.indexAdminX', compact('profiles'));
     }
 
     /**
@@ -149,17 +155,35 @@ class ProfileController extends Controller
 
         // Validar
         $data = request()->validate([
-            'points_s2' => 'required',
+            'points_s3' => 'required',
         ]);
 
         // Asignar los valores
-        $profile->points_s2 = $data['points_s2'];
+        $profile->points_s3 = $data['points_s3'];
 
         $profile->save();
 
         $profiles = Profile::orderBy('id', 'ASC')->get();
 
         return view('profiles.indexAdmin', compact('profiles'));
+    }
+
+    public function updatePointsX(Request $request, Profile $profile)
+    {
+
+        // Validar
+        $data = request()->validate([
+            'points_x1' => 'required',
+        ]);
+
+        // Asignar los valores
+        $profile->points_x1 = $data['points_x1'];
+
+        $profile->save();
+
+        $profiles = Profile::orderBy('id', 'ASC')->get();
+
+        return view('profiles.indexAdminX', compact('profiles'));
     }
 
     /**
@@ -171,5 +195,13 @@ class ProfileController extends Controller
     public function destroy(Profile $profile)
     {
         //
+    }
+
+    public function ranking()
+    {
+        $bladers_s3 = Profile::orderBy('points_s3', 'DESC')->where('points_s3', '!=', 0)->get();
+        $bladers_x1 = Profile::orderBy('points_x1', 'DESC')->where('points_x1', '!=', 0)->get();
+
+        return view('profiles.ranking', compact('bladers_s3', 'bladers_x1'));
     }
 }

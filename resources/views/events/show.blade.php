@@ -32,6 +32,10 @@
             <div class="col-md-6">
                 <div class="event-meta mt-2">
                     <p>
+                        <span class="font-weight-bold text-primary">Modalidad:</span>
+                            {{ ($event->mode == 'beybladex') ? 'Beyblade X' : 'Beyblade Burst' }}
+                    </p>
+                    <p>
                         <span class="font-weight-bold text-primary">Región:</span>
                             {{ $event->region->name }}
                     </p>
@@ -83,4 +87,3 @@
     </article>
 
 @endsection
-	

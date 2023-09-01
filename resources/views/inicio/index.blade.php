@@ -40,11 +40,6 @@
                     </a>
                 </li>
                 @endif
-                <li class="nav-item">
-                    <a class="nav-link ml-2 mr-2" style="color: black; font-weight: bold; font-size:1.2em;" href="{{ route('inicio.combo') }}">
-                        {{ 'RCG' }}
-                    </a>
-                </li>
             </ul>
         </div>
     </div>
@@ -58,31 +53,31 @@
                         <h2 class="font-weight-bold">1º</h2>
                         <h3>{{ $bladers[0]->user->name }}</h3>
                         <h4>{{ ($bladers[0]->region) ? $bladers[0]->region->name : 'No definida'}}</h4>
-                        <h2>{{ $bladers[0]->points_s2 }}<span style="font-size:0.5em">pts</span></h2>
+                        <h2>{{ $bladers[0]->points_x1 }}<span style="font-size:0.5em">pts</span></h2>
                     </div>
                     <div class="col-md-2 text-center top-2 ranking-card m-2">
                         <h2 class="font-weight-bold">2º</h2>
                         <h3>{{ $bladers[1]->user->name }}</h3>
                         <h4>{{ ($bladers[1]->region) ? $bladers[1]->region->name : 'No definida'}}</h4>
-                        <h2>{{ $bladers[1]->points_s2 }}<span style="font-size:0.5em">pts</span></h2>
+                        <h2>{{ $bladers[1]->points_x1 }}<span style="font-size:0.5em">pts</span></h2>
                     </div>
                     <div class="col-md-2 text-center top-3 ranking-card m-2">
                         <h2 class="font-weight-bold">3º</h2>
                         <h3>{{ $bladers[2]->user->name }}</h3>
                         <h4>{{ ($bladers[2]->region) ? $bladers[2]->region->name : 'No definida'}}</h4>
-                        <h2>{{ $bladers[2]->points_s2 }}<span style="font-size:0.5em">pts</span></h2>
+                        <h2>{{ $bladers[2]->points_x1 }}<span style="font-size:0.5em">pts</span></h2>
                     </div>
                     <div class="col-md-2 text-center ranking-card m-2">
                         <h2 class="font-weight-bold">4º</h2>
                         <h3>{{ $bladers[3]->user->name }}</h3>
                         <h4>{{ ($bladers[3]->region) ? $bladers[3]->region->name : 'No definida'}}</h4>
-                        <h2>{{ $bladers[3]->points_s2 }}<span style="font-size:0.5em">pts</span></h2>
+                        <h2>{{ $bladers[3]->points_x1 }}<span style="font-size:0.5em">pts</span></h2>
                     </div>
                     <div class="col-md-2 text-center ranking-card m-2">
                         <h2 class="font-weight-bold">5º</h2>
                         <h3>{{ $bladers[4]->user->name }}</h3>
                         <h4>{{ ($bladers[4]->region) ? $bladers[4]->region->name : 'No definida'}}</h4>
-                        <h2>{{ $bladers[4]->points_s2 }}<span style="font-size:0.5em">pts</span></h2>
+                        <h2>{{ $bladers[4]->points_x1 }}<span style="font-size:0.5em">pts</span></h2>
                     </div>
                 </div>
             </div>
@@ -90,22 +85,22 @@
     </div>
             <div class="container-fluid">
                 <div class="row mt-5 mb-5" style="background-color: rgb(205, 127, 50, 0.6)">
-                    <div class="col-md-8 text-white p-4" style="font-size: 1.2em; font-weight:bold;">
-                        <h2 style="font-size: 2em; font-weight:bold;">SBBL GENERATIONS</h2>
-                        <p>¿Te gustaría volver a competir con Victory Valkyrie, Storm Spriggan o Lost Longinus?</p>
-                        <p>¡Este es tu momento!</p>
-                        <p>Desde hoy, en la SBBL podrás disfrutar de su nueva competición exclusiva eligiendo tus mejores combinaciones de toda la generación Burst<br>
-                        desde Valtryek (Single Layer) hasta Zest Achilles (BU)</p>
-                        <p>Las reglas están disponibles en <a style="text-decoration: none; color: black" href="{{ route('inicio.rules') }}">el siguiente apartado</a></p>
-                        <p><a style="text-decoration: none; color: black" href="{{ route('generations.versus') }}">¡Empieza a competir en el ranking exclusivo!</a></p>
+                    <div class="col-md-2 text-center text-white p-4" style="border: unset;">
                     </div>
-                    <div class="col-md-4 text-center text-white p-4" style="border: unset;">
-                        <div style="border: 5px solid white;">
-                            <h2 class="font-weight-bold">Torneo resistencia</h2>
-                            <h3>{{ $stamina->user->name }}</h3>
-                            <h4>{{ ($stamina->region) ? $stamina->region->name : 'No definida'}}</h4>
-                            <h2>3:28:19</h2>
-                        </div>
+                    <div class="col-md-8 text-white text-center p-4" style="font-size: 1.2em; font-weight:bold;">
+                        <!--<h2 style="font-size: 2em; font-weight:bold;">ENTREVISTAS A NUESTROS CAMPEONES</h2>
+                        <p>Con la inminente llegada de las nuevas temporadas de Beyblade X y Burst hemos querido preparar una cosa</p>
+                        <p>Así que para despedirnos de la segunda temporada de Burst hemos hecho dos entrevistas con los campeones de cada temporada</p>
+                        <p>Podéis leer sus opiniones en <a style="text-decoration: none; color: black" href="{{ route('inicio.entrevistas') }}">el siguiente apartado</a></p>-->
+                        <h2 style="font-size: 2em; font-weight:bold;">COMIENZA BEYBLADE X</h2>
+                        <p>¡Prepara tus combos que comenzamos con la nueva temporada de beyblade con Beyblade X!</p>
+                        <p>Compite en los torneos de tu zona para obtener puntos para el ranking nacional</p>
+                        <p>Desde hoy, en la SBBL podrás disfrutar de torneos nacionales tanto de Beyblade X como de Beyblade Burst con su tercera temporada</p>
+                        <p>Las reglas están disponibles en <a style="text-decoration: none; color: black" href="{{ route('inicio.rules') }}">el siguiente apartado</a></p>
+                        <p><a style="text-decoration: none; color: black" href="{{ route('profiles.ranking') }}">¡Empieza a competir en ambos rankings ahora!</a></p>
+
+                    </div>
+                    <div class="col-md-2 text-center text-white p-4" style="border: unset;">
                     </div>
                 </div>
             </div>

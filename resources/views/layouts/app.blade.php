@@ -90,9 +90,15 @@
                                 </a>
                             </li>
 
-                              
+                            <li class="nav-item">
+                                <a class="nav-link" href="{{ route('profiles.ranking') }}">
+                                    {{ 'RANKINGS' }}
+                                </a>
+                            </li>
 
-                            <li class="nav-item dropdown">
+
+
+                            <!--<li class="nav-item dropdown">
                                 <a id="navbarDropdown" class="nav-link dropdown-toggle" href="#" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" v-pre>
                                     {{ 'GENERATIONS' }}
                                 </a>
@@ -107,10 +113,10 @@
                                     </a>
 
                                 </div>
-                            </li>
+                            </li>-->
 
-                             
-@if (Auth::user()->is_admin)  
+
+@if (Auth::user()->is_admin)
                                     <li class="nav-item dropdown">
                                         <a id="navbarDropdown" class="nav-link dropdown-toggle" href="#" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" v-pre>
                                             {{ 'ADMIN' }}
@@ -126,7 +132,11 @@
                                             </a>
 
                                             <a class="nav-link" href="{{ route('profiles.indexAdmin') }}">
-                                                {{ 'PERFILES' }}
+                                                {{ 'USUARIOS BURST' }}
+                                            </a>
+
+                                            <a class="nav-link" href="{{ route('profiles.indexAdminX') }}">
+                                                {{ 'USUARIOS X' }}
                                             </a>
 
                                             <form id="logout-form" action="{{ route('logout') }}" method="POST" class="d-none">

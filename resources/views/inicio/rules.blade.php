@@ -21,9 +21,9 @@
                     <li>Después de cada duelo se deben ir introduciendo los resultados en el torneo ya que este se actualizará en vivo para que los que no hayan podido asistir puedan ir viendo como va el torneo.</li>
                     <li>Una vez se hayan jugado todos los duelos, en la página del torneo hay que seleccionar en finalizar el torneo para que se muestre el ganador del mismo.</li>
                     <li>Cada victoria en un evento oficial sumará un 1 punto en el SBBLRank. | Cada evento ganado sumará 2 puntos más en el SBBLRank.</li>
-                    <li>El Bey Estadio utilizado podrá ser Takara Tomy, Hasbro o cualquier otra marca, siempre que cuente con las medidas oficiales (Esto significa que no se aceptarán Bey Estadios de Hasbro especiales ni destinados a más de 2 jugadores).</li>
-                    <li>Se podrá competir con beys tanto Takara Tomy como Hasbro, de cualquier sistema dentro de la generación Burst pudiendo ser fakes con la forma idéntica a los originales.</li>
-                    <li>No se pueden repetir piezas en un mismo deck ni modificarlas.</li>
+                    <li>El Bey Estadio utilizado tendrá que ser de Takara Tomy (Pudiendo utilizar el Standard y el DB para la generación Burst y el Extreme y los que saquen en adelante para Beyblade X).</li>
+                    <li>Se podrá competir con beys tanto Takara Tomy como Hasbro, de cualquier sistema dentro de la generación Burst y Tamakara Tomy para la generación X.</li>
+                    <li>No se pueden repetir piezas en un mismo deck ni modificarlas de ninguna forma, ya sea pintura, pegamento para arreglarla, etc.</li>
                     <li>El evento debe ser en un lugar público y/o accesible.</li>
                     <li>Para que el torneo cuente como oficial tiene que ser grabado cada duelo tal como aparece en el reglamento de los duelos.</li>
                 </ol>
@@ -33,7 +33,7 @@
                 <ol>
                     <li>Un duelo es un combate entre dos bladers.</li>
                     <li>Los duelos serán de 3g o 5g (Cada blader tiene que llevar 3 o 5 combos)</li>
-                    <li>Un bey o combo está constituido por un layer, un disco y un driver. Deberá usarse un lanzador oficial de Takara Tomy o Hasbro (no se permitirán modificaciones de la cuerda) y ambos Bladers deberán lanzar al mismo tiempo. </li>
+                    <li>Deberá usarse un lanzador oficial de Takara Tomy o Hasbro (no se permitirán modificaciones de la cuerda) y ambos Bladers deberán lanzar al mismo tiempo. </li>
                     <li>Si uno de los beys es lanzado más tarde o impacta con el rival antes de tocar el estadio el lanzamiento se considera nulo y el infractor recibirá un "aviso". Al segundo "aviso" el combate se considera perdido y se concederá la victoria de ese combate al rival del infractor y se pasará al siguiente combo. En caso de alcanzar 3 puntos el rival tras el "aviso", se considerará que ha ganado el duelo.</li>
                     <li>Antes de empezar el duelo cada blader debe elegir un orden en el que enfrentará sus combos y mostrarlo al rival una vez ambos hayan decidido el orden.</li>
                     <li>Si el duelo es 3g, antes de empezar el duelo se elige un orden con los 3 combos y se enfrentarán 1ºvs1º, 2ºvs2º y 3ºvs3º si un blader no ha llegado o superado antes los 3 puntos. En el caso de no llegar a los 3 puntos una vez enfrentados los 3 combos, se vuelve a elegir el orden de los 3 beys y se vuelven a enfrentar 1ºvs1º, 2ºvs2º y 3ºvs3º hasta que uno de los bladers llegue o supere los 3 puntos.</li>
@@ -41,11 +41,8 @@
                     <li>De dichos combos, solo uno podrá ser en su totalidad de doble giro, pudiendo llevar un layer de doble giro pero un chip que no lo permita o viceversa, a parte del bey que si se pueda cambiar de giro.</li>
                     <li>Los beys de doble giro podrán cambiarse antes de su combate independientemente a su posición inicial. Si ambos beys pueden cambiar de giro, ambos contendientes decidirán una señal para cambiar y otra para dejarlo como está.</li>
                     <li>En caso de empate entre dos combos, se repetirá hasta que uno de los dos combos se declare ganador.</li>
-                    <li>Final superviviente: 1 punto | Final fuera de estadio: 2 puntos | Burst Finish: 2 puntos (Si el estadio es el DB o standard TT el final fuera de pista sumará 2 puntos).</li>
+                    <li>Final superviviente: 1 punto | Final fuera de estadio: 2 puntos | Burst Finish: 2 puntos | Extreme finish: 3 puntos (Para la generación X).</li>
                     <li>Para participar en la puntuación de la liga, el jugador debe estar previamente registrado en la web oficial de la SBBL.</li>
-                    <li>Cada blader puede participar en un total de 4 duelos mensuales</li>
-                    <li>Dos bladers pueden enfrentarse entre ellos una vez cada 15 días empezando desde el día uno del mes (1 duelo en la primera quincena del mes y 1 duelo en la segunda).</li>
-                    <li>Al ganador del duelo se le sumará 1 punto en el SBBL-rank</li>
                     <li>El duelo tiene que ser grabado.</li>
                     <li>La grabación tiene que ser desde el inicio del duelo hasta el final, enseñando los combos completos que se van a utilizar antes de cada combate, el lanzamiento y la resolución del mismo.</li>
                     <li>Si quieres que el duelo se suba a instagram y youtube tiene que ser editado añadiendo un marcador al video y quitando las partes que sobren entre combates.</li>
@@ -75,7 +72,7 @@
                 <p>Todos los participantes del torneo recibirán 1 punto en el ranking ya que creemos que lo importante de este tipo de torneo es la participación y ganas de querer hacer algo en comunidad con nuestros compañeros.</p>
                 <p>Y por supuesto, el ganador recibirá 1 punto extra para el ranking.</p>
             </div>
-<div class="col-md-12">
+<!--<div class="col-md-12">
                 <h3 class="titulo-categoria text-uppercase mb-4 mt-4">Reglamento Generations</h3>
                 <ol>
                     <li>Las reglas son las mismas que con los duelos normales (puntos en el combate, grabación, etc) pero con algunas excepciones</li>
@@ -94,6 +91,7 @@
             </div>
         </div>
     </div>
+-->
 
     <div class="container-fluid" style="background-color: red;">
         <div class="row">
@@ -109,4 +107,4 @@
 @section('scripts')
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
 	<script src="//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/js/bootstrap.min.js"></script>
-@endsection	
+@endsection

@@ -32,6 +32,22 @@
             </div>
 
             <div class="form-group">
+                <label for="mode">Modalidad</label>
+
+                <select name="mode" id="mode" class="form-control @error('mode') is-invalid @enderror">
+                    <option disabled selected>- Selecciona un modo -</option>
+                    <option value="beybladex">Beyblade X</option>
+                    <option value="beybladeburst">Beyblade Burst</option>
+                </select>
+
+                    @error('mode')
+                        <span class="invalid-feedback d-block" role="alert">
+                            <strong>{{$message}}</strong>
+                        </span>
+                    @enderror
+            </div>
+
+            <div class="form-group">
                 <label for="region_id">Región</label>
 
                 <select name="region_id" id="region_id" class="form-control @error('nombre') is-invalid @enderror">
@@ -106,7 +122,8 @@
                 <select name="imagen" id="imagen" class="form-control @error('imagen') is-invalid @enderror">
                     <option disabled selected>- Selecciona una imagen -</option>
                     <option value="quedada">Quedada</option>
-                    <option value="ranking">Ranking</option>
+                    <option value="ranking">Ranking Burst</option>
+                    <option value="rankingx">Ranking X</option>
                     <option value="duelo">Duelo</option>
                 </select>
 

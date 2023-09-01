@@ -51,6 +51,7 @@ class EventController extends Controller
         // Validación
         $data = $request->validate([
             'name' => 'required|min:6',
+            'mode' => 'required',
             'location' => 'required',
             'region_id' => 'required',
             'event_date' => 'required',
@@ -71,6 +72,7 @@ class EventController extends Controller
         // Almacenar datos en la BD (sin modelos)
         DB::table('events')->insert([
             'name' => $data['name'],
+            'mode' => $data['mode'],
             'location' => $data['location'],
             'region_id' => $data['region_id'],
             'date' => $data['event_date'],
@@ -96,7 +98,7 @@ class EventController extends Controller
         } else {
            $suscribe[] = 0;
         }
-        
+
         return view('events.show', compact('event', 'videos', 'assists', 'suscribe', 'hoy'));
     }
 
@@ -183,4 +185,3 @@ class EventController extends Controller
         return redirect()->back();
     }
 }
-		

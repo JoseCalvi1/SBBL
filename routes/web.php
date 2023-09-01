@@ -24,6 +24,8 @@ Route::get('/random-combo-generator', [App\Http\Controllers\InicioController::cl
 Route::get('/rules', [App\Http\Controllers\InicioController::class, 'rules'])->name('inicio.rules');
 Route::get('/policy-privacy', [App\Http\Controllers\InicioController::class, 'privacy'])->name('inicio.privacy');
 Route::get('/contact-us', [App\Http\Controllers\InicioController::class, 'contact'])->name('inicio.contact');
+Route::get('/entrevistas', [App\Http\Controllers\InicioController::class, 'entrevistas'])->name('inicio.entrevistas');
+
 
 Route::get('/events', [App\Http\Controllers\EventController::class, 'index'])->name('events.index');
 Route::get('/events/create', [App\Http\Controllers\EventController::class, 'create'])->name('events.create');
@@ -36,6 +38,7 @@ Route::delete('/events/{event}', [App\Http\Controllers\EventController::class, '
 Route::post('/events/{event}', [App\Http\Controllers\EventController::class, 'assist'])->name('events.assist');
 Route::delete('/assist/{event}', [App\Http\Controllers\EventController::class, 'noassist'])->name('events.noassist');
 
+
 Route::get('/versus', [App\Http\Controllers\VersusController::class, 'index'])->name('versus.index');
 Route::get('/versus/create', [App\Http\Controllers\VersusController::class, 'create'])->name('versus.create');
 Route::get('/versus/{duel}', [App\Http\Controllers\VersusController::class, 'show'])->name('versus.show');
@@ -46,10 +49,14 @@ Route::get('/all-versus', [App\Http\Controllers\VersusController::class, 'show_a
 
 Route::get('/profiles', [App\Http\Controllers\ProfileController::class, 'index'])->name('profiles.index');
 Route::get('/profiles-admin', [App\Http\Controllers\ProfileController::class, 'indexAdmin'])->name('profiles.indexAdmin');
+Route::get('/profiles-admin-x', [App\Http\Controllers\ProfileController::class, 'indexAdminX'])->name('profiles.indexAdminX');
 Route::get('/profiles/{profile}', [App\Http\Controllers\ProfileController::class, 'show'])->name('profiles.show');
 Route::get('/profiles/{profile}/edit', [App\Http\Controllers\ProfileController::class, 'edit'])->name('profiles.edit');
 Route::put('/profiles/{profile}', [App\Http\Controllers\ProfileController::class, 'update'])->name('profiles.update');
 Route::put('/profiles-admin/{profile}', [App\Http\Controllers\ProfileController::class, 'updatePoints'])->name('profiles.updatePoints');
+Route::put('/profiles-admin-x/{profile}', [App\Http\Controllers\ProfileController::class, 'updatePointsX'])->name('profiles.updatePointsX');
+
+Route::get('/rankings', [App\Http\Controllers\ProfileController::class, 'ranking'])->name('profiles.ranking');
 
 Route::get('/challenges', [App\Http\Controllers\ChallengeController::class, 'index'])->name('challenges.index');
 Route::post('/challenges', [App\Http\Controllers\ChallengeController::class, 'store'])->name('challenges.store');

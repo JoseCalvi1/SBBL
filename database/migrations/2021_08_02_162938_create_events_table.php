@@ -16,6 +16,7 @@ class CreateEventsTable extends Migration
         Schema::create('events', function (Blueprint $table) {
             $table->id();
             $table->string('name');
+            $table->string('mode')->nullable();
             $table->string('imagen')->nullable();
             $table->string('location')->nullable();
             $table->foreignId('region_id')->nullable()->constrained()->onDelete('cascade');

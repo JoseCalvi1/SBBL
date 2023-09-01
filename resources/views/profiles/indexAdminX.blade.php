@@ -3,7 +3,7 @@
 
 @section('content')
 <div class="py-4">
-    <h2 class="text-center mb-2">Usuarios Burst</h2>
+    <h2 class="text-center mb-2">Usuarios Beyblade X</h2>
 
     <div class="col-md-10 mx-auto bg-white p-3">
 
@@ -30,19 +30,19 @@
                             @endif
                         </td>
                         <td>
-                            <form style="display: inline-flex" action="{{ route('profiles.updatePoints', ['profile' => $profile->id]) }}" method="POST" enctype="multipart/form-data">
+                            <form style="display: inline-flex" action="{{ route('profiles.updatePointsX', ['profile' => $profile->id]) }}" method="POST" enctype="multipart/form-data">
                                 @csrf
                                 @method('PUT')
                             <div class="form-group">
                                 <input type="text"
-                                    name="points_s3"
-                                    class="form-control @error('points_s3') is-invalid @enderror"
-                                    id="points_s3"
+                                    name="points_x1"
+                                    class="form-control @error('points_x1') is-invalid @enderror"
+                                    id="points_x1"
                                     placeholder="Puntos"
-                                    value="{{ $profile->points_s3 }}"
+                                    value="{{ $profile->points_x1 }}"
                                     />
 
-                                    @error('points_s3')
+                                    @error('points_x1')
                                         <span class="invalid-feedback d-block" role="alert">
                                             <strong>{{$message}}</strong>
                                         </span>
