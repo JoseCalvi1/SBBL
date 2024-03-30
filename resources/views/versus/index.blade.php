@@ -13,11 +13,12 @@
         <table class="table">
             <thead class="bg-primary text-light">
                 <tr>
-                    <th scole="col">Jugador 1</th>
-                    <th scole="col">Jugador 2</th>
-                    <th scole="col">Ganador</th>
-                    <th scole="col">Evento</th>
-                    <th scole="col">URL</th>
+                    <th scole="col">Jugador 1 (VICTORIA)</th>
+                    <th scole="col">Puntuación 1</th>
+                    <th scole="col">Jugador 2 (DERROTA)</th>
+                    <th scole="col">Puntuación 2</th>
+                    <th scole="col">Modalidad</th>
+                    <th scole="col">Fecha</th>
                     <th scole="col">Acciones</th>
                 </tr>
             </thead>
@@ -26,11 +27,21 @@
                 @foreach ($versus as $duel)
                     <tr>
                         <td>{{ $duel->versus_1->name }}</td>
+                        <td>{{ $duel->result_1 }}</td>
                         <td>{{ $duel->versus_2->name }}</td>
-                        <td>{{ ($duel->winner == $duel->user_id_1) ? $duel->versus_1->name : $duel->versus_2->name }}</td>
-                        <td><a href="{{ route('events.show', ['event' => $duel->event->id]) }}">{{ $duel->event->name }}</a></td>
-                        <td>{{ $duel->url }}</td>
-                        <td><a href="{{ route('versus.edit', ['duel' => $duel->id]) }}" class="btn btn-dark mb-2 d-block">Editar</a></td>
+                        <td>{{ $duel->result_2 }}</td>
+                        <td>{{ $duel->matchup }}</td>
+                        <td>{{ $duel->created_at }}</td>
+                        <td><a href="{{ route('versus.edit', ['duel' => $duel->id]) }}" class="btn btn-dark mb-2 d-block">Editar</a>
+                            @if ($duel->status == 'OPEN')
+                                <form method="POST" action="{{ route('versus.puntuarDuelo', ['duel' => $duel->id, 'mode' => $duel->matchup, 'winner' => $duel->user_id_1]) }}" style="display: contents; text-align: center;">
+                                    @method('PUT')
+                                    @csrf
+                                    <button type="submit" class="btn btn-success mb-2 mt-2 d-block" style="width: 100%">CONFIRMAR</button>
+                                </form>
+                            @endif
+                        </td>
+                        <td></td>
                     </tr>
                 @endforeach
             </tbody>

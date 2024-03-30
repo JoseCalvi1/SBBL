@@ -8,12 +8,19 @@
                 <div class="row">
                 @foreach ($bladers as $blader)
 
-                    <div class="tarjeta">
-                        @if ($blader->imagen)
-                                <img src="/storage/{{ $blader->imagen }}"  class="imagen">
+                    <div class="tarjeta" style="background-image: url('/storage/{{ ($blader->fondo) ? $blader->fondo : "upload-profiles/Fondos/SBBLFondo.png" }}'); background-size: cover; background-repeat: repeat; background-position: center; color: white;">
+                        <div style="position: relative;">
+                            @if ($blader->imagen)
+                                <img src="/storage/{{ $blader->imagen }}" class="rounded-circle" width="100" style="top: 0; left: 0;">
                             @else
-                                <img src="../images/default_user.jpg"  class="imagen">
+                                <img src="/storage/upload-profiles/DranDaggerBase.png" class="rounded-circle" width="100" style="top: 0; left: 0;">
                             @endif
+                            @if ($blader->marco)
+                                <img src="/storage/{{ $blader->marco }}" class="rounded-circle" width="100" style="position: absolute; top: 0; left: 0;">
+                            @else
+                                <img src="/storage/upload-profiles/Marcos/BaseBlue.png" class="rounded-circle" width="100" style="position: absolute; top: 0; left: 0;">
+                            @endif
+                        </div>
                         <div class="info">
                             <div class="nombre">{{ $blader->user->name }}</div>
                             <div class="region">{{ ($blader->region) ? $blader->region->name : 'No definida'}}</div>
@@ -75,7 +82,6 @@
 
         .region {
             font-size: 16px;
-            color: #777;
         }
     </style>
 @endsection

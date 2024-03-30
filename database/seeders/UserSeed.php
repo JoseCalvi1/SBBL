@@ -27,28 +27,28 @@ class UserSeed extends Seeder
         $user = User::create([
             'name' => 'Test1',
             'email' => 'test1@test1.com',
-            'is_admin' => true,
+            'is_admin' => false,
             'password' => Hash::make('josecalvi1'),
         ]);
 
         $user = User::create([
             'name' => 'Test2',
             'email' => 'test2@test2.com',
-            'is_admin' => true,
+            'is_admin' => false,
             'password' => Hash::make('josecalvi1'),
         ]);
 
         $user = User::create([
             'name' => 'Test3',
             'email' => 'test3@test2.com',
-            'is_admin' => true,
+            'is_admin' => false,
             'password' => Hash::make('josecalvi1'),
         ]);
 
         $user = User::create([
             'name' => 'Test4',
             'email' => 'test4@test2.com',
-            'is_admin' => true,
+            'is_admin' => false,
             'password' => Hash::make('josecalvi1'),
         ]);
     }

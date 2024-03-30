@@ -20,7 +20,7 @@ class VersusController extends Controller
      */
     public function index()
     {
-        $versus = Versus::orderBy('id', 'DESC')->where('status', '=' , null)->get();
+        $versus = Versus::orderBy('id', 'DESC')->get();
 
         return view('versus.index', compact('versus'));
     }
@@ -32,7 +32,7 @@ class VersusController extends Controller
      */
     public function show_all()
     {
-        $versus = Versus::orderBy('id', 'DESC')->where('status', '=' , null)->get();
+        $versus = Versus::orderBy('id', 'DESC')->where('status', 'CLOSED')->get();
 
         return view('versus.all', compact('versus'));
     }
@@ -58,21 +58,48 @@ class VersusController extends Controller
      */
     public function store(Request $request)
     {
+        $user_id_1 = $request->input('user_id_1');
+        $user_id_2 = $request->input('user_id_2');
+
+        $primer_dia_mes_actual = Carbon::now()->startOfMonth(); // Obtener el primer día del mes actual
+        $ultimo_dia_mes_actual = Carbon::now()->endOfMonth();   // Obtener el último día del mes actual
+
+        $se_enfrentaron = Versus::where(function($query) use ($user_id_1, $user_id_2) {
+            $query->where(function($q) use ($user_id_1, $user_id_2) {
+                $q->where('user_id_1', $user_id_1)
+                ->where('user_id_2', $user_id_2);
+            })
+            ->orWhere(function($q) use ($user_id_1, $user_id_2) {
+                $q->where('user_id_1', $user_id_2)
+                ->where('user_id_2', $user_id_1);
+            });
+        })
+        ->whereBetween('created_at', [$primer_dia_mes_actual, $ultimo_dia_mes_actual])
+        ->where('matchup', $request->input('modalidad'))
+        ->exists();
+
+        if ($se_enfrentaron) {
+            return redirect()->back()->with('error', 'Estos jugadores ya se han enfrentado una vez este mes');
+        }
+
         // Validación
         $data = $request->validate([
             'user_id_1' => 'required',
             'user_id_2' => 'required',
-            'winner' => 'required',
-            'event_id' => 'required',
+            'result_1' => 'required',
+            'result_2' => 'required',
+            'modalidad' => 'required',
         ]);
 
         // Almacenar datos en la BD (sin modelos)
         DB::table('versus')->insert([
             'user_id_1' => $data['user_id_1'],
             'user_id_2' => $data['user_id_2'],
-            'winner' => $data['winner'],
-            'event_id' => $data['event_id'],
-            'url' => $request['url'],
+            'result_1' => $data['result_1'],
+            'result_2' => $data['result_2'],
+            'matchup' => $request['modalidad'],
+            'status' => 'OPEN',
+            'created_at' => Carbon::now(),
         ]);
 
         return redirect()->action('App\Http\Controllers\VersusController@index');
@@ -230,5 +257,20 @@ class VersusController extends Controller
 
         // Redireccionar
         return redirect()->action('App\Http\Controllers\VersusController@versus');
+    }
+
+    public function puntuarDuelo(Request $request, $id, $mode, $winner)
+    {
+        $duel = Versus::findOrFail($id);
+        $duel->status = 'CLOSED';
+        $duel->save();
+
+        $mode = ($mode == "beybladex") ? 'points_x1' : 'points_s3';
+
+        DB::table('profiles')
+            ->where('user_id', $winner)
+            ->increment($mode, 1);
+
+        return redirect()->back()->with('success', 'Puntuaciones actualizadas correctamente');
     }
 }

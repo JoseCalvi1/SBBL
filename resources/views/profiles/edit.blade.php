@@ -58,27 +58,337 @@
                 </div>
 
                 <div class="form-group">
-                    <label for="default_img">Imagen por defecto</label>
+                    <label for="default_img">Avatar</label>
 
-                    <select name="default_img" id="default_img" class="form-control @error('nombre') is-invalid @enderror">
-                        <option disabled selected>- Selecciona una imagen -</option>
-                        <option value="LuiShirasagijo">Lui Shirasagijo</option>
-                        <option value="ValtAoi">Valt Aoi</option>
-                        <option value="Aiga">Aiga Akaba</option>
-                        <option value="ShuKurenai">Shu Kurenai</option>
-                        <option value="LeanValhalla">Lean Valhalla</option>
-                        <option value="RanzoKiyama">Ranzo Kiyama</option>
-                        <option value="BellDaikokuten">Bell Daikokuten</option>
-                        <option value="IlliaMao">Illya Mao</option>
-                        <option value="FreeHoya">Free De La Hoya</option>
-                        <option value="Delta">Delta Zakuro</option>
-                        <option value="Hikaru">Hikaru Hasahi</option>
-                        <option value="Arman">Arman Kusaba</option>
-                        <option value="Hyuga">Hyuga Hasahi</option>
-                        <option value="Dante">Dante Koryu</option>
-                    </select>
+                    <div class="row">
+                        <div class="col-md-2">
+                            <label>
+                                <input type="radio" name="default_img" value="DranDaggerBase"
+                                       @if ($profile->imagen == "upload-profiles/DranDaggerBase.png") checked @endif/>
+                                <img src="/storage/upload-profiles/DranDaggerBase.png" width="100%" />
+                            </label>
+                        </div>
+
+                        <div class="col-md-2">
+                            <label>
+                                <input type="radio" name="default_img" value="DranSwordBase"
+                                       @if ($profile->imagen == "upload-profiles/DranSwordBase.png") checked @endif/>
+                                <img src="/storage/upload-profiles/DranSwordBase.png" width="100%" />
+                            </label>
+                        </div>
+
+                        <div class="col-md-2">
+                            <label>
+                                <input type="radio" name="default_img" value="HellsChainBase"
+                                       @if ($profile->imagen == "upload-profiles/HellsChainBase.png") checked @endif/>
+                                <img src="/storage/upload-profiles/HellsChainBase.png" width="100%" />
+                            </label>
+                        </div>
+
+                        <div class="col-md-2">
+                            <label>
+                                <input type="radio" name="default_img" value="HellScytheBase"
+                                       @if ($profile->imagen == "upload-profiles/HellScytheBase.png") checked @endif/>
+                                <img src="/storage/upload-profiles/HellScytheBase.png" width="100%" />
+                            </label>
+                        </div>
+
+                        <div class="col-md-2">
+                            <label>
+                                <input type="radio" name="default_img" value="KnightLanceBase"
+                                       @if ($profile->imagen == "upload-profiles/KnightLanceBase.png") checked @endif/>
+                                <img src="/storage/upload-profiles/KnightLanceBase.png" width="100%" />
+                            </label>
+                        </div>
+
+                        <div class="col-md-2">
+                            <label>
+                                <input type="radio" name="default_img" value="KnightShieldBase"
+                                       @if ($profile->imagen == "upload-profiles/KnightShieldBase.png") checked @endif/>
+                                <img src="/storage/upload-profiles/KnightShieldBase.png" width="100%" />
+                            </label>
+                        </div>
+
+                        <div class="col-md-2">
+                            <label>
+                                <input type="radio" name="default_img" value="LeonClawBase"
+                                       @if ($profile->imagen == "upload-profiles/LeonClawBase.png") checked @endif/>
+                                <img src="/storage/upload-profiles/LeonClawBase.png" width="100%" />
+                            </label>
+                        </div>
+
+                        <div class="col-md-2">
+                            <label>
+                                <input type="radio" name="default_img" value="PhoenixFeatherBase"
+                                       @if ($profile->imagen == "upload-profiles/PhoenixFeatherBase.png") checked @endif/>
+                                <img src="/storage/upload-profiles/PhoenixFeatherBase.png" width="100%" />
+                            </label>
+                        </div>
+
+                        <div class="col-md-2">
+                            <label>
+                                <input type="radio" name="default_img" value="PhoenixWingBase"
+                                       @if ($profile->imagen == "upload-profiles/PhoenixWingBase.png") checked @endif/>
+                                <img src="/storage/upload-profiles/PhoenixWingBase.png" width="100%" />
+                            </label>
+                        </div>
+
+                        <div class="col-md-2">
+                            <label>
+                                <input type="radio" name="default_img" value="RhinoShieldBase"
+                                       @if ($profile->imagen == "upload-profiles/RhinoShieldBase.png") checked @endif/>
+                                <img src="/storage/upload-profiles/RhinoShieldBase.png" width="100%" />
+                            </label>
+                        </div>
+
+                        <div class="col-md-2">
+                            <label>
+                                <input type="radio" name="default_img" value="SharkEdgeBase"
+                                       @if ($profile->imagen == "upload-profiles/SharkEdgeBase.png") checked @endif/>
+                                <img src="/storage/upload-profiles/SharkEdgeBase.png" width="100%" />
+                            </label>
+                        </div>
+
+                        <div class="col-md-2">
+                            <label>
+                                <input type="radio" name="default_img" value="SphinxCowlBase"
+                                       @if ($profile->imagen == "upload-profiles/SphinxCowlBase.png") checked @endif/>
+                                <img src="/storage/upload-profiles/SphinxCowlBase.png" width="100%" />
+                            </label>
+                        </div>
+
+                        <div class="col-md-2">
+                            <label>
+                                <input type="radio" name="default_img" value="UnicornStingBase"
+                                       @if ($profile->imagen == "upload-profiles/UnicornStingBase.png") checked @endif/>
+                                <img src="/storage/upload-profiles/UnicornStingBase.png" width="100%" />
+                            </label>
+                        </div>
+
+                        <div class="col-md-2">
+                            <label>
+                                <input type="radio" name="default_img" value="ViperTailBase"
+                                       @if ($profile->imagen == "upload-profiles/ViperTailBase.png") checked @endif/>
+                                <img src="/storage/upload-profiles/ViperTailBase.png" width="100%" />
+                            </label>
+                        </div>
+
+                        <div class="col-md-2">
+                            <label>
+                                <input type="radio" name="default_img" value="WizardArrowBase"
+                                       @if ($profile->imagen == "upload-profiles/WizardArrowBase.png") checked @endif/>
+                                <img src="/storage/upload-profiles/WizardArrowBase.png" width="100%" />
+                            </label>
+                        </div>
+
+                        <div class="col-md-2">
+                            <label>
+                                <input type="radio" name="default_img" value="WyvernGaleBase"
+                                       @if ($profile->imagen == "upload-profiles/WyvernGaleBase.png") checked @endif/>
+                                <img src="/storage/upload-profiles/WyvernGaleBase.png" width="100%" />
+                            </label>
+                        </div>
+
+                    </div>
 
                         @error('default_img')
+                            <span class="invalid-feedback d-block" role="alert">
+                                <strong>{{$message}}</strong>
+                            </span>
+                        @enderror
+                </div>
+
+                <div class="form-group">
+                    <label for="marco">Marco de avatar</label>
+                    <div class="row">
+                        <div class="col-md-2">
+                            <label>
+                                <input type="radio" name="marco" value="upload-profiles/Marcos/BaseBlack.png"
+                                       @if ($profile->marco == "upload-profiles/Marcos/BaseBlack.png") checked @endif/>
+                                <img src="/storage/upload-profiles/Marcos/BaseBlack.png" width="100%" />
+                            </label>
+                        </div>
+
+                        <div class="col-md-2">
+                            <label>
+                                <input type="radio" name="marco" value="upload-profiles/Marcos/BaseBlue.png"
+                                       @if ($profile->marco == "upload-profiles/Marcos/BaseBlue.png") checked @endif/>
+                                <img src="/storage/upload-profiles/Marcos/BaseBlue.png" width="100%" />
+                            </label>
+                        </div>
+
+                        <div class="col-md-2">
+                            <label>
+                                <input type="radio" name="marco" value="upload-profiles/Marcos/BaseDBlue.png"
+                                       @if ($profile->marco == "upload-profiles/Marcos/BaseDBlue.png") checked @endif/>
+                                <img src="/storage/upload-profiles/Marcos/BaseDBlue.png" width="100%" />
+                            </label>
+                        </div>
+
+                        <div class="col-md-2">
+                            <label>
+                                <input type="radio" name="marco" value="upload-profiles/Marcos/BaseDGreen.png"
+                                       @if ($profile->marco == "upload-profiles/Marcos/BaseDGreen.png") checked @endif/>
+                                <img src="/storage/upload-profiles/Marcos/BaseDGreen.png" width="100%" />
+                            </label>
+                        </div>
+
+                        <div class="col-md-2">
+                            <label>
+                                <input type="radio" name="marco" value="upload-profiles/Marcos/BaseGreen.png"
+                                       @if ($profile->marco == "upload-profiles/Marcos/BaseGreen.png") checked @endif/>
+                                <img src="/storage/upload-profiles/Marcos/BaseGreen.png" width="100%" />
+                            </label>
+                        </div>
+
+                        <div class="col-md-2">
+                            <label>
+                                <input type="radio" name="marco" value="upload-profiles/Marcos/BaseOrange.png"
+                                       @if ($profile->marco == "upload-profiles/Marcos/BaseOrange.png") checked @endif/>
+                                <img src="/storage/upload-profiles/Marcos/BaseOrange.png" width="100%" />
+                            </label>
+                        </div>
+
+                        <div class="col-md-2">
+                            <label>
+                                <input type="radio" name="marco" value="upload-profiles/Marcos/BasePink.png"
+                                       @if ($profile->marco == "upload-profiles/Marcos/BasePink.png") checked @endif/>
+                                <img src="/storage/upload-profiles/Marcos/BasePink.png" width="100%" />
+                            </label>
+                        </div>
+
+                        <div class="col-md-2">
+                            <label>
+                                <input type="radio" name="marco" value="upload-profiles/Marcos/BasePurple.png"
+                                       @if ($profile->marco == "upload-profiles/Marcos/BasePurple.png") checked @endif/>
+                                <img src="/storage/upload-profiles/Marcos/BasePurple.png" width="100%" />
+                            </label>
+                        </div>
+
+                        <div class="col-md-2">
+                            <label>
+                                <input type="radio" name="marco" value="upload-profiles/Marcos/BaseRed.png"
+                                       @if ($profile->marco == "upload-profiles/Marcos/BaseRed.png") checked @endif/>
+                                <img src="/storage/upload-profiles/Marcos/BaseRed.png" width="100%" />
+                            </label>
+                        </div>
+
+                        <div class="col-md-2">
+                            <label>
+                                <input type="radio" name="marco" value="upload-profiles/Marcos/BaseTeal.png"
+                                       @if ($profile->marco == "upload-profiles/Marcos/BaseTeal.png") checked @endif/>
+                                <img src="/storage/upload-profiles/Marcos/BaseTeal.png" width="100%" />
+                            </label>
+                        </div>
+
+                        <div class="col-md-2">
+                            <label>
+                                <input type="radio" name="marco" value="upload-profiles/Marcos/BaseWhite.png"
+                                       @if ($profile->marco == "upload-profiles/Marcos/BaseWhite.png") checked @endif/>
+                                <img src="/storage/upload-profiles/Marcos/BaseWhite.png" width="100%" />
+                            </label>
+                        </div>
+
+                        <div class="col-md-2">
+                            <label>
+                                <input type="radio" name="marco" value="upload-profiles/Marcos/BaseYellow.png"
+                                       @if ($profile->marco == "upload-profiles/Marcos/BaseYellow.png") checked @endif/>
+                                <img src="/storage/upload-profiles/Marcos/BaseYellow.png" width="100%" />
+                            </label>
+                        </div>
+
+                    </div>
+
+                        @error('marco')
+                            <span class="invalid-feedback d-block" role="alert">
+                                <strong>{{$message}}</strong>
+                            </span>
+                        @enderror
+                </div>
+
+                <div class="form-group">
+                    <label for="fondo">Fondo de tarjeta</label>
+                    <div class="row">
+                        <div class="col-md-2">
+                            <label>
+                                <input type="radio" name="fondo" value="upload-profiles/Fondos/FondoBaseBlue.png"
+                                       @if ($profile->fondo == "upload-profiles/Fondos/FondoBaseBlue.png") checked @endif/>
+                                <img src="/storage/upload-profiles/Fondos/FondoBaseBlue.png" alt="Azul" width="100%" />
+                            </label>
+                        </div>
+                        <div class="col-md-2">
+                            <label>
+                                <input type="radio" name="fondo" value="upload-profiles/Fondos/FondoBaseGreen.png"
+                                       @if ($profile->fondo == "upload-profiles/Fondos/FondoBaseGreen.png") checked @endif/>
+                                <img src="/storage/upload-profiles/Fondos/FondoBaseGreen.png" alt="Verde" width="100%" />
+                            </label>
+                        </div>
+                        <div class="col-md-2">
+                            <label>
+                                <input type="radio" name="fondo" value="upload-profiles/Fondos/FondoBaseRed.png"
+                                       @if ($profile->fondo == "upload-profiles/Fondos/FondoBaseRed.png") checked @endif/>
+                                <img src="/storage/upload-profiles/Fondos/FondoBaseRed.png" alt="Rojo" width="100%" />
+                            </label>
+                        </div>
+                        <div class="col-md-2">
+                            <label>
+                                <input type="radio" name="fondo" value="upload-profiles/Fondos/FondoBaseYellow.png"
+                                       @if ($profile->fondo == "upload-profiles/Fondos/FondoBaseYellow.png") checked @endif/>
+                                <img src="/storage/upload-profiles/Fondos/FondoBaseYellow.png" alt="Amarillo" width="100%" />
+                            </label>
+                        </div>
+                        <div class="col-md-2">
+                            <label>
+                                <input type="radio" name="fondo" value="upload-profiles/Fondos/FondoATK.png"
+                                       @if ($profile->fondo == "upload-profiles/Fondos/FondoATK.png") checked @endif/>
+                                <img src="/storage/upload-profiles/Fondos/FondoATK.png" alt="Ataque" width="100%" />
+                            </label>
+                        </div>
+                        <div class="col-md-2">
+                            <label>
+                                <input type="radio" name="fondo" value="upload-profiles/Fondos/FondoDef.png"
+                                       @if ($profile->fondo == "upload-profiles/Fondos/FondoDef.png") checked @endif/>
+                                <img src="/storage/upload-profiles/Fondos/FondoDef.png" alt="Defensa" width="100%" />
+                            </label>
+                        </div>
+                        <div class="col-md-2">
+                            <label>
+                                <input type="radio" name="fondo" value="upload-profiles/Fondos/FondoBAL.png"
+                                       @if ($profile->fondo == "upload-profiles/Fondos/FondoBAL.png") checked @endif/>
+                                <img src="/storage/upload-profiles/Fondos/FondoBAL.png" alt="Balance" width="100%" />
+                            </label>
+                        </div>
+                        <div class="col-md-2">
+                            <label>
+                                <input type="radio" name="fondo" value="upload-profiles/Fondos/FondoSTA.png"
+                                       @if ($profile->fondo == "upload-profiles/Fondos/FondoSTA.png") checked @endif/>
+                                <img src="/storage/upload-profiles/Fondos/FondoSTA.png" alt="Resistencia" width="100%" />
+                            </label>
+                        </div>
+                        <!--<div class="col-md-2">
+                            <label>
+                                <input type="radio" name="fondo" value="upload-profiles/Fondos/ScytheFondo.png"
+                                       @if ($profile->fondo == "upload-profiles/Fondos/ScytheFondo.png") checked @endif/>
+                                <img src="/storage/upload-profiles/Fondos/ScytheFondo.png" alt="Scythe" width="100%" height="39px" />
+                            </label>
+                        </div>
+                        <div class="col-md-2">
+                            <label>
+                                <input type="radio" name="fondo" value="upload-profiles/Fondos/DranSwordFondo.png"
+                                       @if ($profile->fondo == "upload-profiles/Fondos/DranSwordFondo.png") checked @endif/>
+                                <img src="/storage/upload-profiles/Fondos/DranSwordFondo.png" alt="Dran Sword" width="100%" height="39px" />
+                            </label>
+                        </div>
+                        <div class="col-md-2">
+                            <label>
+                                <input type="radio" name="fondo" value="upload-profiles/Fondos/SBBLFondo.png"
+                                       @if ($profile->fondo == "upload-profiles/Fondos/SBBLFondo.png") checked @endif/>
+                                <img src="/storage/upload-profiles/Fondos/SBBLFondo.png" alt="SBBL" width="100%" height="39px" />
+                            </label>
+                        </div>-->
+                    </div>
+
+                        @error('fondo')
                             <span class="invalid-feedback d-block" role="alert">
                                 <strong>{{$message}}</strong>
                             </span>

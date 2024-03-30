@@ -37,6 +37,9 @@ Route::delete('/events/{event}', [App\Http\Controllers\EventController::class, '
 
 Route::post('/events/{event}', [App\Http\Controllers\EventController::class, 'assist'])->name('events.assist');
 Route::delete('/assist/{event}', [App\Http\Controllers\EventController::class, 'noassist'])->name('events.noassist');
+Route::put('/events/{event}/actualizar-status', [App\Http\Controllers\EventController::class, 'actualizarStatus'])->name('events.status');
+Route::put('/events/{event}/updatePuestos', [App\Http\Controllers\EventController::class, 'updatePuestos'])->name('events.updatePuestos');
+Route::put('/events/{event}/{mode}/actualizarPuntuaciones', [App\Http\Controllers\EventController::class, 'actualizarPuntuaciones'])->name('events.actualizarPuntuaciones');
 
 
 Route::get('/versus', [App\Http\Controllers\VersusController::class, 'index'])->name('versus.index');
@@ -46,6 +49,7 @@ Route::post('/versus', [App\Http\Controllers\VersusController::class, 'store'])-
 Route::get('/versus/{duel}/edit', [App\Http\Controllers\VersusController::class, 'edit'])->name('versus.edit');
 Route::put('/versus/{duel}', [App\Http\Controllers\VersusController::class, 'update'])->name('versus.update');
 Route::get('/all-versus', [App\Http\Controllers\VersusController::class, 'show_all'])->name('versus.all');
+Route::put('/versus/{duel}/{mode}/{winner}/puntuarDuelo', [App\Http\Controllers\VersusController::class, 'puntuarDuelo'])->name('versus.puntuarDuelo');
 
 Route::get('/profiles', [App\Http\Controllers\ProfileController::class, 'index'])->name('profiles.index');
 Route::get('/profiles-admin', [App\Http\Controllers\ProfileController::class, 'indexAdmin'])->name('profiles.indexAdmin');

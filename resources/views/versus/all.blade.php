@@ -1,31 +1,89 @@
 @extends('layouts.app')
 
+@section('styles')
+<style>
+    .duel-card {
+        background-color: #f8f9fa;
+        border: 2px solid #343a40;
+        border-radius: 10px;
+        padding: 20px;
+        margin-bottom: 20px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        box-shadow: 0px 3px 10px rgba(0, 0, 0, 0.1);
+    }
+
+    .duel-info {
+        display: flex;
+        align-items: center;
+        flex: 1;
+        justify-content: space-around;
+    }
+
+    .duel-player {
+        text-align: center;
+    }
+
+    .player-name {
+        font-size: 20px;
+        font-weight: bold;
+        color: #343a40;
+    }
+
+    .player-score {
+        font-size: 18px;
+        color: #343a40;
+        margin-top: 5px;
+    }
+
+    .vs {
+        font-size: 24px;
+        color: #343a40;
+    }
+
+    .duel-mode {
+        background-color: #343a40;
+        color: #ffffff;
+        padding: 10px 20px;
+        border-radius: 5px;
+        margin-left: 20px;
+    }
+
+    .mode {
+        font-size: 18px;
+    }
+</style>
+@endsection
 
 @section('content')
 
 <div class="container">
-<h2 class="titulo-categoria text-uppercase mb-4 mt-4">Duelos</h2>
+        <h2 class="titulo-categoria text-uppercase mb-4 mt-4">Duelos
+            @if (Auth::user())
+            <a href="{{ route('versus.create') }}" class="btn btn-outline-primary mb-2 text-uppercase font-weight-bold">
+                Crear duelo
+            </a>
+            @endif
+        </h2>
     <div class="row mt-2">
-        <div class="col-md-3 pb-2">
-            <div class="text-center" style="border: 3px solid rgb(255, 0, 0);padding: 5px 10px;">
-                <p>Para enviar tu duelo envíanos un correo a <a href="mailto:sbbl.oficial@gmail.com?Subject=Duelo">sbbl.oficial@gmail.com</a>. Escribe el resultado en el propio título del vídeo para poder puntuar.</p>
-            </div>
-        </div>
-        @foreach ($versus as $duel)
-            <div class="col-md-3 pb-2">
-                {{ $duel->another }}
-                <div class="versus-card text-center" style="border: 1px solid black;padding: 5px 10px;">
-                    <p class="mb-1 font-weight-bold border-bottom"><a style="text-decoration: none;color:black;" href="{{ route('events.show', ['event' => $duel->event->id]) }}">{{ $duel->event->name }}</a></p>
-                    <p class="mb-0" style="{{ ($duel->user_id_1 == $duel->winner) ? 'color:green' : 'color:red' }}">{{ $duel->versus_1->name }}</p>
-                    vs
-                    <p style="{{ ($duel->user_id_2 == $duel->winner) ? 'color:green' : 'color:red' }}">{{ $duel->versus_2->name }}</p>
-                    @if ($duel->url)
-                        <a class="d-block font-weight-bold text-uppercase pt-2 pb-2" style="text-decoration: none; color:white;width: 100%; background-color:rgb(87, 170, 244);" href="{{ $duel->url }}">Ver video</a>
-                    @else
-                        <p>*Vídeo disponible próximamente*</p>
-                    @endif
+        @foreach ($versus as $duelo)
+        <div class="duel-card">
+            <div class="duel-info">
+                <div class="duel-player">
+                    <span class="player-name">{{ $duelo->versus_1->name }}</span>
+                    <span class="player-score">{{ $duelo->result_1 }}</span>
+                </div>
+                <div class="vs">VS</div>
+                <div class="duel-player">
+                    <span class="player-score">{{ $duelo->result_2 }}</span>
+                    <span class="player-name">{{ $duelo->versus_2->name }}</span>
                 </div>
             </div>
+            <div class="duel-mode">
+                <span class="mode">{{ ($duelo->matchup == "beybladex") ? "Beyblade X" : "Beyblade Burst"  }}</span>
+            </div>
+        </div>
         @endforeach
     </div>
 </div>

@@ -13,10 +13,14 @@
     <div class="col-md-8">
     <form method="POST" action="{{ route('versus.store') }}" enctype="multipart/form-data" novalidate>
         @csrf
-
+        @if(session('error'))
+        <div class="alert alert-danger">
+            {{ session('error') }}
+        </div>
+    @endif
 
             <div class="form-group">
-                <label for="user_id_1">Jugador 1</label>
+                <label for="user_id_1">Jugador 1 (VICTORIA)</label>
 
                 <select name="user_id_1" id="user_id_1" class="form-control @error('nombre') is-invalid @enderror">
                         <option disabled selected>- Selecciona -</option>
@@ -34,7 +38,25 @@
             </div>
 
             <div class="form-group">
-                <label for="user_id_2">Jugador 2</label>
+                <label for="result_1">Resultado jugador 1</label>
+
+                <input type="number"
+                    name="result_1"
+                    class="form-control @error('result_1') is-invalid @enderror"
+                    id="result_1"
+                    placeholder="0"
+                    value="{{old('result_1')}}"
+                    />
+
+                    @error('url')
+                        <span class="invalid-feedback d-block" role="alert">
+                            <strong>{{$message}}</strong>
+                        </span>
+                    @enderror
+            </div>
+
+            <div class="form-group">
+                <label for="user_id_2">Jugador 2 (DERROTA)</label>
 
                 <select name="user_id_2" id="user_id_2" class="form-control @error('nombre') is-invalid @enderror">
                         <option disabled selected>- Selecciona -</option>
@@ -52,53 +74,33 @@
             </div>
 
             <div class="form-group">
-                <label for="winner">Ganador</label>
+                <label for="url">Resultado jugador 2</label>
 
-                <select name="winner" id="winner" class="form-control @error('nombre') is-invalid @enderror">
-                        <option disabled selected>- Selecciona -</option>
-
-                    @foreach ($users as $user)
-                        <option value="{{ $user->id }}">{{ $user->name }}</option>
-                    @endforeach
-                </select>
-
-                    @error('winner')
-                        <span class="invalid-feedback d-block" role="alert">
-                            <strong>{{$message}}</strong>
-                        </span>
-                    @enderror
-            </div>
-
-            <div class="form-group">
-                <label for="event_id">Evento</label>
-
-                <select name="event_id" id="event_id" class="form-control @error('event_id') is-invalid @enderror">
-                        <option disabled selected>- Selecciona -</option>
-
-                    @foreach ($events as $event)
-                        <option value="{{ $event->id }}">{{ $event->name }} - {{ $event->location }}</option>
-                    @endforeach
-                </select>
-
-                    @error('event_id')
-                        <span class="invalid-feedback d-block" role="alert">
-                            <strong>{{$message}}</strong>
-                        </span>
-                    @enderror
-            </div>
-
-            <div class="form-group">
-                <label for="url">URL video</label>
-
-                <input type="text"
-                    name="url"
+                <input type="number"
+                    name="result_2"
                     class="form-control @error('url') is-invalid @enderror"
-                    id="url"
-                    placeholder="Lugar del evento"
-                    value="{{old('url')}}"
+                    id="result_2"
+                    placeholder="0"
+                    value="{{old('result_2')}}"
                     />
 
                     @error('url')
+                        <span class="invalid-feedback d-block" role="alert">
+                            <strong>{{$message}}</strong>
+                        </span>
+                    @enderror
+            </div>
+
+            <div class="form-group">
+                <label for="modalidad">Modalidad</label>
+
+                <select name="modalidad" id="modalidad" class="form-control @error('modalidad') is-invalid @enderror">
+                        <option disabled selected>- Selecciona -</option>
+                        <option value="beybladeburst">Beyblade Burst</option>
+                        <option value="beybladex">Beyblade X</option>
+                </select>
+
+                    @error('modalidad')
                         <span class="invalid-feedback d-block" role="alert">
                             <strong>{{$message}}</strong>
                         </span>

@@ -2,14 +2,28 @@
 
 @section('content')
 
-<div class="container mt-5">
+<div class="container">
     <div class="row">
-        <div class="col-md-4">
-            @if ($profile->imagen)
-                <img src="/storage/{{ $profile->imagen }}" class="rounded-circle" width="250">
+        <div class="col-12">
+            @if ($profile->fondo)
+                <div style="background-image: url('/storage/{{ $profile->fondo }}'); background-size: cover; background-repeat: no-repeat; background-position: center; padding: 80px;"></div>
             @else
-            <img src="../images/default_user.jpg" class="rounded-circle" width="250">
+                <div style="background-image: url('/storage/upload-profiles/SBBLFondo.png'); background-size: cover; background-repeat: repeat; background-position: center; padding: 80px;"></div>
             @endif
+        </div>
+        <div class="col-md-4" style="margin-top: -20px;">
+            <div style="position: relative;">
+                @if ($profile->imagen)
+                                <img src="/storage/{{ $profile->imagen }}" class="rounded-circle" width="200" style="top: 0; left: 0;">
+                            @else
+                                <img src="/storage/upload-profiles/DranDaggerBase.png" class="rounded-circle" width="200" style="top: 0; left: 0;">
+                            @endif
+                            @if ($profile->marco)
+                                <img src="/storage/{{ $profile->marco }}" class="rounded-circle" width="200" style="position: absolute; top: 0; left: 0;">
+                            @else
+                                <img src="/storage/upload-profiles/Marcos/BaseBlue.png" class="rounded-circle" width="200" style="position: absolute; top: 0; left: 0;">
+                            @endif
+            </div>
 
         </div>
         <div class="col-md-8">
@@ -66,4 +80,3 @@
 
 
 @endsection
-			

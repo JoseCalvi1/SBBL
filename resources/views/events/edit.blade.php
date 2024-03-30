@@ -117,7 +117,8 @@
                 <select name="imagen" id="imagen" class="form-control @error('imagen') is-invalid @enderror">
                     <option disabled selected>- Selecciona una imagen -</option>
                     <option value="quedada">Quedada</option>
-                    <option value="ranking">Ranking</option>
+                    <option value="ranking">Ranking Burst</option>
+                    <option value="rankingx">Ranking X</option>
                     <option value="duelo">Duelo</option>
                 </select>
 

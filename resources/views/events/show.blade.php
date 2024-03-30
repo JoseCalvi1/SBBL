@@ -10,8 +10,23 @@
                 </div>
             </div>
             <div class="col-md-7">
-                <h1 class="text-center mb-4">{{ $event->name }}</h1>
-             @if(Auth::user() && $event->date > $hoy)
+                <h1 class="text-center mb-4">{{ $event->name }}
+                    @if ($event->status == "OPEN")
+                        <span class="btn btn-success">ABIERTO</span>
+                    @elseif ($event->status == "PENDING")
+                        <span class="btn btn-warning">PENDIENTE CALIFICAR</span>
+                    @else
+                        <span class="btn btn-danger">CERRADO</span>
+                    @endif
+                    @if ($event->status != "CLOSE" && Auth::user()->is_admin)
+                        <form method="POST" action="{{ route('events.actualizarPuntuaciones', ['event' => $event->id, 'mode' => $event->mode]) }}" style="display: contents; text-align: center;">
+                            @method('PUT')
+                            @csrf
+                            <button type="submit" class="btn btn-secondary mb-2 mt-2 d-block" style="width: 100%">Cerrar evento</button>
+                        </form>
+                    @endif
+                </h1>
+             @if($event->status == "OPEN" && Auth::user() && $event->date > $hoy)
                 @if (!$suscribe)
                         <form method="POST" action="{{ route('events.assist', ['event' => $event->id]) }}" enctype="multipart/form-data" novalidate style="text-align: center;">
                             @csrf
@@ -50,21 +65,48 @@
 
                         <event-date fecha="{{ $event->date }}"></event-date>
                     </p>
-
+                    @if ($event->status != "CLOSE" && Auth::user()->is_admin || ($event->status == "OPEN" && $event->created_by == Auth::user()->id))
+                    <a href="{{ route('events.edit', ['event' => $event->id]) }}" class="btn btn-dark mb-2 d-block">Editar</a>
+                @endif
                 </div>
             </div>
             <div class="col-md-6">
                 <h4 style="font-weight: bold">Listado de participantes</h4>
                 @if (count($assists) > 0)
-                    @foreach ($assists as $assist)
-                        {{ $assist->name.' ('.$assist->profile->points_s2.' puntos)' }} @if (Auth::user()->is_admin) <b>{{ $assist->email }}</b> @endif <br>
-                    @endforeach
+                    <form method="POST" action="{{ route('events.updatePuestos', ['event' => $event->id]) }}" enctype="multipart/form-data" novalidate>
+                        @csrf
+                        @method('PUT')
+                        @foreach ($assists as $assist)
+                        <p>
+                            {{ $assist->name }} @if (Auth::user()->is_admin) <b>{{ $assist->email }}</b> @endif
+                            @if ($event->status != "CLOSE" && Auth::user()->is_admin || ($event->status == "OPEN" && $event->created_by == Auth::user()->id))
+                            <input type="hidden" name="participantes[{{ $assist->id }}][id]" value="{{ $assist->id }}">
+                            <select class="form-control" name="participantes[{{ $assist->id }}][puesto]">
+                                <option value="participante" {{ $assist->puesto == 'participante' ? 'selected' : '' }}>-- Selecciona un puesto --</option>
+                                <option value="primero" {{ $assist->puesto == 'primero' ? 'selected' : '' }}>Primer puesto</option>
+                                <option value="segundo" {{ $assist->puesto == 'segundo' ? 'selected' : '' }}>Segundo puesto</option>
+                                <option value="tercero" {{ $assist->puesto == 'tercero' ? 'selected' : '' }}>Tercer puesto</option>
+                                <option value="nopresentado" {{ $assist->puesto == 'nopresentado' ? 'selected' : '' }}>No presentado/a</option>
+                            </select>
+                            @endif
+                        </p>
+                        @endforeach
+                        @if ($event->status != "CLOSE" && Auth::user()->is_admin || ($event->status == "OPEN" && $event->created_by == Auth::user()->id))
+                        <div class="form-group py-2">
+                            <input type="submit" class="btn btn-outline-success text-uppercase font-weight-bold flex-right" value="Enviar resultados">
+                        </div>
+                        @endif
+                    </form>
                 @else
-                    Aún no hay participantes inscritos
+                    <p>No hay participantes.</p>
                 @endif
+
+
             </div>
         </div>
             </div>
+
+
         </div>
 
         <div class="row my-4 pl-3">

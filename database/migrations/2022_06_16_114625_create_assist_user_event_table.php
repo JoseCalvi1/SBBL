@@ -17,6 +17,7 @@ class CreateAssistUserEventTable extends Migration
             $table->id();
             $table->unsignedBigInteger('user_id');
             $table->unsignedBigInteger('event_id');
+            $table->string('puesto')->nullable();
             $table->foreign('user_id')->references('id')->on('users')->constrained();
             $table->timestamps();
         });

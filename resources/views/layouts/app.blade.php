@@ -41,10 +41,11 @@
 </head>
 <body>
     <div id="app">
-        <nav class="navbar navbar-expand-md navbar-light bg-white shadow-sm">
+        <nav class="navbar navbar-expand-md shadow-sm"  style="background-color: rgb(0, 0, 112);">
             <div class="container">
                 <a class="navbar-brand" href="{{ url('/') }}">
-                    {{ config('app.name', 'Laravel') }}
+                    <img src="/images/logo_new.png" alt="Logo" width="60" height="50">
+                    <span style="font-size: 0.8em; color: white;">Spanish BeyBattle League</span>
                 </a>
                 <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="{{ __('Toggle navigation') }}">
                     <span class="navbar-toggler-icon"></span>
@@ -57,22 +58,22 @@
                     </ul>
 
                     <!-- Right Side Of Navbar -->
-                    <ul class="navbar-nav ml-auto">
+                    <ul class="navbar-nav ml-auto" style="color: white;">
                         <!-- Authentication Links -->
                         @guest
                             @if (Route::has('login'))
                                 <li class="nav-item">
-                                    <a class="nav-link" href="{{ route('login') }}">{{ __('Login') }}</a>
+                                    <a class="nav-link" style="color: white;" href="{{ route('login') }}">{{ __('Login') }}</a>
                                 </li>
                             @endif
 
                             @if (Route::has('register'))
                                 <li class="nav-item">
-                                    <a class="nav-link" href="{{ route('register') }}">{{ __('Register') }}</a>
+                                    <a class="nav-link" style="color: white;" href="{{ route('register') }}">{{ __('Register') }}</a>
                                 </li>
                             @endif
                         @else
-                        <li class="nav-item">
+                        <!--<li class="nav-item">
                             <a class="nav-link" href="{{ route('inicio.index') }}">
                                 {{ 'INICIO' }}
                             </a>
@@ -81,6 +82,12 @@
                         <li class="nav-item">
                             <a class="nav-link" href="{{ route('inicio.events') }}">
                                 {{ 'EVENTOS' }}
+                            </a>
+                        </li>
+
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ route('versus.all') }}">
+                                {{ 'DUELOS' }}
                             </a>
                         </li>
 
@@ -94,7 +101,7 @@
                                 <a class="nav-link" href="{{ route('profiles.ranking') }}">
                                     {{ 'RANKINGS' }}
                                 </a>
-                            </li>
+                            </li>-->
 
 
 
@@ -118,24 +125,24 @@
 
 @if (Auth::user()->is_admin)
                                     <li class="nav-item dropdown">
-                                        <a id="navbarDropdown" class="nav-link dropdown-toggle" href="#" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" v-pre>
+                                        <a id="navbarDropdown" style="color: white;" class="nav-link dropdown-toggle" href="#" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" v-pre>
                                             {{ 'ADMIN' }}
                                         </a>
 
-                                        <div class="dropdown-menu dropdown-menu-right" aria-labelledby="navbarDropdown">
-                                            <a class="nav-link" href="{{ route('events.index') }}">
+                                        <div class="dropdown-menu dropdown-menu-right" style="background-color: darkblue" aria-labelledby="navbarDropdown">
+                                            <a class="nav-link" style="color: white;" href="{{ route('events.index') }}">
                                                 {{ 'EVENTOS' }}
                                             </a>
 
-                                            <a class="nav-link" href="{{ route('versus.index') }}">
+                                            <a class="nav-link" style="color: white;" href="{{ route('versus.index') }}">
                                                 {{ 'DUELOS' }}
                                             </a>
 
-                                            <a class="nav-link" href="{{ route('profiles.indexAdmin') }}">
+                                            <a class="nav-link" style="color: white;" href="{{ route('profiles.indexAdmin') }}">
                                                 {{ 'USUARIOS BURST' }}
                                             </a>
 
-                                            <a class="nav-link" href="{{ route('profiles.indexAdminX') }}">
+                                            <a class="nav-link" style="color: white;" href="{{ route('profiles.indexAdminX') }}">
                                                 {{ 'USUARIOS X' }}
                                             </a>
 
@@ -148,16 +155,16 @@
 
                                 @endif
                             <li class="nav-item dropdown">
-                                <a id="navbarDropdown" class="nav-link dropdown-toggle" href="#" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" v-pre>
+                                <a id="navbarDropdown" style="color: white;" class="nav-link dropdown-toggle" href="#" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" v-pre>
                                     {{ strtoupper(Auth::user()->name) }}
                                 </a>
 
-                                <div class="dropdown-menu dropdown-menu-right" aria-labelledby="navbarDropdown">
-                                    <a class="dropdown-item" href="{{ route('profiles.show', ['profile' => Auth::user()->id]) }}">
+                                <div class="dropdown-menu dropdown-menu-right" style="background-color: darkblue" aria-labelledby="navbarDropdown">
+                                    <a class="dropdown-item" style="color: white;" href="{{ route('profiles.show', ['profile' => Auth::user()->id]) }}">
                                         {{ 'Ver perfil' }}
                                     </a>
 
-                                    <a class="dropdown-item" href="{{ route('logout') }}"
+                                    <a class="dropdown-item" style="color: white;" href="{{ route('logout') }}"
                                        onclick="event.preventDefault();
                                                      document.getElementById('logout-form').submit();">
                                         {{ __('Logout') }}
@@ -174,8 +181,16 @@
             </div>
         </nav>
 
-        <main class="pb-4">
-            @yield('content')
+        <main>
+            <div class="container-fluid">
+                <div class="row">
+                    <div class="col-md-2" style="background-image: linear-gradient(to right, rgba(0, 0, 0, 0.8), rgba(0, 0, 0, 0.5)), url('/storage/upload-profiles/Fondos/SBBLFondo.png'); background-size: cover; background-position: left;"></div>
+                    <div class="col-md-8 col-sm-12" style="padding: 0px;">
+                        @yield('content')
+                    </div>
+                    <div class="col-md-2" style="background-image: linear-gradient(to left, rgba(0, 0, 0, 0.8), rgba(0, 0, 0, 0.5)), url('/storage/upload-profiles/Fondos/SBBLFondo.png'); background-size: cover; background-position: right;"></div>
+                </div>
+            </div>
         </main>
     </div>
 </body>

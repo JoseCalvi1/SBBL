@@ -111,6 +111,8 @@ class ProfileController extends Controller
         $data = request()->validate([
             'nombre' => 'required',
             'region_id' => 'required',
+            'fondo' => 'required',
+            'marco' => 'required',
         ]);
 
         // Si el usuario sube una imagen
@@ -122,7 +124,7 @@ class ProfileController extends Controller
 
         } elseif ($request['default_img'])
         {
-            $array_imagen = ['imagen' => 'upload-profiles/'.$request['default_img'].'.jpg'];
+            $array_imagen = ['imagen' => 'upload-profiles/'.$request['default_img'].'.png'];
         }
 
         // Asignar nombre

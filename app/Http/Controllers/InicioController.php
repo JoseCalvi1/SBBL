@@ -19,7 +19,7 @@ class InicioController extends Controller
     public function index()
     {
 
-        $all = Event::orderBy('id', 'DESC')->get();
+        $all = Event::orderBy('date', 'DESC')->get();
         $hoy = Carbon::today();
 
         $bladers = Profile::orderBy('points_x1', 'DESC')->paginate(5);
@@ -42,13 +42,15 @@ class InicioController extends Controller
      */
     public function events()
     {
-        $all = Event::orderBy('date', 'DESC')->get();
-        $hoy = Carbon::today();
+        $events = Event::with('region')->get();
+        if(Auth::user()) {
+            $createEvent = Event::where('created_by', Auth::user()->id)->where('date', '>', Carbon::now())->get();
+            $countEvents = count($createEvent);
+        } else {
+            $countEvents = 2;
+        }
 
-        $antiguos = $all->where("date", "<", Carbon::now());
-        $nuevos = $all->where("date", ">=", Carbon::now()->subDays(1));
-
-        return view('inicio.events', compact('nuevos', 'antiguos'));
+        return view('inicio.events', compact('events', 'countEvents'));
     }
 
     /**
