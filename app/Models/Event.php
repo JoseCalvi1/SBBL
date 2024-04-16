@@ -30,6 +30,6 @@ class Event extends Model
 
     public function users()
     {
-        return $this->belongsToMany(User::class, 'assist_user_event', 'event_id' /* de subject */, 'user_id' /* de user */);
+        return $this->belongsToMany(User::class, 'assist_user_event', 'event_id' /* de subject */, 'user_id' /* de user */)->withPivot('puesto');
     }
 }

@@ -102,7 +102,9 @@ class VersusController extends Controller
             'created_at' => Carbon::now(),
         ]);
 
-        return redirect()->action('App\Http\Controllers\VersusController@index');
+        $versus = Versus::orderBy('id', 'DESC')->where('status', 'CLOSED')->get();
+
+        return view('versus.all', compact('versus'));;
     }
 
     /**

@@ -9,7 +9,7 @@
     <!-- CSRF Token -->
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
-    <title>{{ config('app.name', 'Laravel') }}</title>
+    <title>{{ config('app.name', 'Laravel') }} (beta)</title>
 
     <!-- Scripts -->
     <script src="{{ asset('js/app.js') }}" defer></script>
@@ -33,15 +33,7 @@
 
      gtag('config', 'G-KSK91ZXWE3');
    </script>
-<script>
-    var claveIngresada = prompt("Por favor, ingrese la clave:");
 
-    var claveCorrecta = "ligabeybladecat"; // Cambiar esto por tu clave deseada
-    if (claveIngresada !== claveCorrecta) {
-        alert("Clave incorrecta. Por favor, inténtalo de nuevo.");
-        window.location.reload();
-    }
-</script>
     @yield('styles')
 
     <!-- Styles -->
@@ -56,7 +48,7 @@
                     <span style="font-size: 0.8em; color: white;">Spanish BeyBattle League</span>
                 </a>
                 <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="{{ __('Toggle navigation') }}">
-                    <span class="navbar-toggler-icon"></span>
+                    <span class="navbar-toggler-icon" style="color:white">Menú</span>
                 </button>
 
                 <div class="collapse navbar-collapse" id="navbarSupportedContent">
@@ -129,7 +121,12 @@
 
                                 </div>
                             </li>-->
-
+                        
+                        <li class="nav-item">
+                            <a class="nav-link" href="https://discord.gg/JCtAHfJ8Ht" style="color: white;">
+                                {{ 'DISCORD' }}
+                            </a>
+                        </li>
 
 @if (Auth::user()->is_admin)
                                     <li class="nav-item dropdown">
@@ -207,7 +204,7 @@
         <div class="row text-white">
             <div class="col-md-6 col-sm-12 p-5">
                 <h3>Sobre nosotros</h3>
-                <br>Bienvenidos a la Spanish Beyblade Battling League, o más sencillo, la SBBL.
+                <br>Bienvenidos a la Spanish BeyBattle League, o más sencillo, la SBBL.
 
                 <br><br>La SBBL es una liga/organización creada con el objetivo de reunir a todos los bladers residentes en España dentro de una comunidad más grande y fuerte.
 
@@ -270,7 +267,7 @@
             <div class="col-md-12 text-center pt-4 pb-2 border-top">
                 <div class="row">
                 <div class="col-md-6 col-sm-12 font-weight-bold">
-                    Copyright 2022 - Spanish Beyblade Battling League
+                    Copyright 2022 - Spanish BeyBattle League
                 </div>
                 <div class="col-md-6 col-sm-12">
                     <div class="row">
@@ -298,3 +295,4 @@
 </footer>
 @yield('scripts')
 </html>
+	

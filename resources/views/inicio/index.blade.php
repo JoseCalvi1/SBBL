@@ -1,7 +1,7 @@
 @extends('layouts.app')
 
 @section('head')
-    <meta name="description" content="Organización oficial de Beyblade España"/>
+    <meta name="description" content="Organización de BeyBattle España"/>
     <meta name="keywords" content="sbbl, beyblade, españa, torneo, liga, discord, app, web, evento, ranking, español, hasbro, takara, tomy, burst"/>
     <meta name="author" content="José A. Calvillo Olmedo" />
     <meta name="copyright" content="SBBL - José A. Calvillo Olmedo" />
@@ -12,7 +12,7 @@
 @endsection
 
 @section('content')
-<div class="container" style="background-image: url('../images/fondo2.png'); background-size: 50%; background-repeat: repeat; background-position: center; padding: 0px;">
+<div class="container-fluid" style="background-image: url('../images/fondo2.png'); background-size: 50%; background-repeat: repeat; background-position: center; padding: 0px;">
     <div class="container-fluid" style="background: darkblue">
         <div class="row">
             <ul class="navbar-nav m-auto" style="flex-direction: row;">
@@ -48,38 +48,35 @@
     <!--<div>
         <img src="../images/bannersbbl2.png" class="w-100">
     </div>-->
-
-    <div class="col-md-12 p-4 text-center">
+<div class="col-md-12 p-4 text-center">
         <h3 class="titulo-categoria text-uppercase mb-4 mt-4" style="color:white">Próximos eventos</h3>
         <div class="row m-0">
-            @for ($i = 0; $i < 3; $i++)
-                @if (isset($nuevos[$i]))
-                    <div class="col-md-4 pb-2">
-                        <div class="card">
-                            <span style="width: 100%; background: url('/storage/{{ $nuevos[$i]->imagen }}') bottom center no-repeat;background-size: cover;">
-                                <p class="text-center p-4 mb-0" style="font-weight:900;font-size:2em;background-color: rgba(0, 0, 0, 0.4);color: white">{{ $nuevos[$i]->location }} <br>{{ $nuevos[$i]->region->name }}</p>
-                            </span>
-                                <div class="card-body">
-                                <h3>{{ $nuevos[$i]->name }}</h3>
-
-                                <p><event-date fecha="{{ $nuevos[$i]->date }}"></event-date></p>
-                            </div>
-                            <a href="{{ route('events.show', ['event' => $nuevos[$i]->id]) }}" class="d-block font-weight-bold text-uppercase pt-2 pb-2" style="text-decoration: none; color:white;width: 100%; background-color:rgb(87, 170, 244);">Ver evento</a>
-                        </div>
+        @foreach ($nuevos as $evento)
+            <div class="col-md-4 pb-2">
+                <div class="card">
+                    <span style="width: 100%; background: url('/storage/{{ $evento->imagen }}') bottom center no-repeat;background-size: cover;">
+                        <p class="text-center p-4 mb-0" style="font-weight:900;font-size:2em;background-color: rgba(0, 0, 0, 0.4);color: white">{{ $evento->location }} <br>{{ $evento->region->name }}</p>
+                    </span>
+                    <div class="card-body">
+                        <h3>{{ $evento->name }}</h3>
+                        <p><event-date fecha="{{ $evento->date }}"></event-date></p>
                     </div>
-                @else
-                <div class="col-md-4  pb-2">
-                    <div class="card">
-                        <div class="card-body">
-                            <h3 class="border-bottom pt-4 pb-5">Prepárate para los nuevos eventos</h3>
-                            <h3 class="pt-5">Próximamente</h3>
-                        </div>
+                    <a href="{{ route('events.show', ['event' => $evento->id]) }}" class="d-block font-weight-bold text-uppercase pt-2 pb-2" style="text-decoration: none; color:white;width: 100%; background-color:rgb(87, 170, 244);">Ver evento</a>
+                </div>
+            </div>
+        @endforeach
+
+        @if ($nuevos->isEmpty())
+            <div class="col-md-4 pb-2">
+                <div class="card">
+                    <div class="card-body">
+                        <h3 class="border-bottom pt-4 pb-5">Prepárate para los nuevos eventos</h3>
+                        <h3 class="pt-5">Próximamente</h3>
                     </div>
                 </div>
-                @endif
-
-            @endfor
-        </div>
+            </div>
+        @endif
+    </div>
 
     <div class="container">
         <div class="row">
@@ -201,7 +198,7 @@
                 <div class="row border-bottom pb-4">
                     <div class="col-md-4">
                         <div class="rrss text-center p-4">
-                            <a style="display: inline-block; font-size:1.2em; font-weight: bold; text-decoration:none; color: rgb(66, 31, 243);" target="_blank" href="https://discord.gg/vXhY4nGSwZ"><i class="fab fa-discord" style="font-size:4em;"></i> <br>Únete a nuestro<br><b>Discord</b></a>
+                            <a style="display: inline-block; font-size:1.2em; font-weight: bold; text-decoration:none; color: rgb(66, 31, 243);" target="_blank" href="https://discord.gg/JCtAHfJ8Ht"><i class="fab fa-discord" style="font-size:4em;"></i> <br>Únete a nuestro<br><b>Discord</b></a>
                         </div>
                     </div>
                     <div class="col-md-4">

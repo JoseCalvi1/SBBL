@@ -16,9 +16,27 @@
         padding: 10px;
         box-sizing: border-box; /* Considerar el borde en el tamaño */
         height: 100px; /* Altura fija de cada cuadrícula */
-        overflow: hidden; /* Ocultar el contenido que exceda la altura */
+        overflow: auto; /* Ocultar el contenido que exceda la altura */
         position: relative; /* Posicionamiento relativo para los eventos */
     }
+/* Estilo del scroll */
+.day::-webkit-scrollbar {
+    width: 8px; /* Ancho del scroll */
+}
+
+.day::-webkit-scrollbar-thumb {
+    background-color: #888; /* Color del scroll */
+    border-radius: 4px; /* Bordes redondeados */
+}
+
+.day::-webkit-scrollbar-thumb:hover {
+    background-color: #555; /* Color del scroll al pasar el mouse */
+}
+
+.day::-webkit-scrollbar-track {
+    background-color: #f2f2f2; /* Color de fondo del track del scroll */
+    border-radius: 4px; /* Bordes redondeados */
+}
     .day-label {
         font-weight: bold;
         text-align: center;
@@ -175,7 +193,8 @@
     var eventRelation = evento.region.name; // Accedemos al campo de relación
 
     // Modifica este enlace para que redirija al detalle del evento
-    eventHTML += '<a class="event" href="/events/' + eventId + '" target="_blank">' + evento.name + ' (' + eventRelation + ')' + '</a>';
+    eventHTML += '<a class="event" href="/events/' + eventId + '" target="_blank">' + eventRelation + ' (' + (evento.mode == 'beybladex' ? 'X' : 'Burst') + ')' + '</a>';
+
 });
 
 

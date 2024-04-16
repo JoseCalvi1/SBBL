@@ -156,7 +156,7 @@ class EventController extends Controller
         $event->save();
 
         // Redireccionar
-        return redirect()->action('App\Http\Controllers\EventController@index');
+        return redirect()->action('App\Http\Controllers\EventController@show', ['event' => $event->id])->with('event', $event);
     }
 
     /**
@@ -204,13 +204,14 @@ class EventController extends Controller
 
     public function updatePuestos(Request $request, $id)
     {
+
         self::actualizarStatus($id, 'PENDING');
 
-        $request->validate([
+        /*$request->validate([
             'participantes' => 'required|array', // Debe ser un array
             'participantes.*.id' => 'exists:assist_user_event,id', // Cada ID de participante debe existir en la tabla assists
             'participantes.*.puesto' => 'required|in:participante,primero,segundo,tercero', // Validación del puesto para cada participante
-        ]);
+        ]);*/
 
         // Iterar sobre los participantes y actualizar sus puestos
         foreach ($request->input('participantes') as $participante) {

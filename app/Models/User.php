@@ -73,6 +73,6 @@ class User extends Authenticatable
 
     public function assistsEvents()
     {
-        return $this->belongsToMany(Event::class, 'assist_user_event', 'user_id' /* de user */, 'event_id' /* de subject */);
+        return $this->belongsToMany(Event::class, 'assist_user_event', 'user_id' /* de user */, 'event_id' /* de subject */)->withPivot('puesto');
     }
 }

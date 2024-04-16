@@ -82,11 +82,11 @@
                             @if ($event->status != "CLOSE" && Auth::user()->is_admin || ($event->status == "OPEN" && $event->created_by == Auth::user()->id))
                             <input type="hidden" name="participantes[{{ $assist->id }}][id]" value="{{ $assist->id }}">
                             <select class="form-control" name="participantes[{{ $assist->id }}][puesto]">
-                                <option value="participante" {{ $assist->puesto == 'participante' ? 'selected' : '' }}>-- Selecciona un puesto --</option>
-                                <option value="primero" {{ $assist->puesto == 'primero' ? 'selected' : '' }}>Primer puesto</option>
-                                <option value="segundo" {{ $assist->puesto == 'segundo' ? 'selected' : '' }}>Segundo puesto</option>
-                                <option value="tercero" {{ $assist->puesto == 'tercero' ? 'selected' : '' }}>Tercer puesto</option>
-                                <option value="nopresentado" {{ $assist->puesto == 'nopresentado' ? 'selected' : '' }}>No presentado/a</option>
+                                <option value="participante" {{ $assist->pivot->puesto == 'participante' ? 'selected' : '' }}>-- Selecciona un puesto --</option>
+                                <option value="primero" {{ $assist->pivot->puesto == 'primero' ? 'selected' : '' }}>Primer puesto</option>
+                                <option value="segundo" {{ $assist->pivot->puesto == 'segundo' ? 'selected' : '' }}>Segundo puesto</option>
+                                <option value="tercero" {{ $assist->pivot->puesto == 'tercero' ? 'selected' : '' }}>Tercer puesto</option>
+                                <option value="nopresentado" {{ $assist->pivot->puesto == 'nopresentado' ? 'selected' : '' }}>No presentado/a</option>
                             </select>
                             @endif
                         </p>

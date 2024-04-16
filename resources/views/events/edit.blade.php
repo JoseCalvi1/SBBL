@@ -3,15 +3,15 @@
 
 @section('content')
 
-<a href="{{ route('events.index') }}" class="btn btn-outline-primary m-4 text-uppercase font-weight-bold">
+<a href="{{ route('events.show', ['event' => $event->id]) }}" class="btn btn-outline-primary m-4 text-uppercase font-weight-bold">
     Volver
 </a>
 
 <h2 class="text-center mb-5">Editar evento: {{ $event->titulo }}</h2>
 
-<div class="row justify-content-center mt-5" style="margin-right: 0px !important;">
+<div class="row justify-content-center mt-5 text-white" style="margin-right: 0px !important;">
     <div class="col-md-8">
-    <form method="POST" action="{{ route('events.update', ['event' => $event->id]) }}" enctype="multipart/form-data" novalidate>
+    <form method="POST" action="{{ route('events.update', ['event' => $event->id]) }}" enctype="multipart/form-data" novalidate style="color:white;">
         @csrf
 
         @method('PUT')
@@ -100,7 +100,7 @@
                     class="form-control @error('iframe') is-invalid @enderror"
                     id="iframe"
                     placeholder="Iframe"
-                    value="{{ $event->iframe }}"
+                    value="{{ ($event->iframe) ? $event->iframe : 'To be announced' }}"
                     />
 
                     @error('iframe')

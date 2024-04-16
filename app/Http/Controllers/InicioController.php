@@ -25,7 +25,7 @@ class InicioController extends Controller
         $bladers = Profile::orderBy('points_x1', 'DESC')->paginate(5);
         $stamina = Profile::where('user_id', 1)->first();
         $antiguos = $all->where("date", "<", Carbon::now());
-        $nuevos = $all->where("date", ">=", Carbon::now()->subDays(1));
+        $nuevos = $all->where("date", ">=", Carbon::now()->subDays(1))->sortBy('date')->take(3);
 
         return view('inicio.index', compact('bladers', 'stamina', 'nuevos', 'antiguos'));
     }

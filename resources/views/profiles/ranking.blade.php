@@ -1,6 +1,7 @@
 @extends('layouts.app')
 
 @section('content')
+
     <div class="container">
         <!-- Agregar un campo de filtro -->
         <div class="row justify-content-center">
@@ -25,7 +26,7 @@
                         <div class="item {{ $index < 4 ? 'resaltado' : '' }}">
                             <span class="posicion">{{ $index + 1 }}</span>
                             <span>{{ $blader->user->name }}</span>
-                            <span>{{ $blader->region->name }}</span>
+                            <span>{{ ($blader->region) ? $blader->region->name : 'Región desconocida' }}</span>
                             <span>{{ $blader->points_x1 }} puntos</span>
                         </div>
                     @endforeach
@@ -46,7 +47,7 @@
                         <div class="item {{ $index < 4 ? 'resaltado' : '' }}">
                             <span class="posicion">{{ $index + 1 }}</span>
                             <span>{{ $blader->user->name }}</span>
-                            <span>{{ $blader->region->name }}</span>
+                            <span>{{ ($blader->region) ? $blader->region->name : 'Región desconocida' }}</span>
                             <span>{{ $blader->points_s3 }} puntos</span>
                         </div>
                     @endforeach
