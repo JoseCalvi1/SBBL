@@ -65,7 +65,7 @@
         margin-bottom: 10px;
     }
     .today {
-        background-color: #ffe6b3; /* Resaltado del día actual */
+        background-color: #f8b66a; /* Resaltado del día actual */
     }
     .current-day-button {
         margin-top: 10px;
@@ -86,9 +86,9 @@
 
 @section('content')
 
-<h1 class="current-month mt-5">Calendario de Eventos
+<h1 class="current-month mt-5" style="color:white;">Calendario de Eventos
     @if ($countEvents < 2 || (Auth::user() && Auth::user()->is_admin))
-        <a href="{{ route('events.create') }}" class="btn btn-outline-primary text-uppercase font-weight-bold">
+        <a href="{{ route('events.create') }}" class="btn btn-outline-warning text-uppercase font-weight-bold">
         Crear evento
         </a>
     @endif
@@ -100,9 +100,9 @@
     <button class="next-button" onclick="nextMonth()">Siguiente <i class="fas fa-chevron-right"></i></button>
 </div>
 
-<h3 class="current-month" id="currentMonth"></h3>
+<h3 class="current-month" id="currentMonth" style="color:white;"></h3>
 
-<div id="calendar" class="calendar mb-3"></div>
+<div id="calendar" class="calendar mb-3" style="color: white"></div>
 
 @endsection
 

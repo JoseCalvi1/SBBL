@@ -7,11 +7,11 @@
     Volver
 </a>
 
-<h2 class="text-center mb-5">Añadir nuevo duelo</h2>
+<h2 class="text-center mb-5 text-white">Añadir nuevo duelo</h2>
 
 <div class="row justify-content-center mt-5">
     <div class="col-md-8">
-    <form method="POST" action="{{ route('versus.store') }}" enctype="multipart/form-data" novalidate>
+    <form method="POST" action="{{ route('versus.store') }}" enctype="multipart/form-data" novalidate style="color: white">
         @csrf
         @if(session('error'))
         <div class="alert alert-danger">

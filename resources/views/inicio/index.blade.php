@@ -179,7 +179,7 @@
                 <div class="row mt-5" style="background-color: rgb(205, 127, 50)">
                     <div class="col-md-2 text-center text-white p-4" style="border: unset;">
                     </div>
-                    <div class="col-md-8 text-white text-center p-4" style="font-size: 1.2em; font-weight:bold;">
+                    <div class="col-md-8 text-white text-center p-4" style="font-size: 1.2em; font-weight:bold; line-height: 1">
                         <!--<h2 style="font-size: 2em; font-weight:bold;">ENTREVISTAS A NUESTROS CAMPEONES</h2>
                         <p>Con la inminente llegada de las nuevas temporadas de Beyblade X y Burst hemos querido preparar una cosa</p>
                         <p>Así que para despedirnos de la segunda temporada de Burst hemos hecho dos entrevistas con los campeones de cada temporada</p>

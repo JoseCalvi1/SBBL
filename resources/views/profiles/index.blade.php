@@ -3,7 +3,7 @@
 @section('content')
 
     <div class="container">
-        <h2 class="titulo-categoria text-uppercase mb-4 mt-4">Bladers</h2>
+        <h2 class="titulo-categoria text-uppercase mb-4 mt-4" style="color: white">Bladers</h2>
             <div>
                 <div class="row">
                 @foreach ($bladers as $blader)

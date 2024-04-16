@@ -59,9 +59,9 @@
 @section('content')
 
 <div class="container">
-        <h2 class="titulo-categoria text-uppercase mb-4 mt-4">Duelos
+        <h2 class="titulo-categoria text-uppercase mb-4 mt-4" style="color:white">Duelos
             @if (Auth::user())
-            <a href="{{ route('versus.create') }}" class="btn btn-outline-primary mb-2 text-uppercase font-weight-bold">
+            <a href="{{ route('versus.create') }}" class="btn btn-outline-warning mb-2 text-uppercase font-weight-bold">
                 Crear duelo
             </a>
             @endif

@@ -9,11 +9,11 @@
     Volver
 </a>
 
-    <h1 class="text-center mt-2">Editar mi perfil</h1>
+    <h1 class="text-center mt-2 text-white">Editar mi perfil</h1>
 
     <div class="row justify-content-center mt-5">
-        <div class="col-md-10 bg-white p-3">
-            <form  action="{{ route('profiles.update', ['profile' => $profile->id]) }}" method="POST" enctype="multipart/form-data">
+        <div class="col-md-10 p-3">
+            <form  action="{{ route('profiles.update', ['profile' => $profile->id]) }}" method="POST" enctype="multipart/form-data" style="color: white">
                 @csrf
                 @method('PUT')
 
@@ -309,56 +309,56 @@
                 <div class="form-group">
                     <label for="fondo">Fondo de tarjeta</label>
                     <div class="row">
-                        <div class="col-md-2">
+                        <div class="col-md-3">
                             <label>
                                 <input type="radio" name="fondo" value="upload-profiles/Fondos/FondoBaseBlue.png"
                                        @if ($profile->fondo == "upload-profiles/Fondos/FondoBaseBlue.png") checked @endif/>
                                 <img src="/storage/upload-profiles/Fondos/FondoBaseBlue.png" alt="Azul" width="100%" />
                             </label>
                         </div>
-                        <div class="col-md-2">
+                        <div class="col-md-3">
                             <label>
                                 <input type="radio" name="fondo" value="upload-profiles/Fondos/FondoBaseGreen.png"
                                        @if ($profile->fondo == "upload-profiles/Fondos/FondoBaseGreen.png") checked @endif/>
                                 <img src="/storage/upload-profiles/Fondos/FondoBaseGreen.png" alt="Verde" width="100%" />
                             </label>
                         </div>
-                        <div class="col-md-2">
+                        <div class="col-md-3">
                             <label>
                                 <input type="radio" name="fondo" value="upload-profiles/Fondos/FondoBaseRed.png"
                                        @if ($profile->fondo == "upload-profiles/Fondos/FondoBaseRed.png") checked @endif/>
                                 <img src="/storage/upload-profiles/Fondos/FondoBaseRed.png" alt="Rojo" width="100%" />
                             </label>
                         </div>
-                        <div class="col-md-2">
+                        <div class="col-md-3">
                             <label>
                                 <input type="radio" name="fondo" value="upload-profiles/Fondos/FondoBaseYellow.png"
                                        @if ($profile->fondo == "upload-profiles/Fondos/FondoBaseYellow.png") checked @endif/>
                                 <img src="/storage/upload-profiles/Fondos/FondoBaseYellow.png" alt="Amarillo" width="100%" />
                             </label>
                         </div>
-                        <div class="col-md-2">
+                        <div class="col-md-3">
                             <label>
                                 <input type="radio" name="fondo" value="upload-profiles/Fondos/FondoATK.png"
                                        @if ($profile->fondo == "upload-profiles/Fondos/FondoATK.png") checked @endif/>
                                 <img src="/storage/upload-profiles/Fondos/FondoATK.png" alt="Ataque" width="100%" />
                             </label>
                         </div>
-                        <div class="col-md-2">
+                        <div class="col-md-3">
                             <label>
-                                <input type="radio" name="fondo" value="upload-profiles/Fondos/FondoDef.png"
-                                       @if ($profile->fondo == "upload-profiles/Fondos/FondoDef.png") checked @endif/>
-                                <img src="/storage/upload-profiles/Fondos/FondoDef.png" alt="Defensa" width="100%" />
+                                <input type="radio" name="fondo" value="upload-profiles/Fondos/FondoDEF.png"
+                                       @if ($profile->fondo == "upload-profiles/Fondos/FondoDEF.png") checked @endif/>
+                                <img src="/storage/upload-profiles/Fondos/FondoDEF.png" alt="Defensa" width="100%" />
                             </label>
                         </div>
-                        <div class="col-md-2">
+                        <div class="col-md-3">
                             <label>
                                 <input type="radio" name="fondo" value="upload-profiles/Fondos/FondoBAL.png"
                                        @if ($profile->fondo == "upload-profiles/Fondos/FondoBAL.png") checked @endif/>
                                 <img src="/storage/upload-profiles/Fondos/FondoBAL.png" alt="Balance" width="100%" />
                             </label>
                         </div>
-                        <div class="col-md-2">
+                        <div class="col-md-3">
                             <label>
                                 <input type="radio" name="fondo" value="upload-profiles/Fondos/FondoSTA.png"
                                        @if ($profile->fondo == "upload-profiles/Fondos/FondoSTA.png") checked @endif/>

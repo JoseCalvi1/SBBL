@@ -16,6 +16,8 @@
                 <tr>
                     <th scole="col">Título</th>
                     <th scole="col">Location</th>
+                    <th scole="col">Modalidad</th>
+                    <th scole="col">Region</th>
                     <th scole="col">Fecha</th>
                     <th scole="col">Acciones</th>
                 </tr>
@@ -26,6 +28,8 @@
                     <tr>
                         <td>{{ $event->name }}</td>
                         <td>{{ $event->location }}</td>
+                        <td>{{ $event->mode }}</td>
+                        <td>{{ $event->region->name }}</td>
                         <td><event-date fecha="{{ $event->date }}"></event-date></td>
                         <td>
                             <a href="{{ route('events.show', ['event' => $event->id]) }}" class="btn btn-success mb-2 d-block">Ver</a>
@@ -44,4 +48,3 @@ header("Location: /");
 die();
 @endif
 @endsection
-	

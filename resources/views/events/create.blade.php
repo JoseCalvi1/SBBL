@@ -7,11 +7,11 @@
     Volver
 </a>
 
-<h2 class="text-center mb-5">Crear nuevo evento</h2>
+<h2 class="text-center mb-5" style="color: white">Crear nuevo evento</h2>
 
 <div class="row justify-content-center mt-5">
     <div class="col-md-8">
-    <form method="POST" action="{{ route('events.store') }}" enctype="multipart/form-data" novalidate>
+    <form method="POST" action="{{ route('events.store') }}" enctype="multipart/form-data" novalidate style="color: white">
         @csrf
             <div class="form-group">
                 <label for="name">Título evento</label>
