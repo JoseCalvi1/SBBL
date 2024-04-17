@@ -3,7 +3,7 @@
 
 @section('content')
 
-<a href="{{ route('events.index') }}" class="btn btn-outline-primary mr-2 text-uppercase font-weight-bold m-4">
+<a href="{{ route('inicio.events') }}" class="btn btn-outline-primary mr-2 text-uppercase font-weight-bold m-4">
     Volver
 </a>
 
@@ -41,6 +41,58 @@
                 </select>
 
                     @error('mode')
+                        <span class="invalid-feedback d-block" role="alert">
+                            <strong>{{$message}}</strong>
+                        </span>
+                    @enderror
+            </div>
+
+            <div class="form-group">
+                <label for="imagen">Categoría</label>
+
+                <select name="imagen" id="imagen" class="form-control @error('imagen') is-invalid @enderror">
+                    <option disabled selected>- Selecciona una imagen -</option>
+                    <option value="quedada">Quedada</option>
+                    <option value="ranking">Ranking</option>
+                </select>
+
+                    @error('imagen')
+                        <span class="invalid-feedback d-block" role="alert">
+                            <strong>{{$message}}</strong>
+                        </span>
+                    @enderror
+            </div>
+
+            <div class="form-group">
+                <label for="deck">Deck</label>
+
+                <select name="deck" id="deck" class="form-control @error('deck') is-invalid @enderror">
+                    <option disabled selected>- Selecciona un tamaño de deck -</option>
+                    <option value="3on3">3on3</option>
+                    <option value="5g">5G</option>
+                </select>
+
+                    @error('deck')
+                        <span class="invalid-feedback d-block" role="alert">
+                            <strong>{{$message}}</strong>
+                        </span>
+                    @enderror
+            </div>
+
+            <div class="form-group">
+                <label for="configuration">Tipo torneo</label>
+
+                <select name="configuration" id="configuration" class="form-control @error('configuration') is-invalid @enderror">
+                    <option disabled selected>- Selecciona la configuración del torneo -</option>
+                    <option value="SingleElimination">Single elimination</option>
+                    <option value="DoubleElimination">Double elimination</option>
+                    <option value="RoundRobin">Round Robin</option>
+                    <option value="Swiss">Swiss</option>
+                    <option value="FreeForAll">Free for all</option>
+                    <option value="Leaderboard">Leaderboard</option>
+                </select>
+
+                    @error('configuration')
                         <span class="invalid-feedback d-block" role="alert">
                             <strong>{{$message}}</strong>
                         </span>
@@ -90,11 +142,29 @@
                     name="event_date"
                     class="form-control @error('event_date') is-invalid @enderror"
                     id="event_date"
-                    placeholder="Título evento"
+                    placeholder="Fecha del evento"
                     value="{{old('event_date')}}"
                     />
 
                     @error('event_date')
+                        <span class="invalid-feedback d-block" role="alert">
+                            <strong>{{$message}}</strong>
+                        </span>
+                    @enderror
+            </div>
+
+            <div class="form-group">
+                <label for="event_time">Hora del evento</label>
+
+                <input type="time"
+                    name="event_time"
+                    class="form-control @error('event_time') is-invalid @enderror"
+                    id="event_time"
+                    placeholder="Fecha del evento"
+                    value="{{old('event_time')}}"
+                    />
+
+                    @error('event_time')
                         <span class="invalid-feedback d-block" role="alert">
                             <strong>{{$message}}</strong>
                         </span>
@@ -116,23 +186,6 @@
                 @enderror
             </div> -->
 
-            <div class="form-group">
-                <label for="imagen">Imagen por defecto</label>
-
-                <select name="imagen" id="imagen" class="form-control @error('imagen') is-invalid @enderror">
-                    <option disabled selected>- Selecciona una imagen -</option>
-                    <option value="quedada">Quedada</option>
-                    <option value="ranking">Ranking Burst</option>
-                    <option value="rankingx">Ranking X</option>
-                    <option value="duelo">Duelo</option>
-                </select>
-
-                    @error('imagen')
-                        <span class="invalid-feedback d-block" role="alert">
-                            <strong>{{$message}}</strong>
-                        </span>
-                    @enderror
-            </div>
 
             <div class="form-group">
                 <input type="submit" class="btn btn-primary" value="Agregar Evento">

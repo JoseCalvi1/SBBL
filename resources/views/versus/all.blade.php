@@ -74,7 +74,7 @@
                     <span class="player-name">{{ $duelo->versus_1->name }}</span>
                     <span class="player-score">{{ $duelo->result_1 }}</span>
                 </div>
-                <div class="vs">VS</div>
+                <div class="vs"> VS </div>
                 <div class="duel-player">
                     <span class="player-score">{{ $duelo->result_2 }}</span>
                     <span class="player-name">{{ $duelo->versus_2->name }}</span>

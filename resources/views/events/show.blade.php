@@ -51,6 +51,10 @@
                             {{ ($event->mode == 'beybladex') ? 'Beyblade X' : 'Beyblade Burst' }}
                     </p>
                     <p>
+                        <span class="font-weight-bold text-primary">Configuración:</span>
+                            {{ $event->deck }} <span class="font-weight-bold">({{ $event->configuration }})</span>
+                    </p>
+                    <p>
                         <span class="font-weight-bold text-primary">Región:</span>
                             {{ $event->region->name }}
                     </p>
@@ -61,9 +65,9 @@
                     </p>
 
                     <p>
-                        <span class="font-weight-bold text-primary">Fecha:</span>
+                        <span class="font-weight-bold text-primary">Fecha y hora:</span>
 
-                        <event-date fecha="{{ $event->date }}"></event-date>
+                        <event-date fecha="{{ $event->date }}"></event-date> <span class="font-weight-bold">({{ $event->time }})</span>
                     </p>
                     @if ($event->status != "CLOSE" && Auth::user()->is_admin || ($event->status == "OPEN" && $event->created_by == Auth::user()->id))
                     <a href="{{ route('events.edit', ['event' => $event->id]) }}" class="btn btn-dark mb-2 d-block">Editar</a>
@@ -109,23 +113,30 @@
 
         </div>
 
-        <div class="row my-4 pl-3">
-            <h2 class="my-4">Emparejamientos</h2>
-            {!! $event->iframe !!}
-        </div>
 
-        <div class="my-4">
-            <h2 class="my-4">Vídeos del evento</h2>
-            <div class="row">
-                @foreach ($videos as $video)
-                <div class="col-md-4">
-                    <iframe id="player" type="text/html" width="100%" height="250"
-                    src="https://www.youtube.com/embed/{{ $video->url }}"
-                    frameborder="0"></iframe>
-                </div>
-                @endforeach
+        @if ($event->iframe)
+            <div class="row my-4 pl-3">
+                <h2 class="my-4">Emparejamientos</h2>
+                {!! $event->iframe !!}
             </div>
-        </div>
+        @endif
+
+
+        @if ($videos)
+            <div class="my-4">
+                <h2 class="my-4">Vídeos del evento</h2>
+                <div class="row">
+                    @foreach ($videos as $video)
+                    <div class="col-md-4">
+                        <iframe id="player" type="text/html" width="100%" height="250"
+                        src="https://www.youtube.com/embed/{{ $video->url }}"
+                        frameborder="0"></iframe>
+                    </div>
+                    @endforeach
+                </div>
+            </div>
+        @endif
+
     </article>
 
 @endsection

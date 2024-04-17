@@ -56,6 +56,7 @@ class EventController extends Controller
             'location' => 'required',
             'region_id' => 'required',
             'event_date' => 'required',
+            'event_time' => 'required',
         ]);
 
         // Obtener ruta de la imagen
@@ -65,9 +66,12 @@ class EventController extends Controller
         }*/
 
         // Si el usuario sube una imagen
-        if($request['imagen'])
-        {
-            $ruta_imagen = 'upload-events/'.$request['imagen'].'.jpg';
+        if($request['imagen'] == 'quedada') {
+            $ruta_imagen = 'upload-events/rankingx.jpg';
+        }   elseif($request['mode'] == 'beybladex' && $request['imagen'] == 'ranking')  {
+            $ruta_imagen = 'upload-events/rankingx.jpg';
+        }   elseif($request['mode'] == 'beybladeburst' && $request['imagen'] == 'ranking')  {
+            $ruta_imagen = 'upload-events/ranking.jpg';
         }
 
         // Almacenar datos en la BD (sin modelos)
@@ -79,7 +83,10 @@ class EventController extends Controller
             'status' => 'OPEN',
             'region_id' => $data['region_id'],
             'date' => $data['event_date'],
+            'time' => $data['event_time'],
             'imagen' => $ruta_imagen,
+            'deck' => $request['deck'],
+            'configuration' => $request['configuration'],
         ]);
 
         $events = Event::with('region')->get();
@@ -134,24 +141,34 @@ class EventController extends Controller
         // Validación
         $data = $request->validate([
             'name' => 'required|min:6',
+            'mode' => 'required',
             'location' => 'required',
             'region_id' => 'required',
             'event_date' => 'required',
-            'iframe' => 'min:6',
+            'event_time' => 'required',
         ]);
 
         // Si el usuario sube una imagen
-        if($request['imagen'])
-        {
-            $event->imagen = 'upload-events/'.$request['imagen'].'.jpg';
+        if($request['imagen'] == 'quedada') {
+            $ruta_imagen = 'upload-events/rankingx.jpg';
+        }   elseif($request['mode'] == 'beybladex' && $request['imagen'] == 'ranking')  {
+            $ruta_imagen = 'upload-events/rankingx.jpg';
+        }   elseif($request['mode'] == 'beybladeburst' && $request['imagen'] == 'ranking')  {
+            $ruta_imagen = 'upload-events/ranking.jpg';
         }
 
         // Asignar los valores
         $event->name = $data['name'];
+        $event->mode = $data['mode'];
         $event->location = $data['location'];
+        $event->status = 'OPEN';
         $event->region_id = $data['region_id'];
         $event->date = $data['event_date'];
-        $event->iframe = $data['iframe'];
+        $event->time = $data['event_time'];
+        $event->imagen = $ruta_imagen;
+        $event->deck = $request['deck'];
+        $event->configuration = $request['configuration'];
+        $event->iframe = $request['iframe'];
 
         $event->save();
 
