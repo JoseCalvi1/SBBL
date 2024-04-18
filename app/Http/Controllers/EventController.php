@@ -7,9 +7,10 @@ use App\Models\Region;
 use App\Models\User;
 use App\Models\Video;
 use Carbon\Carbon;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Http;
 
 class EventController extends Controller
 {
@@ -75,7 +76,7 @@ class EventController extends Controller
         }
 
         // Almacenar datos en la BD (sin modelos)
-        DB::table('events')->insert([
+        $eventId = DB::table('events')->insertGetId([
             'name' => $data['name'],
             'mode' => $data['mode'],
             'location' => $data['location'],
@@ -89,9 +90,13 @@ class EventController extends Controller
             'configuration' => $request['configuration'],
         ]);
 
+        // TODO Descomentar para subir a prod
+        //Self::notification(Event::find($eventId));
+
         $events = Event::with('region')->get();
         $createEvent = Event::where('created_by', Auth::user()->id)->where('date', '>', Carbon::now())->get();
         $countEvents = count($createEvent);
+
 
         return view('inicio.events', compact('events', 'countEvents'));
     }
@@ -291,4 +296,59 @@ class EventController extends Controller
 
         return redirect()->back()->with('success', 'Puntuaciones actualizadas correctamente');
     }
+
+    public function notification($eventId)
+    {
+        $regionName = $eventId->region->name;
+        $fecha = Carbon::parse($eventId->date);
+        $fechaFormateada = $fecha->translatedFormat('d \d\e F \d\e\l Y');
+
+        // Array con los roles de Discord por comunidad autónoma
+        $rolesPorComunidad = [
+            'Andalucía' => '1206704489990459452',
+            'Aragón' => '1209155125654978663',
+            'Asturias' => '1209155336033017876',
+            'Baleares' => '1209155169917476874',
+            'Canarias' => '1209154917449859143',
+            'Cantabria' => '1209155399920386109',
+            'Castilla La Mancha' => '1209154971229093978',
+            'Castilla y León' => '1209154789003239504',
+            'Catalunya' => '1209154633227046983',
+            'Extremadura' => '1209155220450582618',
+            'Galicia' => '1209154737220354048',
+            'Rioja' => '1209155480342106132',
+            'Madrid' => '1209154530890219520',
+            'Murcia' => '1209155058562895944',
+            'Navarra' => '1209155367578370059',
+            'País Vasco' => '1209154853872345138',
+            'Valencia' => '1209154705327132712',
+            'Melilla' => '1209155513967845438',
+            'Ceuta' => '1209155549468434432',
+            // Agrega más comunidades autónomas si es necesario
+        ];
+
+        // Obtienes el ID del rol de Discord correspondiente a la región
+        $rolId = $rolesPorComunidad[$regionName] ?? '';
+
+        // Construyes el mensaje mencionando la región específica
+        $message = "¡Hay un nuevo torneo disponible para $regionName!";
+
+        // Añades la mención del rol de Discord de la región al mensaje
+        $message .= "\n<@&$rolId>";
+
+        // Envías el mensaje al webhook de Discord
+        return Http::post('https://discord.com/api/webhooks/1228040797547659345/J7kVzzGIvAwVHbUM2QY9lHDizXnK5zk_kbQARTQKgI9xUkJ2YCHVQaPwTOCgNHSA2BF8', [
+            'content' => $message,
+            'embeds' => [
+                [
+                    'title' => $eventId->name . " (" . $eventId->mode . ")",
+                    'description' => "El día " . $fechaFormateada . " a las " . $eventId->time . ". Inscríbete en: https://sbbl.es/events/" . $eventId->id,
+                    'color' => '7506394',
+                ]
+            ],
+        ]);
+    }
+
+
+
 }
