@@ -54,11 +54,10 @@
         @foreach ($nuevos as $evento)
             <div class="col-md-4 pb-2">
                 <div class="card">
-                    <span style="width: 100%; background: url('/storage/{{ $evento->imagen }}') bottom center no-repeat;background-size: cover;">
-                        <p class="text-center p-4 mb-0" style="font-weight:900;font-size:2em;background-color: rgba(0, 0, 0, 0.4);color: white">{{ $evento->location }} <br>{{ $evento->region->name }}</p>
-                    </span>
+                    <span style="width: 100%; min-height: 180px; background: url('/storage/{{ $evento->imagen }}') bottom center no-repeat;background-size: cover;"></span>
                     <div class="card-body">
-                        <h3>{{ $evento->name }}</h3>
+                        <h3 style="font-weight: bold;">{{ $evento->name }}</h3>
+                        <h3>{{ $evento->region->name }}</h3>
                         <p><event-date fecha="{{ $evento->date }}"></event-date></p>
                     </div>
                     <a href="{{ route('events.show', ['event' => $evento->id]) }}" class="d-block font-weight-bold text-uppercase pt-2 pb-2" style="text-decoration: none; color:white;width: 100%; background-color:rgb(87, 170, 244);">Ver evento</a>
