@@ -557,6 +557,7 @@ class ComposerStaticInite7f146cd756667586734ec7a2e7319e8
         'App\\Http\\Middleware\\TrustHosts' => __DIR__ . '/../..' . '/app/Http/Middleware/TrustHosts.php',
         'App\\Http\\Middleware\\TrustProxies' => __DIR__ . '/../..' . '/app/Http/Middleware/TrustProxies.php',
         'App\\Http\\Middleware\\VerifyCsrfToken' => __DIR__ . '/../..' . '/app/Http/Middleware/VerifyCsrfToken.php',
+        'App\\Models\\Article' => __DIR__ . '/../..' . '/app/Models/Article.php',
         'App\\Models\\Challenge' => __DIR__ . '/../..' . '/app/Models/Challenge.php',
         'App\\Models\\ChallengeProfile' => __DIR__ . '/../..' . '/app/Models/ChallengeProfile.php',
         'App\\Models\\Event' => __DIR__ . '/../..' . '/app/Models/Event.php',

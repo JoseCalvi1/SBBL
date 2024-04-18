@@ -41,6 +41,14 @@
                         {{ 'RANKING' }}
                     </a>
                 </li>
+                @if ((Auth::user() && Auth::user()->is_admin))
+                <li class="nav-item">
+                    <a class="nav-link ml-2 mr-2" style="color: white; font-weight: bold; font-size:1.2em;" href="{{ route('blog.index') }}">
+                        {{ 'BLOG' }}
+                    </a>
+                </li>
+                @endif
+
             </ul>
         </div>
     </div>

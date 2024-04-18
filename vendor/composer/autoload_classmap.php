@@ -33,6 +33,7 @@ return array(
     'App\\Http\\Middleware\\TrustHosts' => $baseDir . '/app/Http/Middleware/TrustHosts.php',
     'App\\Http\\Middleware\\TrustProxies' => $baseDir . '/app/Http/Middleware/TrustProxies.php',
     'App\\Http\\Middleware\\VerifyCsrfToken' => $baseDir . '/app/Http/Middleware/VerifyCsrfToken.php',
+    'App\\Models\\Article' => $baseDir . '/app/Models/Article.php',
     'App\\Models\\Challenge' => $baseDir . '/app/Models/Challenge.php',
     'App\\Models\\ChallengeProfile' => $baseDir . '/app/Models/ChallengeProfile.php',
     'App\\Models\\Event' => $baseDir . '/app/Models/Event.php',
