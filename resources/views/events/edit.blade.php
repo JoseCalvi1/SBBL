@@ -13,8 +13,8 @@
     <div class="col-md-8">
     <form method="POST" action="{{ route('events.update', ['event' => $event->id]) }}" enctype="multipart/form-data" novalidate style="color:white;">
         @csrf
-
         @method('PUT')
+        @if (Auth::user()->is_admin)
             <div class="form-group">
                 <label for="name">Título evento</label>
 
@@ -32,6 +32,7 @@
                         </span>
                     @enderror
             </div>
+        @endif
 
             <div class="form-group">
                 <label for="mode">Modalidad</label>

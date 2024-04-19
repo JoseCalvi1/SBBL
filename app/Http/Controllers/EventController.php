@@ -50,6 +50,28 @@ class EventController extends Controller
      */
     public function store(Request $request)
     {
+        if (empty($request->name)) {
+            $eventDate = $request->event_date;
+            $mode = $request->mode;
+
+            $modeName = ($request->mode == "beybladex") ? "X" : "Burst" ;
+
+            // Obtener el mes y año de la fecha del evento
+            $mes = date('m', strtotime($eventDate));
+            $año = date('Y', strtotime($eventDate));
+
+            // Consulta para obtener el número de eventos del mismo tipo realizados en el mismo mes y año
+            $numeroEventos = Event::whereYear('date', $año)
+                                ->whereMonth('date', $mes)
+                                ->where('mode', $mode)
+                                ->count();
+
+            $regionId = Region::FindOrFail($request->region_id);
+            $monthAbbreviation = date('M', strtotime($request->event_date));
+            $defaultName = 'Copa ' . $regionId->name . ' '.$modeName.' ' . strtoupper(substr($monthAbbreviation, 0, 3)) . $numeroEventos+1;
+            $request->merge(['name' => $defaultName]);
+        }
+
         // Validación
         $data = $request->validate([
             'name' => 'required|min:6',
