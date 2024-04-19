@@ -136,6 +136,24 @@
             </div>
 
             <div class="form-group">
+                <label for="note">Anotaciones</label>
+
+                <input type="text"
+                    name="note"
+                    class="form-control @error('note') is-invalid @enderror"
+                    id="note"
+                    placeholder="Anotaciones importantes"
+                    value="{{old('note')}}"
+                    />
+
+                    @error('note')
+                        <span class="invalid-feedback d-block" role="alert">
+                            <strong>{{$message}}</strong>
+                        </span>
+                    @enderror
+            </div>
+
+            <div class="form-group">
                 <label for="event_date">Fecha del evento</label>
 
                 <input type="date"

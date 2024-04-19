@@ -65,6 +65,11 @@
                     </p>
 
                     <p>
+                        <span class="font-weight-bold text-primary">Anotaciones:</span>
+                            {{ $event->note }}
+                    </p>
+
+                    <p>
                         <span class="font-weight-bold text-primary">Fecha y hora:</span>
 
                         <event-date fecha="{{ $event->date }}"></event-date> <span class="font-weight-bold">({{ $event->time }})</span>

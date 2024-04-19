@@ -88,10 +88,11 @@ class EventController extends Controller
             'imagen' => $ruta_imagen,
             'deck' => $request['deck'],
             'configuration' => $request['configuration'],
+            'note' => $request['note'],
         ]);
 
-        // TODO Descomentar para subir a prod
-        //Self::notification(Event::find($eventId));
+        // TODO Comentar para probar en local
+        Self::notification(Event::find($eventId));
 
         $events = Event::with('region')->get();
         $createEvent = Event::where('created_by', Auth::user()->id)->where('date', '>', Carbon::now())->get();
@@ -174,6 +175,7 @@ class EventController extends Controller
         $event->deck = $request['deck'];
         $event->configuration = $request['configuration'];
         $event->iframe = $request['iframe'];
+        $event->note = $request['note'];
 
         $event->save();
 
