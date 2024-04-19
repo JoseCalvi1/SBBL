@@ -8,11 +8,16 @@
     <div class="container pt-2 pb-2">
         <h1 style="color: white;">Crear Nuevo Artículo</h1>
 
-        <form action="{{ route('blog.store') }}" method="POST">
+        <form action="{{ route('blog.store') }}" method="POST" enctype="multipart/form-data">
             @csrf
             <div class="form-group">
                 <label for="title" style="color: white;">Título:</label>
                 <input type="text" class="form-control" id="title" name="title">
+            </div>
+
+            <div class="form-group" style="color: white;">
+                <label for="image">Imagen de cabecera:</label>
+                <input type="file" class="form-control-file" id="image" name="image" accept="image/*">
             </div>
 
             <div class="form-group">
@@ -24,6 +29,11 @@
             <div class="form-group">
                 <label for="article_type" style="color: white;">Tipo de Artículo:</label>
                 <input type="text" class="form-control" id="article_type" name="article_type">
+            </div>
+
+            <div class="form-group">
+                <label for="custom_url" style="color: white;">URL Personalizada:</label>
+                <input type="text" class="form-control" id="custom_url" name="custom_url" value="{{ isset($article) ? $article->custom_url : '' }}">
             </div>
 
             <button type="submit" class="btn btn-primary">Crear Artículo</button>

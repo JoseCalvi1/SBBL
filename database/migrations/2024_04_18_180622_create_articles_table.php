@@ -18,6 +18,8 @@ class CreateArticlesTable extends Migration
             $table->string('title');
             $table->text('description');
             $table->string('article_type');
+            $table->string('custom_url')->nullable()->unique();
+            $table->text('image')->nullable();
             $table->timestamps();
         });
     }

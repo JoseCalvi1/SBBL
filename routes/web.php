@@ -76,7 +76,7 @@ Route::put('/generations/{versus}', [App\Http\Controllers\VersusController::clas
 Route::post('/videos', [App\Http\Controllers\VideoController::class, 'store'])->name('videos.store');
 
 Route::get('/blog', [App\Http\Controllers\ArticleController::class, 'index'])->name('blog.index');
-Route::get('/blog/{id}', [App\Http\Controllers\ArticleController::class, 'show'])->name('blog.show');
+Route::get('/blog/{custom_url}', [App\Http\Controllers\ArticleController::class, 'show'])->name('blog.show');
 Route::get('/article/create', [App\Http\Controllers\ArticleController::class, 'create'])->name('blog.create');
 Route::post('/article/store', [App\Http\Controllers\ArticleController::class, 'store'])->name('blog.store');
 Route::get('/blog/{article}/edit', [App\Http\Controllers\ArticleController::class, 'edit'])->name('blog.edit');

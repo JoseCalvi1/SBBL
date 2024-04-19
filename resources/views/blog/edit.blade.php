@@ -8,13 +8,25 @@
     <div class="container pt-2 pb-2">
         <h1 style="color: white;">Editar Artículo</h1>
 
-        <form action="{{ route('blog.update', $article->id) }}" method="POST">
+        <form action="{{ route('blog.update', $article->id) }}" method="POST" enctype="multipart/form-data">
             @csrf
             @method('PUT')
             <div class="form-group">
                 <label for="title" style="color: white;">Título:</label>
                 <input type="text" class="form-control" id="title" name="title" value="{{ $article->title }}">
             </div>
+
+            <div class="form-group" style="color: white;">
+                <label for="image">Imagen de cabecera:</label>
+                @if($article->image)
+                    <label>Imagen actual:</label>
+                    <img src="data:image/png;base64,{{ $article->image }}" width="100">
+                @else
+                    <p>No hay imagen actual</p>
+                @endif
+                <input type="file" class="form-control-file" id="image" name="image" accept="image/*">
+            </div>
+
 
             <div class="form-group">
                 <label for="description" style="color: white;">Descripción:</label>
@@ -25,6 +37,11 @@
             <div class="form-group">
                 <label for="article_type" style="color: white;">Tipo de Artículo:</label>
                 <input type="text" class="form-control" id="article_type" name="article_type" value="{{ $article->article_type }}">
+            </div>
+
+            <div class="form-group">
+                <label for="custom_url" style="color: white;">URL Personalizada:</label>
+                <input type="text" class="form-control" id="custom_url" name="custom_url" value="{{ isset($article) ? $article->custom_url : '' }}">
             </div>
 
             <button type="submit" class="btn btn-primary">Actualizar Artículo</button>
