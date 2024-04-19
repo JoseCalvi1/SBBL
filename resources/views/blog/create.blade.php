@@ -6,6 +6,10 @@
 
 @section('content')
     <div class="container pt-2 pb-2">
+        <a href="{{ route('blog.index') }}" class="btn btn-outline-primary mt-2 mb-2 ml-0 text-uppercase font-weight-bold">
+            Volver
+        </a>
+
         <h1 style="color: white;">Crear Nuevo Artículo</h1>
 
         <form action="{{ route('blog.store') }}" method="POST" enctype="multipart/form-data">

@@ -6,6 +6,10 @@
 
 @section('content')
     <div class="container pt-2 pb-2">
+        <a href="{{ route('blog.show', ['custom_url' => $article->custom_url]) }}" class="btn btn-outline-primary mt-2 mb-2 ml-0 text-uppercase font-weight-bold">
+            Volver
+        </a>
+
         <h1 style="color: white;">Editar Artículo</h1>
 
         <form action="{{ route('blog.update', $article->id) }}" method="POST" enctype="multipart/form-data">
