@@ -64,11 +64,11 @@ class EventController extends Controller
             $numeroEventos = Event::whereYear('date', $año)
                                 ->whereMonth('date', $mes)
                                 ->where('mode', $mode)
-                                ->count();
+                                ->count()+1;
 
             $regionId = Region::FindOrFail($request->region_id);
             $monthAbbreviation = date('M', strtotime($request->event_date));
-            $defaultName = 'Copa ' . $regionId->name . ' '.$modeName.' ' . strtoupper(substr($monthAbbreviation, 0, 3)) . $numeroEventos+1;
+            $defaultName = 'Copa ' . $regionId->name . ' '.$modeName.' ' . strtoupper(substr($monthAbbreviation, 0, 3)) . $numeroEventos;
             $request->merge(['name' => $defaultName]);
         }
 
