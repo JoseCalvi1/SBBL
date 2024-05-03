@@ -12,8 +12,15 @@
 @endsection
 
 @section('content')
-<div class="container-fluid" style="background-image: url('../images/fondo2.png'); background-size: 50%; background-repeat: repeat; background-position: center; padding: 0px;">
+<div class="container-fluid" style="background-image: url('../images/webTile2.png'); background-size: 20%; background-repeat: repeat; background-position: center; padding: 0px;">
     <div class="container-fluid" style="background: darkblue">
+
+@if ((Auth::user() && !Auth::user()->profile->region))
+<div class="row text-center" style="background-color: red; color: white; padding: 20px;">
+   <p class="text-center" style="margin-bottom: 0;">TODAVÍA NO HAS SELECCIONADO TU COMUNIDAD AUTÓNOMA. HAZLO EN <a style="color: yellow; font-weight: bold;" href="{{ route('profiles.edit', ['profile' => Auth::user()->id]) }}"> ESTE ENLACE</a></p>
+</div>
+@endif
+
         <div class="row">
             <ul class="navbar-nav m-auto" style="flex-direction: row;">
                 <li class="nav-item">
@@ -179,7 +186,7 @@
             </div>
         </div>
     </div>
-            <div class="container-fluid">
+            <div class="container">
                 <div class="row mt-5" style="background-color: rgb(205, 127, 50)">
                     <div class="col-md-2 text-center text-white p-4" style="border: unset;">
                     </div>

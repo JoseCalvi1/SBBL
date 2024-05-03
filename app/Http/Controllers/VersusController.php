@@ -44,7 +44,7 @@ class VersusController extends Controller
      */
     public function create()
     {
-        $users = User::all();
+        $users = User::orderBy('name')->get();
         $events = Event::orderBy('id', 'DESC')->get();
 
         return view('versus.create', compact('users', 'events'));
@@ -262,17 +262,23 @@ class VersusController extends Controller
     }
 
     public function puntuarDuelo(Request $request, $id, $mode, $winner)
-    {
-        $duel = Versus::findOrFail($id);
-        $duel->status = 'CLOSED';
-        $duel->save();
+{
+    $duel = Versus::findOrFail($id);
+    $duel->status = 'CLOSED';
+    $duel->save();
 
-        $mode = ($mode == "beybladex") ? 'points_x1' : 'points_s3';
+    // Determinar el usuario ganador basado en los resultados del duelo
+    $winnerId = ($duel->result_1 > $duel->result_2) ? $duel->user_id_1 : $duel->user_id_2;
 
-        DB::table('profiles')
-            ->where('user_id', $winner)
-            ->increment($mode, 1);
+    // Modificar el modo según la condición
+    $mode = ($mode == "beybladex") ? 'points_x1' : 'points_s3';
 
-        return redirect()->back()->with('success', 'Puntuaciones actualizadas correctamente');
-    }
+    // Incrementar los puntos al usuario ganador
+    DB::table('profiles')
+        ->where('user_id', $winnerId)
+        ->increment($mode, 1);
+
+    return redirect()->back()->with('success', 'Puntuaciones actualizadas correctamente');
+}
+
 }

@@ -21,7 +21,10 @@ class ProfileController extends Controller
      */
     public function index()
     {
-        $bladers = Profile::orderBy('id', 'ASC')->get();
+        $bladers = Profile::where('points_x1', '<>', 0)
+                   ->orWhere('points_s3', '<>', 0)
+                   ->orderBy('id', 'ASC')
+                   ->get();
 
         return view('profiles.index', compact('bladers'));
     }

@@ -3,11 +3,11 @@
 
 @section('content')
 <div class="py-4">
-    <h2 class="text-center mb-2">Usuarios Burst</h2>
+    <h2 class="text-center mb-2 text-white">Usuarios Burst</h2>
 
-    <div class="col-md-10 mx-auto bg-white p-3">
+    <div class="col-md-10 mx-auto bg-white p-3" style="background-color:transparent !important">
 
-        <table class="table">
+        <table class="table" style="color: white !important">
             <thead class="bg-primary text-light">
                 <tr>
                     <th scole="col">Nombre</th>

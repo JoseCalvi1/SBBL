@@ -2,7 +2,7 @@
 
 @section('content')
 
-    <article class="contenido-event bg-white p-5 shadow">
+    <article class="contenido-event bg-white p-5 shadow" style="color:white !important;background-color: transparent !important;">
         <div class="row">
             <div class="col-md-5">
                 <div class="imagen-event">

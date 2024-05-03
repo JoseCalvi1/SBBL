@@ -189,11 +189,11 @@
         <main>
             <div class="container-fluid">
                 <div class="row">
-                    <div class="col-md-2" style="background-image: linear-gradient(to right, rgba(0, 0, 0, 0.8), rgba(0, 0, 0, 0.5)), url('/storage/upload-profiles/Fondos/SBBLFondo.png'); background-size: cover; background-position: left;"></div>
+                    <div class="col-md-2" style="background-image: linear-gradient(to right, rgba(0, 0, 0, 0.8), rgba(0, 0, 0, 0.5)), url('/../images/webTile2.png'); background-size: auto; background-position: left;"></div>
                     <div class="col-md-8 col-sm-12" style="padding: 0px; background-color: #27295B;">
                         @yield('content')
                     </div>
-                    <div class="col-md-2" style="background-image: linear-gradient(to left, rgba(0, 0, 0, 0.8), rgba(0, 0, 0, 0.5)), url('/storage/upload-profiles/Fondos/SBBLFondo.png'); background-size: cover; background-position: right;"></div>
+                    <div class="col-md-2" style="background-image: linear-gradient(to left, rgba(0, 0, 0, 0.8), rgba(0, 0, 0, 0.5)), url('/../images/webTile2.png'); background-size: auto; background-position: right;"></div>
                 </div>
             </div>
         </main>
@@ -295,4 +295,4 @@
 </footer>
 @yield('scripts')
 </html>
-	
+		

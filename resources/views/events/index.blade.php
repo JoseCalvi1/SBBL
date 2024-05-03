@@ -4,14 +4,14 @@
 @section('content')
 @if (Auth::user()->is_admin)
 <div class="py-4">
-    <h2 class="text-center mb-2">Administra los eventos</h2>
+    <h2 class="text-center mb-2 text-white">Administra los eventos</h2>
 
-    <div class="col-md-10 mx-auto bg-white p-3">
+    <div class="col-md-10 mx-auto bg-white p-3" style="background-color:transparent !important;">
         <a href="{{ route('events.create') }}" class="btn btn-outline-primary mr-2 mb-4 text-uppercase font-weight-bold">
             Crear evento
         </a>
 
-        <table class="table">
+        <table class="table" style="color:white !important;">
             <thead class="bg-primary text-light">
                 <tr>
                     <th scole="col">Título</th>

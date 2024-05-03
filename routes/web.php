@@ -26,8 +26,6 @@ Route::get('/policy-privacy', [App\Http\Controllers\InicioController::class, 'pr
 Route::get('/contact-us', [App\Http\Controllers\InicioController::class, 'contact'])->name('inicio.contact');
 Route::get('/entrevistas', [App\Http\Controllers\InicioController::class, 'entrevistas'])->name('inicio.entrevistas');
 
-
-Route::get('/events', [App\Http\Controllers\EventController::class, 'index'])->name('events.index');
 Route::get('/events/create', [App\Http\Controllers\EventController::class, 'create'])->name('events.create');
 Route::get('/events/{event}', [App\Http\Controllers\EventController::class, 'show'])->name('events.show');
 Route::post('/events', [App\Http\Controllers\EventController::class, 'store'])->name('events.store');
@@ -41,8 +39,6 @@ Route::put('/events/{event}/actualizar-status', [App\Http\Controllers\EventContr
 Route::put('/events/{event}/updatePuestos', [App\Http\Controllers\EventController::class, 'updatePuestos'])->name('events.updatePuestos');
 Route::put('/events/{event}/{mode}/actualizarPuntuaciones', [App\Http\Controllers\EventController::class, 'actualizarPuntuaciones'])->name('events.actualizarPuntuaciones');
 
-
-Route::get('/versus', [App\Http\Controllers\VersusController::class, 'index'])->name('versus.index');
 Route::get('/versus/create', [App\Http\Controllers\VersusController::class, 'create'])->name('versus.create');
 Route::get('/versus/{duel}', [App\Http\Controllers\VersusController::class, 'show'])->name('versus.show');
 Route::post('/versus', [App\Http\Controllers\VersusController::class, 'store'])->name('versus.store');
@@ -52,8 +48,6 @@ Route::get('/all-versus', [App\Http\Controllers\VersusController::class, 'show_a
 Route::put('/versus/{duel}/{mode}/{winner}/puntuarDuelo', [App\Http\Controllers\VersusController::class, 'puntuarDuelo'])->name('versus.puntuarDuelo');
 
 Route::get('/profiles', [App\Http\Controllers\ProfileController::class, 'index'])->name('profiles.index');
-Route::get('/profiles-admin', [App\Http\Controllers\ProfileController::class, 'indexAdmin'])->name('profiles.indexAdmin');
-Route::get('/profiles-admin-x', [App\Http\Controllers\ProfileController::class, 'indexAdminX'])->name('profiles.indexAdminX');
 Route::get('/profiles/{profile}', [App\Http\Controllers\ProfileController::class, 'show'])->name('profiles.show');
 Route::get('/profiles/{profile}/edit', [App\Http\Controllers\ProfileController::class, 'edit'])->name('profiles.edit');
 Route::put('/profiles/{profile}', [App\Http\Controllers\ProfileController::class, 'update'])->name('profiles.update');
@@ -81,3 +75,10 @@ Route::get('/article/create', [App\Http\Controllers\ArticleController::class, 'c
 Route::post('/article/store', [App\Http\Controllers\ArticleController::class, 'store'])->name('blog.store');
 Route::get('/blog/{article}/edit', [App\Http\Controllers\ArticleController::class, 'edit'])->name('blog.edit');
 Route::put('/blog/{article}', [App\Http\Controllers\ArticleController::class, 'update'])->name('blog.update');
+
+Route::group(['middleware' => 'admin'], function () {
+   Route::get('/profiles-admin', [App\Http\Controllers\ProfileController::class, 'indexAdmin'])->name('profiles.indexAdmin');
+   Route::get('/profiles-admin-x', [App\Http\Controllers\ProfileController::class, 'indexAdminX'])->name('profiles.indexAdminX');
+   Route::get('/events', [App\Http\Controllers\EventController::class, 'index'])->name('events.index');
+   Route::get('/versus', [App\Http\Controllers\VersusController::class, 'index'])->name('versus.index');
+});
