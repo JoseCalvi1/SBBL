@@ -187,7 +187,27 @@
         </div>
     </div>
             <div class="container">
-                <div class="row mt-5" style="background-color: rgb(205, 127, 50)">
+
+                <div class="row border-bottom" style="background-color: whitesmoke">
+                    <div class="col-md-12 text-center pt-2"><h2 style="font-size: 2em; font-weight:bold;">¿Cómo participo en la liga?</h2></div>
+                    <div class="col-md-4">
+                        <div class="rrss text-center p-4">
+                            <a style="display: inline-block; font-size:1.2em; font-weight: bold; text-decoration:none; color: rgb(173, 159, 7);" target="_blank" href="{{ route('inicio.events') }}"><i class="fa fa-sitemap" style="font-size:4em;"></i> <br>Participa en<br><b>Torneos</b></a>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="rrss text-center p-4">
+                            <a style="display: inline-block; font-size:1.2em; font-weight: bold; text-decoration:none; color: rgb(160, 0, 0);" target="_blank" href="{{ route('versus.all') }}"><i class="fa fa-trophy" style="font-size:4em;"></i> <br>Compite en<br><b>Duelos</b></a>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="rrss text-center p-4">
+                            <a style="display: inline-block; font-size:1.2em; font-weight: bold; text-decoration:none; color: rgb(166, 1, 207);" target="_blank" href="#"><i class="fa fa-star" style="font-size:4em;"></i> <br>Torneos<br><b>Especiales</b></a>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row" style="background-color: rgb(205, 127, 50)">
                     <div class="col-md-2 text-center text-white p-4" style="border: unset;">
                     </div>
                     <div class="col-md-8 text-white text-center p-4" style="font-size: 1.2em; font-weight:bold; line-height: 1">
@@ -206,10 +226,8 @@
                     <div class="col-md-2 text-center text-white p-4" style="border: unset;">
                     </div>
                 </div>
-            </div>
 
-            <div class="container pt-2" style="background-color: whitesmoke">
-                <div class="row border-bottom pb-4">
+                <div class="row border-bottom" style="background-color: whitesmoke">
                     <div class="col-md-4">
                         <div class="rrss text-center p-4">
                             <a style="display: inline-block; font-size:1.2em; font-weight: bold; text-decoration:none; color: rgb(66, 31, 243);" target="_blank" href="https://discord.gg/JCtAHfJ8Ht"><i class="fab fa-discord" style="font-size:4em;"></i> <br>Únete a nuestro<br><b>Discord</b></a>
