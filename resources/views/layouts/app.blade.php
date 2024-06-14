@@ -121,7 +121,13 @@
 
                                 </div>
                             </li>-->
-                        
+
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ route('equipos.index') }}" style="color: white;">
+                                {{ 'EQUIPOS' }}
+                            </a>
+                        </li>
+
                         <li class="nav-item">
                             <a class="nav-link" href="https://discord.gg/JCtAHfJ8Ht" style="color: white;">
                                 {{ 'DISCORD' }}
@@ -149,6 +155,14 @@
 
                                             <a class="nav-link" style="color: white;" href="{{ route('profiles.indexAdminX') }}">
                                                 {{ 'USUARIOS X' }}
+                                            </a>
+
+                                            <a class="nav-link" style="color: white;" href="{{ route('equipos.indexAdmin') }}">
+                                                {{ 'EQUIPOS' }}
+                                            </a>
+
+                                            <a class="nav-link" style="color: white;" href="{{ route('teams_versus.index') }}">
+                                                {{ 'EQUIPOS DUELOS' }}
                                             </a>
 
                                             <form id="logout-form" action="{{ route('logout') }}" method="POST" class="d-none">
@@ -295,4 +309,3 @@
 </footer>
 @yield('scripts')
 </html>
-		

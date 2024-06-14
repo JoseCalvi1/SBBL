@@ -58,6 +58,49 @@
         -->
         </div>
     </div>
+
+    <div class="container mt-3">
+        @if(session('success'))
+            <div class="alert alert-success">
+                {{ session('success') }}
+            </div>
+        @elseif(session('error'))
+            <div class="alert alert-danger">
+                {{ session('error') }}
+            </div>
+        @endif
+        <div class="card bg-dark text-white">
+            <div class="card-body">
+                <h1 class="card-title">Invitaciones Pendientes</h1>
+                @if ($invitacionesPendientes->isEmpty())
+                    <p class="card-text">No tienes invitaciones pendientes en este momento.</p>
+                @else
+                    <ul class="list-group list-group-flush">
+                        @foreach ($invitacionesPendientes as $invitacion)
+                            <li class="list-group-item bg-dark border-bottom border-white mb-2">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <span>Equipo: {{ $invitacion->team->name }}</span>
+                                    <div class="btn-group" role="group">
+                                        <form action="{{ route('invitations.accept', $invitacion) }}" method="POST">
+                                            @csrf
+                                            <button type="submit" class="btn btn-success">Aceptar</button>
+                                        </form>
+                                        <form action="{{ route('invitations.reject', $invitacion) }}" method="POST">
+                                            @csrf
+                                            <button type="submit" class="btn btn-danger">Rechazar</button>
+                                        </form>
+                                    </div>
+                                </div>
+                            </li>
+                        @endforeach
+                    </ul>
+                @endif
+            </div>
+        </div>
+    </div>
+
+
+
     <!--
     <h2 class="titulo-categoria text-uppercase mb-4 mt-4">Duelos</h2>
     <div class="row mt-2">

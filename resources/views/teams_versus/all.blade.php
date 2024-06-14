@@ -71,9 +71,9 @@
 @section('content')
 
 <div class="container">
-    <h2 class="titulo-categoria text-uppercase mb-4 mt-4" style="color:white">Duelos
-        @if (Auth::user())
-        <a href="{{ route('versus.create') }}" class="btn btn-outline-warning mb-2 text-uppercase font-weight-bold">
+    <h2 class="titulo-categoria text-uppercase mb-4 mt-4" style="color:white">Duelos de equipo
+        @if (Auth::user() && Auth::user()->teams && Auth::user()->teams[0]->captain_id == Auth::user()->id && Auth::user()->teams[0]->members()->count() >= 3)
+        <a href="{{ route('teams_versus.create') }}" class="btn btn-outline-warning mb-2 text-uppercase font-weight-bold">
             Crear duelo
         </a>
         @endif
@@ -81,7 +81,7 @@
     <div class="row mt-2">
         @foreach ($versus as $duelo)
         <div class="col-md-3 mb-3"> <!-- Cada tarjeta ocupará 3 columnas en una fila y tendrá un margen inferior -->
-            <div class="duel-card" style="background-image: url('/storage/{{ $duelo->result_1 > $duelo->result_2 ? $duelo->versus_1->profile->fondo : $duelo->versus_2->profile->fondo }}');">
+            <div class="duel-card" style="background-image: url(data:image/png;base64,{{ $duelo->result_1 > $duelo->result_2 ? $duelo->versus_1->image : $duelo->versus_2->image }});">
                 <div class="overlay"></div>
                 <div class="duel-mode">
                     <span class="mode">{{ ($duelo->matchup == "beybladex") ? "Beyblade X" : "Beyblade Burst"  }}</span>
