@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Profile;
 use App\Models\Region;
 use App\Models\Versus;
+use App\Models\Invitation;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -82,7 +83,11 @@ class ProfileController extends Controller
              return $query->where('user_id_1', '=' , $profile->user_id)->orWhere('user_id_2', '=' , $profile->user_id);
             })->get();
 
-        return view('profiles.show', compact('profile','versus'));
+            $invitacionesPendientes = Invitation::where('user_id', auth()->id())
+            ->get();
+
+
+        return view('profiles.show', compact('profile','versus','invitacionesPendientes'));
     }
 
     /**

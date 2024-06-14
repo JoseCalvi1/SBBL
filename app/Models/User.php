@@ -75,4 +75,14 @@ class User extends Authenticatable
     {
         return $this->belongsToMany(Event::class, 'assist_user_event', 'user_id' /* de user */, 'event_id' /* de subject */)->withPivot('puesto');
     }
+
+    public function equipo()
+    {
+        return $this->belongsTo(Team::class);
+    }
+
+    public function teams()
+    {
+        return $this->belongsToMany(Team::class, 'team_user')->withPivot('is_captain')->withTimestamps();
+    }
 }

@@ -32,7 +32,14 @@ class VersusController extends Controller
      */
     public function show_all()
     {
-        $versus = Versus::orderBy('id', 'DESC')->where('status', 'CLOSED')->get();
+        $currentMonth = Carbon::now()->month;
+        $currentYear = Carbon::now()->year;
+
+        $versus = Versus::orderBy('id', 'DESC')
+            ->where('status', 'CLOSED')
+            ->whereMonth('created_at', $currentMonth)
+            ->whereYear('created_at', $currentYear)
+            ->get();
 
         return view('versus.all', compact('versus'));
     }

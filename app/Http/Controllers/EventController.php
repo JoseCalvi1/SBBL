@@ -261,7 +261,7 @@ class EventController extends Controller
 
         // Iterar sobre los participantes y actualizar sus puestos
         foreach ($request->input('participantes') as $participante) {
-            $exist = DB::table('assist_user_event')->where('id', $participante['id'])->exists();
+            $exist = DB::table('assist_user_event')->where('user_id', $participante['id'])->exists();
 
             if ($exist) {
                 DB::table('assist_user_event')

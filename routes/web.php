@@ -1,5 +1,8 @@
 <?php
 
+use App\Http\Controllers\TeamController;
+use App\Http\Controllers\InvitationController;
+use App\Http\Controllers\TeamsVersusController;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 
@@ -75,6 +78,33 @@ Route::get('/article/create', [App\Http\Controllers\ArticleController::class, 'c
 Route::post('/article/store', [App\Http\Controllers\ArticleController::class, 'store'])->name('blog.store');
 Route::get('/blog/{article}/edit', [App\Http\Controllers\ArticleController::class, 'edit'])->name('blog.edit');
 Route::put('/blog/{article}', [App\Http\Controllers\ArticleController::class, 'update'])->name('blog.update');
+
+Route::get('/equipos-admin', [TeamController::class, 'indexAdmin'])->name('equipos.indexAdmin');
+Route::get('/equipos', [TeamController::class, 'index'])->name('equipos.index');
+Route::get('/equipos/crear', [TeamController::class, 'create'])->name('equipos.create');
+Route::post('/equipos', [TeamController::class, 'store'])->name('equipos.store');
+Route::get('/equipos/{equipo}', [TeamController::class, 'show'])->name('equipos.show');
+Route::get('/equipos/{equipo}/editar', [TeamController::class, 'edit'])->name('equipos.edit');
+Route::put('/equipos/{equipo}', [TeamController::class, 'update'])->name('equipos.update');
+Route::delete('/equipos/{equipo}', [TeamController::class, 'destroy'])->name('equipos.destroy');
+Route::post('equipos/{equipo}/add-member', [TeamController::class, 'addMember'])->name('equipos.addMember');
+Route::delete('equipos/{equipo}/remove-member/{user}', [TeamController::class, 'removeMember'])->name('equipos.removeMember');
+Route::patch('/equipos/{equipo}/change-captain/{miembro}', [TeamController::class, 'changeCaptain'])->name('equipos.changeCaptain');
+Route::post('equipos/{equipo}/leave', [TeamController::class, 'leaveTeam'])->name('equipos.leave');
+Route::post('equipos/{equipo}/send-invitation', [TeamController::class, 'sendInvitation'])->name('equipos.sendInvitation');
+Route::post('invitations/{invitation}/accept', [InvitationController::class, 'accept'])->name('invitations.accept');
+Route::post('invitations/{invitation}/reject', [InvitationController::class, 'reject'])->name('invitations.reject');
+Route::post('/equipos/{equipo}/accept-invitation', [TeamController::class, 'acceptInvitation'])->name('equipos.acceptInvitation');
+Route::get('/equipos-ranking', [App\Http\Controllers\TeamController::class, 'ranking_teams'])->name('equipos.ranking');
+
+Route::get('/teams-versus/create', [TeamsVersusController::class, 'create'])->name('teams_versus.create');
+Route::get('/teams-versus/{duel}', [TeamsVersusController::class, 'show'])->name('teams_versus.show');
+Route::post('/teams-versus', [TeamsVersusController::class, 'store'])->name('teams_versus.store');
+Route::get('/teams-versus/{duel}/edit', [TeamsVersusController::class, 'edit'])->name('teams_versus.edit');
+Route::put('/teams-versus/{duel}', [TeamsVersusController::class, 'update'])->name('teams_versus.update');
+Route::get('/all-teams-versus', [TeamsVersusController::class, 'show_all'])->name('teams_versus.all');
+Route::put('/teams-versus/{duel}/{mode}/{winner}/puntuarDuelo', [TeamsVersusController::class, 'puntuarDuelo'])->name('teams_versus.puntuarDuelo');
+Route::get('/teams-versus-admin', [TeamsVersusController::class, 'index'])->name('teams_versus.index');
 
 Route::group(['middleware' => 'admin'], function () {
    Route::get('/profiles-admin', [App\Http\Controllers\ProfileController::class, 'indexAdmin'])->name('profiles.indexAdmin');
