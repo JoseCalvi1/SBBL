@@ -8,7 +8,7 @@
         background-size: cover;
         background-repeat: no-repeat;
         background-position: center;
-        padding: 80px;
+        padding: 20px;
         position: relative;
         color: white;
         overflow: hidden;
@@ -27,19 +27,37 @@
 
     .equipo-info {
         display: flex;
+        flex-direction: column;
         align-items: center;
+        text-align: center;
         position: relative;
         z-index: 2;
     }
 
     .equipo-logo {
         object-fit: contain;
-        margin-right: 20px;
+        margin-bottom: 10px;
     }
 
     .equipo-nombre {
-        font-size: 3em;
+        font-size: 2em;
         font-weight: bold;
+    }
+
+    @media (min-width: 768px) {
+        .equipo-info {
+            flex-direction: row;
+            text-align: left;
+        }
+
+        .equipo-logo {
+            margin-right: 20px;
+            margin-bottom: 0;
+        }
+
+        .equipo-nombre {
+            font-size: 3em;
+        }
     }
 
     .nivel-tarjeta {
@@ -76,6 +94,29 @@
         transition: width 0.6s ease;
     }
 
+    .tarjeta {
+        position: relative;
+        padding: 20px;
+        border-radius: 8px;
+        overflow: hidden;
+    }
+
+    .tarjeta .info {
+        margin-left: 15px;
+    }
+
+    .tarjeta .nombre {
+        font-weight: bold;
+    }
+
+    .tarjeta .region {
+        color: #ddd;
+    }
+
+    .tarjeta img {
+        width: 100px;
+        height: 100px;
+    }
 </style>
 <link href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/css/select2.min.css" rel="stylesheet" />
 @endsection
@@ -127,22 +168,22 @@
             <h3 class="text-white">Miembros del Equipo</h3>
             <div class="row">
                 @foreach ($miembros as $miembroId)
-                <div class="col-md-4 mb-3">
+                <div class="col-md-4 col-sm-6 mb-3">
                     @php
                         $miembro = App\Models\User::find($miembroId->id);
                     @endphp
-                    <div class="tarjeta" style="background-image: url('/storage/{{ ($miembro->profile->fondo) ? $miembro->profile->fondo : "upload-profiles/Fondos/SBBLFondo.png" }}'); background-size: cover; background-repeat: no-repeat; background-position: center; color: white; position: relative; @if ($miembroId->pivot->is_captain) border: 2px solid yellow; @endif">
+                    <div class="tarjeta" style="background-image: url('/storage/{{ ($miembro->profile->fondo) ? $miembro->profile->fondo : "upload-profiles/Fondos/SBBLFondo.png" }}'); background-size: cover; background-repeat: no-repeat; background-position: center; color: white; @if ($miembroId->pivot->is_captain) border: 2px solid yellow; @endif">
                         <div style="display: flex; align-items: center;">
                             <div style="position: relative;">
                                 @if ($miembro->profile->imagen)
-                                    <img src="/storage/{{ $miembro->profile->imagen }}" class="rounded-circle" width="100" style="top: 0; left: 0;">
+                                    <img src="/storage/{{ $miembro->profile->imagen }}" class="rounded-circle" style="width: 100px; height: 100px; object-fit: cover;">
                                 @else
-                                    <img src="/storage/upload-profiles/DranDaggerBase.png" class="rounded-circle" width="100" style="top: 0; left: 0;">
+                                    <img src="/storage/upload-profiles/DranDaggerBase.png" class="rounded-circle" style="width: 100px; height: 100px; object-fit: cover;">
                                 @endif
                                 @if ($miembro->profile->marco)
-                                    <img src="/storage/{{ $miembro->profile->marco }}" class="rounded-circle" width="100" style="position: absolute; top: 0; left: 0;">
+                                    <img src="/storage/{{ $miembro->profile->marco }}" class="rounded-circle" style="position: absolute; top: 0; left: 0; width: 100px; height: 100px; object-fit: cover;">
                                 @else
-                                    <img src="/storage/upload-profiles/Marcos/BaseBlue.png" class="rounded-circle" width="100" style="position: absolute; top: 0; left: 0;">
+                                    <img src="/storage/upload-profiles/Marcos/BaseBlue.png" class="rounded-circle" style="position: absolute; top: 0; left: 0; width: 100px; height: 100px; object-fit: cover;">
                                 @endif
                             </div>
                             <div class="info">
@@ -225,6 +266,7 @@
     </div>
 </div>
 @endsection
+
 @section('scripts')
     <!-- CDN de jQuery -->
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>

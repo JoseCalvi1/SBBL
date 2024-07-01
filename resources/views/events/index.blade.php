@@ -1,6 +1,5 @@
 @extends('layouts.app')
 
-
 @section('content')
 @if (Auth::user()->is_admin)
 <div class="py-4">
@@ -11,40 +10,43 @@
             Crear evento
         </a>
 
-        <table class="table" style="color:white !important;">
-            <thead class="bg-primary text-light">
-                <tr>
-                    <th scole="col">Título</th>
-                    <th scole="col">Location</th>
-                    <th scole="col">Modalidad</th>
-                    <th scole="col">Region</th>
-                    <th scole="col">Fecha</th>
-                    <th scole="col">Acciones</th>
-                </tr>
-            </thead>
-
-            <tbody>
-                @foreach ($events as $event)
+        <div class="table-responsive">
+            <table class="table" style="color:white !important;">
+                <thead class="bg-primary text-light">
                     <tr>
-                        <td>{{ $event->name }}</td>
-                        <td>{{ $event->location }}</td>
-                        <td>{{ $event->mode }}</td>
-                        <td>{{ $event->region->name }}</td>
-                        <td><event-date fecha="{{ $event->date }}"></event-date></td>
-                        <td>
-                            <a href="{{ route('events.show', ['event' => $event->id]) }}" class="btn btn-success mb-2 d-block">Ver</a>
-                            <a href="{{ route('events.edit', ['event' => $event->id]) }}" class="btn btn-dark mb-2 d-block">Editar</a>
-                            <event-delete event-id={{ $event->id }}></event-delete>
-                        </td>
+                        <th scole="col">Título</th>
+                        <th scole="col">Location</th>
+                        <th scole="col">Modalidad</th>
+                        <th scole="col">Region</th>
+                        <th scole="col">Fecha</th>
+                        <th scole="col">Acciones</th>
                     </tr>
-                @endforeach
-            </tbody>
-        </table>
+                </thead>
+
+                <tbody>
+                    @foreach ($events as $event)
+                        <tr>
+                            <td>{{ $event->name }}</td>
+                            <td>{{ $event->location }}</td>
+                            <td>{{ $event->mode }}</td>
+                            <td>{{ $event->region->name }}</td>
+                            <td><event-date fecha="{{ $event->date }}"></event-date></td>
+                            <td>
+                                <a href="{{ route('events.show', ['event' => $event->id]) }}" class="btn btn-success mb-2 d-block">Ver</a>
+                                <a href="{{ route('events.edit', ['event' => $event->id]) }}" class="btn btn-dark mb-2 d-block">Editar</a>
+                                <event-delete event-id={{ $event->id }}></event-delete>
+                            </td>
+                        </tr>
+                    @endforeach
+                </tbody>
+            </table>
+        </div>
 
     </div>
 </div>
 @else
-header("Location: /");
-die();
+<script type="text/javascript">
+    window.location = "/";
+</script>
 @endif
 @endsection

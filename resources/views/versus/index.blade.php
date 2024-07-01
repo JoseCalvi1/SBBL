@@ -1,6 +1,5 @@
 @extends('layouts.app')
 
-
 @section('content')
 <div class="py-4">
     <h2 class="text-center mb-2 text-white">Administra los duelos</h2>
@@ -10,43 +9,44 @@
             Crear duelo
         </a>
 
-        <table class="table" style="color: white !important;">
-            <thead class="bg-primary text-light">
-                <tr>
-                    <th scole="col">Jugador 1</th>
-                    <th scole="col">Puntuación 1</th>
-                    <th scole="col">Jugador 2</th>
-                    <th scole="col">Puntuación 2</th>
-                    <th scole="col">Modalidad</th>
-                    <th scole="col">Fecha</th>
-                    <th scole="col">Acciones</th>
-                </tr>
-            </thead>
-
-            <tbody>
-                @foreach ($versus as $duel)
+        <div class="table-responsive">
+            <table class="table" style="color: white !important;">
+                <thead class="bg-primary text-light">
                     <tr>
-                        <td>{{ $duel->versus_1->name }}</td>
-                        <td>{{ $duel->result_1 }}</td>
-                        <td>{{ $duel->versus_2->name }}</td>
-                        <td>{{ $duel->result_2 }}</td>
-                        <td>{{ $duel->matchup }}</td>
-                        <td>{{ $duel->created_at }}</td>
-                        <td><a href="{{ route('versus.edit', ['duel' => $duel->id]) }}" class="btn btn-dark mb-2 d-block">Editar</a>
-                            @if ($duel->status == 'OPEN')
-                                <form method="POST" action="{{ route('versus.puntuarDuelo', ['duel' => $duel->id, 'mode' => $duel->matchup, 'winner' => $duel->user_id_1]) }}" style="display: contents; text-align: center;">
-                                    @method('PUT')
-                                    @csrf
-                                    <button type="submit" class="btn btn-success mb-2 mt-2 d-block" style="width: 100%">CONFIRMAR</button>
-                                </form>
-                            @endif
-                        </td>
-                        <td></td>
+                        <th scole="col">Jugador 1</th>
+                        <th scole="col">Puntuación 1</th>
+                        <th scole="col">Jugador 2</th>
+                        <th scole="col">Puntuación 2</th>
+                        <th scole="col">Modalidad</th>
+                        <th scole="col">Fecha</th>
+                        <th scole="col">Acciones</th>
                     </tr>
-                @endforeach
-            </tbody>
-        </table>
+                </thead>
 
+                <tbody>
+                    @foreach ($versus as $duel)
+                        <tr>
+                            <td>{{ $duel->versus_1->name }}</td>
+                            <td>{{ $duel->result_1 }}</td>
+                            <td>{{ $duel->versus_2->name }}</td>
+                            <td>{{ $duel->result_2 }}</td>
+                            <td>{{ $duel->matchup }}</td>
+                            <td>{{ $duel->created_at }}</td>
+                            <td>
+                                <a href="{{ route('versus.edit', ['duel' => $duel->id]) }}" class="btn btn-dark mb-2 d-block">Editar</a>
+                                @if ($duel->status == 'OPEN')
+                                    <form method="POST" action="{{ route('versus.puntuarDuelo', ['duel' => $duel->id, 'mode' => $duel->matchup, 'winner' => $duel->user_id_1]) }}" style="display: contents; text-align: center;">
+                                        @method('PUT')
+                                        @csrf
+                                        <button type="submit" class="btn btn-success mb-2 mt-2 d-block" style="width: 100%">CONFIRMAR</button>
+                                    </form>
+                                @endif
+                            </td>
+                        </tr>
+                    @endforeach
+                </tbody>
+            </table>
+        </div>
     </div>
 </div>
 

@@ -43,12 +43,15 @@
     <div id="app">
         <nav class="navbar navbar-expand-md shadow-sm"  style="background-color: rgb(0, 0, 112);">
             <div class="container">
-                <a class="navbar-brand" href="{{ url('/') }}">
+                <a class="navbar-brand d-none d-sm-none d-md-block" href="{{ url('/') }}">
                     <img src="/images/logo_new.png" alt="Logo" width="60" height="50">
                     <span style="font-size: 0.8em; color: white;">Spanish BeyBattle League</span>
                 </a>
+                <a class="navbar-brand d-block d-sm-block d-md-none" href="{{ url('/') }}">
+                    <img src="/images/logo_new.png" alt="Logo" width="60" height="50">
+                </a>
                 <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="{{ __('Toggle navigation') }}">
-                    <span class="navbar-toggler-icon" style="color:white">Menú</span>
+                    <span class="navbar-toggler-icon" style="color:white"><i class="fas fa-bars" style="font-size:2em;"></i></span>
                 </button>
 
                 <div class="collapse navbar-collapse" id="navbarSupportedContent">

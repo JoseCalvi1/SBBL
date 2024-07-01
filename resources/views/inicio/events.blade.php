@@ -2,89 +2,97 @@
 
 @section('styles')
 <style>
-    /* Estilos para el calendario */
-    /* Puedes personalizar estos estilos según tus preferencias */
     .calendar {
         display: flex;
         flex-wrap: wrap;
-        max-width: 1500px; /* Ancho máximo del calendario */
-        margin: 0 auto; /* Centrar el calendario en la página */
+        max-width: 100%;
+        margin: 0 auto;
     }
+
     .day {
         width: calc(100% / 7);
         border: 1px solid #ccc;
         padding: 10px;
-        box-sizing: border-box; /* Considerar el borde en el tamaño */
-        height: 100px; /* Altura fija de cada cuadrícula */
-        overflow: auto; /* Ocultar el contenido que exceda la altura */
-        position: relative; /* Posicionamiento relativo para los eventos */
+        box-sizing: border-box;
+        height: 120px; /* Incrementamos un poco la altura para mejor legibilidad */
+        overflow-y: auto; /* Solo scroll vertical */
+        position: relative;
     }
-/* Estilo del scroll */
-.day::-webkit-scrollbar {
-    width: 8px; /* Ancho del scroll */
-}
 
-.day::-webkit-scrollbar-thumb {
-    background-color: #888; /* Color del scroll */
-    border-radius: 4px; /* Bordes redondeados */
-}
+    .day::-webkit-scrollbar {
+        width: 6px;
+    }
 
-.day::-webkit-scrollbar-thumb:hover {
-    background-color: #555; /* Color del scroll al pasar el mouse */
-}
+    .day::-webkit-scrollbar-thumb {
+        background-color: #888;
+        border-radius: 4px;
+    }
 
-.day::-webkit-scrollbar-track {
-    background-color: #f2f2f2; /* Color de fondo del track del scroll */
-    border-radius: 4px; /* Bordes redondeados */
-}
+    .day::-webkit-scrollbar-thumb:hover {
+        background-color: #555;
+    }
+
+    .day::-webkit-scrollbar-track {
+        background-color: #f2f2f2;
+        border-radius: 4px;
+    }
+
     .day-label {
         font-weight: bold;
         text-align: center;
         padding: 5px;
         background-color: #f2f2f2;
     }
+
     .event {
         background-color: #ffd700;
         padding: 5px 10px;
         margin-bottom: 2px;
         border-radius: 5px;
-        cursor: pointer; /* Cambiar el cursor a un puntero */
-        display: block; /* Convertir en elemento de bloque para ocupar todo el ancho disponible */
-        text-decoration: none; /* Quitar subrayado de enlace */
-        color: #000; /* Color de texto */
-        font-weight: bold; /* Negrita */
-        overflow: hidden; /* Ocultar el texto que exceda el ancho */
-        white-space: nowrap; /* No permitir saltos de línea */
-        text-overflow: ellipsis; /* Mostrar puntos suspensivos si el texto es demasiado largo */
+        cursor: pointer;
+        display: block;
+        text-decoration: none;
+        color: #000;
+        font-weight: bold;
+        overflow: hidden;
+        white-space: nowrap;
+        text-overflow: ellipsis;
     }
+
     .event:hover {
-        background-color: #f0e68c; /* Cambiar el color de fondo al pasar el mouse */
+        background-color: #f0e68c;
     }
+
     .navigation {
         margin-bottom: 10px;
         text-align: center;
     }
+
     .navigation button {
         margin: 0 5px;
         cursor: pointer;
-        background-color: #007bff; /* Color de fondo */
-        color: #fff; /* Color del texto */
-        border: none; /* Sin borde */
-        border-radius: 5px; /* Bordes redondeados */
-        padding: 10px 20px; /* Espaciado interno */
-        font-size: 16px; /* Tamaño de fuente */
-        transition: background-color 0.3s ease; /* Transición suave del color de fondo */
+        background-color: #007bff;
+        color: #fff;
+        border: none;
+        border-radius: 5px;
+        padding: 10px 20px;
+        font-size: 16px;
+        transition: background-color 0.3s ease;
     }
+
     .navigation button:hover {
-        background-color: #0056b3; /* Cambiar el color de fondo al pasar el mouse */
+        background-color: #0056b3;
     }
+
     .current-month {
         text-align: center;
         margin-bottom: 10px;
     }
+
     .today {
-        background-color: #f8b66a; /* Resaltado del día actual */
+        background-color: #f8b66a;
     }
+
     .current-day-button {
         margin-top: 10px;
         background-color: #007bff;
@@ -95,19 +103,40 @@
         font-size: 16px;
         transition: background-color 0.3s ease;
     }
+
     .current-day-button:hover {
         background-color: #3270b1;
+    }
+
+    /* Estilos para pantallas pequeñas */
+    @media (max-width: 768px) {
+        .calendar {
+            display: flex;
+            flex-wrap: wrap;
+            max-width: 100%;
+            margin: 0 auto;
+        }
+
+        .day {
+            width: calc(50% - 10px); /* Mostrar dos días por fila */
+            margin-right: 10px; /* Espacio entre días */
+            border: 1px solid #ccc;
+            padding: 10px;
+            box-sizing: border-box;
+            height: 120px; /* Altura fija de cada cuadrícula */
+            overflow-y: auto; /* Scroll vertical si es necesario */
+            position: relative;
+        }
     }
 </style>
 @endsection
 
-
 @section('content')
 
-<h1 class="current-month mt-5" style="color:white;">Calendario de Eventos
+<h1 class="current-month mt-5" style="color: white;">Calendario de Eventos
     @if ($countEvents < 2 || (Auth::user() && Auth::user()->is_admin))
         <a href="{{ route('events.create') }}" class="btn btn-outline-warning text-uppercase font-weight-bold">
-        Crear evento
+            Crear evento
         </a>
     @endif
 </h1>
@@ -118,13 +147,11 @@
     <button class="next-button" onclick="nextMonth()">Siguiente <i class="fas fa-chevron-right"></i></button>
 </div>
 
-<h3 class="current-month" id="currentMonth" style="color:white;"></h3>
+<h3 class="current-month" id="currentMonth" style="color: white;"></h3>
 
-<div id="calendar" class="calendar mb-3" style="color: white"></div>
+<div id="calendar" class="calendar mb-3" style="color: white;"></div>
 
 @endsection
-
-
 
 @section('scripts')
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
@@ -133,7 +160,7 @@
 <script>
     var currentYear, currentMonth;
 
-    document.addEventListener('DOMContentLoaded', function() {
+    document.addEventListener('DOMContentLoaded', function () {
         var today = new Date();
         currentMonth = today.getMonth();
         currentYear = today.getFullYear();
@@ -183,25 +210,28 @@
         // Rellenar los días del mes
         for (var i = 1; i <= daysInMonth; i++) {
             var date = new Date(year, month, i);
-            var eventsOnDate = events.filter(function(evento) {
+            var eventsOnDate = events.filter(function (evento) {
                 return evento.date === formatDate(date);
             });
 
             var eventHTML = '';
-            eventsOnDate.forEach(function(evento) {
-    var eventId = evento.id;
-    var eventRelation = evento.region.name; // Accedemos al campo de relación
+            eventsOnDate.forEach(function (evento) {
+                var eventId = evento.id;
+                var eventRelation = evento.region.name; // Accedemos al campo de relación
 
-    // Modifica este enlace para que redirija al detalle del evento
-    eventHTML += '<a class="event" href="/events/' + eventId + '" target="_blank">' + eventRelation + ' (' + (evento.mode == 'beybladex' ? 'X' : 'Burst') + ')' + '</a>';
-
-});
-
+                // Modifica este enlace para que redirija al detalle del evento
+                eventHTML += '<a class="event" href="/events/' + eventId + '" target="_blank">' + eventRelation + ' (' + (evento.mode == 'beybladex' ? 'X' : 'Burst') + ')' + '</a>';
+            });
 
             var today = new Date();
             var isToday = i === today.getDate() && month === today.getMonth() && year === today.getFullYear();
             var dayClass = isToday ? 'today' : '';
             calendarHTML += '<div class="day ' + dayClass + '">' + i + eventHTML + '</div>';
+
+            // Si es la vista móvil y es el segundo día de la fila, cerramos la fila
+            if (window.innerWidth <= 768 && i % 2 === 0) {
+                calendarHTML += '</div><div class="calendar">';
+            }
         }
 
         calendarEl.innerHTML = calendarHTML;
@@ -229,4 +259,3 @@
     }
 </script>
 @endsection
-

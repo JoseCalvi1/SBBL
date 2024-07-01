@@ -16,40 +16,41 @@
                         </div>
                     @endif
 
-                    <table class="table text-white">
-                        <thead>
-                            <tr>
-                                <th scope="col">Nombre</th>
-                                <th scope="col">Descripción</th>
-                                <th scope="col">Acciones</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach ($equipos as $equipo)
-                            <tr>
-                                <td>{{ $equipo->name }}</td>
-                                <td>{{ $equipo->description }}</td>
-                                <td>
-                                    <a href="{{ route('equipos.show', $equipo) }}" class="btn btn-info btn-sm">Ver</a>
-                                    <a href="{{ route('equipos.edit', $equipo) }}" class="btn btn-primary btn-sm">Editar</a>
-                                    <form action="{{ route('equipos.destroy', $equipo) }}" method="POST" style="display: inline;">
-                                        @csrf
-                                        @method('DELETE')
-                                        <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('¿Estás seguro de querer eliminar este equipo?')">Eliminar</button>
-                                    </form>
+                    <div class="table-responsive">
+                        <table class="table text-white">
+                            <thead>
+                                <tr>
+                                    <th scope="col">Nombre</th>
+                                    <th scope="col">Descripción</th>
+                                    <th scope="col">Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach ($equipos as $equipo)
+                                    <tr>
+                                        <td>{{ $equipo->name }}</td>
+                                        <td>{{ $equipo->description }}</td>
+                                        <td>
+                                            <a href="{{ route('equipos.show', $equipo) }}" class="btn btn-info btn-sm mb-1">Ver</a>
+                                            <a href="{{ route('equipos.edit', $equipo) }}" class="btn btn-primary btn-sm mb-1">Editar</a>
+                                            <form action="{{ route('equipos.destroy', $equipo) }}" method="POST" style="display: inline;">
+                                                @csrf
+                                                @method('DELETE')
+                                                <button type="submit" class="btn btn-danger btn-sm mb-1" onclick="return confirm('¿Estás seguro de querer eliminar este equipo?')">Eliminar</button>
+                                            </form>
 
-                                    @if ($equipo->status == "pending")
-                                        <form action="{{ route('equipos.acceptInvitation', $equipo) }}" method="POST" style="display: inline;">
-                                            @csrf
-                                            <button type="submit" class="btn btn-success btn-sm">Aceptar Invitación</button>
-                                        </form>
-                                    @endif
-                                </td>
-                            </tr>
-                        @endforeach
-
-                        </tbody>
-                    </table>
+                                            @if ($equipo->status == "pending")
+                                                <form action="{{ route('equipos.acceptInvitation', $equipo) }}" method="POST" style="display: inline;">
+                                                    @csrf
+                                                    <button type="submit" class="btn btn-success btn-sm mb-1">Aceptar Invitación</button>
+                                                </form>
+                                            @endif
+                                        </td>
+                                    </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
         </div>

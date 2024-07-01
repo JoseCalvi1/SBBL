@@ -100,8 +100,71 @@ class ProfileController extends Controller
     {
         $regionT = Region::find($profile->region_id);
         $regions = Region::all();
+        $avatarOptions = [
+            'DranSwordBase' => 'upload-profiles/DranSwordBase.png',
+            'DranDaggerBase' => 'upload-profiles/DranDaggerBase.png',
+            'DranBusterBase' => 'upload-profiles/DranBusterBase.png',
+            'HellScytheBase' => 'upload-profiles/HellScytheBase.png',
+            'HellsChainBase' => 'upload-profiles/HellsChainBase.png',
+            'HellsHammerBase' => 'upload-profiles/HellsHammerBase.png',
+            'KnightShieldBase' => 'upload-profiles/KnightShieldBase.png',
+            'KnightLanceBase' => 'upload-profiles/KnightLanceBase.png',
+            'LeonClawBase' => 'upload-profiles/LeonClawBase.png',
+            'PhoenixFeatherBase' => 'upload-profiles/PhoenixFeatherBase.png',
+            'PhoenixWingBase' => 'upload-profiles/PhoenixWingBase.png',
+            'RhinoShieldBase' => 'upload-profiles/RhinoShieldBase.png',
+            'SharkEdgeBase' => 'upload-profiles/SharkEdgeBase.png',
+            'SphinxCowlBase' => 'upload-profiles/SphinxCowlBase.png',
+            'TuskMammoth' => 'upload-profiles/TuskMammoth.png',
+            'TyrannoBeatBase' => 'upload-profiles/TyrannoBeatBase.png',
+            'UnicornStingBase' => 'upload-profiles/UnicornStingBase.png',
+            'ViperTailBase' => 'upload-profiles/ViperTailBase.png',
+            'WizardArrowBase' => 'upload-profiles/WizardArrowBase.png',
+            'WizardRodBase' => 'upload-profiles/WizardRodBase.png',
+            'WyvernGaleBase' => 'upload-profiles/WyvernGaleBase.png',
+            'BurnFugiwara' => 'upload-profiles/BurnFugiwara.png',
+            'ChoPan' => 'upload-profiles/ChoPan.png',
+            'EkusuKurosu' => 'upload-profiles/EkusuKurosu.png',
+            'Kadovar' => 'upload-profiles/Kadovar.png',
+            'KamenX' => 'upload-profiles/KamenX.png',
+            'KazamiBird' => 'upload-profiles/KazamiBird.png',
+            'KazamiBird2' => 'upload-profiles/KazamiBird2.png',
+            'KingManju' => 'upload-profiles/KingManju.png',
+            'MeikoMaiden' => 'upload-profiles/MeikoMaiden.png',
+            'MultiNanario' => 'upload-profiles/MultiNanario.png',
+            'MultiNanario2' => 'upload-profiles/MultiNanario2.png',
+            'MultiNanario3' => 'upload-profiles/MultiNanario3.png',
+            'ToguroOkunaga' => 'upload-profiles/ToguroOkunaga.png',
+            'YuniNamba' => 'upload-profiles/YuniNamba.png',
+            'ZonamosNekoyama' => 'upload-profiles/ZonamosNekoyama.png',
+        ];
+        $marcoOptions = [
+            'BaseBlack.png' => 'upload-profiles/Marcos/BaseBlack.png',
+            'BaseBlue.png' => 'upload-profiles/Marcos/BaseBlue.png',
+            'BaseDBlue.png' => 'upload-profiles/Marcos/BaseDBlue.png',
+            'BaseDGreen.png' => 'upload-profiles/Marcos/BaseDGreen.png',
+            'BaseGreen.png' => 'upload-profiles/Marcos/BaseGreen.png',
+            'BaseOrange.png' => 'upload-profiles/Marcos/BaseOrange.png',
+            'BasePink.png' => 'upload-profiles/Marcos/BasePink.png',
+            'BasePurple.png' => 'upload-profiles/Marcos/BasePurple.png',
+            'BaseRed.png' => 'upload-profiles/Marcos/BaseRed.png',
+            'BaseTeal.png' => 'upload-profiles/Marcos/BaseTeal.png',
+            'BaseWhite.png' => 'upload-profiles/Marcos/BaseWhite.png',
+            'BaseYellow.png' => 'upload-profiles/Marcos/BaseYellow.png',
+        ];
+        $fondoOptions = [
+            'FondoBaseBlue.png' => 'upload-profiles/Fondos/FondoBaseBlue.png',
+            'FondoBaseGreen.png' => 'upload-profiles/Fondos/FondoBaseGreen.png',
+            'FondoBaseRed.png' => 'upload-profiles/Fondos/FondoBaseRed.png',
+            'FondoBaseYellow.png' => 'upload-profiles/Fondos/FondoBaseYellow.png',
+            'FondoATK.png' => 'upload-profiles/Fondos/FondoATK.png',
+            'FondoDEF.png' => 'upload-profiles/Fondos/FondoDEF.png',
+            'FondoBAL.png' => 'upload-profiles/Fondos/FondoBAL.png',
+            'FondoSTA.png' => 'upload-profiles/Fondos/FondoSTA.png',
+            // Add more options as needed
+        ];
 
-        return view('profiles.edit', compact('profile', 'regions', 'regionT'));
+        return view('profiles.edit', compact('profile', 'regions', 'regionT', 'avatarOptions', 'marcoOptions', 'fondoOptions'));
     }
 
     /**
