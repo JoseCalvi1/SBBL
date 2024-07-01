@@ -110,22 +110,16 @@
 
     /* Estilos para pantallas pequeñas */
     @media (max-width: 768px) {
-        .calendar {
-            display: flex;
-            flex-wrap: wrap;
-            max-width: 100%;
-            margin: 0 auto;
-        }
-
         .day {
-            width: calc(50% - 10px); /* Mostrar dos días por fila */
-            margin-right: 10px; /* Espacio entre días */
-            border: 1px solid #ccc;
-            padding: 10px;
-            box-sizing: border-box;
-            height: 120px; /* Altura fija de cada cuadrícula */
-            overflow-y: auto; /* Scroll vertical si es necesario */
-            position: relative;
+            width: calc(50% - 20px); /* Mostrar dos días por fila con espacio entre ellos */
+            margin: 10px;
+        }
+    }
+
+    @media (max-width: 576px) {
+        .day {
+            width: calc(50% - 20px); /* Mostrar dos días por fila incluso en pantallas más pequeñas */
+            margin: 10px;
         }
     }
 </style>
@@ -227,11 +221,6 @@
             var isToday = i === today.getDate() && month === today.getMonth() && year === today.getFullYear();
             var dayClass = isToday ? 'today' : '';
             calendarHTML += '<div class="day ' + dayClass + '">' + i + eventHTML + '</div>';
-
-            // Si es la vista móvil y es el segundo día de la fila, cerramos la fila
-            if (window.innerWidth <= 768 && i % 2 === 0) {
-                calendarHTML += '</div><div class="calendar">';
-            }
         }
 
         calendarEl.innerHTML = calendarHTML;
