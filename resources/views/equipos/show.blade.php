@@ -188,7 +188,7 @@
                             </div>
                             <div class="info">
                                 <div class="nombre">{{ $miembro->name }}</div>
-                                <div class="region">{{ ($miembro->region) ? $miembro->region->name : 'No definida'}}</div>
+                                <div class="region">{{ ($miembro->profile->region) ? $miembro->profile->region->name : 'No definida'}}</div>
                             </div>
                         </div>
                         @if ($equipo->captain_id === Auth::user()->id)

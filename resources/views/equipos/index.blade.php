@@ -38,7 +38,10 @@
                 <div class="card bg-dark text-white">
                     <div class="card-body p-0">
                         @if($equipo->image)
-                        <div class="mb-2" style="padding-top: 56.25%; background-image: url(data:image/png;base64,{{ $equipo->image }}); background-size: cover; background-position: center; background-repeat: no-repeat;"></div>
+                        <div class="mb-2" style="position: relative; padding-top: 56.25%; background-image: url(data:image/png;base64,{{ $equipo->image }}); background-size: cover; background-position: center; background-repeat: no-repeat; text-align: center;">
+                            <img src="data:image/png;base64,{{ $equipo->logo }}" alt="Logo del Equipo" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); max-width: 80%; max-height: 80%;">
+                        </div>
+
                         @endif
                         <h5 class="card-title ml-1"><strong>{{ $equipo->name }}</strong></h5>
                         <p class="card-text ml-1">{{ Illuminate\Support\Str::limit($equipo->description, 100) }}</p>
