@@ -31,6 +31,11 @@
                         </span>
                     @enderror
             </div>
+
+            <div class="form-group" style="color: white;">
+                <label for="image_mod">Imagen personalizada:</label>
+                <input type="file" class="form-control-file" id="image_mod" name="image_mod" accept="image/*">
+            </div>
         @endif
 
             <div class="form-group">

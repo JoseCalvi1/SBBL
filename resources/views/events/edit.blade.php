@@ -32,6 +32,17 @@
                         </span>
                     @enderror
             </div>
+
+            <div class="form-group" style="color: white;">
+                <label for="image_mod">Imagen personalizada:</label>
+                @if($event->image_mod)
+                    <label>Imagen actual:</label>
+                    <img src="data:image/png;base64,{{ $event->image_mod }}" width="100">
+                @else
+                    <p>No hay imagen actual</p>
+                @endif
+                <input type="file" class="form-control-file" id="image_mod" name="image_mod" accept="image/*">
+            </div>
         @endif
 
             <div class="form-group">

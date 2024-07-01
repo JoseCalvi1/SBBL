@@ -80,7 +80,15 @@ class EventController extends Controller
             'region_id' => 'required',
             'event_date' => 'required',
             'event_time' => 'required',
+            'image_mod' => 'image|mimes:jpeg,png,jpg,gif|max:2048',
         ]);
+
+        // Procesamiento de la imagen
+        if ($request->hasFile('image_mod')) {
+            $imageData = base64_encode(file_get_contents($request->file('image_mod')));
+        } else {
+            $imageData = null;
+        }
 
         // Obtener ruta de la imagen
         /*$ruta_imagen = "No hay imagen";
@@ -108,13 +116,14 @@ class EventController extends Controller
             'date' => $data['event_date'],
             'time' => $data['event_time'],
             'imagen' => $ruta_imagen,
+            'image_mod' => $imageData,
             'deck' => $request['deck'],
             'configuration' => $request['configuration'],
             'note' => $request['note'],
         ]);
 
         // TODO Comentar para probar en local
-        Self::notification(Event::find($eventId));
+        //Self::notification(Event::find($eventId));
 
         $events = Event::with('region')->get();
         $createEvent = Event::where('created_by', Auth::user()->id)->where('date', '>', Carbon::now())->get();
@@ -175,6 +184,20 @@ class EventController extends Controller
             'event_date' => 'required',
             'event_time' => 'required',
         ]);
+
+        // Almacenar las imágenes actuales antes de actualizar el equipo
+        $currentImage = $event->image_mod;
+
+        // Procesar la imagen si se proporciona un nuevo archivo
+        if ($request->hasFile('image_mod')) {
+            $imageData = base64_encode(file_get_contents($request->file('image_mod')));
+            $event->image_mod = $imageData;
+        }
+
+        // Restaurar la imagen actual si el formulario se envía sin seleccionar un nuevo archivo de imagen
+        if (!$request->hasFile('image_mod') && $currentImage !== null) {
+            $event->image_mod = $currentImage;
+        }
 
         // Si el usuario sube una imagen
         if($request['imagen'] == 'quedada') {

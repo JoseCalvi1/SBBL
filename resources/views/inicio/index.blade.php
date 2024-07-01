@@ -69,7 +69,11 @@
         @foreach ($nuevos as $evento)
             <div class="col-md-4 pb-2">
                 <div class="card">
+                    @if ($evento->image_mod)
+                    <span style="width: 100%; min-height: 180px; background: url('data:image/png;base64,{{ $evento->image_mod }}') bottom center no-repeat;background-size: cover;"></span>
+                    @else
                     <span style="width: 100%; min-height: 180px; background: url('/storage/{{ $evento->imagen }}') bottom center no-repeat;background-size: cover;"></span>
+                    @endif
                     <div class="card-body">
                         <h3 style="font-weight: bold;">{{ $evento->name }}</h3>
                         <h3>{{ $evento->region->name }}</h3>

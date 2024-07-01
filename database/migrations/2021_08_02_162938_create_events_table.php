@@ -18,6 +18,7 @@ class CreateEventsTable extends Migration
             $table->string('name');
             $table->string('mode')->nullable();
             $table->string('imagen')->nullable();
+            $table->longText('image_mod')->nullable();
             $table->string('location')->nullable();
             $table->string('created_by')->nullable();
             $table->string('status')->nullable();

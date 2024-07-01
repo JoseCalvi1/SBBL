@@ -6,7 +6,11 @@
         <div class="row">
             <div class="col-md-5">
                 <div class="imagen-event">
-                    <img src="/storage/{{ $event->imagen }}" class="w-100 h-25" style="border-radius: 5px;">
+                    @if ($event->image_mod)
+                        <img src="data:image/png;base64,{{ $event->image_mod }}" class="w-100 h-25" style="border-radius: 5px;" >
+                    @else
+                        <img src="/storage/{{ $event->imagen }}" class="w-100 h-25" style="border-radius: 5px;">
+                    @endif
                 </div>
             </div>
             <div class="col-md-7">
