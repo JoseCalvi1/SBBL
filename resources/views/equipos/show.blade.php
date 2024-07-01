@@ -75,7 +75,9 @@
         height: 100%;
         transition: width 0.6s ease;
     }
+
 </style>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/css/select2.min.css" rel="stylesheet" />
 @endsection
 
 @section('content')
@@ -206,8 +208,8 @@
                 <div class="modal-body">
                     <div class="form-group">
                         <label for="user_id">Seleccionar Usuario:</label>
-                        <select name="user_id" id="user_id" class="form-control" required>
-                            <option value="">Seleccionar Usuario</option>
+                        <select name="user_id" id="user_id" class="form-control select2" style="width: 100%" required>
+                            <option disabled selected>Seleccionar Usuario</option>
                             @foreach ($users as $user)
                                 <option value="{{ $user->id }}">{{ $user->name }}</option>
                             @endforeach
@@ -222,4 +224,17 @@
         </div>
     </div>
 </div>
+@endsection
+@section('scripts')
+    <!-- CDN de jQuery -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <!-- CDN de Select2 -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/css/select2.min.css" rel="stylesheet" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/js/select2.min.js"></script>
+
+    <script>
+        jQuery(document).ready(function() {
+            jQuery('.select2').select2();
+        });
+    </script>
 @endsection

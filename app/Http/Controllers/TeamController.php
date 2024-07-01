@@ -81,7 +81,7 @@ class TeamController extends Controller
         $miembros = $equipo->members;
 
         // Obtener todos los usuarios disponibles para agregar al equipo (excepto los que ya son miembros)
-        $users = User::whereNotIn('id', $miembros->pluck('id'))->get();
+        $users = User::whereNotIn('id', $miembros->pluck('id'))->orderBy('name', 'ASC')->get();
 
         $totalPoints = $miembros->sum(function ($miembro) {
             return $miembro->profile->points_x1 ?? 0;
