@@ -8,6 +8,7 @@ use App\Models\Versus;
 use App\Models\Invitation;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Carbon\Carbon;
 
 class ProfileController extends Controller
 {
@@ -24,6 +25,7 @@ class ProfileController extends Controller
     {
         $bladers = Profile::where('points_x1', '<>', 0)
                    ->orWhere('points_s3', '<>', 0)
+                   ->orWhere('imagen', '<>', null)
                    ->orderBy('id', 'ASC')
                    ->get();
 
@@ -78,14 +80,19 @@ class ProfileController extends Controller
      */
     public function show(Profile $profile)
     {
-        $versus = Versus::where('status', null)->where(
+        $invitacionesPendientes = Invitation::where('user_id', auth()->id())->get();
+
+        $currentMonth = Carbon::now()->month;
+        $currentYear = Carbon::now()->year;
+
+        $versus = Versus::orderBy('id', 'DESC')
+            ->whereMonth('created_at', $currentMonth)
+            ->whereYear('created_at', $currentYear)
+            ->where(
            function($query) use ($profile) {
              return $query->where('user_id_1', '=' , $profile->user_id)->orWhere('user_id_2', '=' , $profile->user_id);
-            })->get();
-
-            $invitacionesPendientes = Invitation::where('user_id', auth()->id())
+            })
             ->get();
-
 
         return view('profiles.show', compact('profile','versus','invitacionesPendientes'));
     }
@@ -122,6 +129,12 @@ class ProfileController extends Controller
             'WizardArrowBase' => 'upload-profiles/WizardArrowBase.png',
             'WizardRodBase' => 'upload-profiles/WizardRodBase.png',
             'WyvernGaleBase' => 'upload-profiles/WyvernGaleBase.png',
+'AeroPegasus' => 'upload-profiles/AeroPegasus.png',
+'BlackShell' => 'upload-profiles/BlackShell.png',
+'CobaltDragoon' => 'upload-profiles/CobaltDragoon.png',
+'ShinobiShadow' => 'upload-profiles/ShinobiShadow.png',
+'WeissTiger' => 'upload-profiles/WeissTiger.png',
+
             'BurnFugiwara' => 'upload-profiles/BurnFugiwara.png',
             'ChoPan' => 'upload-profiles/ChoPan.png',
             'EkusuKurosu' => 'upload-profiles/EkusuKurosu.png',
@@ -151,6 +164,10 @@ class ProfileController extends Controller
             'BaseTeal.png' => 'upload-profiles/Marcos/BaseTeal.png',
             'BaseWhite.png' => 'upload-profiles/Marcos/BaseWhite.png',
             'BaseYellow.png' => 'upload-profiles/Marcos/BaseYellow.png',
+'BaseAttack.png' => 'upload-profiles/Marcos/BaseAttack.png',
+'BaseBalance.png' => 'upload-profiles/Marcos/BaseBalance.png',
+'BaseDefense.png' => 'upload-profiles/Marcos/BaseDefense.png',
+'BaseStamina.png' => 'upload-profiles/Marcos/BaseStamina.png',
         ];
         $fondoOptions = [
             'FondoBaseBlue.png' => 'upload-profiles/Fondos/FondoBaseBlue.png',

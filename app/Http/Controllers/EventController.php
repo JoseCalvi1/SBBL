@@ -26,7 +26,10 @@ class EventController extends Controller
      */
     public function index()
     {
-       $events = Event::orderBy('date', 'DESC')->get();
+       $events = Event::where('date', '>=', '2024-06-31')
+               ->orderBy('date', 'DESC')
+               ->get();
+
        return view('events.index', compact('events'));
     }
 
@@ -68,7 +71,7 @@ class EventController extends Controller
 
             $regionId = Region::FindOrFail($request->region_id);
             $monthAbbreviation = date('M', strtotime($request->event_date));
-            $defaultName = 'Copa ' . $regionId->name . ' '.$modeName.' ' . strtoupper(substr($monthAbbreviation, 0, 3)) . $numeroEventos;
+            $defaultName = 'Copa ' . $regionId->name . ' ' . $numeroEventos.' '.$modeName.' ' . strtoupper(substr($monthAbbreviation, 0, 3));
             $request->merge(['name' => $defaultName]);
         }
 
@@ -123,7 +126,7 @@ class EventController extends Controller
         ]);
 
         // TODO Comentar para probar en local
-        //Self::notification(Event::find($eventId));
+        Self::notification(Event::find($eventId));
 
         $events = Event::with('region')->get();
         $createEvent = Event::where('created_by', Auth::user()->id)->where('date', '>', Carbon::now())->get();

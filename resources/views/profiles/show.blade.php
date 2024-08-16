@@ -1,7 +1,75 @@
 @extends('layouts.app')
 
-@section('content')
+@section('styles')
+<style>
+    .duel-card {
+        position: relative;
+        border: 2px solid #343a40;
+        border-radius: 10px;
+        padding: 20px;
+        margin-bottom: 20px;
+        height: 200px;
+        color: white;
+        background-size: cover;
+        background-position: center;
+        overflow: hidden;
+    }
 
+    .overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(to bottom right, rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.9));
+        z-index: 1;
+    }
+
+    .duel-info, .duel-mode {
+        position: relative;
+        z-index: 2;
+    }
+
+    .duel-info {
+        align-items: center;
+        flex: 1;
+        justify-content: space-around;
+    }
+
+    .duel-player {
+        text-align: center;
+    }
+
+    .player-name {
+        font-size: 20px;
+        font-weight: bold;
+    }
+
+    .player-score {
+        font-size: 18px;
+        margin-top: 5px;
+    }
+
+    .vs {
+        font-size: 24px;
+        text-align: center;
+    }
+
+    .duel-mode {
+        background-color: #343a40;
+        color: #ffffff;
+        padding: 10px 20px;
+        border-radius: 5px;
+    }
+
+    .mode {
+        font-size: 18px;
+    }
+</style>
+@endsection
+
+@section('content')
+@if (Auth::user()->profile->id == $profile->id || Auth::user()->is_admin)
 <div class="container pb-4">
     <div class="row">
         <div class="col-12">
@@ -101,30 +169,32 @@
 
 
 
-    <!--
-    <h2 class="titulo-categoria text-uppercase mb-4 mt-4">Duelos</h2>
+    
+    <h2 class="titulo-categoria text-uppercase mb-4 mt-4 text-white">Duelos mensuales</h2>
     <div class="row mt-2">
-        @foreach ($versus as $duel)
-            <div class="col-md-4 pb-2">
-                {{-- $duel->another --}}
-                <div class="versus-card" style="border: 1px solid black;padding: 5px 10px;">
-                   @if($duel->event->id)
-                    <p class="mb-1 font-weight-bold"><a style="text-decoration: none;color:black;" href="{{ route('events.show', ['event' => $duel->event->id]) }}">{{ $duel->event->name }}</a></p>
-                   @else
-                    <p class="mb-1 font-weight-bold">GENERATIONS</p>
-                   @endif
-                    <span style="{{ ($duel->user_id_1 == $duel->winner) ? 'color:green' : 'color:red' }}">{{ $duel->versus_1->name }}</span>
-                    vs
-                    <span style="{{ ($duel->user_id_2 == $duel->winner) ? 'color:green' : 'color:red' }}">{{ $duel->versus_2->name }}</span>
-                    @if ($duel->url)
-                        <span class="float-right border-left pl-2"><a style="text-decoration:none;color:black;" href="{{ $duel->url }}">Ver video</a></span>
-                    @endif
+        @foreach ($versus as $duelo)
+        <div class="col-md-3 mb-3"> <!-- Cada tarjeta ocupará 3 columnas en una fila y tendrá un margen inferior -->
+            <div class="duel-card" style="background-image: url('/storage/{{ $duelo->result_1 > $duelo->result_2 ? $duelo->versus_1->profile->fondo : $duelo->versus_2->profile->fondo }}');">
+                <div class="overlay"></div>
+                <div class="duel-mode">
+                    <span class="mode">{{ ($duelo->matchup == "beybladex") ? "Beyblade X" : "Beyblade Burst"  }}{{ ($duelo->status == "CLOSED") ? " - Válido" : " - Enviado"  }}</span>
                 </div>
+                <div class="duel-info">
+                    <div class="duel-player">
+                        <span class="player-name">{{ $duelo->versus_1->name }}</span>
+                    </div>
+                    <div class="vs"><span class="player-score">{{ $duelo->result_1 }}</span> VS <span class="player-score">{{ $duelo->result_2 }}</span></div>
+                    <div class="duel-player">
+                        <span class="player-name">{{ $duelo->versus_2->name }}</span>
+                    </div>
+                </div>
+
             </div>
+        </div>
         @endforeach
     </div>
--->
+
 </div>
 
-
+@endif
 @endsection

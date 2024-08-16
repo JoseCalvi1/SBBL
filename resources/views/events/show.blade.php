@@ -84,7 +84,7 @@
                 </div>
             </div>
             <div class="col-md-6">
-                <h4 style="font-weight: bold">Listado de participantes</h4>
+                <h4 style="font-weight: bold">Listado de participantes ({{ $assists->count() }})</h4>
                 @if (count($assists) > 0)
                     <form method="POST" action="{{ route('events.updatePuestos', ['event' => $event->id]) }}" enctype="multipart/form-data" novalidate>
                         @csrf

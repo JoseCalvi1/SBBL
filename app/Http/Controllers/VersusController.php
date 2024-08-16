@@ -20,7 +20,10 @@ class VersusController extends Controller
      */
     public function index()
     {
-        $versus = Versus::orderBy('id', 'DESC')->get();
+        $versus = Versus::where('created_at', '>=', '2024-06-31')
+                ->orderBy('id', 'DESC')
+                ->get();
+
 
         return view('versus.index', compact('versus'));
     }

@@ -20,6 +20,8 @@ use Illuminate\Support\Facades\Route;
 Route::get('/', [App\Http\Controllers\InicioController::class, 'index'])->name('inicio.index');
 
 Auth::routes();
+Auth::routes(['verify' => true]);
+
 
 Route::get('/home', [App\Http\Controllers\InicioController::class, 'index'])->name('inicio.index');
 Route::get('/all-events', [App\Http\Controllers\InicioController::class, 'events'])->name('inicio.events');
