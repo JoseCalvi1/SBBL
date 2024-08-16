@@ -74,6 +74,23 @@ class VersusController extends Controller
         $primer_dia_mes_actual = Carbon::now()->startOfMonth(); // Obtener el primer día del mes actual
         $ultimo_dia_mes_actual = Carbon::now()->endOfMonth();   // Obtener el último día del mes actual
 
+        // Verificar si alguno de los usuarios ha realizado 5 duelos en el mes actual
+        $duelos_usuario_1 = Versus::where(function($query) use ($user_id_1) {
+            $query->where('user_id_1', $user_id_1)
+                ->orWhere('user_id_2', $user_id_1);
+        })->whereBetween('created_at', [$primer_dia_mes_actual, $ultimo_dia_mes_actual])
+        ->count();
+
+        $duelos_usuario_2 = Versus::where(function($query) use ($user_id_2) {
+            $query->where('user_id_1', $user_id_2)
+                ->orWhere('user_id_2', $user_id_2);
+        })->whereBetween('created_at', [$primer_dia_mes_actual, $ultimo_dia_mes_actual])
+        ->count();
+
+        if ($duelos_usuario_1 >= 5 || $duelos_usuario_2 >= 5) {
+            return redirect()->back()->with('error', 'Uno de los usuarios ya ha alcanzado el límite de 5 duelos este mes.');
+        }
+
         $se_enfrentaron = Versus::where(function($query) use ($user_id_1, $user_id_2) {
             $query->where(function($q) use ($user_id_1, $user_id_2) {
                 $q->where('user_id_1', $user_id_1)
