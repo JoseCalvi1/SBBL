@@ -132,6 +132,12 @@
                         </li>
 
                         <li class="nav-item">
+                            <a class="nav-link" href="{{ route('inicio.stats') }}" style="color: white;">
+                                {{ 'STATS' }}
+                            </a>
+                        </li>
+
+                        <li class="nav-item">
                             <a class="nav-link" href="https://discord.gg/JCtAHfJ8Ht" style="color: white;">
                                 {{ 'DISCORD' }}
                             </a>

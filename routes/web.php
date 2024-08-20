@@ -3,6 +3,7 @@
 use App\Http\Controllers\TeamController;
 use App\Http\Controllers\InvitationController;
 use App\Http\Controllers\TeamsVersusController;
+use App\Http\Controllers\TournamentResultController;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 
@@ -107,6 +108,10 @@ Route::put('/teams-versus/{duel}', [TeamsVersusController::class, 'update'])->na
 Route::get('/all-teams-versus', [TeamsVersusController::class, 'show_all'])->name('teams_versus.all');
 Route::put('/teams-versus/{duel}/{mode}/{winner}/puntuarDuelo', [TeamsVersusController::class, 'puntuarDuelo'])->name('teams_versus.puntuarDuelo');
 Route::get('/teams-versus-admin', [TeamsVersusController::class, 'index'])->name('teams_versus.index');
+
+Route::post('/event/{eventId}/results', [TournamentResultController::class, 'store'])->name('tournament.results.store');
+Route::get('/beyblade-stats', [TournamentResultController::class, 'beybladeStats'])->name('inicio.stats');
+Route::get('/events/{event}/participant/results', [EventController::class, 'getParticipantResults'])->name('events.getParticipantResults');
 
 Route::group(['middleware' => 'admin'], function () {
    Route::get('/profiles-admin', [App\Http\Controllers\ProfileController::class, 'indexAdmin'])->name('profiles.indexAdmin');

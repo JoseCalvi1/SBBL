@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Event;
 use App\Models\Region;
+use App\Models\TournamentResult;
 use App\Models\User;
 use App\Models\Video;
 use Carbon\Carbon;
@@ -126,7 +127,7 @@ class EventController extends Controller
         ]);
 
         // TODO Comentar para probar en local
-        Self::notification(Event::find($eventId));
+        //Self::notification(Event::find($eventId));
 
         $events = Event::with('region')->get();
         $createEvent = Event::where('created_by', Auth::user()->id)->where('date', '>', Carbon::now())->get();
@@ -153,7 +154,31 @@ class EventController extends Controller
            $suscribe[] = 0;
         }
 
-        return view('events.show', compact('event', 'videos', 'assists', 'suscribe', 'hoy'));
+        // Recuperar los resultados existentes del usuario para este evento
+        $results = TournamentResult::where('user_id', Auth::user()->id)
+        ->where('event_id', $event->id)
+        ->get();
+
+        // Crear líneas vacías adicionales si hay menos de 3 resultados
+        $extraLines = max(3 - $results->count(), 0);
+        for ($i = 0; $i < $extraLines; $i++) {
+            $results->push(new TournamentResult()); // Añadir un modelo vacío para las líneas faltantes
+        }
+
+         // Obtener resultados de cada participante para este evento
+        $resultsByParticipant = [];
+        foreach ($assists as $assist) {
+            $resultsByParticipant[$assist->id] = TournamentResult::where('user_id', $assist->id)
+                                                                ->where('event_id', $event->id)
+                                                                ->where('blade', 'NOT LIKE', '%Selecciona%')
+                                                                ->get();
+        }
+
+        $bladeOptions = ['Black Shell','Cobalt Dragoon','Cobalt Drake','Dran Dagger','Dran Sword','Hells Chain','Hells Scythe','Knight Lance','Knight Shield','Leon Claw','Phoenix Feather','Phoenix Wing','Rhino Horn','Sharke Edge','Sphinx Cowl','Tyranno Beat','Unicorn Sting','Viper Tail','Weiss Tiger','Whale Wave','Wizard Arrow','Wyvern Gale','Bite Croc','Roar Tyranno','Savage Bear','Knife Shinobi','Steel Samurai','Talon Ptera','Tusk Mammoth','Yell Kong','Aero Pegasus','Dran Buster','Hells Hammer','Leon Crest','Shinobi Shadow','Wizard Rod'];
+        $ratchetOptions = ['1-60','1-80','2-60','2-80','3-60','3-70','3-80','4-60','4-70','4-80','5-60','5-70','5-80','7-60','9-60','9-70','9-80'];
+        $bitOptions = ['Ball','Cyclone','Dot','Elevate','Flat','Gear Ball','Gear Flat','Gear Needle','Gear Point','High Needle','High Tapper','Low Flat','Needle','Orb','Point','Quake','Rush','Rubber Accel','Spike','Accel','Unite','Accel','Disc Ball','Glide','Hexa','Metal Needle'];
+
+        return view('events.show', compact('event', 'videos', 'assists', 'suscribe', 'hoy', 'bladeOptions', 'ratchetOptions', 'bitOptions', 'results', 'extraLines', 'resultsByParticipant'));
     }
 
     /**
@@ -399,6 +424,13 @@ class EventController extends Controller
         ]);
     }
 
+    public function getParticipantResults(Request $request, Event $event)
+    {
+        $participantId = $request->query('id');
+        $results = $event->results->where('participant_id', $participantId); // Ajusta según tu relación de modelos
+
+        return response()->json($results);
+    }
 
 
 }
