@@ -4,9 +4,12 @@ namespace App\Http\Controllers;
 
 use App\Models\Event;
 use App\Models\Profile;
+use App\Models\TournamentResult;
+use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
 
 class InicioController extends Controller
@@ -27,7 +30,35 @@ class InicioController extends Controller
         $antiguos = $all->where("date", "<", Carbon::now())->take(10);
         $nuevos = $all->where("date", ">=", Carbon::now()->subDays(1))->sortBy('date')->take(3);
 
-        return view('inicio.index', compact('bladers', 'stamina', 'nuevos', 'antiguos'));
+        // Obtener el user_id con la media más alta de puntos_ganados / puntos_perdidos
+        // Obtener el user_id con la media más alta del mes anterior
+        // Obtener el mes y año del mes anterior
+        $lastMonth = Carbon::now()->subMonth()->month;
+        $lastYear = Carbon::now()->subMonth()->year;
+        // Obtener el mes anterior en español
+        $lastMonthName = strtoupper(Carbon::now()->subMonth()->translatedFormat('F'));
+
+        // Obtener el user_id con la mayor cantidad de puntos ganados en total
+        $bestUser = TournamentResult::select('user_id', DB::raw('SUM(puntos_ganados) as total_puntos'))
+            ->whereMonth('updated_at', $lastMonth)
+            ->whereYear('updated_at', $lastYear)
+            ->groupBy('user_id')
+            ->orderByDesc('total_puntos')
+            ->first();
+
+
+
+        $bestUserProfile =  $user = User::find($bestUser->user_id);
+
+        if ($bestUser) {
+            $bestUserRecord = TournamentResult::where('user_id', $bestUser->user_id)
+                ->whereMonth('updated_at', $lastMonth)
+                ->whereYear('updated_at', $lastYear)
+                ->orderBy(DB::raw('puntos_ganados / puntos_perdidos'), 'desc')
+                ->first();
+        }
+
+        return view('inicio.index', compact('bladers', 'stamina', 'nuevos', 'antiguos', 'bestUserProfile', 'bestUserRecord', 'bestUser', 'lastMonthName', 'lastYear'));
     }
 
     public function entrevistas()

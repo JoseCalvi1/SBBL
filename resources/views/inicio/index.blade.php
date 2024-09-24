@@ -211,23 +211,33 @@
                     </div>
                 </div>
 
-                <div class="row" style="background-color: rgb(205, 127, 50)">
-                    <div class="col-md-2 text-center text-white p-4" style="border: unset;">
-                    </div>
-                    <div class="col-md-8 text-white text-center p-4" style="font-size: 1.2em; font-weight:bold; line-height: 1">
+                <div id="bladerofthemonth" class="row" style="background-color: rgb(205, 127, 50)">
+                    <div class="col-md-9 text-white text-center p-4" style="font-size: 1.2em; font-weight:bold; line-height: 1">
                         <!--<h2 style="font-size: 2em; font-weight:bold;">ENTREVISTAS A NUESTROS CAMPEONES</h2>
                         <p>Con la inminente llegada de las nuevas temporadas de Beyblade X y Burst hemos querido preparar una cosa</p>
                         <p>Así que para despedirnos de la segunda temporada de Burst hemos hecho dos entrevistas con los campeones de cada temporada</p>
                         <p>Podéis leer sus opiniones en <a style="text-decoration: none; color: black" href="{{ route('inicio.entrevistas') }}">el siguiente apartado</a></p>-->
-                        <h2 style="font-size: 2em; font-weight:bold;">SBBL REBIRTH</h2>
-                        <p>¡Prepara tus combos porque volvemos con muchas novedades!</p>
-                        <p>Compite en los torneos de tu zona para obtener puntos para el ranking nacional</p>
-                        <p>Desde hoy, en la SBBL podrás convocar tus propios torneos, retar a duelos a tus amigos y mucho más</p>
-                        <p>Las nuevas reglas están disponibles en <a style="text-decoration: none; color: black" href="{{ route('inicio.rules') }}">el siguiente apartado</a></p>
-                        <p><a style="text-decoration: none; color: black" href="{{ route('profiles.ranking') }}">¡Empieza a competir en ambos rankings ahora!</a></p>
+                        <h2 style="font-size: 2em; font-weight:bold;">BLADER DEL MES {{ $lastMonthName }} {{ $lastYear }}</h2>
+                        <p>¡El mes pasado el blader con la con la mayor cantidad de puntos obtenidos fue {{ $bestUserProfile->name }} de {{ $bestUserProfile->profile->region->name }}!</p>
+                        <p>Nada más y nada menos que con un total de {{ $bestUser->total_puntos }}</p>
+                        <p>Su mejor combo fue {{ $bestUserRecord->blade }} {{ $bestUserRecord->ratchet }} {{ $bestUserRecord->bit }}</p>
+                        <p>Con el que consiguió un total de {{ $bestUserRecord->puntos_ganados }} puntos en {{ $bestUserRecord->victorias }} victorias</p>
+
 
                     </div>
-                    <div class="col-md-2 text-center text-white p-4" style="border: unset;">
+                    <div class="col-md-3 text-center text-white p-4" style="border: unset;">
+                        <div style="position: relative">
+                            @if ($bestUserProfile->profile->imagen)
+                                    <img src="/storage/{{ $bestUserProfile->profile->imagen }}" class="rounded-circle" width="180" style="position: absolute; top: 0; left: 0;">
+                                @else
+                                    <img src="/storage/upload-profiles/DranDaggerBase.png" class="rounded-circle" width="180" style="position: absolute; top: 0; left: 0;">
+                                @endif
+                                @if ($bestUserProfile->profile->marco)
+                                    <img src="/storage/{{ $bestUserProfile->profile->marco }}" class="rounded-circle" width="180" style="position: absolute; top: 0; left: 0;">
+                                @else
+                                    <img src="/storage/upload-profiles/Marcos/BaseBlue.png" class="rounded-circle" width="180" style="position: absolute; top: 0; left: 0;">
+                                @endif
+                        </div>
                     </div>
                 </div>
 
