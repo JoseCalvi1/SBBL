@@ -296,7 +296,7 @@
                     <div class="row">
                         <div class="col-md-4">
                             <div class="rrss text-center">
-                                <a style="display: inline-block; font-size:1.2em; font-weight: bold; text-decoration:none; color: white;" target="_blank" href="https://discord.gg/vXhY4nGSwZ">Discord <i class="fab fa-discord" style="font-size:1em;"></i></a>
+                                <a style="display: inline-block; font-size:1.2em; font-weight: bold; text-decoration:none; color: white;" target="_blank" href="https://discord.gg/JCtAHfJ8Ht">Discord <i class="fab fa-discord" style="font-size:1em;"></i></a>
                             </div>
                         </div>
                         <div class="col-md-4">

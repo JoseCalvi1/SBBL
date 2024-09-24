@@ -70,7 +70,7 @@
 
                             <p>
                                 <span class="font-weight-bold text-primary">Anotaciones:</span>
-                                {{ $event->note }}
+                                {!! $event->note !!}
                             </p>
 
                             <p>
@@ -120,7 +120,7 @@
                                                 $today = \Carbon\Carbon::now()->format('Y-m-d');  // Obtener la fecha actual en formato 'Y-m-d'
                                                 $eventDate = \Carbon\Carbon::parse($event->date)->format('Y-m-d');  // Fecha del evento en formato 'Y-m-d'
                                             @endphp
-                                            @if($today === $eventDate && isset($resultsByParticipant[Auth::user()->id]) && count($resultsByParticipant[Auth::user()->id]) > 0)
+                                            @if(($today === $eventDate && isset($resultsByParticipant[Auth::user()->id]) && count($resultsByParticipant[Auth::user()->id]) > 0) || $today > $eventDate || Auth::user()->is_admin)
                                                 <button type="button" class="btn btn-info btn-sm" data-toggle="collapse" data-target="#results-{{ $assist->id }}" aria-expanded="false" aria-controls="results-{{ $assist->id }}" title="Ver resultados">
                                                     <i class="fas fa-eye"></i>
                                                 </button>
@@ -128,7 +128,7 @@
                                         </div>
                                     </div>
 
-                                    @if($today === $eventDate && isset($resultsByParticipant[Auth::user()->id]) && count($resultsByParticipant[Auth::user()->id]) > 0)
+                                    @if($today === $eventDate && isset($resultsByParticipant[Auth::user()->id]) && count($resultsByParticipant[Auth::user()->id]) > 0 || $today > $eventDate || Auth::user()->is_admin)
                                         <div class="collapse" id="results-{{ $assist->id }}">
                                             <div class="card card-body mb-3" style="background-color: rgb(2, 0, 97)">
                                                 @if(isset($resultsByParticipant[$assist->id]) && count($resultsByParticipant[$assist->id]) > 0)

@@ -143,7 +143,7 @@ class EventController extends Controller
      * @param  \App\Models\Event  $event
      * @return \Illuminate\Http\Response
      */
-    public function show(Event $event)
+     public function show(Event $event)
     {
         $videos = DB::select('select * from videos where event_id = '.$event->id);
         $assists = $event->users()->get();
@@ -174,12 +174,14 @@ class EventController extends Controller
                                                                 ->get();
         }
 
-        $bladeOptions = ['Black Shell','Cobalt Dragoon','Cobalt Drake','Dran Dagger','Dran Sword','Hells Chain','Hells Scythe','Knight Lance','Knight Shield','Leon Claw','Phoenix Feather','Phoenix Wing','Rhino Horn','Sharke Edge','Sphinx Cowl','Tyranno Beat','Unicorn Sting','Viper Tail','Weiss Tiger','Whale Wave','Wizard Arrow','Wyvern Gale','Bite Croc','Roar Tyranno','Savage Bear','Knife Shinobi','Steel Samurai','Talon Ptera','Tusk Mammoth','Yell Kong','Aero Pegasus','Dran Buster','Hells Hammer','Leon Crest','Shinobi Shadow','Wizard Rod'];
-        $ratchetOptions = ['1-60','1-80','2-60','2-80','3-60','3-70','3-80','4-60','4-70','4-80','5-60','5-70','5-80','7-60','9-60','9-70','9-80'];
-        $bitOptions = ['Ball','Cyclone','Dot','Elevate','Flat','Gear Ball','Gear Flat','Gear Needle','Gear Point','High Needle','High Tapper','Low Flat','Needle','Orb','Point','Quake','Rush','Rubber Accel','Spike','Accel','Unite','Accel','Disc Ball','Glide','Hexa','Metal Needle'];
+        $bladeOptions = ['Aero Pegasus', 'Bite Croc', 'Black Shell', 'Cobalt Dragoon', 'Cobalt Drake', 'Dran Buster', 'Dran Dagger', 'Dran Sword', 'Hells Chain', 'Hells Hammer', 'Hells Scythe', 'Knight Lance', 'Knight Shield', 'Knife Shinobi', 'Leon Claw', 'Leon Crest', 'Phoenix Feather', 'Phoenix Wing', 'Rhino Horn', 'Roar Tyranno', 'Savage Bear', 'Sharke Edge', 'Shinobi Shadow', 'Sphinx Cowl', 'Steel Samurai', 'Talon Ptera', 'Tusk Mammoth', 'Tyranno Beat', 'Unicorn Sting', 'Viper Tail', 'Weiss Tiger', 'Whale Wave', 'Wizard Arrow', 'Wizard Rod', 'Wyvern Gale', 'Yell Kong'];
+        $ratchetOptions = ['1-60', '1-80', '2-60', '2-80', '3-60', '3-70', '3-80', '4-60', '4-70', '4-80', '5-60', '5-70', '5-80', '7-60', '9-60', '9-70', '9-80'];
+        $bitOptions = ['Accel', 'Ball', 'Cyclone', 'Disc Ball', 'Dot', 'Elevate', 'Flat', 'Gear Ball', 'Gear Flat', 'Gear Needle', 'Gear Point', 'Glide', 'Hexa', 'High Needle', 'High Taper', 'Low Flat', 'Metal Needle', 'Needle', 'Orb', 'Point', 'Quake', 'Rush', 'Rubber Accel', 'Spike', 'Taper', 'Unite'];
+
 
         return view('events.show', compact('event', 'videos', 'assists', 'suscribe', 'hoy', 'bladeOptions', 'ratchetOptions', 'bitOptions', 'results', 'extraLines', 'resultsByParticipant'));
     }
+
 
     /**
      * Show the form for editing the specified resource.
@@ -326,51 +328,55 @@ class EventController extends Controller
     }
 
     public function actualizarPuntuaciones(Request $request, $id, $mode)
-    {
-        self::actualizarStatus($id, 'CLOSE');
+{
+    self::actualizarStatus($id, 'CLOSE');
 
-        // Obtener los IDs de los participantes que están entre los tres primeros puestos
-        $participantes = DB::table('assist_user_event')
-            ->where('event_id', $id)
-            ->where('puesto', '!=', 'nopresentado')
-            ->get();
+    // Obtener los IDs de los participantes que están entre los tres primeros puestos
+    $participantes = DB::table('assist_user_event')
+        ->where('event_id', $id)
+        ->where('puesto', '!=', 'nopresentado')
+        ->get();
 
-        $eventMode = ($mode == "beybladex") ? 'points_x1' : 'points_s3';
+    $eventMode = ($mode == "beybladex") ? 'points_x1' : 'points_s3';
 
-        $totalParticipantes = DB::table('assist_user_event')
+    $totalParticipantes = DB::table('assist_user_event')
         ->where('event_id', $id)
         ->count();
+
+    // Limitar el número máximo de participantes a 12
+    $totalParticipantes = min($totalParticipantes, 12);
 
     // Calcular el número de participantes que quedarían en los tres primeros puestos
     $participantesTresPrimeros = floor($totalParticipantes / 4);
 
-        // Actualizar las puntuaciones de los perfiles de los participantes
-        foreach ($participantes as $participante) {
-            // Obtener el ID del usuario asociado a este participante
-            $usuarioId = $participante->user_id;
+    // Actualizar las puntuaciones de los perfiles de los participantes
+    foreach ($participantes as $participante) {
+        // Obtener el ID del usuario asociado a este participante
+        $usuarioId = $participante->user_id;
 
-            // Actualizar la puntuación del usuario en la tabla de perfiles
-            if ($participante->puesto === 'primero') {
-                DB::table('profiles')
-                    ->where('user_id', $usuarioId)
-                    ->increment($eventMode, 1 + $participantesTresPrimeros + 2); // Añadir puntos al primero
-            } elseif ($participante->puesto === 'segundo') {
-                DB::table('profiles')
-                    ->where('user_id', $usuarioId)
-                    ->increment($eventMode, 1 + $participantesTresPrimeros + 1); // Añadir puntos al segundo
-            } elseif ($participante->puesto === 'tercero') {
-                DB::table('profiles')
-                    ->where('user_id', $usuarioId)
-                    ->increment($eventMode, 1 + $participantesTresPrimeros); // Añadir puntos al tercero
-            } else {
-                DB::table('profiles')
-                    ->where('user_id', $usuarioId)
-                    ->increment($eventMode, 1); // Añadir 1 punto al perfil
-            }
+        // Actualizar la puntuación del usuario en la tabla de perfiles
+        if ($participante->puesto === 'primero') {
+            DB::table('profiles')
+                ->where('user_id', $usuarioId)
+                ->increment($eventMode, 1 + $participantesTresPrimeros + 2); // Añadir puntos al primero
+        } elseif ($participante->puesto === 'segundo') {
+            DB::table('profiles')
+                ->where('user_id', $usuarioId)
+                ->increment($eventMode, 1 + $participantesTresPrimeros + 1); // Añadir puntos al segundo
+        } elseif ($participante->puesto === 'tercero') {
+            DB::table('profiles')
+                ->where('user_id', $usuarioId)
+                ->increment($eventMode, 1 + $participantesTresPrimeros); // Añadir puntos al tercero
+        } else {
+            DB::table('profiles')
+                ->where('user_id', $usuarioId)
+                ->increment($eventMode, 1); // Añadir 1 punto al perfil
         }
-
-        return redirect()->back()->with('success', 'Puntuaciones actualizadas correctamente');
     }
+
+    return redirect()->back()->with('success', 'Puntuaciones actualizadas correctamente');
+}
+
 
     public function notification($eventId)
     {

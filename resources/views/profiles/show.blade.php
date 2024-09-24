@@ -195,6 +195,42 @@
     </div>
 
 </div>
-
+<div class="container">
+    <h2 class="titulo-categoria text-uppercase mb-4 mt-4 text-white">Estadísticas de Beyblades</h2>
+    <div class="table-responsive">
+        <table class="table table-striped table-dark">
+            <thead>
+                <tr>
+                    <th>Blade</th>
+                    <th>Ratchet</th>
+                    <th>Bit</th>
+                    <th>Victorias</th>
+                    <th>Derrotas</th>
+                    <th>Total Partidas</th>
+                    <th>Porcentaje Victorias/Derrotas</th>
+                    <th>Puntos Ganados por Combate</th>
+                    <th>Puntos Perdidos por Combate</th>
+                    <th>Puntos OTH</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach($beybladeStats as $stat)
+                    <tr>
+                        <td>{{ $stat->blade }}</td>
+                        <td>{{ $stat->ratchet }}</td>
+                        <td>{{ $stat->bit }}</td>
+                        <td>{{ $stat->total_victorias }}</td>
+                        <td>{{ $stat->total_derrotas }}</td>
+                        <td>{{ $stat->total_partidas }}</td>
+                        <td>{{ number_format($stat->percentage_victories, 2) }}%</td>
+                        <td>{{ number_format($stat->puntos_ganados_por_combate, 2) }}</td>
+                        <td>{{ number_format($stat->puntos_perdidos_por_combate, 2) }}</td>
+                        <td>{{ number_format($stat->eficiencia, 2) }}</td>
+                    </tr>
+                @endforeach
+            </tbody>
+        </table>
+    </div>
+</div>
 @endif
 @endsection

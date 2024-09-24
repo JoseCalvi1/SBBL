@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\EventController;
 use App\Http\Controllers\TeamController;
 use App\Http\Controllers\InvitationController;
 use App\Http\Controllers\TeamsVersusController;
@@ -112,6 +113,8 @@ Route::get('/teams-versus-admin', [TeamsVersusController::class, 'index'])->name
 Route::post('/event/{eventId}/results', [TournamentResultController::class, 'store'])->name('tournament.results.store');
 Route::get('/beyblade-stats', [TournamentResultController::class, 'beybladeStats'])->name('inicio.stats');
 Route::get('/events/{event}/participant/results', [EventController::class, 'getParticipantResults'])->name('events.getParticipantResults');
+Route::get('/stats', [TournamentResultController::class, 'beybladeStats'])->name('stats.index');
+
 
 Route::group(['middleware' => 'admin'], function () {
    Route::get('/profiles-admin', [App\Http\Controllers\ProfileController::class, 'indexAdmin'])->name('profiles.indexAdmin');

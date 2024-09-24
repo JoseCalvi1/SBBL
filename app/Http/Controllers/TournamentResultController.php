@@ -36,31 +36,60 @@ class TournamentResultController extends Controller
     return redirect()->back()->with('success', 'Resultados guardados correctamente.');
     }
 
-    public function beybladeStats()
-    {
-        $beybladeStats = DB::table('tournament_results')
-            ->select(
-                'blade',
-                'ratchet',
-                'bit',
-                DB::raw('SUM(victorias) as total_victorias'),
-                DB::raw('SUM(derrotas) as total_derrotas'),
-                DB::raw('SUM(puntos_ganados) as total_puntos_ganados'),
-                DB::raw('SUM(puntos_perdidos) as total_puntos_perdidos'),
-                // Calcular el número total de veces utilizado
-                DB::raw('SUM(victorias + derrotas) as total_partidas'),
-                // Calcular el porcentaje de victorias sobre el total de partidas
-                DB::raw('CASE
-                    WHEN SUM(victorias + derrotas) > 0 THEN (SUM(victorias) / SUM(victorias + derrotas)) * 100
-                    ELSE 0
-                END AS percentage_victories')
-            )
-            ->where('blade', 'NOT LIKE', '%Selecciona%')
-            ->groupBy('blade', 'ratchet', 'bit')
-            ->get();
 
-        return view('inicio.stats', compact('beybladeStats'));
-    }
+
+
+    public function beybladeStats(Request $request)
+{
+    $sort = $request->get('sort', 'blade');
+$order = $request->get('order', 'asc');
+
+$beybladeStats = DB::table('tournament_results')
+    ->select(
+        'blade',
+        'ratchet',
+        'bit',
+        DB::raw('SUM(victorias) as total_victorias'),
+        DB::raw('SUM(derrotas) as total_derrotas'),
+        DB::raw('CASE
+            WHEN SUM(victorias) > 0 THEN SUM(puntos_ganados) / GREATEST(SUM(victorias), 1)
+            ELSE 0
+        END AS puntos_ganados_por_combate'),
+        DB::raw('CASE
+            WHEN SUM(derrotas) > 0 THEN SUM(puntos_perdidos) / GREATEST(SUM(derrotas), 1)
+            ELSE 0
+        END AS puntos_perdidos_por_combate'),
+        DB::raw('SUM(victorias + derrotas) as total_partidas'),
+        DB::raw('CASE
+            WHEN SUM(victorias + derrotas) > 0 THEN (SUM(victorias) / GREATEST(SUM(victorias + derrotas), 1)) * 100
+            ELSE 0
+        END AS percentage_victories'),
+        DB::raw('CASE
+            WHEN (SUM(victorias) + SUM(derrotas)) > 0 THEN 
+                (
+                    (
+                        (SUM(puntos_ganados) / GREATEST(SUM(victorias), 1)) / 
+                        ((SUM(puntos_ganados) / GREATEST(SUM(victorias), 1)) + (SUM(puntos_perdidos) / GREATEST(SUM(derrotas), 1)))
+                    ) 
+                    * 
+                    ((SUM(victorias) / GREATEST(SUM(victorias + derrotas), 1)) * 100)
+                ) 
+                * LOG(SUM(victorias + derrotas) + 1)
+            ELSE 0
+        END AS eficiencia')
+    )
+    ->where('blade', 'NOT LIKE', '%Selecciona%')
+    ->groupBy('blade', 'ratchet', 'bit')
+    ->orderBy($sort, $order)
+    ->get();
+
+return view('inicio.stats', compact('beybladeStats', 'sort', 'order'));
+
+}
+
+
+
+
 
 
 }

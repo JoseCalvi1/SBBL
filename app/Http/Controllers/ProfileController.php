@@ -2,13 +2,15 @@
 
 namespace App\Http\Controllers;
 
+use Carbon\Carbon;
+use App\Models\TournamentResult;
 use App\Models\Profile;
 use App\Models\Region;
 use App\Models\Versus;
 use App\Models\Invitation;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Carbon\Carbon;
+use Illuminate\Support\Facades\DB;
 
 class ProfileController extends Controller
 {
@@ -93,8 +95,47 @@ class ProfileController extends Controller
              return $query->where('user_id_1', '=' , $profile->user_id)->orWhere('user_id_2', '=' , $profile->user_id);
             })
             ->get();
+    
+        $beybladeStats = DB::table('tournament_results')
+    ->select(
+        'blade',
+        'ratchet',
+        'bit',
+        DB::raw('SUM(victorias) as total_victorias'),
+        DB::raw('SUM(derrotas) as total_derrotas'),
+        DB::raw('CASE
+            WHEN SUM(victorias) > 0 THEN SUM(puntos_ganados) / GREATEST(SUM(victorias), 1)
+            ELSE 0
+        END AS puntos_ganados_por_combate'),
+        DB::raw('CASE
+            WHEN SUM(derrotas) > 0 THEN SUM(puntos_perdidos) / GREATEST(SUM(derrotas), 1)
+            ELSE 0
+        END AS puntos_perdidos_por_combate'),
+        DB::raw('SUM(victorias + derrotas) as total_partidas'),
+        DB::raw('CASE
+            WHEN SUM(victorias + derrotas) > 0 THEN (SUM(victorias) / GREATEST(SUM(victorias + derrotas), 1)) * 100
+            ELSE 0
+        END AS percentage_victories'),
+        DB::raw('CASE
+            WHEN (SUM(victorias) + SUM(derrotas)) > 0 THEN 
+                (
+                    (
+                        (SUM(puntos_ganados) / GREATEST(SUM(victorias), 1)) / 
+                        ((SUM(puntos_ganados) / GREATEST(SUM(victorias), 1)) + (SUM(puntos_perdidos) / GREATEST(SUM(derrotas), 1)))
+                    ) 
+                    * 
+                    ((SUM(victorias) / GREATEST(SUM(victorias + derrotas), 1)) * 100)
+                ) 
+                * LOG(SUM(victorias + derrotas) + 1)
+            ELSE 0
+        END AS eficiencia')
+    )
+        ->where('blade', 'NOT LIKE', '%Selecciona%')
+        ->where('user_id', auth()->id())
+        ->groupBy('blade', 'ratchet', 'bit')
+        ->get();
 
-        return view('profiles.show', compact('profile','versus','invitacionesPendientes'));
+        return view('profiles.show', compact('profile','versus','invitacionesPendientes', 'beybladeStats'));
     }
 
     /**
