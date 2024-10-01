@@ -178,8 +178,18 @@ class EventController extends Controller
         $ratchetOptions = ['1-60', '1-80', '2-60', '2-80', '3-60', '3-70', '3-80', '4-60', '4-70', '4-80', '5-60', '5-70', '5-80', '7-60', '9-60', '9-70', '9-80'];
         $bitOptions = ['Accel', 'Ball', 'Cyclone', 'Disc Ball', 'Dot', 'Elevate', 'Flat', 'Gear Ball', 'Gear Flat', 'Gear Needle', 'Gear Point', 'Glide', 'Hexa', 'High Needle', 'High Taper', 'Low Flat', 'Metal Needle', 'Needle', 'Orb', 'Point', 'Quake', 'Rush', 'Rubber Accel', 'Spike', 'Taper', 'Unite'];
 
+        $currentDate = Carbon::now();
+        $startOfWeek = $currentDate->startOfWeek()->format('Y-m-d');
+        $endOfWeek = $currentDate->endOfWeek()->format('Y-m-d');
 
-        return view('events.show', compact('event', 'videos', 'assists', 'suscribe', 'hoy', 'bladeOptions', 'ratchetOptions', 'bitOptions', 'results', 'extraLines', 'resultsByParticipant'));
+        // Consulta para verificar si el usuario está apuntado a un evento de la semana actual
+        $isRegistered = DB::table('assist_user_event')
+            ->join('events', 'assist_user_event.event_id', '=', 'events.id')
+            ->where('assist_user_event.user_id', Auth::user()->id)
+            ->whereBetween('events.date', [$startOfWeek, $endOfWeek])
+            ->exists();
+
+        return view('events.show', compact('event', 'videos', 'assists', 'suscribe', 'hoy', 'bladeOptions', 'ratchetOptions', 'bitOptions', 'results', 'extraLines', 'resultsByParticipant', 'isRegistered'));
     }
 
 

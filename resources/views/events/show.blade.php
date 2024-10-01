@@ -29,15 +29,23 @@
                             <button type="submit" class="btn btn-secondary mb-2 mt-2 d-block" style="width: 100%">Cerrar evento</button>
                         </form>
                     @endif
+
                 </h1>
                 @if($event->status == "OPEN" && Auth::user() && $event->date > $hoy)
                     @if (!$suscribe)
+                @if($isRegistered)
+                    <span class="alert alert-warning d-block mt-3 p-2 text-center font-weight-bold">
+                        ⚠️ Ya te has apuntado a otro torneo esta semana. Recuerda que está prohibido participar en dos torneos la misma semana salvo excepción aprobada por los admins o ser un torneo especial.
+                    </span>
+                @endif
+
                         <form method="POST" action="{{ route('events.assist', ['event' => $event->id]) }}" enctype="multipart/form-data" novalidate style="text-align: center;">
                             @csrf
                             <div class="form-group py-2">
                                 <input type="submit" class="btn btn-primary text-uppercase font-weight-bold m-1 flex-right" value="Inscribirse">
                             </div>
                         </form>
+
                     @else
                         <form method="POST" action="{{ route('events.noassist', ['event' => $event->id]) }}" style="display: contents; text-align: center;">
                             @method('DELETE')
@@ -98,7 +106,7 @@
                                     <div class="row mb-2">
                                         <div class="col-md-9">
                                             <p class="mb-0">
-                                                {{ $assist->name }}
+                                                {{ $assist->name }} ({{ DB::table('assist_user_event')->where('user_id', $assist->id)->where('event_id', '>', 190)->count() }} torneos)
                                                 @if (Auth::user()->is_admin)
                                                     <b>{{ $assist->email }}</b>
                                                 @endif
