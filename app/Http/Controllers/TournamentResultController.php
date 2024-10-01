@@ -17,12 +17,37 @@ class TournamentResultController extends Controller
     TournamentResult::where('user_id', $user->id)
                     ->where('event_id', $eventId)
                     ->delete();
-
     // Guardar los nuevos resultados
     foreach ($request->blade as $index => $blade) {
         TournamentResult::create([
             'user_id' => $user->id,
             'event_id' => $eventId,
+            'blade' => $blade,
+            'ratchet' => $request->ratchet[$index],
+            'bit' => $request->bit[$index],
+            'victorias' => $request->victorias[$index],
+            'derrotas' => $request->derrotas[$index],
+            'puntos_ganados' => $request->puntos_ganados[$index],
+            'puntos_perdidos' => $request->puntos_perdidos[$index],
+        ]);
+    }
+
+    return redirect()->back()->with('success', 'Resultados guardados correctamente.');
+    }
+
+    public function storeduel(Request $request, $versusId)
+    {
+        $user = Auth::user();
+    // Eliminar resultados existentes del usuario para este evento
+    TournamentResult::where('user_id', $user->id)
+                    ->where('versus_id', $versusId)
+                    ->delete();
+
+                    // Guardar los nuevos resultados
+    foreach ($request->blade as $index => $blade) {
+        TournamentResult::create([
+            'user_id' => $user->id,
+            'versus_id' => $versusId,
             'blade' => $blade,
             'ratchet' => $request->ratchet[$index],
             'bit' => $request->bit[$index],
@@ -65,15 +90,15 @@ $beybladeStats = DB::table('tournament_results')
             ELSE 0
         END AS percentage_victories'),
         DB::raw('CASE
-            WHEN (SUM(victorias) + SUM(derrotas)) > 0 THEN 
+            WHEN (SUM(victorias) + SUM(derrotas)) > 0 THEN
                 (
                     (
-                        (SUM(puntos_ganados) / GREATEST(SUM(victorias), 1)) / 
+                        (SUM(puntos_ganados) / GREATEST(SUM(victorias), 1)) /
                         ((SUM(puntos_ganados) / GREATEST(SUM(victorias), 1)) + (SUM(puntos_perdidos) / GREATEST(SUM(derrotas), 1)))
-                    ) 
-                    * 
+                    )
+                    *
                     ((SUM(victorias) / GREATEST(SUM(victorias + derrotas), 1)) * 100)
-                ) 
+                )
                 * LOG(SUM(victorias + derrotas) + 1)
             ELSE 0
         END AS eficiencia')

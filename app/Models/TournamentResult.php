@@ -16,6 +16,7 @@ class TournamentResult extends Model
     protected $fillable = [
         'user_id',
         'event_id',
+        'versus_id',
         'blade',
         'ratchet',
         'bit',

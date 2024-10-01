@@ -128,11 +128,16 @@
 @section('content')
 
 <h1 class="current-month mt-5" style="color: white;">Calendario de Eventos
-    @if ($countEvents < 2 || (Auth::user() && Auth::user()->is_admin))
+    @if (
+        $countEvents < 2 ||
+        (Auth::user() && (Auth::user()->is_admin ||
+        Auth::user()->created_at->diffInMonths(now()) >= 3))
+        )
         <a href="{{ route('events.create') }}" class="btn btn-outline-warning text-uppercase font-weight-bold">
             Crear evento
         </a>
     @endif
+
 </h1>
 
 <div class="navigation mt-5">

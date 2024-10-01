@@ -8,7 +8,7 @@
         border-radius: 10px;
         padding: 20px;
         margin-bottom: 20px;
-        height: 200px;
+        height: 250px;
         color: white;
         background-size: cover;
         background-position: center;
@@ -94,8 +94,10 @@
                     <div class="duel-player">
                         <span class="player-name">{{ $duelo->versus_2->name }}</span>
                     </div>
+                    @if ($duelo->versus_1->name == Auth::user()->name || $duelo->versus_2->name == Auth::user()->name)
+                        <a href="{{ route('versus.versusdeck', ['duel' => $duelo->id, 'deck' => Auth::user()->id]) }}" type="button" class="btn btn-warning w-100">Introducir deck</a>
+                    @endif
                 </div>
-
             </div>
         </div>
         @endforeach

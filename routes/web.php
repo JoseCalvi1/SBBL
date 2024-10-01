@@ -53,6 +53,7 @@ Route::get('/versus/{duel}/edit', [App\Http\Controllers\VersusController::class,
 Route::put('/versus/{duel}', [App\Http\Controllers\VersusController::class, 'update'])->name('versus.update');
 Route::get('/all-versus', [App\Http\Controllers\VersusController::class, 'show_all'])->name('versus.all');
 Route::put('/versus/{duel}/{mode}/{winner}/puntuarDuelo', [App\Http\Controllers\VersusController::class, 'puntuarDuelo'])->name('versus.puntuarDuelo');
+Route::get('/versus/{duel}/deck/{deck}', [App\Http\Controllers\VersusController::class, 'versusdeck'])->name('versus.versusdeck');
 
 Route::get('/profiles', [App\Http\Controllers\ProfileController::class, 'index'])->name('profiles.index');
 Route::get('/profiles/{profile}', [App\Http\Controllers\ProfileController::class, 'show'])->name('profiles.show');
@@ -111,6 +112,7 @@ Route::put('/teams-versus/{duel}/{mode}/{winner}/puntuarDuelo', [TeamsVersusCont
 Route::get('/teams-versus-admin', [TeamsVersusController::class, 'index'])->name('teams_versus.index');
 
 Route::post('/event/{eventId}/results', [TournamentResultController::class, 'store'])->name('tournament.results.store');
+Route::post('/versus/{versusId}/results', [TournamentResultController::class, 'storeduel'])->name('versus.results.store');
 Route::get('/beyblade-stats', [TournamentResultController::class, 'beybladeStats'])->name('inicio.stats');
 Route::get('/events/{event}/participant/results', [EventController::class, 'getParticipantResults'])->name('events.getParticipantResults');
 Route::get('/stats', [TournamentResultController::class, 'beybladeStats'])->name('stats.index');
