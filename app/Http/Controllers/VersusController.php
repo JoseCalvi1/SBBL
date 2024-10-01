@@ -65,8 +65,16 @@ class VersusController extends Controller
         }
 
 
-        $bladeOptions = ['Aero Pegasus', 'Bite Croc', 'Black Shell', 'Cobalt Dragoon', 'Cobalt Drake', 'Dran Buster', 'Dran Dagger', 'Dran Sword', 'Hells Chain', 'Hells Hammer', 'Hells Scythe', 'Knight Lance', 'Knight Shield', 'Knife Shinobi', 'Leon Claw', 'Leon Crest', 'Phoenix Feather', 'Phoenix Wing', 'Rhino Horn', 'Roar Tyranno', 'Savage Bear', 'Sharke Edge', 'Shinobi Shadow', 'Sphinx Cowl', 'Steel Samurai', 'Talon Ptera', 'Tusk Mammoth', 'Tyranno Beat', 'Unicorn Sting', 'Viper Tail', 'Weiss Tiger', 'Whale Wave', 'Wizard Arrow', 'Wizard Rod', 'Wyvern Gale', 'Yell Kong'];
-        $ratchetOptions = ['1-60', '1-80', '2-60', '2-80', '3-60', '3-70', '3-80', '4-60', '4-70', '4-80', '5-60', '5-70', '5-80', '7-60', '9-60', '9-70', '9-80'];
+        $bladeOptions = [
+            'Aero Pegasus', 'Bite Croc', 'Black Shell', 'Cobalt Dragoon', 'Cobalt Drake', 'Darth Vader', 'Dran Buster',
+            'Dran Dagger', 'Dran Sword', 'Hells Chain', 'Hells Hammer', 'Hells Scythe', 'Iron Man', 'Knight Lance',
+            'Knight Shield', 'Knife Shinobi', 'Leon Claw', 'Leon Crest', 'Luke Skywalker', 'Megatron', 'Moff Gideon',
+            'Optimus Primal', 'Optimus Prime', 'Phoenix Feather', 'Phoenix Wing', 'Rhino Horn', 'Roar Tyranno',
+            'Savage Bear', 'Sharke Edge', 'Shinobi Shadow', 'Sphinx Cowl', 'Spider-Man', 'Starscream', 'Steel Samurai',
+            'Talon Ptera', 'Thanos', 'The Mandalorian', 'Tusk Mammoth', 'Tyranno Beat', 'Unicorn Sting', 'Venom',
+            'Viper Tail', 'Weiss Tiger', 'Whale Wave', 'Wizard Arrow', 'Wizard Rod', 'Wyvern Gale', 'Yell Kong'
+        ];
+                $ratchetOptions = ['1-60', '1-80', '2-60', '2-80', '3-60', '3-70', '3-80', '4-60', '4-70', '4-80', '5-60', '5-70', '5-80', '7-60', '9-60', '9-70', '9-80'];
         $bitOptions = ['Accel', 'Ball', 'Cyclone', 'Disc Ball', 'Dot', 'Elevate', 'Flat', 'Gear Ball', 'Gear Flat', 'Gear Needle', 'Gear Point', 'Glide', 'Hexa', 'High Needle', 'High Taper', 'Low Flat', 'Metal Needle', 'Needle', 'Orb', 'Point', 'Quake', 'Rush', 'Rubber Accel', 'Spike', 'Taper', 'Unite'];
 
         return view('versus.versusdeck', compact('versus', 'bladeOptions', 'ratchetOptions', 'bitOptions', 'results'));
