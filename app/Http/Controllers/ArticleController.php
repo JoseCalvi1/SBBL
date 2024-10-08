@@ -10,18 +10,18 @@ class ArticleController extends Controller
     public function index()
     {
         $articles = Article::all(); // Obtener todos los artículos
-        return view('blog.index', compact('articles')); // Pasar los artículos a la vista
+        return view('mercado.index', compact('articles')); // Pasar los artículos a la vista
     }
 
     public function show($custom_url)
     {
         $article = Article::where('custom_url', $custom_url)->firstOrFail();
-        return view('blog.show', compact('article')); // Pasar el artículo a la vista
+        return view('mercado.show', compact('article')); // Pasar el artículo a la vista
     }
 
     public function create()
     {
-        return view('blog.create');
+        return view('mercado.create');
     }
 
     public function store(Request $request)
@@ -54,12 +54,12 @@ class ArticleController extends Controller
             'image' => $imageData,
         ]);
 
-        return redirect()->route('blog.index')->with('success', '¡Artículo creado exitosamente!');
+        return redirect()->route('mercado.index')->with('success', '¡Artículo creado exitosamente!');
     }
 
     public function edit(Article $article)
     {
-        return view('blog.edit', compact('article'));
+        return view('mercado.edit', compact('article'));
     }
 
     public function update(Request $request, Article $article)
@@ -88,7 +88,7 @@ class ArticleController extends Controller
         $article->save();
     }
 
-    return redirect()->route('blog.show', $article->custom_url)->with('success', 'Artículo actualizado correctamente.');
+    return redirect()->route('mercado.show', $article->custom_url)->with('success', 'Artículo actualizado correctamente.');
 }
 
 

@@ -6,13 +6,13 @@
 
 @section('content')
     <div class="container pt-2 pb-2">
-        <a href="{{ route('blog.index') }}" class="btn btn-outline-primary mt-2 mb-2 ml-0 text-uppercase font-weight-bold">
+        <a href="{{ route('mercado.index') }}" class="btn btn-outline-primary mt-2 mb-2 ml-0 text-uppercase font-weight-bold">
             Volver
         </a>
 
-        <h1 style="color: white;">Crear Nuevo Artículo</h1>
+        <h1 style="color: white;">Crear Nuevo Anuncio</h1>
 
-        <form action="{{ route('blog.store') }}" method="POST" enctype="multipart/form-data">
+        <form action="{{ route('mercado.store') }}" method="POST" enctype="multipart/form-data">
             @csrf
             <div class="form-group">
                 <label for="title" style="color: white;">Título:</label>
@@ -31,7 +31,7 @@
             </div>
 
             <div class="form-group">
-                <label for="article_type" style="color: white;">Tipo de Artículo:</label>
+                <label for="article_type" style="color: white;">Tipo de anuncio:</label>
                 <input type="text" class="form-control" id="article_type" name="article_type">
             </div>
 
@@ -40,7 +40,7 @@
                 <input type="text" class="form-control" id="custom_url" name="custom_url" value="{{ isset($article) ? $article->custom_url : '' }}">
             </div>
 
-            <button type="submit" class="btn btn-primary">Crear Artículo</button>
+            <button type="submit" class="btn btn-primary">Crear anuncio</button>
         </form>
     </div>
 @endsection

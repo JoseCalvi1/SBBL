@@ -6,13 +6,13 @@
 
 @section('content')
     <div class="container pt-2 pb-2">
-        <a href="{{ route('blog.show', ['custom_url' => $article->custom_url]) }}" class="btn btn-outline-primary mt-2 mb-2 ml-0 text-uppercase font-weight-bold">
+        <a href="{{ route('mercado.show', ['custom_url' => $article->custom_url]) }}" class="btn btn-outline-primary mt-2 mb-2 ml-0 text-uppercase font-weight-bold">
             Volver
         </a>
 
-        <h1 style="color: white;">Editar Artículo</h1>
+        <h1 style="color: white;">Editar anuncio</h1>
 
-        <form action="{{ route('blog.update', $article->id) }}" method="POST" enctype="multipart/form-data">
+        <form action="{{ route('mercado.update', $article->id) }}" method="POST" enctype="multipart/form-data">
             @csrf
             @method('PUT')
             <div class="form-group">
@@ -39,7 +39,7 @@
             </div>
 
             <div class="form-group">
-                <label for="article_type" style="color: white;">Tipo de Artículo:</label>
+                <label for="article_type" style="color: white;">Tipo de anuncio:</label>
                 <input type="text" class="form-control" id="article_type" name="article_type" value="{{ $article->article_type }}">
             </div>
 
@@ -48,7 +48,7 @@
                 <input type="text" class="form-control" id="custom_url" name="custom_url" value="{{ isset($article) ? $article->custom_url : '' }}">
             </div>
 
-            <button type="submit" class="btn btn-primary">Actualizar Artículo</button>
+            <button type="submit" class="btn btn-primary">Actualizar anuncio</button>
         </form>
     </div>
 @endsection
