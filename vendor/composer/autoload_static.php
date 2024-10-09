@@ -549,6 +549,7 @@ class ComposerStaticInite7f146cd756667586734ec7a2e7319e8
         'App\\Http\\Controllers\\RegionController' => __DIR__ . '/../..' . '/app/Http/Controllers/RegionController.php',
         'App\\Http\\Controllers\\TeamController' => __DIR__ . '/../..' . '/app/Http/Controllers/TeamController.php',
         'App\\Http\\Controllers\\TeamsVersusController' => __DIR__ . '/../..' . '/app/Http/Controllers/TeamsVersusController.php',
+        'App\\Http\\Controllers\\TournamentResultController' => __DIR__ . '/../..' . '/app/Http/Controllers/TournamentResultController.php',
         'App\\Http\\Controllers\\VersusController' => __DIR__ . '/../..' . '/app/Http/Controllers/VersusController.php',
         'App\\Http\\Controllers\\VideoController' => __DIR__ . '/../..' . '/app/Http/Controllers/VideoController.php',
         'App\\Http\\Kernel' => __DIR__ . '/../..' . '/app/Http/Kernel.php',

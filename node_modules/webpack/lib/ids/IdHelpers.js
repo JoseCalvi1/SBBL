@@ -25,7 +25,7 @@ const getHash = (str, len, hashFunction) => {
 	const hash = createHash(hashFunction);
 	hash.update(str);
 	const digest = /** @type {string} */ (hash.digest("hex"));
-	return digest.substr(0, len);
+	return digest.slice(0, len);
 };
 
 /**
@@ -43,7 +43,7 @@ const avoidNumber = str => {
 	} else if (firstChar > 57) {
 		return str;
 	}
-	if (str === +str + "") {
+	if (str === String(Number(str))) {
 		return `_${str}`;
 	}
 	return str;
@@ -53,12 +53,9 @@ const avoidNumber = str => {
  * @param {string} request the request
  * @returns {string} id representation
  */
-const requestToId = request => {
-	return request
-		.replace(/^(\.\.?\/)+/, "")
-		.replace(/(^[.-]|[^a-zA-Z0-9_-])+/g, "_");
-};
-exports.requestToId = requestToId;
+const requestToId = request =>
+	request.replace(/^(\.\.?\/)+/, "").replace(/(^[.-]|[^a-zA-Z0-9_-])+/g, "_");
+module.exports.requestToId = requestToId;
 
 /**
  * @param {string} string the string
@@ -78,7 +75,7 @@ const shortenLongString = (string, delimiter, hashFunction) => {
 /**
  * @param {Module} module the module
  * @param {string} context context directory
- * @param {Object=} associatedObjectForCache an object to which the cache will be attached
+ * @param {object=} associatedObjectForCache an object to which the cache will be attached
  * @returns {string} short module name
  */
 const getShortModuleName = (module, context, associatedObjectForCache) => {
@@ -91,14 +88,14 @@ const getShortModuleName = (module, context, associatedObjectForCache) => {
 		);
 	return "";
 };
-exports.getShortModuleName = getShortModuleName;
+module.exports.getShortModuleName = getShortModuleName;
 
 /**
  * @param {string} shortName the short name
  * @param {Module} module the module
  * @param {string} context context directory
  * @param {string | Hash} hashFunction hash function to use
- * @param {Object=} associatedObjectForCache an object to which the cache will be attached
+ * @param {object=} associatedObjectForCache an object to which the cache will be attached
  * @returns {string} long module name
  */
 const getLongModuleName = (
@@ -111,22 +108,17 @@ const getLongModuleName = (
 	const fullName = getFullModuleName(module, context, associatedObjectForCache);
 	return `${shortName}?${getHash(fullName, 4, hashFunction)}`;
 };
-exports.getLongModuleName = getLongModuleName;
+module.exports.getLongModuleName = getLongModuleName;
 
 /**
  * @param {Module} module the module
  * @param {string} context context directory
- * @param {Object=} associatedObjectForCache an object to which the cache will be attached
+ * @param {object=} associatedObjectForCache an object to which the cache will be attached
  * @returns {string} full module name
  */
-const getFullModuleName = (module, context, associatedObjectForCache) => {
-	return makePathsRelative(
-		context,
-		module.identifier(),
-		associatedObjectForCache
-	);
-};
-exports.getFullModuleName = getFullModuleName;
+const getFullModuleName = (module, context, associatedObjectForCache) =>
+	makePathsRelative(context, module.identifier(), associatedObjectForCache);
+module.exports.getFullModuleName = getFullModuleName;
 
 /**
  * @param {Chunk} chunk the chunk
@@ -134,7 +126,7 @@ exports.getFullModuleName = getFullModuleName;
  * @param {string} context context directory
  * @param {string} delimiter delimiter for names
  * @param {string | Hash} hashFunction hash function to use
- * @param {Object=} associatedObjectForCache an object to which the cache will be attached
+ * @param {object=} associatedObjectForCache an object to which the cache will be attached
  * @returns {string} short chunk name
  */
 const getShortChunkName = (
@@ -156,7 +148,7 @@ const getShortChunkName = (
 		.join(delimiter);
 	return shortenLongString(chunkName, delimiter, hashFunction);
 };
-exports.getShortChunkName = getShortChunkName;
+module.exports.getShortChunkName = getShortChunkName;
 
 /**
  * @param {Chunk} chunk the chunk
@@ -164,7 +156,7 @@ exports.getShortChunkName = getShortChunkName;
  * @param {string} context context directory
  * @param {string} delimiter delimiter for names
  * @param {string | Hash} hashFunction hash function to use
- * @param {Object=} associatedObjectForCache an object to which the cache will be attached
+ * @param {object=} associatedObjectForCache an object to which the cache will be attached
  * @returns {string} short chunk name
  */
 const getLongChunkName = (
@@ -191,13 +183,13 @@ const getLongChunkName = (
 		.join(delimiter);
 	return shortenLongString(chunkName, delimiter, hashFunction);
 };
-exports.getLongChunkName = getLongChunkName;
+module.exports.getLongChunkName = getLongChunkName;
 
 /**
  * @param {Chunk} chunk the chunk
  * @param {ChunkGraph} chunkGraph the chunk graph
  * @param {string} context context directory
- * @param {Object=} associatedObjectForCache an object to which the cache will be attached
+ * @param {object=} associatedObjectForCache an object to which the cache will be attached
  * @returns {string} full chunk name
  */
 const getFullChunkName = (
@@ -213,7 +205,7 @@ const getFullChunkName = (
 	);
 	return fullModuleNames.join();
 };
-exports.getFullChunkName = getFullChunkName;
+module.exports.getFullChunkName = getFullChunkName;
 
 /**
  * @template K
@@ -234,29 +226,38 @@ const addToMapOfItems = (map, key, value) => {
 
 /**
  * @param {Compilation} compilation the compilation
- * @returns {Set<string>} used module ids as strings
+ * @param {function(Module): boolean=} filter filter modules
+ * @returns {[Set<string>, Module[]]} used module ids as strings and modules without id matching the filter
  */
-const getUsedModuleIds = compilation => {
+const getUsedModuleIdsAndModules = (compilation, filter) => {
 	const chunkGraph = compilation.chunkGraph;
+
+	const modules = [];
 
 	/** @type {Set<string>} */
 	const usedIds = new Set();
 	if (compilation.usedModuleIds) {
 		for (const id of compilation.usedModuleIds) {
-			usedIds.add(id + "");
+			usedIds.add(String(id));
 		}
 	}
 
 	for (const module of compilation.modules) {
+		if (!module.needId) continue;
 		const moduleId = chunkGraph.getModuleId(module);
 		if (moduleId !== null) {
-			usedIds.add(moduleId + "");
+			usedIds.add(String(moduleId));
+		} else if (
+			(!filter || filter(module)) &&
+			chunkGraph.getNumberOfModuleChunks(module) !== 0
+		) {
+			modules.push(module);
 		}
 	}
 
-	return usedIds;
+	return [usedIds, modules];
 };
-exports.getUsedModuleIds = getUsedModuleIds;
+module.exports.getUsedModuleIdsAndModules = getUsedModuleIdsAndModules;
 
 /**
  * @param {Compilation} compilation the compilation
@@ -267,20 +268,20 @@ const getUsedChunkIds = compilation => {
 	const usedIds = new Set();
 	if (compilation.usedChunkIds) {
 		for (const id of compilation.usedChunkIds) {
-			usedIds.add(id + "");
+			usedIds.add(String(id));
 		}
 	}
 
 	for (const chunk of compilation.chunks) {
 		const chunkId = chunk.id;
 		if (chunkId !== null) {
-			usedIds.add(chunkId + "");
+			usedIds.add(String(chunkId));
 		}
 	}
 
 	return usedIds;
 };
-exports.getUsedChunkIds = getUsedChunkIds;
+module.exports.getUsedChunkIds = getUsedChunkIds;
 
 /**
  * @template T
@@ -348,7 +349,7 @@ const assignNames = (
 	unnamedItems.sort(comparator);
 	return unnamedItems;
 };
-exports.assignNames = assignNames;
+module.exports.assignNames = assignNames;
 
 /**
  * @template T
@@ -359,6 +360,7 @@ exports.assignNames = assignNames;
  * @param {number[]} ranges usable ranges for ids
  * @param {number} expandFactor factor to create more ranges
  * @param {number} extraSpace extra space to allocate, i. e. when some ids are already used
+ * @param {number} salt salting number to initialize hashing
  * @returns {void}
  */
 const assignDeterministicIds = (
@@ -368,13 +370,14 @@ const assignDeterministicIds = (
 	assignId,
 	ranges = [10],
 	expandFactor = 10,
-	extraSpace = 0
+	extraSpace = 0,
+	salt = 0
 ) => {
 	items.sort(comparator);
 
 	// max 5% fill rate
 	const optimalRange = Math.min(
-		Math.ceil(items.length * 20) + extraSpace,
+		items.length * 20 + extraSpace,
 		Number.MAX_SAFE_INTEGER
 	);
 
@@ -384,42 +387,49 @@ const assignDeterministicIds = (
 		i++;
 		if (i < ranges.length) {
 			range = Math.min(ranges[i], Number.MAX_SAFE_INTEGER);
-		} else {
+		} else if (expandFactor) {
 			range = Math.min(range * expandFactor, Number.MAX_SAFE_INTEGER);
+		} else {
+			break;
 		}
 	}
 
 	for (const item of items) {
 		const ident = getName(item);
 		let id;
-		let i = 0;
+		let i = salt;
 		do {
 			id = numberHash(ident + i++, range);
 		} while (!assignId(item, id));
 	}
 };
-exports.assignDeterministicIds = assignDeterministicIds;
+module.exports.assignDeterministicIds = assignDeterministicIds;
 
 /**
+ * @param {Set<string>} usedIds used ids
  * @param {Iterable<Module>} modules the modules
  * @param {Compilation} compilation the compilation
  * @returns {void}
  */
-const assignAscendingModuleIds = (modules, compilation) => {
+const assignAscendingModuleIds = (usedIds, modules, compilation) => {
 	const chunkGraph = compilation.chunkGraph;
-
-	const usedIds = getUsedModuleIds(compilation);
 
 	let nextId = 0;
 	let assignId;
 	if (usedIds.size > 0) {
+		/**
+		 * @param {Module} module the module
+		 */
 		assignId = module => {
 			if (chunkGraph.getModuleId(module) === null) {
-				while (usedIds.has(nextId + "")) nextId++;
+				while (usedIds.has(String(nextId))) nextId++;
 				chunkGraph.setModuleId(module, nextId++);
 			}
 		};
 	} else {
+		/**
+		 * @param {Module} module the module
+		 */
 		assignId = module => {
 			if (chunkGraph.getModuleId(module) === null) {
 				chunkGraph.setModuleId(module, nextId++);
@@ -430,7 +440,7 @@ const assignAscendingModuleIds = (modules, compilation) => {
 		assignId(module);
 	}
 };
-exports.assignAscendingModuleIds = assignAscendingModuleIds;
+module.exports.assignAscendingModuleIds = assignAscendingModuleIds;
 
 /**
  * @param {Iterable<Chunk>} chunks the chunks
@@ -444,7 +454,7 @@ const assignAscendingChunkIds = (chunks, compilation) => {
 	if (usedIds.size > 0) {
 		for (const chunk of chunks) {
 			if (chunk.id === null) {
-				while (usedIds.has(nextId + "")) nextId++;
+				while (usedIds.has(String(nextId))) nextId++;
 				chunk.id = nextId;
 				chunk.ids = [nextId];
 				nextId++;
@@ -460,4 +470,4 @@ const assignAscendingChunkIds = (chunks, compilation) => {
 		}
 	}
 };
-exports.assignAscendingChunkIds = assignAscendingChunkIds;
+module.exports.assignAscendingChunkIds = assignAscendingChunkIds;

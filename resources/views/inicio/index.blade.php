@@ -217,11 +217,23 @@
                         <p>Con la inminente llegada de las nuevas temporadas de Beyblade X y Burst hemos querido preparar una cosa</p>
                         <p>Así que para despedirnos de la segunda temporada de Burst hemos hecho dos entrevistas con los campeones de cada temporada</p>
                         <p>Podéis leer sus opiniones en <a style="text-decoration: none; color: black" href="{{ route('inicio.entrevistas') }}">el siguiente apartado</a></p>-->
-                        <h2 style="font-size: 2em; font-weight:bold;">BLADER DEL MES {{ $lastMonthName }} {{ $lastYear }}</h2>
-                        <p>¡El mes pasado el blader con la con la mayor cantidad de puntos obtenidos fue {{ $bestUserProfile->name }} de {{ $bestUserProfile->profile->region->name }}!</p>
-                        <p>Nada más y nada menos que con un total de {{ $bestUser->total_puntos }}</p>
-                        <p>Su mejor combo fue {{ $bestUserRecord->blade }} {{ $bestUserRecord->ratchet }} {{ $bestUserRecord->bit }}</p>
-                        <p>Con el que consiguió un total de {{ $bestUserRecord->puntos_ganados }} puntos en {{ $bestUserRecord->victorias }} victorias</p>
+                        <h2 style="font-size: 2em; font-weight:bold;">
+                            BLADER DEL MES {{ $lastMonthName ?? '' }} {{ $lastYear ?? '' }}
+                        </h2>
+                        <p>
+                            ¡El mes pasado el blader con la mayor cantidad de puntos obtenidos fue {{ $bestUserProfile->name ?? '' }}
+                            de {{ $bestUserProfile->profile->region->name ?? '' }}!
+                        </p>
+                        <p>
+                            Nada más y nada menos que con un total de {{ $bestUser->total_puntos ?? '' }}
+                        </p>
+                        <p>
+                            Su mejor combo fue {{ $bestUserRecord->blade ?? '' }} {{ $bestUserRecord->ratchet ?? '' }} {{ $bestUserRecord->bit ?? '' }}
+                        </p>
+                        <p>
+                            Con el que consiguió un total de {{ $bestUserRecord->puntos_ganados ?? '' }} puntos en {{ $bestUserRecord->victorias ?? '' }} victorias
+                        </p>
+
 
 
                     </div>

@@ -30,6 +30,7 @@ Vue.component('event-date', require('./components/EventDate.vue').default);
 Vue.component('event-delete', require('./components/EventDelete.vue').default);
 Vue.component('generate-button', require('./components/GenerateButton.vue').default);
 Vue.component('check-challenge', require('./components/checkChallenge.vue').default);
+Vue.component('chat-component', require('./components/Chat.vue').default);
 
 
 /**

@@ -25,6 +25,7 @@ return array(
     'App\\Http\\Controllers\\RegionController' => $baseDir . '/app/Http/Controllers/RegionController.php',
     'App\\Http\\Controllers\\TeamController' => $baseDir . '/app/Http/Controllers/TeamController.php',
     'App\\Http\\Controllers\\TeamsVersusController' => $baseDir . '/app/Http/Controllers/TeamsVersusController.php',
+    'App\\Http\\Controllers\\TournamentResultController' => $baseDir . '/app/Http/Controllers/TournamentResultController.php',
     'App\\Http\\Controllers\\VersusController' => $baseDir . '/app/Http/Controllers/VersusController.php',
     'App\\Http\\Controllers\\VideoController' => $baseDir . '/app/Http/Controllers/VideoController.php',
     'App\\Http\\Kernel' => $baseDir . '/app/Http/Kernel.php',

@@ -11,5 +11,13 @@
     <p><strong>Tipo:</strong> {{ $article->article_type }}</p>
     <p><strong>Publicado:</strong> {{ $article->created_at->format('d/m/Y') }}</p>
     <p>{!! $article->description !!}</p>
+
+    <div id="app">
+        <chat-component :article-id="{{ $article->id }}"></chat-component>
+    </div>
 </div>
+@endsection
+
+@section('script')
+    <script src="{{ mix('js/app.js') }}"></script>
 @endsection

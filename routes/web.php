@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\ChatController;
 use App\Http\Controllers\EventController;
 use App\Http\Controllers\TeamController;
 use App\Http\Controllers\InvitationController;
@@ -117,6 +118,8 @@ Route::get('/beyblade-stats', [TournamentResultController::class, 'beybladeStats
 Route::get('/events/{event}/participant/results', [EventController::class, 'getParticipantResults'])->name('events.getParticipantResults');
 Route::get('/stats', [TournamentResultController::class, 'beybladeStats'])->name('stats.index');
 
+Route::get('/chat/messages/{articleId}', [ChatController::class, 'getMessages']);
+Route::post('/chat/messages', [ChatController::class, 'storeMessage'])->middleware('auth');
 
 Route::group(['middleware' => 'admin'], function () {
    Route::get('/profiles-admin', [App\Http\Controllers\ProfileController::class, 'indexAdmin'])->name('profiles.indexAdmin');
