@@ -8,6 +8,7 @@
         <a href="{{ route('mercado.edit', $article->id) }}" class="btn btn-primary">Editar anuncio</a>
     @endif
     <h1>{{ $article->title }}</h1>
+    <img src="data:image/png;base64,{{ $article->image }}" width="100%">
     <p><strong>Tipo:</strong> {{ $article->article_type }}</p>
     <p><strong>Publicado:</strong> {{ $article->created_at->format('d/m/Y') }}</p>
     <p>{!! $article->description !!}</p>
