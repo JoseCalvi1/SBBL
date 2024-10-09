@@ -2086,8 +2086,7 @@ function _toPrimitive(t, r) { if ("object" != _typeof(t) || !t) return t; var e 
     return {
       messages: [],
       newMessage: '',
-      articleId: 1,
-      // Cambia esto según el anuncio actual
+      //articleId: 1, // Cambia esto según el anuncio actual
       pollInterval: null
     };
   },
