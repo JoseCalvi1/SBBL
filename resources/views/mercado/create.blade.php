@@ -32,7 +32,7 @@
 
             <div class="form-group">
                 <label for="article_type" style="color: white;">Tipo de anuncio:</label>
-                <input type="text" class="form-control" id="article_type" name="article_type">
+                <input type="text" class="form-control" id="article_type" name="article_type" placeholder="Por ejemplo: 'Compra Beyblade X'">
             </div>
 
             <div class="form-group">

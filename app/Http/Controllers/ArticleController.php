@@ -4,6 +4,10 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Article;
+use App\Models\User;
+use Carbon\Carbon;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Http;
 
 class ArticleController extends Controller
 {
@@ -46,13 +50,17 @@ class ArticleController extends Controller
             $imageData = null;
         }
 
-        Article::create([
+        $articleId = Article::create([
             'title' => $request->title,
+            'user_id' => Auth::user()->id,
             'description' => $request->description,
             'article_type' => $request->article_type,
             'custom_url' => $request->custom_url,
             'image' => $imageData,
         ]);
+
+        // TODO Comentar para probar en local
+        //Self::notification(Article::find($articleId));
 
         return redirect()->route('mercado.index')->with('success', '¡Artículo creado exitosamente!');
     }
@@ -92,5 +100,24 @@ class ArticleController extends Controller
 }
 
 
+public function notification($articleId)
+    {
+        $user = User::find(Auth::user()->id);
+
+        // Construyes el mensaje
+        $message = "¡Hay un nuevo anuncio de compra/venta!";
+
+        // Envías el mensaje al webhook de Discord
+        return Http::post('https://discord.com/api/webhooks/1293511125538832405/8K0_bqpwuIpwcPedfhETr8fOpOBsOKMMZONy-21_iezWUn2MXMA23dxBQtWVMUls1WQ_', [
+            'content' => $message,
+            'embeds' => [
+                [
+                    'title' => $user->name . " ha publicado un nuevo anuncio de " . $articleId[1]->article_type,
+                    'description' => $articleId[1]->title . ". Accede en: https://sbbl.es/mercado/" . $articleId[1]->custom_url,
+                    'color' => '7506394',
+                ]
+            ],
+        ]);
+    }
 
 }
