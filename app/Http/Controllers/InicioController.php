@@ -48,7 +48,7 @@ class InicioController extends Controller
 
 
 
-        $bestUserProfile =  $user = User::find($bestUser->user_id);
+        $bestUserProfile = User::find($bestUser->user_id ?? 1);
 
         if ($bestUser) {
             $bestUserRecord = TournamentResult::where('user_id', $bestUser->user_id)
@@ -56,6 +56,8 @@ class InicioController extends Controller
                 ->whereYear('updated_at', $lastYear)
                 ->orderBy(DB::raw('puntos_ganados / puntos_perdidos'), 'desc')
                 ->first();
+        } else {
+            $bestUserRecord = null;
         }
 
         return view('inicio.index', compact('bladers', 'stamina', 'nuevos', 'antiguos', 'bestUserProfile', 'bestUserRecord', 'bestUser', 'lastMonthName', 'lastYear'));
