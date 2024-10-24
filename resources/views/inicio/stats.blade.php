@@ -5,8 +5,13 @@
     <h2 class="text-white pt-2">Estadísticas de Beyblades</h2>
 
     <!-- Botón para acceder a la vista de estadísticas separadas -->
-    <div class="mb-3">
-        <a href="{{ route('stats.separate') }}" class="btn btn-secondary">Ver Estadísticas Separadas</a>
+    <div class="row pb-2">
+        <div class="col-6">
+            <a href="{{ route('stats.separate') }}" class="btn btn-secondary w-100">Ver Estadísticas Separadas</a>
+        </div>
+        <div class="col-6">
+            <a href="{{ route('stats.rankingstats') }}" class="btn btn-warning w-100">Ranking de Estadísticas</a>
+        </div>
     </div>
 
     <!-- Filtros -->

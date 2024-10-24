@@ -3,7 +3,9 @@
 @section('content')
 <div class="container pt-2">
 
-
+    <a href="{{ route('inicio.stats') }}" class="btn btn-outline-primary mr-2 text-uppercase font-weight-bold m-4">
+        Volver
+    </a>
     <h3 class="text-white">Estadísticas de Blades</h3>
     <div class="table-responsive">
         <table class="table table-striped table-dark">

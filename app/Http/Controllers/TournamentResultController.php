@@ -111,82 +111,104 @@ class TournamentResultController extends Controller
     }
 
     public function separateStats(Request $request)
-{
-    // Obtener los parámetros de ordenación de la URL
-    $sort = $request->input('sort', 'blade'); // Campo por defecto 'blade'
-    $order = $request->input('order', 'asc'); // Orden por defecto 'asc'
+    {
+        // Obtener los parámetros de ordenación de la URL
+        $sort = $request->input('sort', 'blade'); // Campo por defecto 'blade'
+        $order = $request->input('order', 'asc'); // Orden por defecto 'asc'
 
-    // Definir columnas ordenables para cada parte
-    $bladeSortableColumns = ['blade', 'total_victorias', 'total_derrotas', 'total_partidas', 'percentage_victories'];
-    $ratchetSortableColumns = ['ratchet', 'total_victorias', 'total_derrotas', 'total_partidas', 'percentage_victories'];
-    $bitSortableColumns = ['bit', 'total_victorias', 'total_derrotas', 'total_partidas', 'percentage_victories'];
+        // Definir columnas ordenables para cada parte
+        $bladeSortableColumns = ['blade', 'total_victorias', 'total_derrotas', 'total_partidas', 'percentage_victories'];
+        $ratchetSortableColumns = ['ratchet', 'total_victorias', 'total_derrotas', 'total_partidas', 'percentage_victories'];
+        $bitSortableColumns = ['bit', 'total_victorias', 'total_derrotas', 'total_partidas', 'percentage_victories'];
 
-    // Ajustar el sort para cada tipo
-    $bladeSort = in_array($sort, $bladeSortableColumns) ? $sort : 'blade';
-    $ratchetSort = in_array($sort, $ratchetSortableColumns) ? $sort : 'ratchet';
-    $bitSort = in_array($sort, $bitSortableColumns) ? $sort : 'bit';
+        // Ajustar el sort para cada tipo
+        $bladeSort = in_array($sort, $bladeSortableColumns) ? $sort : 'blade';
+        $ratchetSort = in_array($sort, $ratchetSortableColumns) ? $sort : 'ratchet';
+        $bitSort = in_array($sort, $bitSortableColumns) ? $sort : 'bit';
 
-    // Estadísticas de Blades
-    $bladeStats = DB::table('tournament_results')
-        ->select(
-            'blade',
-            DB::raw('SUM(victorias) as total_victorias'),
-            DB::raw('SUM(derrotas) as total_derrotas'),
-            DB::raw('SUM(victorias + derrotas) as total_partidas'),
-            DB::raw('CASE
-                WHEN SUM(victorias + derrotas) > 0 THEN (SUM(victorias) / GREATEST(SUM(victorias + derrotas), 1)) * 100
-                ELSE 0
-            END AS percentage_victories')
-        )
-        ->where('blade', 'NOT LIKE', '%Selecciona%')
-        ->groupBy('blade')
-        ->havingRaw('SUM(victorias + derrotas) >= 10')
-        ->orderBy($bladeSort, $order) // Usar el campo de ordenación correcto
-        ->get();
+        // Estadísticas de Blades
+        $bladeStats = DB::table('tournament_results')
+            ->select(
+                'blade',
+                DB::raw('SUM(victorias) as total_victorias'),
+                DB::raw('SUM(derrotas) as total_derrotas'),
+                DB::raw('SUM(victorias + derrotas) as total_partidas'),
+                DB::raw('CASE
+                    WHEN SUM(victorias + derrotas) > 0 THEN (SUM(victorias) / GREATEST(SUM(victorias + derrotas), 1)) * 100
+                    ELSE 0
+                END AS percentage_victories')
+            )
+            ->where('blade', 'NOT LIKE', '%Selecciona%')
+            ->groupBy('blade')
+            ->havingRaw('SUM(victorias + derrotas) >= 10')
+            ->orderBy($bladeSort, $order) // Usar el campo de ordenación correcto
+            ->get();
 
-    // Estadísticas de Ratchets
-    $ratchetStats = DB::table('tournament_results')
-        ->select(
-            'ratchet',
-            DB::raw('SUM(victorias) as total_victorias'),
-            DB::raw('SUM(derrotas) as total_derrotas'),
-            DB::raw('SUM(victorias + derrotas) as total_partidas'),
-            DB::raw('CASE
-                WHEN SUM(victorias + derrotas) > 0 THEN (SUM(victorias) / GREATEST(SUM(victorias + derrotas), 1)) * 100
-                ELSE 0
-            END AS percentage_victories')
-        )
-        ->where('ratchet', 'NOT LIKE', '%Selecciona%')
-        ->groupBy('ratchet')
-        ->havingRaw('SUM(victorias + derrotas) >= 10')
-        ->orderBy($ratchetSort, $order) // Usar el campo de ordenación correcto
-        ->get();
+        // Estadísticas de Ratchets
+        $ratchetStats = DB::table('tournament_results')
+            ->select(
+                'ratchet',
+                DB::raw('SUM(victorias) as total_victorias'),
+                DB::raw('SUM(derrotas) as total_derrotas'),
+                DB::raw('SUM(victorias + derrotas) as total_partidas'),
+                DB::raw('CASE
+                    WHEN SUM(victorias + derrotas) > 0 THEN (SUM(victorias) / GREATEST(SUM(victorias + derrotas), 1)) * 100
+                    ELSE 0
+                END AS percentage_victories')
+            )
+            ->where('ratchet', 'NOT LIKE', '%Selecciona%')
+            ->groupBy('ratchet')
+            ->havingRaw('SUM(victorias + derrotas) >= 10')
+            ->orderBy($ratchetSort, $order) // Usar el campo de ordenación correcto
+            ->get();
 
-    // Estadísticas de Bits
-    $bitStats = DB::table('tournament_results')
-        ->select(
-            'bit',
-            DB::raw('SUM(victorias) as total_victorias'),
-            DB::raw('SUM(derrotas) as total_derrotas'),
-            DB::raw('SUM(victorias + derrotas) as total_partidas'),
-            DB::raw('CASE
-                WHEN SUM(victorias + derrotas) > 0 THEN (SUM(victorias) / GREATEST(SUM(victorias + derrotas), 1)) * 100
-                ELSE 0
-            END AS percentage_victories')
-        )
-        ->where('bit', 'NOT LIKE', '%Selecciona%')
-        ->groupBy('bit')
-        ->havingRaw('SUM(victorias + derrotas) >= 10')
-        ->orderBy($bitSort, $order) // Usar el campo de ordenación correcto
-        ->get();
+        // Estadísticas de Bits
+        $bitStats = DB::table('tournament_results')
+            ->select(
+                'bit',
+                DB::raw('SUM(victorias) as total_victorias'),
+                DB::raw('SUM(derrotas) as total_derrotas'),
+                DB::raw('SUM(victorias + derrotas) as total_partidas'),
+                DB::raw('CASE
+                    WHEN SUM(victorias + derrotas) > 0 THEN (SUM(victorias) / GREATEST(SUM(victorias + derrotas), 1)) * 100
+                    ELSE 0
+                END AS percentage_victories')
+            )
+            ->where('bit', 'NOT LIKE', '%Selecciona%')
+            ->groupBy('bit')
+            ->havingRaw('SUM(victorias + derrotas) >= 10')
+            ->orderBy($bitSort, $order) // Usar el campo de ordenación correcto
+            ->get();
 
-    return view('inicio.separate_stats', [
-        'bladeStats' => $bladeStats,
-        'ratchetStats' => $ratchetStats,
-        'bitStats' => $bitStats,
-        'order' => $order, // Pasar el orden actual a la vista
-    ]);
-}
+        return view('inicio.separate_stats', [
+            'bladeStats' => $bladeStats,
+            'ratchetStats' => $ratchetStats,
+            'bitStats' => $bitStats,
+            'order' => $order, // Pasar el orden actual a la vista
+        ]);
+    }
+
+
+    public function showRanking()
+    {
+        $ranking = DB::table('tournament_results')
+            ->join('users', 'tournament_results.user_id', '=', 'users.id')
+            ->select(
+                'users.name',
+                DB::raw('SUM(tournament_results.puntos_ganados) as total_puntos_ganados'),
+                DB::raw('SUM(tournament_results.puntos_perdidos) as total_puntos_perdidos'),
+                DB::raw('SUM(tournament_results.puntos_ganados + tournament_results.puntos_perdidos) as total_participacion'),
+                DB::raw('(SUM(tournament_results.puntos_ganados) / (SUM(tournament_results.puntos_ganados) + SUM(tournament_results.puntos_perdidos))) * 100 as porcentaje_ganados')
+            )
+            ->groupBy('users.id', 'users.name')
+            ->orderByDesc('total_participacion')  // Ordenar por la suma de puntos_ganados + puntos_perdidos
+            ->limit(15)
+            ->get();
+
+        return view('inicio.rankingstats', ['ranking' => $ranking]);
+    }
+
+
 
 
 

@@ -175,14 +175,14 @@ class EventController extends Controller
         }
 
         $bladeOptions = ['Aero Pegasus', 'Bite Croc', 'Black Shell', 'Cobalt Dragoon', 'Cobalt Drake', 'Crimson Garuda', 'Darth Vader',
-        'Dran Buster', 'Dran Dagger', 'Dran Sword', 'Hells Chain', 'Hells Hammer', 'Hells Scythe', 'Iron Man', 'Knife Shinobi',
-        'Knight Lance', 'Knight Mail', 'Knight Shield', 'Leon Claw', 'Leon Crest', 'Lightning L-Drago', 'Luke Skywalker',
-        'Megatron', 'Moff Gideon', 'Optimus Primal', 'Optimus Prime', 'Phoenix Feather', 'Phoenix Rudder', 'Phoenix Wing',
-        'Rhino Horn', 'Roar Tyranno', 'Samurai Saber', 'Savage Bear', 'Sharke Edge', 'Shinobi Shadow', 'Silver Wolf',
-        'Sphinx Cowl', 'Spider-Man', 'Starscream', 'Steel Samurai', 'Talon Ptera', 'Thanos', 'The Mandalorian', 'Tusk Mammoth',
-        'Tyranno Beat', 'Unicorn Sting', 'Venom', 'Viper Tail', 'Weiss Tiger', 'Whale Wave', 'Wizard Arrow', 'Wizard Rod',
-        'Wyvern Gale', 'Yell Kong'
-        ];
+    'Dran Buster', 'Dran Dagger', 'Dran Sword', 'Dranzer S', 'Driger S', 'Hells Chain', 'Hells Hammer', 'Hells Scythe',
+    'Iron Man', 'IronMan', 'Knife Shinobi', 'Knight Lance', 'Knight Mail', 'Knight Shield', 'Leon Claw', 'Leon Crest',
+    'Lightning L-Drago', 'Luke Skywalker', 'Megatron', 'Moff Gideon', 'Optimus Primal', 'Optimus Prime', 'Phoenix Feather',
+    'Phoenix Rudder', 'Phoenix Wing', 'Rhino Horn', 'Roar Tyranno', 'Samurai Saber', 'Savage Bear', 'Sharke Edge', 'Shinobi Shadow',
+    'Silver Wolf', 'Sphinx Cowl', 'Spider-Man', 'Starscream', 'Steel Samurai', 'Talon Ptera', 'Thanos', 'The Mandalorian',
+    'Tusk Mammoth', 'Tyranno Beat', 'Unicorn Sting', 'Venom', 'Viper Tail', 'Weiss Tiger', 'Whale Wave', 'Wizard Arrow',
+    'Wizard Rod', 'Wyvern Gale', 'Yell Kong'];
+
 
         $ratchetOptions = ['1-60', '1-80', '2-60', '2-70', '2-80', '3-60', '3-70', '3-80', '3-85', '4-60', '4-70', '4-80',
             '5-60', '5-70', '5-80', '7-60', '9-60', '9-70', '9-80'
