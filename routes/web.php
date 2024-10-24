@@ -117,6 +117,8 @@ Route::post('/versus/{versusId}/results', [TournamentResultController::class, 's
 Route::get('/beyblade-stats', [TournamentResultController::class, 'beybladeStats'])->name('inicio.stats');
 Route::get('/events/{event}/participant/results', [EventController::class, 'getParticipantResults'])->name('events.getParticipantResults');
 Route::get('/stats', [TournamentResultController::class, 'beybladeStats'])->name('stats.index');
+Route::get('/separate-stats', [TournamentResultController::class, 'separateStats'])->name('stats.separate');
+
 
 Route::get('/chat/messages/{articleId}', [ChatController::class, 'getMessages']);
 Route::post('/chat/messages', [ChatController::class, 'storeMessage'])->middleware('auth');

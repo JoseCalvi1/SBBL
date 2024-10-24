@@ -3,7 +3,7 @@
 @section('content')
 <div class="container">
     <h2 class="text-center mt-2 mb-4" style="color: white">Anuncio de artículos
-        @if (Auth::user()->is_admin)
+        @if (Auth::user()->is_admin || Auth::user()->profile->points_x1 > 0)
             <a href="{{ route('mercado.create') }}" class="btn btn-outline-warning text-uppercase font-weight-bold">Crear anuncio</a>
         @endif
     </h2>

@@ -174,17 +174,24 @@ class EventController extends Controller
                                                                 ->get();
         }
 
-        $bladeOptions = [
-            'Aero Pegasus', 'Bite Croc', 'Black Shell', 'Cobalt Dragoon', 'Cobalt Drake', 'Darth Vader', 'Dran Buster',
-            'Dran Dagger', 'Dran Sword', 'Hells Chain', 'Hells Hammer', 'Hells Scythe', 'Iron Man', 'Knight Lance',
-            'Knight Shield', 'Knife Shinobi', 'Leon Claw', 'Leon Crest', 'Luke Skywalker', 'Megatron', 'Moff Gideon',
-            'Optimus Primal', 'Optimus Prime', 'Phoenix Feather', 'Phoenix Wing', 'Rhino Horn', 'Roar Tyranno',
-            'Savage Bear', 'Sharke Edge', 'Shinobi Shadow', 'Sphinx Cowl', 'Spider-Man', 'Starscream', 'Steel Samurai',
-            'Talon Ptera', 'Thanos', 'The Mandalorian', 'Tusk Mammoth', 'Tyranno Beat', 'Unicorn Sting', 'Venom',
-            'Viper Tail', 'Weiss Tiger', 'Whale Wave', 'Wizard Arrow', 'Wizard Rod', 'Wyvern Gale', 'Yell Kong'
+        $bladeOptions = ['Aero Pegasus', 'Bite Croc', 'Black Shell', 'Cobalt Dragoon', 'Cobalt Drake', 'Crimson Garuda', 'Darth Vader',
+        'Dran Buster', 'Dran Dagger', 'Dran Sword', 'Hells Chain', 'Hells Hammer', 'Hells Scythe', 'Iron Man', 'Knife Shinobi',
+        'Knight Lance', 'Knight Mail', 'Knight Shield', 'Leon Claw', 'Leon Crest', 'Lightning L-Drago', 'Luke Skywalker',
+        'Megatron', 'Moff Gideon', 'Optimus Primal', 'Optimus Prime', 'Phoenix Feather', 'Phoenix Rudder', 'Phoenix Wing',
+        'Rhino Horn', 'Roar Tyranno', 'Samurai Saber', 'Savage Bear', 'Sharke Edge', 'Shinobi Shadow', 'Silver Wolf',
+        'Sphinx Cowl', 'Spider-Man', 'Starscream', 'Steel Samurai', 'Talon Ptera', 'Thanos', 'The Mandalorian', 'Tusk Mammoth',
+        'Tyranno Beat', 'Unicorn Sting', 'Venom', 'Viper Tail', 'Weiss Tiger', 'Whale Wave', 'Wizard Arrow', 'Wizard Rod',
+        'Wyvern Gale', 'Yell Kong'
         ];
-                $ratchetOptions = ['1-60', '1-80', '2-60', '2-80', '3-60', '3-70', '3-80', '4-60', '4-70', '4-80', '5-60', '5-70', '5-80', '7-60', '9-60', '9-70', '9-80'];
-        $bitOptions = ['Accel', 'Ball', 'Cyclone', 'Disc Ball', 'Dot', 'Elevate', 'Flat', 'Gear Ball', 'Gear Flat', 'Gear Needle', 'Gear Point', 'Glide', 'Hexa', 'High Needle', 'High Taper', 'Low Flat', 'Metal Needle', 'Needle', 'Orb', 'Point', 'Quake', 'Rush', 'Rubber Accel', 'Spike', 'Taper', 'Unite'];
+
+        $ratchetOptions = ['1-60', '1-80', '2-60', '2-70', '2-80', '3-60', '3-70', '3-80', '3-85', '4-60', '4-70', '4-80',
+            '5-60', '5-70', '5-80', '7-60', '9-60', '9-70', '9-80'
+        ];
+
+        $bitOptions = ['Accel', 'Ball', 'Bound Spike', 'Cyclone', 'Disc Ball', 'Dot', 'Elevate', 'Flat', 'Free Ball', 'Gear Ball',
+            'Gear Flat', 'Gear Needle', 'Gear Point', 'Glide', 'Hexa', 'High Needle', 'High Taper', 'Level', 'Low Flat',
+            'Metal Needle', 'Needle', 'Orb', 'Point', 'Quake', 'Rubber Accel', 'Rush', 'Spike', 'Taper', 'Trans Point', 'Unite'
+        ];
 
         $currentDate = Carbon::now();
         $startOfWeek = $currentDate->startOfWeek()->format('Y-m-d');

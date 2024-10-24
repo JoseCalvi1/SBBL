@@ -13,7 +13,7 @@ class ArticleController extends Controller
 {
     public function index()
     {
-        $articles = Article::all(); // Obtener todos los artículos
+        $articles = Article::orderBy('id', 'DESC')->get(); // Obtener todos los artículos
         return view('mercado.index', compact('articles')); // Pasar los artículos a la vista
     }
 
@@ -112,8 +112,8 @@ public function notification($articleId)
             'content' => $message,
             'embeds' => [
                 [
-                    'title' => $user->name . " ha publicado un nuevo anuncio de " . $articleId[1]->article_type,
-                    'description' => $articleId[1]->title . ". Accede en: https://sbbl.es/mercado/" . $articleId[1]->custom_url,
+                    'title' => $user->name . " ha publicado un nuevo anuncio de " . $articleId[0]->article_type,
+                    'description' => $articleId[0]->title . ". Accede en: https://sbbl.es/mercado/" . $articleId[0]->custom_url,
                     'color' => '7506394',
                 ]
             ],

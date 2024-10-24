@@ -106,7 +106,7 @@
                                     <div class="row mb-2">
                                         <div class="col-md-9">
                                             <p class="mb-0">
-                                                {{ $assist->name }} ({{ DB::table('assist_user_event')->where('user_id', $assist->id)->where('event_id', '>', 190)->count() }} torneos)
+                                                {{ $assist->name }} ({{ DB::table('assist_user_event')->where('user_id', $assist->id)->where('event_id', '>', 190)->whereNotNull('puesto')->where('puesto', '<>', 'nopresentado')->count() }} torneos)
                                                 @if (Auth::user()->is_admin)
                                                     <b>{{ $assist->email }}</b>
                                                 @endif
