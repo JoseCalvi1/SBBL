@@ -132,8 +132,8 @@
                         </li>
 
                         <li class="nav-item">
-                            <a class="nav-link" href="{{ route('inicio.stats') }}" style="color: white;">
-                                {{ 'STATS' }}
+                            <a class="nav-link" href="{{ route('mercado.index') }}" style="color: white;">
+                                {{ 'MERCADO' }}
                             </a>
                         </li>
 
@@ -259,8 +259,8 @@
                     </li>
 
                     <li class="nav-item">
-                        <a class="nav-link text-white" href="{{ route('challenges.index') }}">
-                            {{ 'Desafíos' }}
+                        <a class="nav-link text-white" href="{{ route('equipos.index') }}">
+                            {{ 'Equipos' }}
                         </a>
                     </li>
                 </ul>

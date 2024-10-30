@@ -24,11 +24,6 @@
         <div class="row">
             <ul class="navbar-nav m-auto" style="flex-direction: row;">
                 <li class="nav-item">
-                    <a class="nav-link ml-2 mr-2" style="color: white; font-weight: bold; font-size:1.2em;" href="{{ route('inicio.index') }}">
-                        {{ 'INICIO' }}
-                    </a>
-                </li>
-                <li class="nav-item">
                     <a class="nav-link ml-2 mr-2" style="color: white; font-weight: bold; font-size:1.2em;" href="{{ route('inicio.events') }}">
                         {{ 'EVENTOS' }}
                     </a>
@@ -49,8 +44,8 @@
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link ml-2 mr-2" style="color: white; font-weight: bold; font-size:1.2em;" href="{{ route('mercado.index') }}">
-                        {{ 'MERCADO' }}
+                    <a class="nav-link ml-2 mr-2" style="color: white; font-weight: bold; font-size:1.2em;" href="{{ route('inicio.stats') }}">
+                        {{ 'STATS' }}
                     </a>
                 </li>
 

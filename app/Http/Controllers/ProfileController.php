@@ -95,7 +95,7 @@ class ProfileController extends Controller
              return $query->where('user_id_1', '=' , $profile->user_id)->orWhere('user_id_2', '=' , $profile->user_id);
             })
             ->get();
-    
+
         $beybladeStats = DB::table('tournament_results')
     ->select(
         'blade',
@@ -117,15 +117,15 @@ class ProfileController extends Controller
             ELSE 0
         END AS percentage_victories'),
         DB::raw('CASE
-            WHEN (SUM(victorias) + SUM(derrotas)) > 0 THEN 
+            WHEN (SUM(victorias) + SUM(derrotas)) > 0 THEN
                 (
                     (
-                        (SUM(puntos_ganados) / GREATEST(SUM(victorias), 1)) / 
+                        (SUM(puntos_ganados) / GREATEST(SUM(victorias), 1)) /
                         ((SUM(puntos_ganados) / GREATEST(SUM(victorias), 1)) + (SUM(puntos_perdidos) / GREATEST(SUM(derrotas), 1)))
-                    ) 
-                    * 
+                    )
+                    *
                     ((SUM(victorias) / GREATEST(SUM(victorias + derrotas), 1)) * 100)
-                ) 
+                )
                 * LOG(SUM(victorias + derrotas) + 1)
             ELSE 0
         END AS eficiencia')
@@ -133,6 +133,7 @@ class ProfileController extends Controller
         ->where('blade', 'NOT LIKE', '%Selecciona%')
         ->where('user_id', auth()->id())
         ->groupBy('blade', 'ratchet', 'bit')
+        ->orderBy('eficiencia', 'desc')
         ->get();
 
         return view('profiles.show', compact('profile','versus','invitacionesPendientes', 'beybladeStats'));
@@ -328,11 +329,53 @@ class ProfileController extends Controller
         //
     }
 
-    public function ranking()
+    public function ranking(Request $request)
     {
-        $bladers_s3 = Profile::orderBy('points_s3', 'DESC')->where('points_s3', '!=', 0)->get();
-        $bladers_x1 = Profile::orderBy('points_x1', 'DESC')->where('points_x1', '!=', 0)->get();
+        // Valores de filtros
+        $limit = $request->input('limit', 25); // Valor por defecto: 25
+        $region = $request->input('region', null);
 
-        return view('profiles.ranking', compact('bladers_s3', 'bladers_x1'));
+        // Consulta para bladers_s3
+        $bladers_s3 = Profile::with(['user.teams', 'region'])
+            ->when($region, function ($query) use ($region) {
+                return $query->whereHas('region', function ($q) use ($region) {
+                    $q->where('name', $region);
+                });
+            })
+            ->orderBy('points_s3', 'DESC')
+            ->where('points_s3', '!=', 0)
+            ->take($limit)
+            ->get();
+
+        // Consulta para bladers_x1
+        $bladers_x1 = Profile::with(['user.teams', 'region'])
+            ->when($region, function ($query) use ($region) {
+                return $query->whereHas('region', function ($q) use ($region) {
+                    $q->where('name', $region);
+                });
+            })
+            ->orderBy('points_x1', 'DESC')
+            ->where('points_x1', '!=', 0)
+            ->take($limit)
+            ->get()
+            ->map(function ($blader) {
+                // Incluye el logo si existe
+                if ($blader->user->teams->isNotEmpty() && $blader->user->teams->first()->logo) {
+                    $blader->team_logo = 'data:image/png;base64,' . $blader->user->teams->first()->logo;
+                } else {
+                    $blader->team_logo = null;
+                }
+                return $blader;
+            });
+
+        // Obtener lista de regiones para el filtro
+        $regions = Region::all()->pluck('name');
+
+        return view('profiles.ranking', compact('bladers_s3', 'bladers_x1', 'regions', 'limit', 'region'));
     }
+
+
+
+
+
 }
