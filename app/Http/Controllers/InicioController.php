@@ -33,7 +33,7 @@ class InicioController extends Controller
         // Obtener el user_id con la media más alta de puntos_ganados / puntos_perdidos
         // Obtener el user_id con la media más alta del mes anterior
         // Obtener el mes y año del mes anterior
-        $lastMonth = Carbon::now()->subMonth()->month;
+        $lastMonth = Carbon::now()->month - 1;
         $lastYear = Carbon::now()->subMonth()->year;
         // Obtener el mes anterior en español
         $lastMonthName = strtoupper(Carbon::now()->subMonth()->translatedFormat('F'));

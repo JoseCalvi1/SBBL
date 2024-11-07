@@ -16,7 +16,7 @@
             @csrf
             <div class="form-group">
                 <label for="title" style="color: white;">Título:</label>
-                <input type="text" class="form-control" id="title" name="title">
+                <input type="text" class="form-control" id="title" name="title" oninput="formatearParaURL()">
             </div>
 
             <div class="form-group" style="color: white;">
@@ -37,7 +37,7 @@
 
             <div class="form-group">
                 <label for="custom_url" style="color: white;">URL Personalizada:</label>
-                <input type="text" class="form-control" id="custom_url" name="custom_url" value="{{ isset($article) ? $article->custom_url : '' }}">
+                <input type="text" class="form-control" id="custom_url" name="custom_url"  readonly value="{{ isset($article) ? $article->custom_url : '' }}">
             </div>
 
             <button type="submit" class="btn btn-primary">Crear anuncio</button>
@@ -57,5 +57,11 @@
                 toolbar: 'undo redo | formatselect | bold italic | bullist numlist | link',
             });
         });
+
+        function formatearParaURL() {
+            const inputText = document.getElementById('title').value;
+            const formattedText = encodeURIComponent(inputText);
+            document.getElementById('custom_url').value = formattedText;
+        }
     </script>
 @endsection

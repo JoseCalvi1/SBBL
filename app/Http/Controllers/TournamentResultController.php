@@ -190,23 +190,34 @@ class TournamentResultController extends Controller
 
 
     public function showRanking()
-    {
-        $ranking = DB::table('tournament_results')
-            ->join('users', 'tournament_results.user_id', '=', 'users.id')
-            ->select(
-                'users.name',
-                DB::raw('SUM(tournament_results.puntos_ganados) as total_puntos_ganados'),
-                DB::raw('SUM(tournament_results.puntos_perdidos) as total_puntos_perdidos'),
-                DB::raw('SUM(tournament_results.puntos_ganados + tournament_results.puntos_perdidos) as total_participacion'),
-                DB::raw('(SUM(tournament_results.puntos_ganados) / (SUM(tournament_results.puntos_ganados) + SUM(tournament_results.puntos_perdidos))) * 100 as porcentaje_ganados')
-            )
-            ->groupBy('users.id', 'users.name')
-            ->orderByDesc('total_participacion')  // Ordenar por la suma de puntos_ganados + puntos_perdidos
-            ->limit(15)
-            ->get();
+{
+    // Obtener la fecha actual
+    $fecha_actual = now();
+    
+    // Calcular el mes y el año del mes anterior
+    $mes_anterior = $fecha_actual->month - 1;
 
-        return view('inicio.rankingstats', ['ranking' => $ranking]);
-    }
+    $anio_anterior = $fecha_actual->year;
+
+    $ranking = DB::table('tournament_results')
+        ->join('users', 'tournament_results.user_id', '=', 'users.id')
+        ->select(
+            'users.name',
+            DB::raw('SUM(tournament_results.puntos_ganados) as total_puntos_ganados'),
+            DB::raw('SUM(tournament_results.puntos_perdidos) as total_puntos_perdidos'),
+            DB::raw('SUM(tournament_results.puntos_ganados + tournament_results.puntos_perdidos) as total_participacion'),
+            DB::raw('(SUM(tournament_results.puntos_ganados) / (SUM(tournament_results.puntos_ganados) + SUM(tournament_results.puntos_perdidos))) * 100 as porcentaje_ganados')
+        )
+        ->whereMonth('tournament_results.created_at', $mes_anterior) // Filtrar por mes anterior
+        ->whereYear('tournament_results.created_at', $anio_anterior) // Filtrar por año
+        ->groupBy('users.id', 'users.name')
+        ->orderByDesc('total_participacion')  // Ordenar por la suma de puntos_ganados + puntos_perdidos
+        ->limit(15)
+        ->get();
+
+    return view('inicio.rankingstats', ['ranking' => $ranking]);
+}
+
 
 
 

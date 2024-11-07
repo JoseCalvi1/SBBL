@@ -5,7 +5,7 @@
     <a href="{{ route('inicio.stats') }}" class="btn btn-outline-primary mr-2 text-uppercase font-weight-bold m-4">
         Volver
     </a>
-    <h2 class="ranking-title">Ranking de Usuarios</h2>
+    <h2 class="ranking-title">Ranking de usuarios del mes pasado</h2>
     <table class="table-ranking">
         <thead>
             <tr>
