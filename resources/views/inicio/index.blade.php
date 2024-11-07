@@ -230,7 +230,7 @@
 
 
                     </div>
-                    <div class="col-md-3 text-center text-white p-4" style="border: unset;">
+                    <div class="col-md-3 text-center text-white p-4 d-none d-sm-block" style="border: unset;">
                         <div style="position: relative">
                             @if ($bestUserProfile->profile->imagen)
                                     <img src="/storage/{{ $bestUserProfile->profile->imagen }}" class="rounded-circle" width="180" style="position: absolute; top: 0; left: 0;">
