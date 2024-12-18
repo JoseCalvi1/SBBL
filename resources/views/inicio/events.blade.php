@@ -10,12 +10,12 @@
     }
 
     .day {
-        width: calc(100% / 7);
+        width: calc(100% / 7); /* 7 columnas para pantallas grandes */
         border: 1px solid #ccc;
         padding: 10px;
         box-sizing: border-box;
-        height: 120px; /* Incrementamos un poco la altura para mejor legibilidad */
-        overflow-y: auto; /* Solo scroll vertical */
+        height: 120px;
+        overflow-y: auto;
         position: relative;
     }
 
@@ -26,10 +26,6 @@
     .day::-webkit-scrollbar-thumb {
         background-color: #888;
         border-radius: 4px;
-    }
-
-    .day::-webkit-scrollbar-thumb:hover {
-        background-color: #555;
     }
 
     .day::-webkit-scrollbar-track {
@@ -108,18 +104,33 @@
         background-color: #3270b1;
     }
 
-    /* Estilos para pantallas pequeñas */
+    #loading {
+        display: none;
+        text-align: center;
+        margin: 20px;
+    }
+
+    #loading img {
+        width: 50px;
+        height: 50px;
+    }
+
+    /* Cambio a 2 columnas en pantallas móviles */
     @media (max-width: 768px) {
-        .day {
-            width: calc(50% - 20px); /* Mostrar dos días por fila con espacio entre ellos */
-            margin: 10px;
+        .calendar-box, .navigation {
+            display: none; /* Ocultar el calendario */
+        }
+
+        #weekEvents {
+            display: block; /* Mostrar los eventos de la semana */
         }
     }
 
+    /* Ajuste para pantallas muy pequeñas, en caso de ser necesario */
     @media (max-width: 576px) {
         .day {
-            width: calc(50% - 20px); /* Mostrar dos días por fila incluso en pantallas más pequeñas */
-            margin: 10px;
+            width: calc(50% - 10px); /* Mantener 2 columnas */
+            margin: 5px;
         }
     }
 </style>
@@ -130,14 +141,13 @@
 <h1 class="current-month mt-5" style="color: white;">Calendario de Eventos
     @if (
         $countEvents < 2 ||
-        (Auth::user() && (Auth::user()->is_admin ||
+        (Auth::user() && (Auth::user()->is_refereea ||
         Auth::user()->created_at->diffInMonths(now()) >= 3))
         )
         <a href="{{ route('events.create') }}" class="btn btn-outline-warning text-uppercase font-weight-bold">
             Crear evento
         </a>
     @endif
-
 </h1>
 
 <div class="navigation mt-5">
@@ -148,7 +158,21 @@
 
 <h3 class="current-month" id="currentMonth" style="color: white;"></h3>
 
-<div id="calendar" class="calendar mb-3" style="color: white;"></div>
+<div id="loading">
+    <img src="/storage/loading.gif" alt="Cargando...">
+</div>
+
+<!-- Calendario para pantallas grandes -->
+<div class="calendar-box p-2">
+    <div id="calendar" class="calendar mb-3" style="color: white;"></div>
+</div>
+
+<!-- Sección para eventos de la semana (solo en dispositivos móviles) -->
+<div id="weekEvents" style="display: none; color: white;" class="p-4">
+    <h3>Eventos de la Semana</h3>
+    <div id="weekTitle"></div>
+    <div id="eventList" class="pt-1 pb-1"></div>
+</div>
 
 @endsection
 
@@ -157,14 +181,18 @@
 <script src="//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/js/bootstrap.min.js"></script>
 
 <script>
-    var currentYear, currentMonth;
+    let currentYear, currentMonth;
 
     document.addEventListener('DOMContentLoaded', function () {
-        var today = new Date();
-        currentMonth = today.getMonth();
+        const today = new Date();
         currentYear = today.getFullYear();
+        currentMonth = today.getMonth();
 
         buildCalendar(currentYear, currentMonth);
+
+        if (window.innerWidth <= 768) {
+            showMobileEvents(); // Mostrar los eventos de la semana en pantallas pequeñas
+        }
     });
 
     function prevMonth() {
@@ -186,70 +214,127 @@
     }
 
     function buildCalendar(year, month) {
-        var calendarEl = document.getElementById('calendar');
-        var monthEl = document.getElementById('currentMonth');
-        var events = {!! json_encode($events) !!};
+        showLoading();
 
-        var daysInMonth = new Date(year, month + 1, 0).getDate();
-        var firstDayOfMonth = new Date(year, month, 1).getDay(); // Día de la semana (0 = Domingo, 1 = Lunes, ..., 6 = Sábado)
-        // Ajustamos para que el Lunes sea el primer día de la semana
-        if (firstDayOfMonth === 0) { // Si es Domingo
-            firstDayOfMonth = 6; // Lo cambiamos a Sábado
-        } else {
-            firstDayOfMonth--; // Restamos 1 para ajustar el índice de Lunes (1)
-        }
+        fetch('/eventos/fetch', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+            },
+            body: JSON.stringify({ year, month: month + 1 })
+        })
+        .then(response => response.json())
+        .then(events => {
+            const calendarEl = document.getElementById('calendar');
+            const monthEl = document.getElementById('currentMonth');
+            const daysInMonth = new Date(year, month + 1, 0).getDate();
+            const firstDayOfMonth = (new Date(year, month, 1).getDay() || 7); // Lunes = 1, Domingo = 7
+            let calendarHTML = '';
+            let weekHTML = '<div class="week" style="display: flex;">';
 
-        var calendarHTML = '';
+            // Días vacíos antes del inicio del mes
+            for (let i = 1; i < firstDayOfMonth; i++) {
+                weekHTML += '<div class="day"></div>';
+            }
 
-        // Rellenar los días previos
-        for (var i = 0; i < firstDayOfMonth; i++) {
-            calendarHTML += '<div class="day"></div>';
-        }
+            // Días del mes
+            for (let i = 1; i <= daysInMonth; i++) {
+                const date = `${year}-${String(month + 1).padStart(2, '0')}-${String(i).padStart(2, '0')}`;
+                const eventsOnDate = events.filter(event => event.date === date);
+                const eventsHTML = eventsOnDate.map(event => `
+                    <a class="event" href="/events/${event.id}" target="_blank">
+                        ${event.city ? event.city : event.region.name} (${event.mode === 'beybladex' ? 'X' : 'Burst'})
+                    </a>
 
-        // Rellenar los días del mes
-        for (var i = 1; i <= daysInMonth; i++) {
-            var date = new Date(year, month, i);
-            var eventsOnDate = events.filter(function (evento) {
-                return evento.date === formatDate(date);
-            });
+                `).join('');
 
-            var eventHTML = '';
-            eventsOnDate.forEach(function (evento) {
-                var eventId = evento.id;
-                var eventRelation = evento.region.name; // Accedemos al campo de relación
+                const isToday = new Date().toDateString() === new Date(year, month, i).toDateString();
+                weekHTML += `
+                    <div class="day ${isToday ? 'today' : ''}">
+                        ${i}
+                        ${eventsHTML}
+                    </div>
+                `;
 
-                // Modifica este enlace para que redirija al detalle del evento
-                eventHTML += '<a class="event" href="/events/' + eventId + '" target="_blank">' + eventRelation + ' (' + (evento.mode == 'beybladex' ? 'X' : 'Burst') + ')' + '</a>';
-            });
+                // Cerrar fila al terminar la semana
+                if ((i + firstDayOfMonth - 1) % 7 === 0 || i === daysInMonth) {
+                    weekHTML += '</div>';
+                    calendarHTML += weekHTML;
+                    weekHTML = '<div class="week" style="display: flex;">';
+                }
+            }
 
-            var today = new Date();
-            var isToday = i === today.getDate() && month === today.getMonth() && year === today.getFullYear();
-            var dayClass = isToday ? 'today' : '';
-            calendarHTML += '<div class="day ' + dayClass + '">' + i + eventHTML + '</div>';
-        }
-
-        calendarEl.innerHTML = calendarHTML;
-        monthEl.textContent = getMonthName(month) + ' ' + year;
+            calendarEl.innerHTML = calendarHTML;
+            monthEl.textContent = `${getMonthName(month)} ${year}`;
+            hideLoading();
+        })
+        .catch(() => {
+            alert('Error al cargar los eventos.');
+            hideLoading();
+        });
     }
 
-    function formatDate(date) {
-        var year = date.getFullYear();
-        var month = date.getMonth() + 1;
-        var day = date.getDate();
+    function showMobileEvents() {
+        showLoading();
 
-        return year + '-' + (month < 10 ? '0' : '') + month + '-' + (day < 10 ? '0' : '') + day;
+        const today = new Date();
+        const startOfWeek = new Date(today.setDate(today.getDate() - today.getDay() + 1)); // Lunes de la semana actual
+        const endOfWeek = new Date(today.setDate(today.getDate() + 6)); // Domingo de la semana actual
+
+        fetch('/eventos/fetch', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+            },
+            body: JSON.stringify({ year: startOfWeek.getFullYear(), month: startOfWeek.getMonth() + 1 })
+        })
+        .then(response => response.json())
+        .then(events => {
+            const eventsThisWeek = events.filter(event => {
+                const eventDate = new Date(event.date);
+                return eventDate >= startOfWeek && eventDate <= endOfWeek;
+            });
+
+            document.getElementById('weekTitle').textContent = `Eventos de la Semana del ${startOfWeek.toLocaleDateString()} al ${endOfWeek.toLocaleDateString()}`;
+
+            const eventListEl = document.getElementById('eventList');
+            eventListEl.innerHTML = eventsThisWeek.map(event => `
+                <div class="event">
+                    <a href="/events/${event.id}" target="_blank">
+                        ${event.region.name} (${event.mode === 'beybladex' ? 'X' : 'Burst'})
+                    </a>
+                </div>
+            `).join('');
+
+            eventListEl.style.display = eventsThisWeek.length > 0 ? 'block' : 'none';
+            document.getElementById('weekEvents').style.display = 'block'; // Mostrar la lista de eventos de la semana
+
+            hideLoading();
+        })
+        .catch(() => {
+            alert('Error al cargar los eventos de la semana.');
+            hideLoading();
+        });
+    }
+
+    function showLoading() {
+        document.getElementById('loading').style.display = 'block';
+        document.getElementById('calendar').style.display = 'none';
+        document.getElementById('weekEvents').style.display = 'none';
+    }
+
+    function hideLoading() {
+        document.getElementById('loading').style.display = 'none';
+        document.getElementById('calendar').style.display = 'block';
     }
 
     function getMonthName(month) {
-        var monthNames = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
+        const monthNames = [
+            "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"
+        ];
         return monthNames[month];
-    }
-
-    function goToToday() {
-        var today = new Date();
-        currentMonth = today.getMonth();
-        currentYear = today.getFullYear();
-        buildCalendar(currentYear, currentMonth);
     }
 </script>
 @endsection

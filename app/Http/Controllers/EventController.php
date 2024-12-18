@@ -60,6 +60,24 @@ class EventController extends Controller
 
             $modeName = ($request->mode == "beybladex") ? "X" : "Burst" ;
 
+            // Inicializamos una variable para el texto
+            $textoImagen = '';
+
+            // Realizamos el condicional para asignar el texto correspondiente
+            if ($request->imagen == 'quedada') {
+                $textoImagen = 'Quedada';
+            } elseif ($request->imagen == 'ranking') {
+                $textoImagen = 'Ranking';
+            } elseif ($request->imagen == 'rankingplus') {
+                $textoImagen = 'Ranking Plus';
+            } elseif ($request->imagen == 'grancopa') {
+                $textoImagen = 'Gran Copa';
+            } elseif ($request->imagen == 'hasbro') {
+                $textoImagen = 'Hasbro';
+            } else {
+                $textoImagen = 'Copa'; // Si no coincide con ninguno de los valores
+            }
+
             // Obtener el mes y año de la fecha del evento
             $mes = date('m', strtotime($eventDate));
             $año = date('Y', strtotime($eventDate));
@@ -72,7 +90,7 @@ class EventController extends Controller
 
             $regionId = Region::FindOrFail($request->region_id);
             $monthAbbreviation = date('M', strtotime($request->event_date));
-            $defaultName = 'Copa ' . $regionId->name . ' ' . $numeroEventos.' '.$modeName.' ' . strtoupper(substr($monthAbbreviation, 0, 3));
+            $defaultName = $textoImagen . ' ' . $numeroEventos . ' ' . $regionId->name.' '.$modeName.' ' . strtoupper(substr($monthAbbreviation, 0, 3));
             $request->merge(['name' => $defaultName]);
         }
 
@@ -80,6 +98,7 @@ class EventController extends Controller
         $data = $request->validate([
             'name' => 'required|min:6',
             'mode' => 'required',
+            'city' => 'required',
             'location' => 'required',
             'region_id' => 'required',
             'event_date' => 'required',
@@ -101,11 +120,13 @@ class EventController extends Controller
         }*/
 
         // Si el usuario sube una imagen
-        if($request['imagen'] == 'quedada') {
-            $ruta_imagen = 'upload-events/rankingx.jpg';
-        }   elseif($request['mode'] == 'beybladex' && $request['imagen'] == 'ranking')  {
-            $ruta_imagen = 'upload-events/rankingx.jpg';
-        }   elseif($request['mode'] == 'beybladeburst' && $request['imagen'] == 'ranking')  {
+        if($request['region_id'] == 1) {
+            $ruta_imagen = 'upload-events/AndaluciaBase.png';
+        }   elseif($request['region_id'] == 2)  {
+            $ruta_imagen = 'upload-events/MadridBase.png';
+        }   elseif($request['region_id'] == 4)  {
+            $ruta_imagen = 'upload-events/ValenciaBase.png';
+        } else {
             $ruta_imagen = 'upload-events/ranking.jpg';
         }
 
@@ -113,6 +134,7 @@ class EventController extends Controller
         $eventId = DB::table('events')->insertGetId([
             'name' => $data['name'],
             'mode' => $data['mode'],
+            'city' => $data['city'],
             'location' => $data['location'],
             'created_by' => Auth::user()->id,
             'status' => 'OPEN',
@@ -120,6 +142,7 @@ class EventController extends Controller
             'date' => $data['event_date'],
             'time' => $data['event_time'],
             'imagen' => $ruta_imagen,
+            'beys' => $request->imagen,
             'image_mod' => $imageData,
             'deck' => $request['deck'],
             'configuration' => $request['configuration'],
@@ -235,6 +258,7 @@ class EventController extends Controller
         $data = $request->validate([
             'name' => 'required|min:6',
             'mode' => 'required',
+            'city' => 'required',
             'location' => 'required',
             'region_id' => 'required',
             'event_date' => 'required',
@@ -256,23 +280,27 @@ class EventController extends Controller
         }
 
         // Si el usuario sube una imagen
-        if($request['imagen'] == 'quedada') {
-            $ruta_imagen = 'upload-events/rankingx.jpg';
-        }   elseif($request['mode'] == 'beybladex' && $request['imagen'] == 'ranking')  {
-            $ruta_imagen = 'upload-events/rankingx.jpg';
-        }   elseif($request['mode'] == 'beybladeburst' && $request['imagen'] == 'ranking')  {
+        if($request['region_id'] == 1) {
+            $ruta_imagen = 'upload-events/AndaluciaBase.png';
+        }   elseif($request['region_id'] == 2)  {
+            $ruta_imagen = 'upload-events/MadridBase.png';
+        }   elseif($request['region_id'] == 4)  {
+            $ruta_imagen = 'upload-events/ValenciaBase.png';
+        } else {
             $ruta_imagen = 'upload-events/ranking.jpg';
         }
 
         // Asignar los valores
         $event->name = $data['name'];
         $event->mode = $data['mode'];
+        $event->city = $data['city'];
         $event->location = $data['location'];
         $event->status = 'OPEN';
         $event->region_id = $data['region_id'];
         $event->date = $data['event_date'];
         $event->time = $data['event_time'];
         $event->imagen = $ruta_imagen;
+        $event->beys = $request['imagen'];
         $event->deck = $request['deck'];
         $event->configuration = $request['configuration'];
         $event->iframe = $request['iframe'];
@@ -354,54 +382,66 @@ class EventController extends Controller
     }
 
     public function actualizarPuntuaciones(Request $request, $id, $mode)
-{
-    self::actualizarStatus($id, 'CLOSE');
+    {
 
-    // Obtener los IDs de los participantes que están entre los tres primeros puestos
-    $participantes = DB::table('assist_user_event')
-        ->where('event_id', $id)
-        ->where('puesto', '!=', 'nopresentado')
-        ->get();
+        self::actualizarStatus($id, 'CLOSE');
 
-    $eventMode = ($mode == "beybladex") ? 'points_x1' : 'points_s3';
+        $evento = Event::findOrFail($id);
 
-    $totalParticipantes = DB::table('assist_user_event')
-        ->where('event_id', $id)
-        ->count();
+        if($evento->beys == 'ranking' || $evento->beys == 'rankingplus') {
+            // Obtener los IDs de los participantes que están entre los tres primeros puestos
+            $participantes = DB::table('assist_user_event')
+                ->where('event_id', $id)
+                ->where('puesto', '!=', 'nopresentado')
+                ->get();
 
-    // Limitar el número máximo de participantes a 12
-    $totalParticipantes = min($totalParticipantes, 12);
+            $eventMode = ($mode == "beybladex") ? 'points_x1' : 'points_s3';
 
-    // Calcular el número de participantes que quedarían en los tres primeros puestos
-    $participantesTresPrimeros = floor($totalParticipantes / 4);
+            $totalParticipantes = DB::table('assist_user_event')
+                ->where('event_id', $id)
+                ->count();
 
-    // Actualizar las puntuaciones de los perfiles de los participantes
-    foreach ($participantes as $participante) {
-        // Obtener el ID del usuario asociado a este participante
-        $usuarioId = $participante->user_id;
+            // Limitar el número máximo de participantes a 12
+            $totalParticipantes = min($totalParticipantes, 12);
 
-        // Actualizar la puntuación del usuario en la tabla de perfiles
-        if ($participante->puesto === 'primero') {
-            DB::table('profiles')
-                ->where('user_id', $usuarioId)
-                ->increment($eventMode, 1 + $participantesTresPrimeros + 2); // Añadir puntos al primero
-        } elseif ($participante->puesto === 'segundo') {
-            DB::table('profiles')
-                ->where('user_id', $usuarioId)
-                ->increment($eventMode, 1 + $participantesTresPrimeros + 1); // Añadir puntos al segundo
-        } elseif ($participante->puesto === 'tercero') {
-            DB::table('profiles')
-                ->where('user_id', $usuarioId)
-                ->increment($eventMode, 1 + $participantesTresPrimeros); // Añadir puntos al tercero
-        } else {
-            DB::table('profiles')
-                ->where('user_id', $usuarioId)
-                ->increment($eventMode, 1); // Añadir 1 punto al perfil
+            // Calcular el número de participantes que quedarían en los tres primeros puestos
+            $participantesTresPrimeros = floor($totalParticipantes / 4);
+
+            // Actualizar las puntuaciones de los perfiles de los participantes
+            foreach ($participantes as $participante) {
+                // Obtener el ID del usuario asociado a este participante
+                $usuarioId = $participante->user_id;
+
+                // Actualizar la puntuación del usuario en la tabla de perfiles
+                if ($participante->puesto === 'primero') {
+                    DB::table('profiles')
+                        ->where('user_id', $usuarioId)
+                        ->increment($eventMode, 1 + $participantesTresPrimeros + 2); // Añadir puntos al primero
+                } elseif ($participante->puesto === 'segundo') {
+                    DB::table('profiles')
+                        ->where('user_id', $usuarioId)
+                        ->increment($eventMode, 1 + $participantesTresPrimeros + 1); // Añadir puntos al segundo
+                } elseif ($participante->puesto === 'tercero') {
+                    DB::table('profiles')
+                        ->where('user_id', $usuarioId)
+                        ->increment($eventMode, 1 + $participantesTresPrimeros); // Añadir puntos al tercero
+                } else {
+                    DB::table('profiles')
+                        ->where('user_id', $usuarioId)
+                        ->increment($eventMode, 1); // Añadir 1 punto al perfil
+                }
+            }
+            return redirect()->back()->with('success', 'Puntuaciones actualizadas correctamente');
         }
+
+        return redirect()->back()->with('success', 'Evento cerrado sin puntuaciones');
     }
 
-    return redirect()->back()->with('success', 'Puntuaciones actualizadas correctamente');
-}
+    public function invalidarTorneo(Request $request, $id) {
+        self::actualizarStatus($id, 'INVALID');
+
+        return redirect()->back()->with('success', 'Evento invalidado');
+    }
 
 
     public function notification($eventId)
@@ -462,6 +502,18 @@ class EventController extends Controller
         $results = $event->results->where('participant_id', $participantId); // Ajusta según tu relación de modelos
 
         return response()->json($results);
+    }
+
+    public function updateVideo(Request $request, Event $event)
+    {
+        $request->validate([
+            'iframe' => 'required|url'
+        ]);
+
+        $event->iframe = $request->input('iframe');
+        $event->save();
+
+        return redirect()->back()->with('success', 'Video añadido correctamente.');
     }
 
 

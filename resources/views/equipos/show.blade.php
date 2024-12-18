@@ -178,7 +178,7 @@
                                 @if ($miembro->profile->imagen)
                                     <img src="/storage/{{ $miembro->profile->imagen }}" class="rounded-circle" style="width: 100px; height: 100px; object-fit: cover;">
                                 @else
-                                    <img src="/storage/upload-profiles/DranDaggerBase.png" class="rounded-circle" style="width: 100px; height: 100px; object-fit: cover;">
+                                    <img src="/storage/upload-profiles/BASE/DranDagger.webp" class="rounded-circle" style="width: 100px; height: 100px; object-fit: cover;">
                                 @endif
                                 @if ($miembro->profile->marco)
                                     <img src="/storage/{{ $miembro->profile->marco }}" class="rounded-circle" style="position: absolute; top: 0; left: 0; width: 100px; height: 100px; object-fit: cover;">

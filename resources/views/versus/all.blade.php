@@ -78,13 +78,50 @@
         </a>
         @endif
     </h2>
+
+    <!-- Filtro de duelos -->
+    <form method="GET" action="{{ route('versus.all') }}" class="w-100">
+<div class="row mb-3">
+
+        <div class="col-md-4 mb-2">
+            <div class="form-group">
+                <label for="userFilter" class="text-light">Filtrar por Usuario</label>
+                <select name="user" id="userFilter" class="form-control bg-dark text-white border-secondary">
+                    <option value="">Seleccione un usuario</option>
+                    @foreach ($users as $user)
+                        <option value="{{ $user->id }}" {{ request('user') == $user->id ? 'selected' : '' }}>{{ $user->name }}</option>
+                    @endforeach
+                </select>
+            </div>
+        </div>
+
+        <div class="col-md-4 mb-2">
+            <div class="form-group">
+                <label for="statusFilter" class="text-light">Filtrar por Estado</label>
+                <select name="status" id="statusFilter" class="form-control bg-dark text-white border-secondary">
+                    <option value="">Seleccione un estado</option>
+                    <option value="OPEN" {{ request('status') == 'OPEN' ? 'selected' : '' }}>Abierto</option>
+                    <option value="CLOSED" {{ request('status') == 'CLOSED' ? 'selected' : '' }}>Cerrado</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="col-md-4 mb-2">
+            <button type="submit" style="height: -webkit-fill-available;" class="btn btn-outline-light w-100">Aplicar Filtros</button>
+        </div>
+
+</div>
+</form>
+
+
     <div class="row mt-2">
         @foreach ($versus as $duelo)
-        <div class="col-md-3 mb-3"> <!-- Cada tarjeta ocupará 3 columnas en una fila y tendrá un margen inferior -->
+        <div class="col-md-3 mb-3">
             <div class="duel-card" style="background-image: url('/storage/{{ $duelo->result_1 > $duelo->result_2 ? $duelo->versus_1->profile->fondo : $duelo->versus_2->profile->fondo }}');">
                 <div class="overlay"></div>
                 <div class="duel-mode">
-                    <span class="mode">{{ ($duelo->matchup == "beybladex") ? "Beyblade X" : "Beyblade Burst"  }}</span>
+                    <span class="mode">{{ ($duelo->matchup == "beybladex") ? "Beyblade X" : "Beyblade Burst"  }}{{ $duelo->status == "CLOSED" ? " - Válido" : ($duelo->status == "INVALID" ? " - Inválido" : " - Enviado") }}
+                    </span>
                 </div>
                 <div class="duel-info">
                     <div class="duel-player">
@@ -94,7 +131,7 @@
                     <div class="duel-player">
                         <span class="player-name">{{ $duelo->versus_2->name }}</span>
                     </div>
-                    @if ($duelo->versus_1->name == Auth::user()->name || $duelo->versus_2->name == Auth::user()->name)
+                    @if ($duelo->user_id_1 == Auth::user()->id || $duelo->user_id_2 == Auth::user()->id)
                         <a href="{{ route('versus.versusdeck', ['duel' => $duelo->id, 'deck' => Auth::user()->id]) }}" type="button" class="btn btn-warning w-100">Introducir deck</a>
                     @endif
                 </div>

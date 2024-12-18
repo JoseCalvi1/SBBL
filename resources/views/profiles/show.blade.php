@@ -82,9 +82,9 @@
         <div class="col-md-4" style="margin-top: -20px;">
             <div style="position: relative;">
                 @if ($profile->imagen)
-                                <img src="/storage/{{ $profile->imagen }}" class="rounded-circle" width="200" style="top: 0; left: 0;">
+                                <img src="/storage/{{ $profile->imagen }}" class="rounded-circle" width="200" style="top: 0; left: 0; {{ strpos($profile->imagen, '.gif') !== false ? 'padding: 20px;' : '' }}">
                             @else
-                                <img src="/storage/upload-profiles/DranDaggerBase.png" class="rounded-circle" width="200" style="top: 0; left: 0;">
+                                <img src="/storage/upload-profiles/BASE/DranDagger.webp" class="rounded-circle" width="200" style="top: 0; left: 0;">
                             @endif
                             @if ($profile->marco)
                                 <img src="/storage/{{ $profile->marco }}" class="rounded-circle" width="200" style="position: absolute; top: 0; left: 0;">
@@ -169,7 +169,7 @@
 
 
 
-    
+
     <h2 class="titulo-categoria text-uppercase mb-4 mt-4 text-white">Duelos mensuales</h2>
     <div class="row mt-2">
         @foreach ($versus as $duelo)
@@ -177,7 +177,7 @@
             <div class="duel-card" style="background-image: url('/storage/{{ $duelo->result_1 > $duelo->result_2 ? $duelo->versus_1->profile->fondo : $duelo->versus_2->profile->fondo }}');">
                 <div class="overlay"></div>
                 <div class="duel-mode">
-                    <span class="mode">{{ ($duelo->matchup == "beybladex") ? "Beyblade X" : "Beyblade Burst"  }}{{ ($duelo->status == "CLOSED") ? " - Válido" : " - Enviado"  }}</span>
+                    <span class="mode">{{ ($duelo->matchup == "beybladex") ? "Beyblade X" : "Beyblade Burst"  }}{{ $duelo->status == "CLOSED" ? " - Válido" : ($duelo->status == "invalid" ? " - Inválido" : " - Enviado") }}</span>
                 </div>
                 <div class="duel-info">
                     <div class="duel-player">

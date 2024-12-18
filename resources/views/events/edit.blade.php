@@ -1,6 +1,5 @@
 @extends('layouts.app')
 
-
 @section('content')
 
 <a href="{{ route('events.show', ['event' => $event->id]) }}" class="btn btn-outline-primary m-4 text-uppercase font-weight-bold">
@@ -14,16 +13,16 @@
     <form method="POST" action="{{ route('events.update', ['event' => $event->id]) }}" enctype="multipart/form-data" novalidate style="color:white;">
         @csrf
         @method('PUT')
-        @if (Auth::user()->is_admin)
+        @if (Auth::user()->is_admin || Auth::user()->is_referee)
             <div class="form-group">
                 <label for="name">Título evento</label>
 
                 <input type="text"
                     name="name"
-                    class="form-control @error('name') is-invalid @enderror"
+                    class="form-control bg-dark text-white @error('name') is-invalid @enderror"
                     id="name"
                     placeholder="Título evento"
-                    value="{{ $event->name }}"
+                    value="{{ old('name', $event->name) }}"
                     />
 
                     @error('name')
@@ -47,8 +46,7 @@
 
             <div class="form-group">
                 <label for="mode">Modalidad</label>
-
-                <select name="mode" id="mode" class="form-control @error('mode') is-invalid @enderror">
+                <select name="mode" id="mode" class="form-control bg-dark text-white @error('mode') is-invalid @enderror">
                     <option disabled selected>- Selecciona un modo -</option>
                     <option value="beybladex" {{ $event->mode == 'beybladex' ? 'selected' : '' }}>Beyblade X</option>
                     <option value="beybladeburst" {{ $event->mode == 'beybladeburst' ? 'selected' : '' }}>Beyblade Burst</option>
@@ -63,11 +61,15 @@
 
             <div class="form-group">
                 <label for="imagen">Categoría</label>
-
-                <select name="imagen" id="imagen" class="form-control @error('imagen') is-invalid @enderror">
+                <select name="imagen" id="imagen" class="form-control bg-dark text-white @error('imagen') is-invalid @enderror">
                     <option disabled selected>- Selecciona una imagen -</option>
                     <option value="quedada" {{ $event->imagen == 'upload-events/quedada.jpg' ? 'selected' : '' }}>Quedada</option>
                     <option value="ranking" {{ ($event->imagen == 'upload-events/ranking.jpg' || $event->imagen == 'upload-events/rankingx.jpg') ? 'selected' : '' }}>Ranking</option>
+                    @if (Auth::user()->is_admin || Auth::user()->is_referee)
+                    <option value="rankingplus" {{ $event->imagen == 'upload-events/rankingplus.jpg' ? 'selected' : '' }}>Ranking Plus</option>
+                    <option value="grancopa" {{ $event->imagen == 'upload-events/grancopa.jpg' ? 'selected' : '' }}>Gran Copa</option>
+                    @endif
+                    <option value="hasbro" {{ $event->imagen == 'upload-events/hasbro.jpg' ? 'selected' : '' }}>Hasbro</option>
                 </select>
 
                     @error('imagen')
@@ -79,8 +81,7 @@
 
             <div class="form-group">
                 <label for="deck">Deck</label>
-
-                <select name="deck" id="deck" class="form-control @error('deck') is-invalid @enderror">
+                <select name="deck" id="deck" class="form-control bg-dark text-white @error('deck') is-invalid @enderror">
                     <option disabled selected>- Selecciona un tamaño de deck -</option>
                     <option value="3on3" {{ $event->deck == '3on3' ? 'selected' : '' }}>3on3</option>
                     <option value="5g" {{ $event->deck == '5g' ? 'selected' : '' }}>5G</option>
@@ -95,8 +96,7 @@
 
             <div class="form-group">
                 <label for="configuration">Tipo torneo</label>
-
-                <select name="configuration" id="configuration" class="form-control @error('configuration') is-invalid @enderror">
+                <select name="configuration" id="configuration" class="form-control bg-dark text-white @error('configuration') is-invalid @enderror">
                     <option disabled selected>- Selecciona la configuración del torneo -</option>
                     <option value="SingleElimination" {{ $event->configuration == 'SingleElimination' ? 'selected' : '' }}>Single elimination</option>
                     <option value="DoubleElimination" {{ $event->configuration == 'DoubleElimination' ? 'selected' : '' }}>Double elimination</option>
@@ -115,8 +115,7 @@
 
             <div class="form-group">
                 <label for="region_id">Región</label>
-
-                <select name="region_id" id="region_id" class="form-control @error('nombre') is-invalid @enderror">
+                <select name="region_id" id="region_id" class="form-control bg-dark text-white @error('region_id') is-invalid @enderror">
                     @if ($event->region)
                         <option value="{{ $event->region->id }}">{{ $event->region->name }}</option>
                     @else
@@ -136,14 +135,30 @@
             </div>
 
             <div class="form-group">
-                <label for="location">Lugar del evento</label>
+                <label for="city">Localidad del evento</label>
+                <input type="text"
+                    name="city"
+                    class="form-control bg-dark text-white @error('city') is-invalid @enderror"
+                    id="city"
+                    placeholder="Localidad del evento"
+                    value="{{ old('city', $event->city) }}"
+                    />
 
+                    @error('city')
+                        <span class="invalid-feedback d-block" role="alert">
+                            <strong>{{$message}}</strong>
+                        </span>
+                    @enderror
+            </div>
+
+            <div class="form-group">
+                <label for="location">Lugar del evento</label>
                 <input type="text"
                     name="location"
-                    class="form-control @error('location') is-invalid @enderror"
+                    class="form-control bg-dark text-white @error('location') is-invalid @enderror"
                     id="location"
                     placeholder="Lugar del evento"
-                    value="{{ $event->location }}"
+                    value="{{ old('location', $event->location) }}"
                     />
 
                     @error('location')
@@ -155,13 +170,12 @@
 
             <div class="form-group">
                 <label for="note">Anotaciones</label>
-
                 <input type="text"
                     name="note"
-                    class="form-control @error('note') is-invalid @enderror"
+                    class="form-control bg-dark text-white @error('note') is-invalid @enderror"
                     id="note"
                     placeholder="Anotaciones importantes"
-                    value="{{ $event->note }}"
+                    value="{{ old('note', $event->note) }}"
                     />
 
                     @error('note')
@@ -173,13 +187,11 @@
 
             <div class="form-group">
                 <label for="event_date">Fecha del evento</label>
-
                 <input type="date"
                     name="event_date"
-                    class="form-control @error('event_date') is-invalid @enderror"
+                    class="form-control bg-dark text-white @error('event_date') is-invalid @enderror"
                     id="event_date"
-                    placeholder="Título evento"
-                    value="{{ $event->date }}"
+                    value="{{ old('event_date', $event->date) }}"
                     />
 
                     @error('event_date')
@@ -191,13 +203,11 @@
 
             <div class="form-group">
                 <label for="event_time">Hora del evento</label>
-
                 <input type="time"
                     name="event_time"
-                    class="form-control @error('event_time') is-invalid @enderror"
+                    class="form-control bg-dark text-white @error('event_time') is-invalid @enderror"
                     id="event_time"
-                    placeholder="Fecha del evento"
-                    value="{{ $event->time }}"
+                    value="{{ old('event_time', $event->time) }}"
                     />
 
                     @error('event_time')
@@ -207,58 +217,41 @@
                     @enderror
             </div>
 
-
-            <div class="form-group">
-                <label for="iframe">Iframe</label>
-
-                <input type="text"
-                    name="iframe"
-                    class="form-control @error('iframe') is-invalid @enderror"
-                    id="iframe"
-                    placeholder="Iframe"
-                    value="{{ $event->iframe }}"
-                    />
-
-                    @error('iframe')
-                        <span class="invalid-feedback d-block" role="alert">
-                            <strong>{{$message}}</strong>
-                        </span>
-                    @enderror
+        <!-- Advertencia para no admins y árbitros -->
+        @if(!Auth::user()->is_admin && !Auth::user()->is_referee)
+            <div class="alert alert-warning text-center text-dark" role="alert">
+                Al editar este evento, afirmo que he leído y comprendido <a href="sbbl.es/rules" target="_blank">las normas</a> para el desarrollo del torneo y que soy el encargado de que haya material suficiente para ello (Estadio y material de grabación como trípode y móvil/cámara).
             </div>
+        @endif
 
-            <div class="form-group">
-                <input type="submit" class="btn btn-primary" value="Actualizar evento">
-            </div>
-        </form>
-
-        <form method="POST" action="{{ route('videos.store') }}" enctype="multipart/form-data" novalidate>
-            @csrf
-
-            <div class="form-group">
-                <label for="url">Id del video</label>
-
-                <input type="hidden" name="event_id" id="event_id" value="{{ $event->id }}">
-
-                <input type="text"
-                    name="url"
-                    class="form-control @error('url') is-invalid @enderror"
-                    id="url"
-                    placeholder="Id del video"
-                    value="{{ $event->url }}"
-                    />
-
-                    @error('url')
-                        <span class="invalid-feedback d-block" role="alert">
-                            <strong>{{$message}}</strong>
-                        </span>
-                    @enderror
-            </div>
-
-            <div class="form-group">
-                <input type="submit" class="btn btn-primary" value="Añadir video">
-            </div>
-        </form>
+        <div class="form-group">
+            <input type="submit" class="btn btn-primary" value="Actualizar evento">
+        </div>
+    </form>
     </div>
 </div>
 
+@endsection
+
+@section('scripts')
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const modeSelect = document.getElementById("mode");
+        const deckSelect = document.getElementById("deck");
+
+        function updateDeckOptions() {
+            if (modeSelect.value === "beybladex") {
+                deckSelect.value = "3on3";
+                deckSelect.querySelectorAll("option").forEach(option => {
+                    if (option.value !== "3on3") option.disabled = true;
+                });
+            } else {
+                deckSelect.querySelectorAll("option").forEach(option => option.disabled = false);
+            }
+        }
+
+        modeSelect.addEventListener("change", updateDeckOptions);
+        updateDeckOptions();
+    });
+</script>
 @endsection

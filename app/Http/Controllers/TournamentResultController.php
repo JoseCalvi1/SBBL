@@ -11,29 +11,34 @@ class TournamentResultController extends Controller
 {
     public function store(Request $request, $eventId)
     {
-        $user = Auth::user();
+        // Eliminar resultados existentes del usuario para este evento
+        // Cambiar el 'user_id' por el 'assistId' para borrar los resultados del dueño correcto del deck
+        foreach ($request->blade as $assistId => $blades) {
+            TournamentResult::where('user_id', $assistId)
+                            ->where('event_id', $eventId)
+                            ->delete();
+        }
 
-    // Eliminar resultados existentes del usuario para este evento
-    TournamentResult::where('user_id', $user->id)
-                    ->where('event_id', $eventId)
-                    ->delete();
-    // Guardar los nuevos resultados
-    foreach ($request->blade as $index => $blade) {
-        TournamentResult::create([
-            'user_id' => $user->id,
-            'event_id' => $eventId,
-            'blade' => $blade,
-            'ratchet' => $request->ratchet[$index],
-            'bit' => $request->bit[$index],
-            'victorias' => $request->victorias[$index],
-            'derrotas' => $request->derrotas[$index],
-            'puntos_ganados' => $request->puntos_ganados[$index],
-            'puntos_perdidos' => $request->puntos_perdidos[$index],
-        ]);
+        // Guardar los nuevos resultados
+        foreach ($request->blade as $assistId => $blades) {
+            foreach ($blades as $index => $blade) {
+                TournamentResult::create([
+                    'user_id' => $assistId,  // Cambiar por el 'assistId' para guardar con el propietario del deck
+                    'event_id' => $eventId,
+                    'blade' => $blade,
+                    'ratchet' => $request->ratchet[$assistId][$index],
+                    'bit' => $request->bit[$assistId][$index],
+                    'victorias' => $request->victorias[$assistId][$index],
+                    'derrotas' => $request->derrotas[$assistId][$index],
+                    'puntos_ganados' => $request->puntos_ganados[$assistId][$index],
+                    'puntos_perdidos' => $request->puntos_perdidos[$assistId][$index],
+                ]);
+            }
+        }
+
+        return redirect()->back()->with('success', 'Resultados guardados correctamente.');
     }
 
-    return redirect()->back()->with('success', 'Resultados guardados correctamente.');
-    }
 
     public function storeduel(Request $request, $versusId)
     {
@@ -190,37 +195,75 @@ class TournamentResultController extends Controller
 
 
     public function showRanking()
-{
-    // Obtener la fecha actual
-    $fecha_actual = now();
-    
-    // Calcular el mes y el año del mes anterior
-    $mes_anterior = $fecha_actual->month - 1;
+    {
+        // Obtener la fecha actual
+        $fecha_actual = now();
 
-    $anio_anterior = $fecha_actual->year;
+        // Calcular el mes y el año del mes anterior
+        $mes_anterior = $fecha_actual->month - 1;
 
-    $ranking = DB::table('tournament_results')
-        ->join('users', 'tournament_results.user_id', '=', 'users.id')
-        ->select(
-            'users.name',
-            DB::raw('SUM(tournament_results.puntos_ganados) as total_puntos_ganados'),
-            DB::raw('SUM(tournament_results.puntos_perdidos) as total_puntos_perdidos'),
-            DB::raw('SUM(tournament_results.puntos_ganados + tournament_results.puntos_perdidos) as total_participacion'),
-            DB::raw('(SUM(tournament_results.puntos_ganados) / (SUM(tournament_results.puntos_ganados) + SUM(tournament_results.puntos_perdidos))) * 100 as porcentaje_ganados')
-        )
-        ->whereMonth('tournament_results.created_at', $mes_anterior) // Filtrar por mes anterior
-        ->whereYear('tournament_results.created_at', $anio_anterior) // Filtrar por año
-        ->groupBy('users.id', 'users.name')
-        ->orderByDesc('total_participacion')  // Ordenar por la suma de puntos_ganados + puntos_perdidos
-        ->limit(15)
-        ->get();
+        $anio_anterior = $fecha_actual->year;
 
-    return view('inicio.rankingstats', ['ranking' => $ranking]);
-}
+        $ranking = DB::table('tournament_results')
+            ->join('users', 'tournament_results.user_id', '=', 'users.id')
+            ->select(
+                'users.name',
+                DB::raw('SUM(tournament_results.puntos_ganados) as total_puntos_ganados'),
+                DB::raw('SUM(tournament_results.puntos_perdidos) as total_puntos_perdidos'),
+                DB::raw('SUM(tournament_results.puntos_ganados + tournament_results.puntos_perdidos) as total_participacion'),
+                DB::raw('(SUM(tournament_results.puntos_ganados) / (SUM(tournament_results.puntos_ganados) + SUM(tournament_results.puntos_perdidos))) * 100 as porcentaje_ganados')
+            )
+            ->whereMonth('tournament_results.created_at', $mes_anterior) // Filtrar por mes anterior
+            ->whereYear('tournament_results.created_at', $anio_anterior) // Filtrar por año
+            ->groupBy('users.id', 'users.name')
+            ->orderByDesc('total_participacion')  // Ordenar por la suma de puntos_ganados + puntos_perdidos
+            ->limit(15)
+            ->get();
 
+        return view('inicio.rankingstats', ['ranking' => $ranking]);
+    }
 
+    public function getBeybladeStats(Request $request)
+    {
+        $sort = $request->get('sort', 'blade');
+        $order = $request->get('order', 'asc');
 
+        // Filtros
+        $bladeFilter = $request->get('blade');
+        $ratchetFilter = $request->get('ratchet');
+        $bitFilter = $request->get('bit');
 
+        $beybladeStats = DB::table('tournament_results')
+            ->select(
+                'blade',
+                'ratchet',
+                'bit',
+                DB::raw('SUM(victorias) as total_victorias'),
+                DB::raw('SUM(derrotas) as total_derrotas'),
+                DB::raw('CASE WHEN SUM(victorias) > 0 THEN SUM(puntos_ganados) / GREATEST(SUM(victorias), 1) ELSE 0 END AS puntos_ganados_por_combate'),
+                DB::raw('CASE WHEN SUM(derrotas) > 0 THEN SUM(puntos_perdidos) / GREATEST(SUM(derrotas), 1) ELSE 0 END AS puntos_perdidos_por_combate'),
+                DB::raw('SUM(victorias + derrotas) as total_partidas'),
+                DB::raw('CASE WHEN SUM(victorias + derrotas) > 0 THEN (SUM(victorias) / GREATEST(SUM(victorias + derrotas), 1)) * 100 ELSE 0 END AS percentage_victories'),
+                DB::raw('CASE WHEN (SUM(victorias) + SUM(derrotas)) > 0 THEN (((SUM(puntos_ganados) / GREATEST(SUM(victorias), 1)) / ((SUM(puntos_ganados) / GREATEST(SUM(victorias), 1)) + (SUM(puntos_perdidos) / GREATEST(SUM(derrotas), 1)))) * ((SUM(victorias) / GREATEST(SUM(victorias + derrotas), 1)) * 100)) * LOG(SUM(victorias + derrotas) + 1) ELSE 0 END AS eficiencia')
+            )
+            ->where('blade', 'NOT LIKE', '%Selecciona%')
+            ->when($bladeFilter, function ($query) use ($bladeFilter) {
+                return $query->where('blade', $bladeFilter);
+            })
+            ->when($ratchetFilter, function ($query) use ($ratchetFilter) {
+                return $query->where('ratchet', $ratchetFilter);
+            })
+            ->when($bitFilter, function ($query) use ($bitFilter) {
+                return $query->where('bit', $bitFilter);
+            })
+            ->groupBy('blade', 'ratchet', 'bit')
+            ->havingRaw('SUM(victorias + derrotas) >= 10')
+            ->orderBy($sort, $order)
+            ->get();
 
-
+        return response()->json([
+            'success' => true,
+            'data' => $beybladeStats,
+        ], 200);
+    }
 }

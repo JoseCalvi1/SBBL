@@ -28,20 +28,35 @@
                     @foreach ($events as $event)
                         <tr class="{{ ($event->date < \Carbon\Carbon::today()) ? 'bg-secondary' : '' }}">
                             <td>{{ $event->name }}</td>
-                            <td>{{ $event->location }}</td>
+                            <td>{{ $event->city }}</td>
                             <td>{{ $event->mode }}</td>
                             <td>{{ $event->region->name }}</td>
                             <td><event-date fecha="{{ $event->date }}"></event-date></td>
                             <td>@if ($event->status == "OPEN")
-                        <span class="btn btn-success">ABIERTO</span>
+                        <span class="btn btn-success" style="width: 100%">ABIERTO</span>
                     @elseif ($event->status == "PENDING")
-                        <span class="btn btn-warning">PENDIENTE CALIFICAR</span>
+                        <span class="btn btn-warning" style="width: 100%">PENDIENTE CALIFICAR</span>
+                    @elseif ($event->status == "INVALID")
+                        <span class="btn btn-dark" style="width: 100%">INVÁLIDO</span>
                     @else
-                        <span class="btn btn-danger">CERRADO</span>
-                    @endif</td>
+                        <span class="btn btn-danger" style="width: 100%">CERRADO</span>
+                    @endif
+                    @if ($event->iframe)
+                    <div>
+                        <a href="{{ $event->iframe }}" target="_blank" class="btn btn-info text-uppercase font-weight-bold mt-1"
+                        style="width: 100%">Ver Video</a>
+                    </div>
+                @endif</td>
                             <td>
                                 <a href="{{ route('events.show', ['event' => $event->id]) }}" class="btn btn-success mb-2 d-block">Ver</a>
                                 <a href="{{ route('events.edit', ['event' => $event->id]) }}" class="btn btn-dark mb-2 d-block">Editar</a>
+                                <form method="POST" action="{{ route('events.invalidar', ['event' => $event->id]) }}">
+                                    @csrf
+                                    @method('PUT') <!-- O POST según tu configuración -->
+                                    <button type="submit" class="btn btn-warning mb-2" style="width: 100%">
+                                        <i class="fas fa-times-circle"></i> Invalidar
+                                    </button>
+                                </form>
                                 <event-delete event-id={{ $event->id }}></event-delete>
                             </td>
                         </tr>

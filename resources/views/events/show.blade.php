@@ -14,19 +14,29 @@
                 </div>
             </div>
             <div class="col-md-7">
+                @if (session('success'))
+                        <div class="alert alert-success" role="alert">
+                            {{ session('success') }}
+                        </div>
+                    @endif
+
                 <h1 class="text-center mb-4">{{ $event->name }}
                     @if ($event->status == "OPEN")
                         <span class="btn btn-success">ABIERTO</span>
                     @elseif ($event->status == "PENDING")
                         <span class="btn btn-warning">PENDIENTE CALIFICAR</span>
+                    @elseif ($event->status == "INVALID")
+                        <span class="btn btn-dark">INVÁLIDO</span>
                     @else
                         <span class="btn btn-danger">CERRADO</span>
                     @endif
-                    @if ($event->status != "CLOSE" && Auth::user()->is_admin)
+                    @if (($event->status != "CLOSE" && $event->status != "INVALID") && (Auth::user()->is_admin || Auth::user()->is_referee))
                         <form method="POST" action="{{ route('events.actualizarPuntuaciones', ['event' => $event->id, 'mode' => $event->mode]) }}" style="display: contents; text-align: center;">
                             @method('PUT')
                             @csrf
-                            <button type="submit" class="btn btn-secondary mb-2 mt-2 d-block" style="width: 100%">Cerrar evento</button>
+                            <button type="submit" class="btn btn-secondary mb-2 mt-2 d-block" style="width: 100%" onclick="return confirm('¿Estás seguro de que deseas cerrar el evento? Esta acción no se puede deshacer.')">
+                                Cerrar evento
+                            </button>
                         </form>
                     @endif
 
@@ -70,7 +80,10 @@
                                 <span class="font-weight-bold text-primary">Región:</span>
                                 {{ $event->region->name }}
                             </p>
-
+                            <p>
+                                <span class="font-weight-bold text-primary">Localidad:</span>
+                                {{ $event->city }}
+                            </p>
                             <p>
                                 <span class="font-weight-bold text-primary">Lugar:</span>
                                 {{ $event->location }}
@@ -85,11 +98,11 @@
                                 <span class="font-weight-bold text-primary">Fecha y hora:</span>
                                 <event-date fecha="{{ $event->date }}"></event-date> <span class="font-weight-bold">({{ $event->time }})</span>
                             </p>
-                            @if ($event->status != "CLOSE" && Auth::user()->is_admin || ($event->status == "OPEN" && $event->created_by == Auth::user()->id))
+                            @if (($event->status != "CLOSE" && $event->status != "INVALID") && Auth::user()->is_referee || ($event->status == "OPEN" && $event->created_by == Auth::user()->id))
                                 <a href="{{ route('events.edit', ['event' => $event->id]) }}" class="btn btn-dark mb-2 d-block">Editar</a>
                             @endif
-                            @if ($suscribe)
-                                <button type="button" class="btn btn-warning" data-toggle="modal" data-target="#formModal">
+                            @if ($suscribe && $event->status != "INVALID")
+                                <button type="button" class="btn btn-warning" data-toggle="modal" data-target="#formModal" style="width: 100%">
                                     Introducir deck
                                 </button>
                             @endif
@@ -97,6 +110,11 @@
                     </div>
                     <div class="col-md-6">
                         <h4 style="font-weight: bold">Listado de participantes ({{ $assists->count() }})</h4>
+                        @if($assists->count() < 4 && $event->status == "OPEN")
+                            <div class="alert alert-danger">
+                                Importante: Si el número de participantes es menor a 4 el torneo no se realizará.
+                            </div>
+                        @endif
                         @if (count($assists) > 0)
                             <form method="POST" action="{{ route('events.updatePuestos', ['event' => $event->id]) }}" enctype="multipart/form-data" novalidate>
                                 @csrf
@@ -106,12 +124,21 @@
                                     <div class="row mb-2">
                                         <div class="col-md-9">
                                             <p class="mb-0">
-                                                {{ $assist->name }} ({{ DB::table('assist_user_event')->where('user_id', $assist->id)->where('event_id', '>', 190)->whereNotNull('puesto')->where('puesto', '<>', 'nopresentado')->count() }} torneos)
+                                                {{ $assist->name }} ({{ DB::table('assist_user_event')
+                                                    ->join('events', 'assist_user_event.event_id', '=', 'events.id')
+                                                    ->where('assist_user_event.user_id', $assist->id)
+                                                    ->whereMonth('events.date', \Carbon\Carbon::parse($event->date)->month)
+                                                    ->whereYear('events.date', \Carbon\Carbon::parse($event->date)->year)
+                                                    ->whereIn('assist_user_event.puesto', ['participante', 'primero', 'segundo', 'tercero'])
+                                                    ->count()
+                                                }}
+                                                torneos)
+
                                                 @if (Auth::user()->is_admin)
                                                     <b>{{ $assist->email }}</b>
                                                 @endif
 
-                                                @if ($event->status != "CLOSE" && Auth::user()->is_admin || ($event->status == "OPEN" && $event->created_by == Auth::user()->id))
+                                                @if (($event->status != "CLOSE" && $event->status != "INVALID") && Auth::user()->is_referee || ($event->status == "OPEN" && $event->created_by == Auth::user()->id))
                                                     <input type="hidden" name="participantes[{{ $assist->id }}][id]" value="{{ $assist->id }}">
                                                     <select class="form-control" name="participantes[{{ $assist->id }}][puesto]">
                                                         <option value="participante" {{ $assist->pivot->puesto == 'participante' ? 'selected' : '' }}>-- Selecciona un puesto --</option>
@@ -157,12 +184,33 @@
                                     @endif
                                 @endforeach
 
-                                @if ($event->status != "CLOSE" && Auth::user()->is_admin || ($event->status == "OPEN" && $event->created_by == Auth::user()->id))
+                                @if (($event->status != "CLOSE" && $event->status != "INVALID") && Auth::user()->is_admin || ($event->status == "OPEN" && $event->created_by == Auth::user()->id))
                                     <div class="form-group py-2">
-                                        <input type="submit" class="btn btn-outline-success text-uppercase font-weight-bold flex-right" value="Enviar resultados">
+                                        <input type="submit" class="btn btn-outline-success text-uppercase font-weight-bold flex-right" value="Enviar resultados"  style="width: 100%">
                                     </div>
                                 @endif
                             </form>
+                            @if (($event->status != "CLOSE" && $event->status != "INVALID") && Auth::user()->is_admin || ($event->status == "OPEN" && $event->created_by == Auth::user()->id))
+                                <form method="POST" action="{{ route('events.updateVideo', ['event' => $event->id]) }}">
+                                    @csrf
+                                    @method('PUT') <!-- O POST según tu configuración -->
+
+                                    <div class="form-group">
+                                        <input type="url" name="iframe" id="iframe" class="form-control mb-1" placeholder="https://www.youtube.com/embed/tu-video" required>
+                                        <input type="submit" class="btn btn-outline-success text-uppercase font-weight-bold flex-right" value="Enviar vídeo" style="width: 100%">
+                                    </div>
+
+                                    <div class="form-group">
+                                    </div>
+                                </form>
+                                @if ($event->iframe)
+                                    <div>
+                                        <a href="{{ $event->iframe }}" target="_blank" class="btn btn-info text-uppercase font-weight-bold"
+                                        style="width: 100%">Ver Video</a>
+                                    </div>
+                                @endif
+                            @endif
+
                         @else
                             <p>No hay participantes.</p>
                         @endif
@@ -178,108 +226,183 @@
             </div>
         @endif
 
-        @if ($videos)
-            <div class="my-4">
-                <h2 class="my-4">Vídeos del evento</h2>
-                <div class="row">
-                    @foreach ($videos as $video)
-                        <div class="col-md-4">
-                            <iframe id="player" type="text/html" width="100%" height="250"
-                            src="https://www.youtube.com/embed/{{ $video->url }}"
-                            frameborder="0"></iframe>
-                        </div>
-                    @endforeach
-                </div>
-            </div>
-        @endif
-
     </article>
 
-    <!-- Modal -->
-    <div class="modal fade" id="formModal" tabindex="-1" role="dialog" aria-labelledby="formModalLabel" aria-hidden="true">
-        <div class="modal-dialog" role="document" style="max-width: 80%">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="formModalLabel">Resultados del deck en el torneo</h5>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
-                </div>
-                <div class="modal-body">
-                    <!-- Formulario dentro del popup -->
-                    <form method="POST" action="{{ route('tournament.results.store', ['eventId' => $event->id]) }}">
-                        @csrf
+<!-- Modal para introducir decks -->
+<div class="modal fade" id="formModal" tabindex="-1" role="dialog" aria-labelledby="formModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document" style="max-width: 80%">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="formModalLabel">Resultados del deck en el torneo</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <!-- Formulario dentro del popup -->
+                <form method="POST" action="{{ route('tournament.results.store', ['eventId' => $event->id]) }}">
+                    @csrf
 
-                        @foreach($results as $index => $result)
-                            <div class="row">
-                                <div class="col-md-2">
-                                    <div class="form-group">
-                                        <label for="blade_{{ $index + 1 }}">Blade</label>
-                                        <select class="form-control select2" id="blade_{{ $index + 1 }}" name="blade[]" required style="width: 100%">
-                                            <option>-- Selecciona un blade --</option>
-                                            @foreach($bladeOptions as $option)
-                                                <option value="{{ $option }}" {{ $result->blade == $option ? 'selected' : '' }}>{{ $option }}</option>
-                                            @endforeach
-                                        </select>
+                    @if(Auth::user()->is_referee)
+                        @foreach($assists as $assist)
+                            <div class="form-group">
+                                <h4>{{ $assist->name }} ({{ $assist->email }})</h4>
+                                @foreach(range(1, 3) as $index)
+                                    <div class="row">
+                                        <!-- Blade -->
+                                        <div class="col-md-2">
+                                            <label for="blade_{{ $assist->id }}_{{ $index }}">Blade</label>
+                                            <select class="form-control select2" id="blade_{{ $assist->id }}_{{ $index }}" name="blade[{{ $assist->id }}][{{ $index }}]" required>
+                                                <option>-- Selecciona un blade --</option>
+                                                @foreach($bladeOptions as $option)
+                                                    <option value="{{ $option }}"
+                                                        @if(isset($resultsByParticipant[$assist->id][$index-1]) && $resultsByParticipant[$assist->id][$index-1]->blade == $option) selected @endif>
+                                                        {{ $option }}
+                                                    </option>
+                                                @endforeach
+                                            </select>
+                                        </div>
+
+                                        <!-- Ratchet -->
+                                        <div class="col-md-2">
+                                            <label for="ratchet_{{ $assist->id }}_{{ $index }}">Ratchet</label>
+                                            <select class="form-control select2" id="ratchet_{{ $assist->id }}_{{ $index }}" name="ratchet[{{ $assist->id }}][{{ $index }}]" required>
+                                                <option>-- Selecciona un ratchet --</option>
+                                                @foreach($ratchetOptions as $option)
+                                                    <option value="{{ $option }}"
+                                                        @if(isset($resultsByParticipant[$assist->id][$index-1]) && $resultsByParticipant[$assist->id][$index-1]->ratchet == $option) selected @endif>
+                                                        {{ $option }}
+                                                    </option>
+                                                @endforeach
+                                            </select>
+                                        </div>
+
+                                        <!-- Bit -->
+                                        <div class="col-md-2">
+                                            <label for="bit_{{ $assist->id }}_{{ $index }}">Bit</label>
+                                            <select class="form-control select2" id="bit_{{ $assist->id }}_{{ $index }}" name="bit[{{ $assist->id }}][{{ $index }}]" required>
+                                                <option>-- Selecciona un bit --</option>
+                                                @foreach($bitOptions as $option)
+                                                    <option value="{{ $option }}"
+                                                        @if(isset($resultsByParticipant[$assist->id][$index-1]) && $resultsByParticipant[$assist->id][$index-1]->bit == $option) selected @endif>
+                                                        {{ $option }}
+                                                    </option>
+                                                @endforeach
+                                            </select>
+                                        </div>
+
+                                        <!-- Victorias -->
+                                        <div class="col-md-1">
+                                            <label for="victorias_{{ $assist->id }}_{{ $index }}">Victorias</label>
+                                            <input type="number" class="form-control" id="victorias_{{ $assist->id }}_{{ $index }}" name="victorias[{{ $assist->id }}][{{ $index }}]" value="{{ isset($resultsByParticipant[$assist->id][$index-1]) ? $resultsByParticipant[$assist->id][$index-1]->victorias : 0 }}">
+                                        </div>
+
+                                        <!-- Derrotas -->
+                                        <div class="col-md-1">
+                                            <label for="derrotas_{{ $assist->id }}_{{ $index }}">Derrotas</label>
+                                            <input type="number" class="form-control" id="derrotas_{{ $assist->id }}_{{ $index }}" name="derrotas[{{ $assist->id }}][{{ $index }}]" value="{{ isset($resultsByParticipant[$assist->id][$index-1]) ? $resultsByParticipant[$assist->id][$index-1]->derrotas : 0 }}">
+                                        </div>
+
+                                        <!-- Puntos Ganados -->
+                                        <div class="col-md-2">
+                                            <label for="puntos_ganados_{{ $assist->id }}_{{ $index }}">Puntos Ganados</label>
+                                            <input type="number" class="form-control" id="puntos_ganados_{{ $assist->id }}_{{ $index }}" name="puntos_ganados[{{ $assist->id }}][{{ $index }}]" value="{{ isset($resultsByParticipant[$assist->id][$index-1]) ? $resultsByParticipant[$assist->id][$index-1]->puntos_ganados : 0 }}">
+                                        </div>
+
+                                        <!-- Puntos Perdidos -->
+                                        <div class="col-md-2">
+                                            <label for="puntos_perdidos_{{ $assist->id }}_{{ $index }}">Puntos Perdidos</label>
+                                            <input type="number" class="form-control" id="puntos_perdidos_{{ $assist->id }}_{{ $index }}" name="puntos_perdidos[{{ $assist->id }}][{{ $index }}]" value="{{ isset($resultsByParticipant[$assist->id][$index-1]) ? $resultsByParticipant[$assist->id][$index-1]->puntos_perdidos : 0 }}">
+                                        </div>
                                     </div>
-                                </div>
-                                <div class="col-md-2">
-                                    <div class="form-group">
-                                        <label for="ratchet_{{ $index + 1 }}">Ratchet</label>
-                                        <select class="form-control select2" id="ratchet_{{ $index + 1 }}" name="ratchet[]" required style="width: 100%">
-                                            <option>-- Selecciona un ratchet --</option>
-                                            @foreach($ratchetOptions as $option)
-                                                <option value="{{ $option }}" {{ $result->ratchet == $option ? 'selected' : '' }}>{{ $option }}</option>
-                                            @endforeach
-                                        </select>
-                                    </div>
-                                </div>
-                                <div class="col-md-2">
-                                    <div class="form-group">
-                                        <label for="bit_{{ $index + 1 }}">Bit</label>
-                                        <select class="form-control select2" id="bit_{{ $index + 1 }}" name="bit[]" required style="width: 100%">
-                                            <option>-- Selecciona un bit --</option>
-                                            @foreach($bitOptions as $option)
-                                                <option value="{{ $option }}" {{ $result->bit == $option ? 'selected' : '' }}>{{ $option }}</option>
-                                            @endforeach
-                                        </select>
-                                    </div>
-                                </div>
-                                <div class="col-md-1">
-                                    <div class="form-group">
-                                        <label for="victorias_{{ $index + 1 }}">Victorias</label>
-                                        <input type="number" class="form-control" id="victorias_{{ $index + 1 }}" name="victorias[]" value="{{ $result->victorias }}">
-                                    </div>
-                                </div>
-                                <div class="col-md-1">
-                                    <div class="form-group">
-                                        <label for="derrotas_{{ $index + 1 }}">Derrotas</label>
-                                        <input type="number" class="form-control" id="derrotas_{{ $index + 1 }}" name="derrotas[]" value="{{ $result->derrotas }}">
-                                    </div>
-                                </div>
-                                <div class="col-md-2">
-                                    <div class="form-group">
-                                        <label for="puntos_ganados_{{ $index + 1 }}">Puntos Ganados</label>
-                                        <input type="number" class="form-control" id="puntos_ganados_{{ $index + 1 }}" name="puntos_ganados[]" value="{{ $result->puntos_ganados }}">
-                                    </div>
-                                </div>
-                                <div class="col-md-2">
-                                    <div class="form-group">
-                                        <label for="puntos_perdidos_{{ $index + 1 }}">Puntos Perdidos</label>
-                                        <input type="number" class="form-control" id="puntos_perdidos_{{ $index + 1 }}" name="puntos_perdidos[]" value="{{ $result->puntos_perdidos }}">
-                                    </div>
-                                </div>
+                                @endforeach
                             </div>
                         @endforeach
 
+                    @else
+                        <!-- Si no es referee, solo se muestra su propio deck -->
                         <div class="form-group">
-                            <button type="submit" class="btn btn-primary">Guardar</button>
+                            <h4>{{ Auth::user()->name }}'s Deck</h4>
+                            @foreach(range(1, 3) as $index)
+                                <div class="row">
+                                    <!-- Blade -->
+                                    <div class="col-md-2">
+                                        <label for="blade_{{ Auth::user()->id }}_{{ $index }}">Blade</label>
+                                        <select class="form-control select2" id="blade_{{ Auth::user()->id }}_{{ $index }}" name="blade[{{ Auth::user()->id }}][]" required>
+                                            <option>-- Selecciona un blade --</option>
+                                            @foreach($bladeOptions as $option)
+                                                <option value="{{ $option }}"
+                                                    @if(isset($results[$index-1]) && $results[$index-1]->blade == $option) selected @endif>
+                                                    {{ $option }}
+                                                </option>
+                                            @endforeach
+                                        </select>
+                                    </div>
+
+                                    <!-- Ratchet -->
+                                    <div class="col-md-2">
+                                        <label for="ratchet_{{ Auth::user()->id }}_{{ $index }}">Ratchet</label>
+                                        <select class="form-control select2" id="ratchet_{{ Auth::user()->id }}_{{ $index }}" name="ratchet[{{ Auth::user()->id }}][]" required>
+                                            <option>-- Selecciona un ratchet --</option>
+                                            @foreach($ratchetOptions as $option)
+                                                <option value="{{ $option }}"
+                                                    @if(isset($results[$index-1]) && $results[$index-1]->ratchet == $option) selected @endif>
+                                                    {{ $option }}
+                                                </option>
+                                            @endforeach
+                                        </select>
+                                    </div>
+
+                                    <!-- Bit -->
+                                    <div class="col-md-2">
+                                        <label for="bit_{{ Auth::user()->id }}_{{ $index }}">Bit</label>
+                                        <select class="form-control select2" id="bit_{{ Auth::user()->id }}_{{ $index }}" name="bit[{{ Auth::user()->id }}][]" required>
+                                            <option>-- Selecciona un bit --</option>
+                                            @foreach($bitOptions as $option)
+                                                <option value="{{ $option }}"
+                                                    @if(isset($results[$index-1]) && $results[$index-1]->bit == $option) selected @endif>
+                                                    {{ $option }}
+                                                </option>
+                                            @endforeach
+                                        </select>
+                                    </div>
+
+                                    <!-- Victorias -->
+                                    <div class="col-md-1">
+                                        <label for="victorias_{{ Auth::user()->id }}_{{ $index }}">Victorias</label>
+                                        <input type="number" class="form-control" id="victorias_{{ Auth::user()->id }}_{{ $index }}" name="victorias[{{ Auth::user()->id }}][]" value="{{ isset($results[$index-1]) ? $results[$index-1]->victorias : 0 }}">
+                                    </div>
+
+                                    <!-- Derrotas -->
+                                    <div class="col-md-1">
+                                        <label for="derrotas_{{ Auth::user()->id }}_{{ $index }}">Derrotas</label>
+                                        <input type="number" class="form-control" id="derrotas_{{ Auth::user()->id }}_{{ $index }}" name="derrotas[{{ Auth::user()->id }}][]" value="{{ isset($results[$index-1]) ? $results[$index-1]->derrotas : 0 }}">
+                                    </div>
+
+                                    <!-- Puntos Ganados -->
+                                    <div class="col-md-2">
+                                        <label for="puntos_ganados_{{ Auth::user()->id }}_{{ $index }}">Puntos Ganados</label>
+                                        <input type="number" class="form-control" id="puntos_ganados_{{ Auth::user()->id }}_{{ $index }}" name="puntos_ganados[{{ Auth::user()->id }}][]" value="{{ isset($results[$index-1]) ? $results[$index-1]->puntos_ganados : 0 }}">
+                                    </div>
+
+                                    <!-- Puntos Perdidos -->
+                                    <div class="col-md-2">
+                                        <label for="puntos_perdidos_{{ Auth::user()->id }}_{{ $index }}">Puntos Perdidos</label>
+                                        <input type="number" class="form-control" id="puntos_perdidos_{{ Auth::user()->id }}_{{ $index }}" name="puntos_perdidos[{{ Auth::user()->id }}][]" value="{{ isset($results[$index-1]) ? $results[$index-1]->puntos_perdidos : 0 }}">
+                                    </div>
+                                </div>
+                            @endforeach
                         </div>
-                    </form>
-                </div>
+                    @endif
+
+                    <button type="submit" class="btn btn-primary">Guardar resultados</button>
+                </form>
             </div>
         </div>
     </div>
+</div>
+
+
 
 @endsection
 

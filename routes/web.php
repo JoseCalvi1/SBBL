@@ -2,10 +2,12 @@
 
 use App\Http\Controllers\ChatController;
 use App\Http\Controllers\EventController;
+use App\Http\Controllers\InicioController;
 use App\Http\Controllers\TeamController;
 use App\Http\Controllers\InvitationController;
 use App\Http\Controllers\TeamsVersusController;
 use App\Http\Controllers\TournamentResultController;
+use App\Http\Controllers\TrophyController;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 
@@ -40,6 +42,8 @@ Route::post('/events', [App\Http\Controllers\EventController::class, 'store'])->
 Route::get('/events/{event}/edit', [App\Http\Controllers\EventController::class, 'edit'])->name('events.edit');
 Route::put('/events/{event}', [App\Http\Controllers\EventController::class, 'update'])->name('events.update');
 Route::delete('/events/{event}', [App\Http\Controllers\EventController::class, 'destroy'])->name('events.destroy');
+Route::put('/events/{event}/invalidar', [App\Http\Controllers\EventController::class, 'invalidarTorneo'])->name('events.invalidar');
+Route::put('/events/{event}/update-video', [EventController::class, 'updateVideo'])->name('events.updateVideo');
 
 Route::post('/events/{event}', [App\Http\Controllers\EventController::class, 'assist'])->name('events.assist');
 Route::delete('/assist/{event}', [App\Http\Controllers\EventController::class, 'noassist'])->name('events.noassist');
@@ -55,6 +59,8 @@ Route::put('/versus/{duel}', [App\Http\Controllers\VersusController::class, 'upd
 Route::get('/all-versus', [App\Http\Controllers\VersusController::class, 'show_all'])->name('versus.all');
 Route::put('/versus/{duel}/{mode}/{winner}/puntuarDuelo', [App\Http\Controllers\VersusController::class, 'puntuarDuelo'])->name('versus.puntuarDuelo');
 Route::get('/versus/{duel}/deck/{deck}', [App\Http\Controllers\VersusController::class, 'versusdeck'])->name('versus.versusdeck');
+Route::put('/versusmass/puntuarDuelos', [App\Http\Controllers\VersusController::class, 'puntuarDuelos'])->name('puntuarDuelos');
+Route::put('/versus/{duel}/invalidar', [App\Http\Controllers\VersusController::class, 'invalidar'])->name('versus.invalidar');
 
 Route::get('/profiles', [App\Http\Controllers\ProfileController::class, 'index'])->name('profiles.index');
 Route::get('/profiles/{profile}', [App\Http\Controllers\ProfileController::class, 'show'])->name('profiles.show');
@@ -62,6 +68,7 @@ Route::get('/profiles/{profile}/edit', [App\Http\Controllers\ProfileController::
 Route::put('/profiles/{profile}', [App\Http\Controllers\ProfileController::class, 'update'])->name('profiles.update');
 Route::put('/profiles-admin/{profile}', [App\Http\Controllers\ProfileController::class, 'updatePoints'])->name('profiles.updatePoints');
 Route::put('/profiles-admin-x/{profile}', [App\Http\Controllers\ProfileController::class, 'updatePointsX'])->name('profiles.updatePointsX');
+Route::put('/update-admin-x/update-all', [App\Http\Controllers\ProfileController::class, 'updateAllPointsX'])->name('profiles.updateAllPointsX');
 
 Route::get('/rankings', [App\Http\Controllers\ProfileController::class, 'ranking'])->name('profiles.ranking');
 
@@ -123,9 +130,23 @@ Route::get('/rankingstats', [TournamentResultController::class, 'showRanking'])-
 Route::get('/chat/messages/{articleId}', [ChatController::class, 'getMessages']);
 Route::post('/chat/messages', [ChatController::class, 'storeMessage'])->middleware('auth');
 
+Route::resource('trophies', TrophyController::class); // Para los métodos index, create, store, etc.
+Route::get('/trophy/assign', [TrophyController::class, 'assignForm'])->name('trophies.assignForm');
+Route::post('/trophy/assign', [TrophyController::class, 'assign'])->name('trophies.assign');
+Route::get('/users/trophies', [TrophyController::class, 'usersWithTrophies'])->name('trophies.usersWithTrophies');
+Route::get('/trophies/user/{userId}', [TrophyController::class, 'showUserTrophies'])->name('trophies.userTrophies');
+Route::delete('/trophies/removeAssignment/{assignmentId}', [TrophyController::class, 'removeAssignment'])->name('trophies.removeAssignment');
+Route::put('/trophies/{userId}/updateCount/{trophyId}', [TrophyController::class, 'updateCount'])->name('trophies.updateCount');
+Route::delete('/trophies/{userId}/remove/{trophyId}', [TrophyController::class, 'remove'])->name('trophies.remove');
+
+Route::get('/events', [App\Http\Controllers\EventController::class, 'index'])->name('events.indexAdmin');
+Route::get('/eventos', [InicioController::class, 'events'])->name('events.index');
+Route::post('/eventos/fetch', [InicioController::class, 'fetchEvents'])->name('events.fetch');
+Route::get('/versus', [App\Http\Controllers\VersusController::class, 'index'])->name('versus.index');
+Route::get('/subscriptions', [InicioController::class, 'suscriptions'])->name('subscriptions');
+Route::get('/admin', [InicioController::class, 'dashboard'])->name('admin.dashboard');
+
 Route::group(['middleware' => 'admin'], function () {
    Route::get('/profiles-admin', [App\Http\Controllers\ProfileController::class, 'indexAdmin'])->name('profiles.indexAdmin');
    Route::get('/profiles-admin-x', [App\Http\Controllers\ProfileController::class, 'indexAdminX'])->name('profiles.indexAdminX');
-   Route::get('/events', [App\Http\Controllers\EventController::class, 'index'])->name('events.index');
-   Route::get('/versus', [App\Http\Controllers\VersusController::class, 'index'])->name('versus.index');
 });

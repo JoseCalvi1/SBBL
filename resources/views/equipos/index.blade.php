@@ -1,7 +1,7 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="container-fluid" style="background: darkblue">
+<div class="container-fluid" style="background: #283b63">
 
             <div class="row">
                 <ul class="navbar-nav m-auto" style="flex-direction: row;">

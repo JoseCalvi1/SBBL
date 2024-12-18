@@ -1,6 +1,28 @@
 @extends('layouts.app')
 
 @section('content')
+<div class="container-fluid" style="background: #283b63">
+
+    <div class="row">
+        <ul class="navbar-nav m-auto" style="flex-direction: row;">
+            <li class="nav-item">
+                <a class="nav-link ml-2 mr-2" style="color: white; font-weight: bold; font-size:1.2em;" href="{{ route('equipos.index') }}">
+                    {{ 'INICIO' }}
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link ml-2 mr-2" style="color: white; font-weight: bold; font-size:1.2em;" href="{{ route('teams_versus.all') }}">
+                    {{ 'DUELOS' }}
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link ml-2 mr-2" style="color: white; font-weight: bold; font-size:1.2em;" href="{{ route('equipos.ranking') }}">
+                    {{ 'RANKING' }}
+                </a>
+            </li>
+        </ul>
+    </div>
+</div>
 <div class="py-4">
     <div class="container">
         <h2 class="text-center mb-4 text-white">Ranking de Equipos</h2>

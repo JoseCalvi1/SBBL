@@ -60,7 +60,19 @@ class InicioController extends Controller
             $bestUserRecord = null;
         }
 
-        return view('inicio.index', compact('bladers', 'stamina', 'nuevos', 'antiguos', 'bestUserProfile', 'bestUserRecord', 'bestUser', 'lastMonthName', 'lastYear'));
+        $subtitulos = [
+            1 => 'Co-Fundador',
+            4 => 'Co-Fundador',
+            182 => 'Relaciones Públicas',
+        ];
+
+        $usuarios = User::whereIn('id', [1, 4, 182, 13, 228, 215, 307, 310])->get()->map(function ($usuario) use ($subtitulos) {
+            // Asignar el subtítulo personalizado desde el arreglo
+            $usuario->titulo = $subtitulos[$usuario->id] ?? 'Árbitro';
+            return $usuario;
+        });
+
+        return view('inicio.index', compact('usuarios', 'bladers', 'stamina', 'nuevos', 'antiguos', 'bestUserProfile', 'bestUserRecord', 'bestUser', 'lastMonthName', 'lastYear'));
     }
 
     public function entrevistas()
@@ -75,16 +87,28 @@ class InicioController extends Controller
      */
     public function events()
     {
-        $events = Event::with('region')->get();
         if(Auth::user()) {
-            $createEvent = Event::where('created_by', Auth::user()->id)->where('date', '>', Carbon::now())->get();
+            $createEvent = Event::where('created_by', Auth::user()->id)->where('date', '>', now())->get();
             $countEvents = count($createEvent);
         } else {
             $countEvents = 2;
         }
 
-        return view('inicio.events', compact('events', 'countEvents'));
+        return view('inicio.events', compact('countEvents'));
     }
+
+    public function fetchEvents(Request $request)
+    {
+        $year = $request->input('year');
+        $month = $request->input('month');
+        $events = Event::with('region')
+            ->whereYear('date', $year)
+            ->whereMonth('date', $month)
+            ->get();
+
+        return response()->json($events);
+    }
+
 
     /**
      * Display a listing of the resource.
@@ -128,5 +152,15 @@ class InicioController extends Controller
     public function combo()
     {
         return view('inicio.combo');
+    }
+
+    public function suscriptions()
+    {
+        return view('inicio.subscriptions');
+    }
+
+    public function dashboard()
+    {
+        return view('inicio.dashboard');
     }
 }

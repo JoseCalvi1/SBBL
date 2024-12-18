@@ -39,6 +39,22 @@
                         <span>Puntos</span>
                     </div>
                     @foreach ($bladers_x1 as $index => $blader)
+                        @php
+                            // Determinar la clase CSS según el nivel de suscripción
+                            $firstTrophyName = $blader->trophies->first()->name ?? '';
+                            switch ($firstTrophyName) {
+                                case 'SUSCRIPCIÓN NIVEL 3':
+                                    $subscriptionClass = 'suscripcion-nivel-3';
+                                    break;
+                                case 'SUSCRIPCIÓN NIVEL 2':
+                                case 'SUSCRIPCIÓN NIVEL 1':
+                                    $subscriptionClass = 'suscripcion';
+                                    break;
+                                default:
+                                    $subscriptionClass = '';
+                                    break;
+                            }
+                        @endphp
                         <div class="item {{ $index < 4 ? 'resaltado' : '' }}">
                             <span class="posicion">{{ $index + 1 }}</span>
                             <span>
@@ -46,7 +62,7 @@
                                     <img src="{{ $blader->team_logo }}" width="60" loading="lazy">
                                 @endif
                             </span>
-                            <span>{{ $blader->user->name }}</span>
+                            <span class="{{ $subscriptionClass }}">{{ $blader->user->name }}</span>
                             <span>{{ $blader->region ? $blader->region->name : 'Región desconocida' }}</span>
                             <span>{{ $blader->points_x1 }} puntos</span>
                         </div>
@@ -67,9 +83,25 @@
                         <span>Puntos</span>
                     </div>
                     @foreach ($bladers_s3 as $index => $blader)
+                        @php
+                            // Determinar la clase CSS según el nivel de suscripción
+                            $firstTrophyName = $blader->trophies->first()->name ?? '';
+                            switch ($firstTrophyName) {
+                                case 'SUSCRIPCIÓN NIVEL 3':
+                                    $subscriptionClass = 'suscripcion-nivel-3';
+                                    break;
+                                case 'SUSCRIPCIÓN NIVEL 2':
+                                case 'SUSCRIPCIÓN NIVEL 1':
+                                    $subscriptionClass = 'suscripcion';
+                                    break;
+                                default:
+                                    $subscriptionClass = '';
+                                    break;
+                            }
+                        @endphp
                         <div class="item {{ $index < 4 ? 'resaltado' : '' }}">
                             <span class="posicion">{{ $index + 1 }}</span>
-                            <span>{{ $blader->user->name }}</span>
+                            <span class="{{ $subscriptionClass }}">{{ $blader->user->name }}</span>
                             <span>{{ $blader->region ? $blader->region->name : 'Región desconocida' }}</span>
                             <span>{{ $blader->points_s3 }} puntos</span>
                         </div>
@@ -81,7 +113,6 @@
 @endsection
 
 @section('scripts')
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
     <script>
         function applyFilters() {
             const limit = document.getElementById('limitSelect').value;
@@ -164,6 +195,22 @@
         .form-control:focus {
             border-color: #ffca28;
             box-shadow: none;
+        }
+
+        /* Clases de color según el nivel de suscripción */
+        .suscripcion-nivel-3 {
+            color: gold;
+            font-weight: bold;
+        }
+
+        .suscripcion-nivel-2 {
+            color: #c0e5fb;
+            font-weight: bold;
+        }
+
+        .suscripcion-nivel-1 {
+            color: #CD7F32; /* Bronce */
+            font-weight: bold;
         }
     </style>
 @endsection

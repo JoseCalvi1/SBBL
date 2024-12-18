@@ -9,6 +9,7 @@ class Trophy extends Model
 {
     use HasFactory;
     protected $table = 'trophies';
+    protected $fillable = ['name', 'season'];
 
     public function profiles()
     {

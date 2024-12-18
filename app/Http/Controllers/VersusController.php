@@ -34,19 +34,40 @@ class VersusController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function show_all()
+    public function show_all(Request $request)
     {
         $currentMonth = Carbon::now()->month;
         $currentYear = Carbon::now()->year;
 
-        $versus = Versus::orderBy('id', 'DESC')
-            ->where('status', 'CLOSED')
+        // Inicializar la consulta para obtener los duelos del mes y año actual
+        $query = Versus::orderBy('id', 'DESC')
             ->whereMonth('created_at', $currentMonth)
-            ->whereYear('created_at', $currentYear)
-            ->get();
+            ->whereYear('created_at', $currentYear);
 
-        return view('versus.all', compact('versus'));
+        // Filtrar por usuario (si se selecciona un usuario)
+        if ($request->filled('user')) {
+            $query->where(function ($q) use ($request) {
+                $q->where('user_id_1', $request->input('user'))
+                ->orWhere('user_id_2', $request->input('user'));
+            });
+        }
+
+        // Filtrar por estado (si se selecciona un estado)
+        if ($request->filled('status')) {
+            $query->where('status', $request->input('status'));
+        }
+
+        // Obtener los duelos filtrados
+        $versus = $query->get();
+
+        // Obtener todos los usuarios para el filtro
+        $users = User::all();
+
+        // Pasar los datos a la vista
+        return view('versus.all', compact('versus', 'users'));
     }
+
+
 
     public function versusdeck($versusid, $userid)
     {
@@ -172,7 +193,9 @@ class VersusController extends Controller
 
         $versus = Versus::orderBy('id', 'DESC')->where('status', 'CLOSED')->get();
 
-        return view('versus.all', compact('versus'));;
+        $users = User::all();
+
+        return view('versus.all', compact('versus', 'users'));;
     }
 
     /**
@@ -201,20 +224,25 @@ class VersusController extends Controller
         $data = $request->validate([
             'user_id_1' => 'required',
             'user_id_2' => 'required',
-            'winner' => 'required',
+            'result_1' => 'required|integer',
+            'result_2' => 'required|integer',
+            'modalidad' => 'required',
+            'status' => 'required|in:OPEN,CLOSED,INVALID',
         ]);
 
-        // Asignar los valores
+        // Actualizar los datos del duelo
         $duel->user_id_1 = $data['user_id_1'];
         $duel->user_id_2 = $data['user_id_2'];
-        $duel->winner = $data['winner'];
-        $duel->url = $request['url'];
-
+        $duel->result_1 = $data['result_1'];
+        $duel->result_2 = $data['result_2'];
+        $duel->matchup = $data['modalidad'];
+        $duel->status = $data['status'];
         $duel->save();
 
-        // Redireccionar
-        return redirect()->action('App\Http\Controllers\VersusController@index');
+        // Redireccionar con mensaje de éxito
+        return redirect()->route('versus.index')->with('success', 'Duelo actualizado exitosamente.');
     }
+
 
 // SBBL Generations
 
@@ -330,23 +358,56 @@ class VersusController extends Controller
     }
 
     public function puntuarDuelo(Request $request, $id, $mode, $winner)
-{
-    $duel = Versus::findOrFail($id);
-    $duel->status = 'CLOSED';
-    $duel->save();
+    {
+        $duel = Versus::findOrFail($id);
+        $duel->status = 'CLOSED';
+        $duel->save();
 
-    // Determinar el usuario ganador basado en los resultados del duelo
-    $winnerId = ($duel->result_1 > $duel->result_2) ? $duel->user_id_1 : $duel->user_id_2;
+        // Determinar el usuario ganador basado en los resultados del duelo
+        $winnerId = ($duel->result_1 > $duel->result_2) ? $duel->user_id_1 : $duel->user_id_2;
 
-    // Modificar el modo según la condición
-    $mode = ($mode == "beybladex") ? 'points_x1' : 'points_s3';
+        // Modificar el modo según la condición
+        $mode = ($mode == "beybladex") ? 'points_x1' : 'points_s3';
 
-    // Incrementar los puntos al usuario ganador
-    DB::table('profiles')
-        ->where('user_id', $winnerId)
-        ->increment($mode, 1);
+        // Incrementar los puntos al usuario ganador
+        DB::table('profiles')
+            ->where('user_id', $winnerId)
+            ->increment($mode, 1);
 
-    return redirect()->back()->with('success', 'Puntuaciones actualizadas correctamente');
-}
+        return redirect()->back()->with('success', 'Puntuaciones actualizadas correctamente');
+    }
+
+    public function puntuarDuelos(Request $request)
+    {
+        $duelIds = $request->input('duel_ids', []);
+
+        foreach ($duelIds as $id) {
+            $duel = Versus::findOrFail($id);
+            if ($duel->status == 'OPEN') {
+                $duel->status = 'CLOSED';
+                $duel->save();
+
+                $winnerId = ($duel->result_1 > $duel->result_2) ? $duel->user_id_1 : $duel->user_id_2;
+                $mode = ($duel->matchup == "beybladex") ? 'points_x1' : 'points_s3';
+
+                DB::table('profiles')
+                    ->where('user_id', $winnerId)
+                    ->increment($mode, 1);
+            }
+        }
+
+        return redirect()->back()->with('success', 'Duelos puntuados correctamente');
+    }
+
+    public function invalidar($id)
+    {
+        $duel = Versus::findOrFail($id);
+        $duel->status = 'INVALID';
+        $duel->save();
+
+        return redirect()->route('versus.index')->with('status', 'El duelo ha sido marcado como inválido.');
+    }
+
+
 
 }

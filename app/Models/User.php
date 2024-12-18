@@ -85,4 +85,12 @@ class User extends Authenticatable
     {
         return $this->belongsToMany(Team::class, 'team_user')->withPivot('is_captain')->withTimestamps();
     }
+
+    public function trophies()
+    {
+        return $this->belongsToMany(Trophy::class, 'profilestrophies', 'profiles_id', 'trophies_id')
+                    ->withPivot('count'); // Incluye la columna count
+    }
+
+
 }

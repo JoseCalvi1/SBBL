@@ -35,13 +35,62 @@
    </script>
 
     @yield('styles')
+    <style>
+/* Estilo del botón lateral */
+.subscription-button {
+    position: fixed;
+    top: 50%;
+    right: 0;
+    transform: translateY(-50%);
+    background-color: #FFD700;
+    color: #27295B;
+    padding: 10px 15px;
+    border-radius: 5px 0 0 5px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+    cursor: pointer;
+    z-index: 9999;
+    width: 180px; /* Tamaño del botón */
+    text-align: center;
+    transition: width 0.3s ease-in-out, right 0.3s ease-in-out;
+}
+
+.subscription-button:hover {
+    width: 250px; /* Tamaño al hacer hover */
+    right: 0px; /* Desplazamiento hacia la izquierda al hacer hover */
+}
+
+.dropdown-item:hover, .dropdown-item:active {
+    background-color: darkblue !important;
+}
+
+/* Estilo para la información desplegable */
+.subscription-tooltip {
+    margin-top: 20px;
+    display: none;
+    background-color: #27295B;
+    color: #fff;
+    padding: 10px;
+    border-radius: 5px;
+    position: absolute;
+    top: 18px;
+    z-index: 10000;
+    width: 230px;
+    font-size: 0.9rem;
+}
+
+.subscription-button:hover .subscription-tooltip {
+    display: block;
+}
+
+
+    </style>
 
     <!-- Styles -->
     <link href="{{ asset('css/app.css') }}" rel="stylesheet">
 </head>
 <body>
     <div id="app">
-        <nav class="navbar navbar-expand-md shadow-sm"  style="background-color: rgb(0, 0, 112);">
+        <nav class="navbar navbar-expand-md shadow-sm"  style=" background-color: #1e2a47;">
             <div class="container">
                 <a class="navbar-brand d-none d-sm-none d-md-block" href="{{ url('/') }}">
                     <img src="/images/logo_new.png" alt="Logo" width="60" height="50">
@@ -143,51 +192,19 @@
                             </a>
                         </li>
 
-@if (Auth::user()->is_admin)
-                                    <li class="nav-item dropdown">
-                                        <a id="navbarDropdown" style="color: white;" class="nav-link dropdown-toggle" href="#" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" v-pre>
-                                            {{ 'ADMIN' }}
-                                        </a>
-
-                                        <div class="dropdown-menu dropdown-menu-right" style="background-color: darkblue" aria-labelledby="navbarDropdown">
-                                            <a class="nav-link" style="color: white;" href="{{ route('events.index') }}">
-                                                {{ 'EVENTOS' }}
-                                            </a>
-
-                                            <a class="nav-link" style="color: white;" href="{{ route('versus.index') }}">
-                                                {{ 'DUELOS' }}
-                                            </a>
-
-                                            <a class="nav-link" style="color: white;" href="{{ route('profiles.indexAdmin') }}">
-                                                {{ 'USUARIOS BURST' }}
-                                            </a>
-
-                                            <a class="nav-link" style="color: white;" href="{{ route('profiles.indexAdminX') }}">
-                                                {{ 'USUARIOS X' }}
-                                            </a>
-
-                                            <a class="nav-link" style="color: white;" href="{{ route('equipos.indexAdmin') }}">
-                                                {{ 'EQUIPOS' }}
-                                            </a>
-
-                                            <a class="nav-link" style="color: white;" href="{{ route('teams_versus.index') }}">
-                                                {{ 'EQUIPOS DUELOS' }}
-                                            </a>
-
-                                            <form id="logout-form" action="{{ route('logout') }}" method="POST" class="d-none">
-                                                @csrf
-                                            </form>
-                                        </div>
-                                    </li>
-
-
-                                @endif
+                    @if (Auth::user()->is_referee)
+                        <li class="nav-item">
+                            <a id="navbarAdmin" style="color: white;" class="nav-link" href="{{ route('admin.dashboard') }}">
+                                {{ 'ADMIN' }}
+                            </a>
+                        </li>
+                    @endif
                             <li class="nav-item dropdown">
                                 <a id="navbarDropdown" style="color: white;" class="nav-link dropdown-toggle" href="#" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" v-pre>
                                     {{ strtoupper(Auth::user()->name) }}
                                 </a>
 
-                                <div class="dropdown-menu dropdown-menu-right" style="background-color: darkblue" aria-labelledby="navbarDropdown">
+                                <div class="dropdown-menu dropdown-menu-right" style="background-color: #283b63" aria-labelledby="navbarDropdown">
                                     <a class="dropdown-item" style="color: white;" href="{{ route('profiles.show', ['profile' => Auth::user()->id]) }}">
                                         {{ 'Ver perfil' }}
                                     </a>
@@ -219,7 +236,17 @@
                     <div class="col-md-2" style="background-image: linear-gradient(to left, rgba(0, 0, 0, 0.8), rgba(0, 0, 0, 0.5)), url('/../images/webTile2.png'); background-size: auto; background-position: right;"></div>
                 </div>
             </div>
+
+            <!-- Botón lateral para suscripciones -->
+            <div class="subscription-button d-none d-md-block" id="subscriptionButton" onclick="window.location.href='{{ route('subscriptions') }}'">
+                <span class="font-weight-bold" style="color: #27295B">SUSCRIPCIONES</span>
+                <div class="subscription-tooltip">
+                    <h4>¡Suscríbete y accede a contenido exclusivo!</h4>
+                    <p>Obtén acceso a beneficios adicionales y contenido exclusivo con nuestras suscripciones de nivel 1, 2 y 3.</p>
+                </div>
+            </div>
         </main>
+
     </div>
 </body>
 <footer style="background-color:rgb(119, 120, 120)">
@@ -306,7 +333,7 @@
                         </div>
                         <div class="col-md-4">
                             <div class="rrss text-center">
-                                <a style="display: inline-block; font-size:1.2em; font-weight: bold; text-decoration:none; color: white;" target="_blank" href="https://www.youtube.com/channel/UCMXJL2jR3ev0CNbhPrfSOwQ">Youtube <i class="fab fa-youtube" style="font-size:1em;"></i></a>
+                                <a style="display: inline-block; font-size:1.2em; font-weight: bold; text-decoration:none; color: white;" target="_blank" href="https://www.youtube.com/@sbbl_oficial">Youtube <i class="fab fa-youtube" style="font-size:1em;"></i></a>
                             </div>
                         </div>
                     </div>

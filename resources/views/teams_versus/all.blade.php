@@ -69,10 +69,39 @@
 @endsection
 
 @section('content')
+<div class="container-fluid" style="background: #283b63">
+
+    <div class="row">
+        <ul class="navbar-nav m-auto" style="flex-direction: row;">
+            <li class="nav-item">
+                <a class="nav-link ml-2 mr-2" style="color: white; font-weight: bold; font-size:1.2em;" href="{{ route('equipos.index') }}">
+                    {{ 'INICIO' }}
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link ml-2 mr-2" style="color: white; font-weight: bold; font-size:1.2em;" href="{{ route('teams_versus.all') }}">
+                    {{ 'DUELOS' }}
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link ml-2 mr-2" style="color: white; font-weight: bold; font-size:1.2em;" href="{{ route('equipos.ranking') }}">
+                    {{ 'RANKING' }}
+                </a>
+            </li>
+        </ul>
+    </div>
+</div>
 
 <div class="container">
     <h2 class="titulo-categoria text-uppercase mb-4 mt-4" style="color:white">Duelos de equipo
-        @if (Auth::user() && Auth::user()->teams && Auth::user()->teams[0]->captain_id == Auth::user()->id && Auth::user()->teams[0]->members()->count() >= 3)
+        @if (
+            Auth::user() &&
+            Auth::user()->is_referee &&
+            Auth::user()->teams &&
+            count(Auth::user()->teams) > 0 &&
+            Auth::user()->teams[0]->captain_id == Auth::user()->id &&
+            Auth::user()->teams[0]->members()->count() >= 3
+        )
         <a href="{{ route('teams_versus.create') }}" class="btn btn-outline-warning mb-2 text-uppercase font-weight-bold">
             Crear duelo
         </a>
