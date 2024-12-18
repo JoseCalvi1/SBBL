@@ -35,7 +35,7 @@
                         @if ($blader->imagen)
                             <img src="/storage/{{ $blader->imagen }}" class="rounded-circle" width="100" style="top: 0; left: 0; {{ strpos($blader->imagen, '.gif') !== false ? 'padding: 20px;' : '' }}">
                         @else
-                            <img src="/storage/upload-profiles/BASE/DranDagger.webp" class="rounded-circle" width="100" style="top: 0; left: 0; padding:10x">
+                            <img src="/storage/upload-profiles/Base/DranDagger.webp" class="rounded-circle" width="100" style="top: 0; left: 0; padding:10x">
                         @endif
 
                         @if ($blader->marco)

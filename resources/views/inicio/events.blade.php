@@ -300,13 +300,19 @@
             document.getElementById('weekTitle').textContent = `Eventos de la Semana del ${startOfWeek.toLocaleDateString()} al ${endOfWeek.toLocaleDateString()}`;
 
             const eventListEl = document.getElementById('eventList');
-            eventListEl.innerHTML = eventsThisWeek.map(event => `
+            eventListEl.innerHTML = eventsThisWeek
+            .sort((a, b) => new Date(a.date) - new Date(b.date)) // Ordena los eventos por fecha
+            .map(event => `
                 <div class="event">
                     <a href="/events/${event.id}" target="_blank">
-                        ${event.region.name} (${event.mode === 'beybladex' ? 'X' : 'Burst'})
+                        ${event.city ? event.city : event.region.name}
+                        (${event.mode === 'beybladex' ? 'X' : 'Burst'}) -
+                        ${new Date(event.date).toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' })}
                     </a>
                 </div>
             `).join('');
+
+
 
             eventListEl.style.display = eventsThisWeek.length > 0 ? 'block' : 'none';
             document.getElementById('weekEvents').style.display = 'block'; // Mostrar la lista de eventos de la semana

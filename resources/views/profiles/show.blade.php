@@ -84,7 +84,7 @@
                 @if ($profile->imagen)
                                 <img src="/storage/{{ $profile->imagen }}" class="rounded-circle" width="200" style="top: 0; left: 0; {{ strpos($profile->imagen, '.gif') !== false ? 'padding: 20px;' : '' }}">
                             @else
-                                <img src="/storage/upload-profiles/BASE/DranDagger.webp" class="rounded-circle" width="200" style="top: 0; left: 0;">
+                                <img src="/storage/upload-profiles/Base/DranDagger.webp" class="rounded-circle" width="200" style="top: 0; left: 0;">
                             @endif
                             @if ($profile->marco)
                                 <img src="/storage/{{ $profile->marco }}" class="rounded-circle" width="200" style="position: absolute; top: 0; left: 0;">

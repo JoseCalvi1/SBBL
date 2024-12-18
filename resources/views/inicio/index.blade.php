@@ -121,7 +121,7 @@
                         @if ($bladers[0]->imagen)
                                 <img src="/storage/{{ $bladers[0]->imagen }}" class="rounded-circle" width="100" style="position: absolute; top: 0; left: 1.2vw; {{ strpos($bladers[0]->imagen, '.gif') !== false ? 'padding: 10px;' : '' }}">
                             @else
-                                <img src="/storage/upload-profiles/BASE/DranDagger.webp" class="rounded-circle" width="100" style="position: absolute; : 0; left: 1.2vw;">
+                                <img src="/storage/upload-profiles/Base/DranDagger.webp" class="rounded-circle" width="100" style="position: absolute; : 0; left: 1.2vw;">
                             @endif
                             @if ($bladers[0]->marco)
                                 <img src="/storage/{{ $bladers[0]->marco }}" class="rounded-circle" width="100" style="position: absolute; top: 0; left: 1.2vw;">
@@ -138,7 +138,7 @@
                         @if ($bladers[1]->imagen)
                                 <img src="/storage/{{ $bladers[1]->imagen }}" class="rounded-circle" width="100" style="position: absolute; top: 0; left: 1.2vw; {{ strpos($bladers[1]->imagen, '.gif') !== false ? 'padding: 10px;' : '' }}">
                             @else
-                                <img src="/storage/upload-profiles/BASE/DranDagger.webp" class="rounded-circle" width="100" style="position: absolute; top: 0; left: 1.2vw;">
+                                <img src="/storage/upload-profiles/Base/DranDagger.webp" class="rounded-circle" width="100" style="position: absolute; top: 0; left: 1.2vw;">
                             @endif
                             @if ($bladers[1]->marco)
                                 <img src="/storage/{{ $bladers[1]->marco }}" class="rounded-circle" width="100" style="position: absolute; top: 0; left: 1.2vw;">
@@ -155,7 +155,7 @@
                         @if ($bladers[2]->imagen)
                                 <img src="/storage/{{ $bladers[2]->imagen }}" class="rounded-circle" width="100" style="position: absolute; top: 0; left: 1.2vw; {{ strpos($bladers[2]->imagen, '.gif') !== false ? 'padding: 10px;' : '' }}">
                             @else
-                                <img src="/storage/upload-profiles/BASE/DranDagger.webp" class="rounded-circle" width="100" style="position: absolute; top: 0; left: 1.2vw;">
+                                <img src="/storage/upload-profiles/Base/DranDagger.webp" class="rounded-circle" width="100" style="position: absolute; top: 0; left: 1.2vw;">
                             @endif
                             @if ($bladers[2]->marco)
                                 <img src="/storage/{{ $bladers[2]->marco }}" class="rounded-circle" width="100" style="position: absolute; top: 0; left: 1.2vw;">
@@ -172,7 +172,7 @@
                         @if ($bladers[3]->imagen)
                                 <img src="/storage/{{ $bladers[3]->imagen }}" class="rounded-circle" width="100" style="position: absolute; top: 0; left: 1.2vw; {{ strpos($bladers[3]->imagen, '.gif') !== false ? 'padding: 10px;' : '' }}">
                             @else
-                                <img src="/storage/upload-profiles/BASE/DranDagger.webp" class="rounded-circle" width="100" style="position: absolute; top: 0; left: 1.2vw;">
+                                <img src="/storage/upload-profiles/Base/DranDagger.webp" class="rounded-circle" width="100" style="position: absolute; top: 0; left: 1.2vw;">
                             @endif
                             @if ($bladers[3]->marco)
                                 <img src="/storage/{{ $bladers[3]->marco }}" class="rounded-circle" width="100" style="position: absolute; top: 0; left: 1.2vw;">
@@ -189,7 +189,7 @@
                         @if ($bladers[4]->imagen)
                                 <img src="/storage/{{ $bladers[4]->imagen }}" class="rounded-circle" width="100" style="position: absolute; top: 0; left: 1.2vw; {{ strpos($bladers[4]->imagen, '.gif') !== false ? 'padding: 10px;' : '' }}">
                             @else
-                                <img src="/storage/upload-profiles/BASE/DranDagger.webp" class="rounded-circle" width="100" style="position: absolute; top: 0; left: 1.2vw;">
+                                <img src="/storage/upload-profiles/Base/DranDagger.webp" class="rounded-circle" width="100" style="position: absolute; top: 0; left: 1.2vw;">
                             @endif
                             @if ($bladers[4]->marco)
                                 <img src="/storage/{{ $bladers[4]->marco }}" class="rounded-circle" width="100" style="position: absolute; top: 0; left: 1.2vw;">
@@ -256,7 +256,7 @@
                     @if ($bestUserProfile->profile->imagen)
                         <img src="/storage/{{ $bestUserProfile->profile->imagen }}" class="rounded-circle" width="180" style="position: absolute; top: 0; left: 0;{{ strpos($bestUserProfile->profile->imagen, '.gif') !== false ? 'padding: 20px;' : '' }}">
                     @else
-                        <img src="/storage/upload-profiles/BASE/DranDagger.webp" class="rounded-circle" width="180" style="position: absolute; top: 0; left: 0;">
+                        <img src="/storage/upload-profiles/Base/DranDagger.webp" class="rounded-circle" width="180" style="position: absolute; top: 0; left: 0;">
                     @endif
                     @if ($bestUserProfile->profile->marco)
                         <img src="/storage/{{ $bestUserProfile->profile->marco }}" class="rounded-circle" width="180" style="position: absolute; top: 0; left: 0;">
@@ -322,7 +322,7 @@
                         @if ($usuario->profile->imagen)
                             <img src="/storage/{{ $usuario->profile->imagen }}" class="rounded-circle" width="100" height="100" style="position: absolute; top: 0; left: 0; z-index: 1;{{ strpos($usuario->profile->imagen, '.gif') !== false ? 'padding: 10px;' : '' }}">
                         @else
-                            <img src="/storage/upload-profiles/BASE/DranDagger.webp" class="rounded-circle" width="100" height="100" style="position: absolute; top: 0; left: 0; z-index: 1;">
+                            <img src="/storage/upload-profiles/Base/DranDagger.webp" class="rounded-circle" width="100" height="100" style="position: absolute; top: 0; left: 0; z-index: 1;">
                         @endif
                     </div>
                     <h3 class="user-name" style="color: white; margin-top: 10px; font-size: 1.5rem; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.5);">{{ $usuario->name }}</h3>
