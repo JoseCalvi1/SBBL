@@ -248,6 +248,23 @@
         </main>
 
     </div>
+    <!-- En tu archivo layouts.app, antes de </body> -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/0.4.1/html2canvas.min.js"></script>
+<script>
+    function downloadImage() {
+        const element = document.getElementById('wrapped');
+        html2canvas(element, {
+            useCORS: true,  // Habilita el soporte para imágenes cruzadas
+            onrendered: function(canvas) {
+                const link = document.createElement('a');
+                link.download = 'SBBL_Wrapped.png';
+                link.href = canvas.toDataURL();
+                link.click();
+            }
+        });
+    }
+</script>
+
 </body>
 <footer style="background-color:rgb(119, 120, 120)">
     <div class="container">

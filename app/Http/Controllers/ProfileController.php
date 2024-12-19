@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Event;
 use Carbon\Carbon;
 use App\Models\TournamentResult;
 use App\Models\Profile;
@@ -582,6 +583,50 @@ class ProfileController extends Controller
         }
 
 
+    public function wrapped(Profile $profile)
+    {
+        $primerTorneo = DB::table('assist_user_event')
+            ->where('user_id', $profile->id)
+            ->where('event_id', '>=', 190)
+            ->orderBy('id', 'asc')
+            ->first();
+
+        if ($primerTorneo) {
+            $datosTorneo = Event::with('region')
+                ->find($primerTorneo->event_id);
+        } else {
+            $datosTorneo = null;
+        }
+
+        $numeroTorneos = DB::table('assist_user_event')
+            ->where('user_id', $profile->id)
+            ->whereNotNull('puesto') // Asegura que 'puesto' no sea null
+            ->where('puesto', '!=', 'nopresentado')
+            ->where('event_id', '>=', 190)
+            ->orderBy('id', 'asc')
+            ->count();
+
+        $torneosGanados = DB::table('assist_user_event')
+            ->where('user_id', $profile->id)
+            ->where('puesto', 'primero')
+            ->where('event_id', '>=', 190)
+            ->orderBy('id', 'asc')
+            ->count();
+
+        $mejorCombo = TournamentResult::where('user_id', $profile->id)
+            ->select(DB::raw('blade, ratchet, bit, SUM(puntos_ganados) as total_puntos_ganados, SUM(puntos_perdidos) as total_puntos_perdidos'))
+            ->groupBy('blade', 'ratchet', 'bit')
+            ->orderBy(DB::raw('SUM(victorias)'), 'desc')
+            ->first();
+
+        $peorCombo = TournamentResult::where('user_id', $profile->id)
+            ->select(DB::raw('blade, ratchet, bit, SUM(puntos_ganados) as total_puntos_ganados, SUM(puntos_perdidos) as total_puntos_perdidos'))
+            ->groupBy('blade', 'ratchet', 'bit')
+            ->orderBy(DB::raw('SUM(derrotas)'), 'desc')
+            ->first();
+
+        return view('profiles.wrapped', compact('profile', 'datosTorneo', 'numeroTorneos', 'torneosGanados', 'mejorCombo', 'peorCombo'));
+    }
 
 
 

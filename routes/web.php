@@ -69,6 +69,7 @@ Route::put('/profiles/{profile}', [App\Http\Controllers\ProfileController::class
 Route::put('/profiles-admin/{profile}', [App\Http\Controllers\ProfileController::class, 'updatePoints'])->name('profiles.updatePoints');
 Route::put('/profiles-admin-x/{profile}', [App\Http\Controllers\ProfileController::class, 'updatePointsX'])->name('profiles.updatePointsX');
 Route::put('/update-admin-x/update-all', [App\Http\Controllers\ProfileController::class, 'updateAllPointsX'])->name('profiles.updateAllPointsX');
+Route::get('/wrapped/{profile}', [App\Http\Controllers\ProfileController::class, 'wrapped'])->name('profiles.wrapped');
 
 Route::get('/rankings', [App\Http\Controllers\ProfileController::class, 'ranking'])->name('profiles.ranking');
 
