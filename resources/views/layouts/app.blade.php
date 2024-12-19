@@ -36,52 +36,50 @@
 
     @yield('styles')
     <style>
-/* Estilo del botón lateral */
 .subscription-button {
     position: fixed;
-    top: 50%;
-    right: 0;
-    transform: translateY(-50%);
-    background-color: #FFD700;
+    bottom: 20px;
+    right: 20px;
+    background: #ffc107;
     color: #27295B;
     padding: 10px 15px;
-    border-radius: 5px 0 0 5px;
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+    border-radius: 50px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 16px;
+    font-weight: bold;
     cursor: pointer;
-    z-index: 9999;
-    width: 180px; /* Tamaño del botón */
-    text-align: center;
-    transition: width 0.3s ease-in-out, right 0.3s ease-in-out;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    transition: background 0.3s ease;
+    z-index: 1000;
 }
 
 .subscription-button:hover {
-    width: 250px; /* Tamaño al hacer hover */
-    right: 0px; /* Desplazamiento hacia la izquierda al hacer hover */
+    background: #e0a800;
 }
 
-.dropdown-item:hover, .dropdown-item:active {
-    background-color: darkblue !important;
+.subscription-button i {
+    font-size: 20px;
 }
 
-/* Estilo para la información desplegable */
 .subscription-tooltip {
-    margin-top: 20px;
     display: none;
-    background-color: #27295B;
-    color: #fff;
-    padding: 10px;
-    border-radius: 5px;
     position: absolute;
-    top: 18px;
-    z-index: 10000;
-    width: 230px;
-    font-size: 0.9rem;
+    bottom: 60px;
+    right: 0;
+    background: white;
+    color: #27295B;
+    padding: 15px;
+    border-radius: 8px;
+    width: 250px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    z-index: 1001;
 }
 
 .subscription-button:hover .subscription-tooltip {
     display: block;
 }
-
 
     </style>
 
@@ -237,14 +235,16 @@
                 </div>
             </div>
 
-            <!-- Botón lateral para suscripciones -->
-            <div class="subscription-button d-none d-md-block" id="subscriptionButton" onclick="window.location.href='{{ route('subscriptions') }}'">
-                <span class="font-weight-bold" style="color: #27295B">SUSCRIPCIONES</span>
+            <!-- Botón flotante para suscripciones -->
+            <div class="subscription-button" id="subscriptionButton" onclick="window.location.href='{{ route('subscriptions') }}'">
+                <i class="fas fa-credit-card"></i>
+                <span class="d-none d-md-inline font-weight-bold" style="color: #27295B">SUSCRIPCIONES</span>
                 <div class="subscription-tooltip">
                     <h4>¡Suscríbete y accede a contenido exclusivo!</h4>
                     <p>Obtén acceso a beneficios adicionales y contenido exclusivo con nuestras suscripciones de nivel 1, 2 y 3.</p>
                 </div>
             </div>
+
         </main>
 
     </div>

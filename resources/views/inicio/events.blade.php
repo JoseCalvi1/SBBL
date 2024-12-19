@@ -169,7 +169,7 @@
 
 <!-- Sección para eventos de la semana (solo en dispositivos móviles) -->
 <div id="weekEvents" style="display: none; color: white;" class="p-4">
-    <h3>Eventos de la Semana</h3>
+    <h3>Eventos del mes</h3>
     <div id="weekTitle"></div>
     <div id="eventList" class="pt-1 pb-1"></div>
 </div>
@@ -276,54 +276,55 @@
     }
 
     function showMobileEvents() {
-        showLoading();
+    showLoading();
 
-        const today = new Date();
-        const startOfWeek = new Date(today.setDate(today.getDate() - today.getDay() + 1)); // Lunes de la semana actual
-        const endOfWeek = new Date(today.setDate(today.getDate() + 6)); // Domingo de la semana actual
+    const today = new Date();
+    const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1); // Primer día del mes
+    const endOfMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0); // Último día del mes
 
-        fetch('/eventos/fetch', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
-            },
-            body: JSON.stringify({ year: startOfWeek.getFullYear(), month: startOfWeek.getMonth() + 1 })
-        })
-        .then(response => response.json())
-        .then(events => {
-            const eventsThisWeek = events.filter(event => {
-                const eventDate = new Date(event.date);
-                return eventDate >= startOfWeek && eventDate <= endOfWeek;
-            });
-
-            document.getElementById('weekTitle').textContent = `Eventos de la Semana del ${startOfWeek.toLocaleDateString()} al ${endOfWeek.toLocaleDateString()}`;
-
-            const eventListEl = document.getElementById('eventList');
-            eventListEl.innerHTML = eventsThisWeek
-            .sort((a, b) => new Date(a.date) - new Date(b.date)) // Ordena los eventos por fecha
-            .map(event => `
-                <div class="event">
-                    <a href="/events/${event.id}" target="_blank">
-                        ${event.city ? event.city : event.region.name}
-                        (${event.mode === 'beybladex' ? 'X' : 'Burst'}) -
-                        ${new Date(event.date).toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' })}
-                    </a>
-                </div>
-            `).join('');
-
-
-
-            eventListEl.style.display = eventsThisWeek.length > 0 ? 'block' : 'none';
-            document.getElementById('weekEvents').style.display = 'block'; // Mostrar la lista de eventos de la semana
-
-            hideLoading();
-        })
-        .catch(() => {
-            alert('Error al cargar los eventos de la semana.');
-            hideLoading();
+    fetch('/eventos/fetch', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+        },
+        body: JSON.stringify({ year: startOfMonth.getFullYear(), month: startOfMonth.getMonth() + 1 })
+    })
+    .then(response => response.json())
+    .then(events => {
+        const eventsThisMonth = events.filter(event => {
+            const eventDate = new Date(event.date);
+            return eventDate >= startOfMonth && eventDate <= endOfMonth;
         });
-    }
+
+        document.getElementById('weekTitle').textContent =
+            `Eventos del Mes: ${startOfMonth.toLocaleDateString()} - ${endOfMonth.toLocaleDateString()}`;
+
+        const eventListEl = document.getElementById('eventList');
+        eventListEl.innerHTML = eventsThisMonth
+        .sort((a, b) => new Date(a.date) - new Date(b.date)) // Ordenar por fecha
+        .map(event => `
+            <div class="event">
+                <a href="/events/${event.id}" target="_blank">
+                    ${event.city ? event.city : event.region.name}
+                    (${event.mode === 'beybladex' ? 'X' : 'Burst'}) -
+                    ${new Date(event.date).toLocaleDateString('es-ES', {
+                        day: 'numeric', month: 'long', year: 'numeric'
+                    })}
+                </a>
+            </div>
+        `).join('');
+
+        eventListEl.style.display = eventsThisMonth.length > 0 ? 'block' : 'none';
+        document.getElementById('weekEvents').style.display = 'block'; // Mostrar eventos del mes
+
+        hideLoading();
+    })
+    .catch(() => {
+        alert('Error al cargar los eventos del mes.');
+        hideLoading();
+    });
+}
 
     function showLoading() {
         document.getElementById('loading').style.display = 'block';
