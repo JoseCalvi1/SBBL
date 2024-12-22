@@ -191,7 +191,7 @@
                                 <div class="region">{{ ($miembro->profile->region) ? $miembro->profile->region->name : 'No definida'}}</div>
                             </div>
                         </div>
-                        @if ($equipo->captain_id === Auth::user()->id)
+                        @if ($equipo && ($equipo->captain_id === Auth::user()->id))
                             @if (!$miembroId->pivot->is_captain)
                                 <!-- Formulario para hacer a este miembro el nuevo capitán del equipo -->
                                 <form action="{{ route('equipos.changeCaptain', [$equipo, $miembroId]) }}" method="POST" style="position: absolute; bottom: 40px; right: 10px;">
