@@ -1,6 +1,7 @@
 @extends('layouts.app')
 
 @section('content')
+@if (Auth::user()->is_referee)
 <div class="container py-4" style="color: white; border-radius: 10px;">
     <h1 class="text-center mb-4" style="font-weight: bold;">Panel de Administración</h1>
     <div class="row g-4">
@@ -91,6 +92,11 @@
         @endif
     </div>
 </div>
+@else
+<script type="text/javascript">
+    window.location = "/";
+</script>
+@endif
 @endsection
 
 @section('styles')

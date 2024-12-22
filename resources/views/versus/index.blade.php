@@ -1,6 +1,7 @@
 @extends('layouts.app')
 
 @section('content')
+@if (Auth::user()->is_referee)
 <div class="py-4">
     <h2 class="text-center mb-4 text-white font-weight-bold">Administrar Duelos</h2>
 
@@ -68,6 +69,11 @@
         </form>
     </div>
 </div>
+@else
+<script type="text/javascript">
+    window.location = "/";
+</script>
+@endif
 @endsection
 
 @section('scripts')
