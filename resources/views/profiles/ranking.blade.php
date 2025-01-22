@@ -47,9 +47,11 @@
                                     $subscriptionClass = 'suscripcion-nivel-3';
                                     break;
                                 case 'SUSCRIPCIÓN NIVEL 2':
-                                case 'SUSCRIPCIÓN NIVEL 1':
-                                    $subscriptionClass = 'suscripcion';
-                                    break;
+                            $subscriptionClass = 'suscripcion-nivel-2';
+                            break;
+                        case 'SUSCRIPCIÓN NIVEL 1':
+                            $subscriptionClass = 'suscripcion-nivel-1';
+                            break;
                                 default:
                                     $subscriptionClass = '';
                                     break;

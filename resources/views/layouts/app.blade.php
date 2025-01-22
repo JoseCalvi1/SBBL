@@ -18,6 +18,14 @@
      <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7050675485532592"
      crossorigin="anonymous"></script>
 
+<script type="text/javascript">
+var _iub = _iub || [];
+_iub.csConfiguration = {"siteId":3900878,"cookiePolicyId":74065134,"lang":"es","storage":{"useSiteId":true}};
+</script>
+<script type="text/javascript" src="https://cs.iubenda.com/autoblocking/3900878.js"></script>
+<script type="text/javascript" src="//cdn.iubenda.com/cs/gpp/stub.js"></script>
+<script type="text/javascript" src="//cdn.iubenda.com/cs/iubenda_cs.js" charset="UTF-8" async></script>
+
     <!-- Fonts -->
     <link rel="dns-prefetch" href="//fonts.gstatic.com">
     <link href="https://fonts.googleapis.com/css?family=Nunito" rel="stylesheet">
@@ -178,11 +186,11 @@
                             </a>
                         </li>
 
-                        <li class="nav-item">
+                        <!--<li class="nav-item">
                             <a class="nav-link" href="{{ route('mercado.index') }}" style="color: white;">
                                 {{ 'MERCADO' }}
                             </a>
-                        </li>
+                        </li>-->
 
                         <li class="nav-item">
                             <a class="nav-link" href="https://discord.gg/JCtAHfJ8Ht" style="color: white;">

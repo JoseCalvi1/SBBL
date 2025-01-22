@@ -33,8 +33,8 @@ class InicioController extends Controller
         // Obtener el user_id con la media más alta de puntos_ganados / puntos_perdidos
         // Obtener el user_id con la media más alta del mes anterior
         // Obtener el mes y año del mes anterior
-        $lastMonth = Carbon::now()->month - 1;
-        $lastYear = Carbon::now()->subMonth()->year;
+        $lastMonth = (Carbon::now()->subMonthNoOverflow()->month);
+        $lastYear = Carbon::now()->year - 1;
         // Obtener el mes anterior en español
         $lastMonthName = strtoupper(Carbon::now()->subMonth()->translatedFormat('F'));
 
@@ -62,11 +62,15 @@ class InicioController extends Controller
 
         $subtitulos = [
             1 => 'Co-Fundador',
+            3 => 'Co-Fundador',
             4 => 'Co-Fundador',
+            301 => 'Community manager',
             182 => 'Relaciones Públicas',
+            513 => 'Editor',
+            310 => 'Árbitro/Editor',
         ];
 
-        $usuarios = User::whereIn('id', [1, 4, 182, 13, 228, 215, 307, 310])->get()->map(function ($usuario) use ($subtitulos) {
+        $usuarios = User::whereIn('id', [1, 3, 4, 182, 13, 228, 215, 307, 301, 310, 513])->get()->map(function ($usuario) use ($subtitulos) {
             // Asignar el subtítulo personalizado desde el arreglo
             $usuario->titulo = $subtitulos[$usuario->id] ?? 'Árbitro';
             return $usuario;

@@ -199,7 +199,7 @@ class EventController extends Controller
 
         $bladeOptions = ['Aero Pegasus', 'Bite Croc', 'Black Shell', 'Cobalt Dragoon', 'Cobalt Drake', 'Crimson Garuda', 'Darth Vader',
     'Dran Buster', 'Dran Dagger', 'Dran Sword', 'Dranzer S', 'Driger S', 'Hells Chain', 'Hells Hammer', 'Hells Scythe',
-    'Iron Man', 'IronMan', 'Knife Shinobi', 'Knight Lance', 'Knight Mail', 'Knight Shield', 'Lightning L-Drago
+    'Impact Drake', 'Iron Man', 'Knife Shinobi', 'Knight Lance', 'Knight Mail', 'Knight Shield', 'Lightning L-Drago
     Assault', 'Lightning L-Drago Barrage', 'Leon Claw', 'Leon Crest',
     'Lightning L-Drago', 'Luke Skywalker', 'Megatron', 'Moff Gideon', 'Optimus Primal', 'Optimus Prime', 'Phoenix Feather',
     'Phoenix Rudder', 'Phoenix Wing', 'Rhino Horn', 'Roar Tyranno', 'Samurai Saber', 'Savage Bear', 'Sharke Edge', 'Shinobi Shadow',
@@ -208,12 +208,12 @@ class EventController extends Controller
     'Wizard Rod', 'Wyvern Gale', 'Yell Kong'];
 
 
-        $ratchetOptions = ['1-60', '1-80', '2-60', '2-70', '2-80', '3-60', '3-70', '3-80', '3-85', '4-60', '4-70', '4-80',
-            '5-60', '5-70', '5-80', '7-60', '9-60', '9-70', '9-80'
+        $ratchetOptions = ['0-80', '1-60', '1-80', '2-60', '2-70', '2-80', '3-60', '3-70', '3-80', '3-85', '4-60', '4-70', '4-80',
+            '5-60', '5-70', '5-80', '7-60', '7-70', '9-60', '9-70', '9-80'
         ];
 
         $bitOptions = ['Accel', 'Ball', 'Bound Spike', 'Cyclone', 'Disc Ball', 'Dot', 'Elevate', 'Flat', 'Free Ball', 'Gear Ball',
-            'Gear Flat', 'Gear Needle', 'Gear Point', 'Glide', 'Hexa', 'High Needle', 'High Taper', 'Level', 'Low Flat',
+            'Gear Flat', 'Gear Needle', 'Gear Point', 'Glide', 'Hexa', 'High Needle', 'High Taper', 'Level', 'Low Flat', 'Low Rush',
             'Metal Needle', 'Needle', 'Orb', 'Point', 'Quake', 'Rubber Accel', 'Rush', 'Spike', 'Taper', 'Trans Point', 'Unite'
         ];
 

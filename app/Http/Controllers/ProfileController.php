@@ -335,6 +335,7 @@ class ProfileController extends Controller
             'ORO/BronceTest120.gif' => 'upload-profiles/ORO/BronceTest120.gif',
             'ORO/SilverTest120.gif' => 'upload-profiles/ORO/SilverTest120.gif',
             'ORO/GoldTest120.gif' => 'upload-profiles/ORO/GoldTest120.gif',
+            'ORO/JinniusWave.webp' => 'upload-profiles/ORO/JinniusWave.webp',
             /*'ORO/Leon.gif' => 'upload-profiles/ORO/Leon.gif',
             'ORO/dragoon.gif' => 'upload-profiles/ORO/dragoon.gif',
             'ORO/beyblade-tyson.gif' => 'upload-profiles/ORO/beyblade-tyson.gif',

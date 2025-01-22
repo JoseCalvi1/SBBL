@@ -214,10 +214,11 @@
 <script>
     document.addEventListener("DOMContentLoaded", function () {
         const modeSelect = document.getElementById("mode");
+        const imagenSelect = document.getElementById("imagen");
         const deckSelect = document.getElementById("deck");
 
         function updateDeckOptions() {
-            if (modeSelect.value === "beybladex") {
+            if (modeSelect.value === "beybladex" && (imagenSelect.value === "ranking" || imagenSelect.value === "rankingplus")) {
                 // Si el modo es Beyblade X, solo muestra la opción 3on3
                 deckSelect.value = "3on3";
                 deckSelect.querySelectorAll("option").forEach(option => {
@@ -234,9 +235,10 @@
 
         // Escuchar el cambio en el select de modalidad
         modeSelect.addEventListener("change", updateDeckOptions);
+        imagenSelect.addEventListener("change", updateDeckOptions);
 
         // Llamar a la función al cargar la página en caso de que ya haya un valor seleccionado
         updateDeckOptions();
     });
 </script>
-@endsection
+@endsection	

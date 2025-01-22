@@ -95,13 +95,17 @@
 <div class="container">
     <h2 class="titulo-categoria text-uppercase mb-4 mt-4" style="color:white">Duelos de equipo
         @if (
-            Auth::user() &&
-            Auth::user()->is_referee &&
+    Auth::check() && 
+    (
+        Auth::user()->is_referee || 
+        (
             Auth::user()->teams &&
             count(Auth::user()->teams) > 0 &&
             Auth::user()->teams[0]->captain_id == Auth::user()->id &&
             Auth::user()->teams[0]->members()->count() >= 3
         )
+    )
+)
         <a href="{{ route('teams_versus.create') }}" class="btn btn-outline-warning mb-2 text-uppercase font-weight-bold">
             Crear duelo
         </a>

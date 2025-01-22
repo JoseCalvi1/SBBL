@@ -42,13 +42,12 @@
 </div>
 @endif
 
-@if (Auth::user())
+@if (1 == 2)
 <div class="row text-center" style="background: linear-gradient(135deg, #28a745, #218838); color: white; padding: 20px; border-radius: 8px;">
     <p class="text-center" style="margin-bottom: 0; font-size: 1.2em; font-weight: bold;">
        🎉 ¡DESCUBRE TU <a style="color: #ffc107; text-decoration: underline;" href="{{ route('profiles.wrapped', ['profile' => Auth::user()->id]) }}">SBBL WRAPPED DE MITAD DE TEMPORADA</a>! 🎯
     </p>
  </div>
-
 @endif
 
         <div class="row" style="background-color: #283b63;">

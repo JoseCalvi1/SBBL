@@ -61,11 +61,11 @@
     </div>
 
     <div class="text-center mt-4">
-        <p>La suscripciones estarán disponibles a partir del día 1 de enero</p>
-        <!--<p>Haz el envío poniendo tu nombre en la web y el nivel de suscripción que solicitas (Ej: JoseCalvi1 Nivel 3)</p>
+        <!--<p>La suscripciones estarán disponibles a partir del día 1 de enero</p>-->
+        <p>Haz el envío poniendo tu nombre en la web y el nivel de suscripción que solicitas (Ej: JoseCalvi1 Nivel 3)</p>
         <a href="https://www.paypal.com/paypalme/sbbloficial" target="_blank" class="btn btn-primary btn-lg" style="background-color: #1e1e2f; border: none;">
             Suscribirse ahora
-        </a>-->
+        </a>
     </div>
 </div>
 @endsection
