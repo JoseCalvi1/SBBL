@@ -10,8 +10,8 @@ trix-editor {
 }
 
 .navbar-brand {
-  font-family: "Didact Gothic", sans-serif;
-  font-size: 2rem !important;
+  font-family: "Miedinger";
+  font-size: 1rem !important;
   text-decoration: none;
 }
 
@@ -41,7 +41,7 @@ trix-editor {
 }
 
 .titulo-categoria {
-  font-family: "Cabin", sans-serif;
+  font-family: "Miedinger", sans-serif;
   color: #333;
   font-size: 1.8rem;
   border-bottom: 3px solid #ED4646 !important;
@@ -15528,4 +15528,24 @@ readers do not read off random characters that represent icons */
 .far {
   font-family: "Font Awesome 5 Free";
   font-weight: 400;
+}
+
+@font-face {
+  font-family: "HelveticaNeue";
+  src: url("/fonts/Helvetica_Neue.otf") format("opentype");
+  font-weight: normal;
+  font-style: normal;
+}
+@font-face {
+  font-family: "Miedinger";
+  src: url("/fonts/Miedinger-W01-Bold.ttf") format("truetype");
+  font-weight: normal;
+  font-style: normal;
+}
+body {
+  font-family: "HelveticaNeue", sans-serif;
+}
+
+h1, h2 {
+  font-family: "Miedinger", sans-serif;
 }
