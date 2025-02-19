@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\BeybladeDatabaseController;
 use App\Http\Controllers\ChatController;
 use App\Http\Controllers\EventController;
 use App\Http\Controllers\InicioController;
@@ -146,6 +147,42 @@ Route::post('/eventos/fetch', [InicioController::class, 'fetchEvents'])->name('e
 Route::get('/versus', [App\Http\Controllers\VersusController::class, 'index'])->name('versus.index');
 Route::get('/subscriptions', [InicioController::class, 'suscriptions'])->name('subscriptions');
 Route::get('/admin', [InicioController::class, 'dashboard'])->name('admin.dashboard');
+
+Route::get('/beyblade-database', [BeybladeDatabaseController::class, 'index'])->name('database.index');
+
+// Rutas de partes admin (blades, ratchets, bits)
+Route::get('partes', [BeybladeDatabaseController::class, 'indexPartes'])->name('database.indexPartes');
+Route::get('beys', [BeybladeDatabaseController::class, 'indexBeys'])->name('database.indexBeys');
+Route::get('partes/{type}', [BeybladeDatabaseController::class, 'indexPartes']);
+Route::get('partes/{type}/{id}', [BeybladeDatabaseController::class, 'show']); // Para editar
+Route::post('partes/{type}', [BeybladeDatabaseController::class, 'store']);
+Route::put('partes/{type}/{id}', [BeybladeDatabaseController::class, 'update']);
+Route::delete('partes/{type}/{id}', [BeybladeDatabaseController::class, 'destroy']);
+
+// Rutas para blades, ratchets y bits
+Route::get('beyblade-database/beyblades', [BeybladeDatabaseController::class, 'listBeyblades'])->name('database.beyblades');
+Route::get('beyblade-database/parts', [BeybladeDatabaseController::class, 'listParts'])->name('database.parts');
+
+Route::post('beyblades', [BeybladeDatabaseController::class, 'storeBey'])->name('beyblades.store');
+Route::get('/beyblades/create', [BeybladeDatabaseController::class, 'createBey'])->name('beyblades.create');
+Route::get('/beyblades/{id}/edit', [BeybladeDatabaseController::class, 'editBey'])->name('beyblades.edit');
+Route::put('/beyblades/{id}', [BeybladeDatabaseController::class, 'updateBey'])->name('beyblades.update');
+Route::get('beyblade-database/beyblades/{id}', [BeybladeDatabaseController::class, 'showBey'])->name('database.showBey');
+
+Route::post('blades', [BeybladeDatabaseController::class, 'store'])->name('blades.store');
+Route::get('/blades/{id}/edit', [BeybladeDatabaseController::class, 'editBlade'])->name('blades.edit');
+Route::put('/blades/{id}', [BeybladeDatabaseController::class, 'update'])->name('blades.update');
+Route::get('beyblade-database/blades/{id}', [BeybladeDatabaseController::class, 'showBlade'])->name('database.showBlade');
+
+Route::post('ratchets', [BeybladeDatabaseController::class, 'store'])->name('ratchets.store');
+Route::get('/ratchets/{id}/edit', [BeybladeDatabaseController::class, 'editRatchet'])->name('ratchets.edit');
+Route::put('/ratchets/{id}', [BeybladeDatabaseController::class, 'updateRatchet'])->name('ratchets.update');
+Route::get('beyblade-database/ratchets/{id}', [BeybladeDatabaseController::class, 'showRatchet'])->name('database.showRatchet');
+
+Route::post('bits', [BeybladeDatabaseController::class, 'store'])->name('bits.store');
+Route::get('/bits/{id}/edit', [BeybladeDatabaseController::class, 'editBit'])->name('bits.edit');
+Route::put('/bits/{id}', [BeybladeDatabaseController::class, 'updateBit'])->name('bits.update');
+Route::get('beyblade-database/bits/{id}', [BeybladeDatabaseController::class, 'showBit'])->name('database.showBit');
 
 Route::group(['middleware' => 'admin'], function () {
    Route::get('/profiles-admin', [App\Http\Controllers\ProfileController::class, 'indexAdmin'])->name('profiles.indexAdmin');
