@@ -126,8 +126,10 @@ class EventController extends Controller
             $ruta_imagen = 'upload-events/MadridBase.png';
         }   elseif($request['region_id'] == 4)  {
             $ruta_imagen = 'upload-events/ValenciaBase.png';
-        } else {
-            $ruta_imagen = 'upload-events/ranking.jpg';
+        }   elseif($request['region_id'] == 8)  {
+            $ruta_imagen = 'upload-events/CanariasBase.png';
+        }   else {
+            $ruta_imagen = 'upload-events/rankingx.jpg';
         }
 
         // Almacenar datos en la BD (sin modelos)
@@ -150,7 +152,7 @@ class EventController extends Controller
         ]);
 
         // TODO Comentar para probar en local
-        //Self::notification(Event::find($eventId));
+        Self::notification(Event::find($eventId));
 
         $events = Event::with('region')->get();
         $createEvent = Event::where('created_by', Auth::user()->id)->where('date', '>', Carbon::now())->get();
@@ -197,25 +199,9 @@ class EventController extends Controller
                                                                 ->get();
         }
 
-        $bladeOptions = ['Aero Pegasus', 'Bite Croc', 'Black Shell', 'Cobalt Dragoon', 'Cobalt Drake', 'Crimson Garuda', 'Darth Vader',
-    'Dran Buster', 'Dran Dagger', 'Dran Sword', 'Dranzer S', 'Driger S', 'Hells Chain', 'Hells Hammer', 'Hells Scythe',
-    'Impact Drake', 'Iron Man', 'Knife Shinobi', 'Knight Lance', 'Knight Mail', 'Knight Shield', 'Lightning L-Drago
-    Assault', 'Lightning L-Drago Barrage', 'Leon Claw', 'Leon Crest',
-    'Lightning L-Drago', 'Luke Skywalker', 'Megatron', 'Moff Gideon', 'Optimus Primal', 'Optimus Prime', 'Phoenix Feather',
-    'Phoenix Rudder', 'Phoenix Wing', 'Rhino Horn', 'Roar Tyranno', 'Samurai Saber', 'Savage Bear', 'Sharke Edge', 'Shinobi Shadow',
-    'Silver Wolf', 'Sphinx Cowl', 'Spider-Man', 'Starscream', 'Steel Samurai', 'Talon Ptera', 'Thanos', 'The Mandalorian',
-    'Tusk Mammoth', 'Tyranno Beat', 'Unicorn Sting', 'Venom', 'Viper Tail', 'Weiss Tiger', 'Whale Wave', 'Wizard Arrow',
-    'Wizard Rod', 'Wyvern Gale', 'Yell Kong'];
-
-
-        $ratchetOptions = ['0-80', '1-60', '1-80', '2-60', '2-70', '2-80', '3-60', '3-70', '3-80', '3-85', '4-60', '4-70', '4-80',
-            '5-60', '5-70', '5-80', '7-60', '7-70', '9-60', '9-70', '9-80'
-        ];
-
-        $bitOptions = ['Accel', 'Ball', 'Bound Spike', 'Cyclone', 'Disc Ball', 'Dot', 'Elevate', 'Flat', 'Free Ball', 'Gear Ball',
-            'Gear Flat', 'Gear Needle', 'Gear Point', 'Glide', 'Hexa', 'High Needle', 'High Taper', 'Level', 'Low Flat', 'Low Rush',
-            'Metal Needle', 'Needle', 'Orb', 'Point', 'Quake', 'Rubber Accel', 'Rush', 'Spike', 'Taper', 'Trans Point', 'Unite'
-        ];
+        $bladeOptions = DB::table('blades')->pluck('nombre_takara')->toArray();
+        $ratchetOptions = DB::table('ratchets')->pluck('nombre')->toArray();
+        $bitOptions = DB::table('bits')->pluck('nombre')->toArray();
 
         $currentDate = Carbon::now();
         $startOfWeek = $currentDate->startOfWeek()->format('Y-m-d');
@@ -286,8 +272,12 @@ class EventController extends Controller
             $ruta_imagen = 'upload-events/MadridBase.png';
         }   elseif($request['region_id'] == 4)  {
             $ruta_imagen = 'upload-events/ValenciaBase.png';
+        }   elseif($request['region_id'] == 8)  {
+            $ruta_imagen = 'upload-events/CanariasBase.png';
+        }elseif($request['beys'] == 'ranking' || $request['beys'] == 'rankingplus')  {
+            $ruta_imagen = 'upload-events/rankingx.png';
         } else {
-            $ruta_imagen = 'upload-events/ranking.jpg';
+            $ruta_imagen = 'upload-events/quedada.jpg';
         }
 
         // Asignar los valores
@@ -484,7 +474,7 @@ class EventController extends Controller
         $message .= "\n<@&$rolId>";
 
         // Envías el mensaje al webhook de Discord
-        return Http::post('https://discord.com/api/webhooks/1228040797547659345/J7kVzzGIvAwVHbUM2QY9lHDizXnK5zk_kbQARTQKgI9xUkJ2YCHVQaPwTOCgNHSA2BF8', [
+        return Http::post('https://discord.com/api/webhooks/1331670647696265258/W9yh-iyR0x1_W6PfbEaPAtfYWdl59X81TwUYsfiXOdrbJxP9VF8Ao95FK8V3hmrkAln0', [
             'content' => $message,
             'embeds' => [
                 [

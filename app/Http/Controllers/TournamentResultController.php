@@ -70,50 +70,55 @@ class TournamentResultController extends Controller
 
 
     public function beybladeStats(Request $request)
-    {
-        $sort = $request->get('sort', 'blade');
-        $order = $request->get('order', 'asc');
+{
+    $sort = $request->get('sort', 'blade');
+    $order = $request->get('order', 'asc');
 
-        // Filtros
-        $bladeFilter = $request->get('blade');
-        $ratchetFilter = $request->get('ratchet');
-        $bitFilter = $request->get('bit');
+    // Filtros
+    $bladeFilter = $request->get('blade');
+    $ratchetFilter = $request->get('ratchet');
+    $bitFilter = $request->get('bit');
+    $userPartsFilter = $request->get('only_user_parts') == 'on';
 
-        // Obtener opciones únicas y ordenarlas alfabéticamente
-        $blades = DB::table('tournament_results')->distinct()->pluck('blade')->sort();
-        $ratchets = DB::table('tournament_results')->distinct()->pluck('ratchet')->sort();
-        $bits = DB::table('tournament_results')->distinct()->pluck('bit')->sort();
+    // Obtener opciones únicas y ordenarlas alfabéticamente
+    $blades = DB::table('tournament_results')->distinct()->pluck('blade')->sort();
+    $ratchets = DB::table('tournament_results')->distinct()->pluck('ratchet')->sort();
+    $bits = DB::table('tournament_results')->distinct()->pluck('bit')->sort();
 
-        $beybladeStats = DB::table('tournament_results')
-            ->select(
-                'blade',
-                'ratchet',
-                'bit',
-                DB::raw('SUM(victorias) as total_victorias'),
-                DB::raw('SUM(derrotas) as total_derrotas'),
-                DB::raw('CASE WHEN SUM(victorias) > 0 THEN SUM(puntos_ganados) / GREATEST(SUM(victorias), 1) ELSE 0 END AS puntos_ganados_por_combate'),
-                DB::raw('CASE WHEN SUM(derrotas) > 0 THEN SUM(puntos_perdidos) / GREATEST(SUM(derrotas), 1) ELSE 0 END AS puntos_perdidos_por_combate'),
-                DB::raw('SUM(victorias + derrotas) as total_partidas'),
-                DB::raw('CASE WHEN SUM(victorias + derrotas) > 0 THEN (SUM(victorias) / GREATEST(SUM(victorias + derrotas), 1)) * 100 ELSE 0 END AS percentage_victories'),
-                DB::raw('CASE WHEN (SUM(victorias) + SUM(derrotas)) > 0 THEN (((SUM(puntos_ganados) / GREATEST(SUM(victorias), 1)) / ((SUM(puntos_ganados) / GREATEST(SUM(victorias), 1)) + (SUM(puntos_perdidos) / GREATEST(SUM(derrotas), 1)))) * ((SUM(victorias) / GREATEST(SUM(victorias + derrotas), 1)) * 100)) * LOG(SUM(victorias + derrotas) + 1) ELSE 0 END AS eficiencia')
-            )
-            ->where('blade', 'NOT LIKE', '%Selecciona%')
-            ->when($bladeFilter, function ($query) use ($bladeFilter) {
-                return $query->where('blade', $bladeFilter);
-            })
-            ->when($ratchetFilter, function ($query) use ($ratchetFilter) {
-                return $query->where('ratchet', $ratchetFilter);
-            })
-            ->when($bitFilter, function ($query) use ($bitFilter) {
-                return $query->where('bit', $bitFilter);
-            })
-            ->groupBy('blade', 'ratchet', 'bit')
-            ->havingRaw('SUM(victorias + derrotas) >= 10')
-            ->orderBy($sort, $order)
-            ->get();
+    $beybladeStats = DB::table('tournament_results')
+        ->select(
+            'blade',
+            'ratchet',
+            'bit',
+            DB::raw('SUM(victorias) as total_victorias'),
+            DB::raw('SUM(derrotas) as total_derrotas'),
+            DB::raw('CASE WHEN SUM(victorias) > 0 THEN SUM(puntos_ganados) / GREATEST(SUM(victorias), 1) ELSE 0 END AS puntos_ganados_por_combate'),
+            DB::raw('CASE WHEN SUM(derrotas) > 0 THEN SUM(puntos_perdidos) / GREATEST(SUM(derrotas), 1) ELSE 0 END AS puntos_perdidos_por_combate'),
+            DB::raw('SUM(victorias + derrotas) as total_partidas'),
+            DB::raw('CASE WHEN SUM(victorias + derrotas) > 0 THEN (SUM(victorias) / GREATEST(SUM(victorias + derrotas), 1)) * 100 ELSE 0 END AS percentage_victories'),
+            DB::raw('CASE WHEN (SUM(victorias) + SUM(derrotas)) > 0 THEN (((SUM(puntos_ganados) / GREATEST(SUM(victorias), 1)) / ((SUM(puntos_ganados) / GREATEST(SUM(victorias), 1)) + (SUM(puntos_perdidos) / GREATEST(SUM(derrotas), 1)))) * ((SUM(victorias) / GREATEST(SUM(victorias + derrotas), 1)) * 100)) * LOG(SUM(victorias + derrotas) + 1) ELSE 0 END AS eficiencia')
+        )
+        ->where('blade', 'NOT LIKE', '%Selecciona%')
+        ->when($bladeFilter, function ($query) use ($bladeFilter) {
+            return $query->where('blade', $bladeFilter);
+        })
+        ->when($ratchetFilter, function ($query) use ($ratchetFilter) {
+            return $query->where('ratchet', $ratchetFilter);
+        })
+        ->when($bitFilter, function ($query) use ($bitFilter) {
+            return $query->where('bit', $bitFilter);
+        })
+        ->when($userPartsFilter, function ($query) {
+            return $query->where('user_id', Auth::user()->id);
+        })
+        ->groupBy('blade', 'ratchet', 'bit')
+        ->havingRaw('SUM(victorias + derrotas) >= 10')
+        ->orderBy($sort, $order)
+        ->get();
 
-        return view('inicio.stats', compact('beybladeStats', 'sort', 'order', 'bladeFilter', 'ratchetFilter', 'bitFilter', 'blades', 'ratchets', 'bits'));
-    }
+    return view('inicio.stats', compact('beybladeStats', 'sort', 'order', 'bladeFilter', 'ratchetFilter', 'bitFilter', 'blades', 'ratchets', 'bits', 'userPartsFilter'));
+}
+
 
     public function separateStats(Request $request)
     {

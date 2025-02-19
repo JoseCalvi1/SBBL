@@ -121,64 +121,36 @@ class ProfileController extends Controller
      * @param  \App\Models\Profile  $profile
      * @return \Illuminate\Http\Response
      */
-    public function show(Profile $profile)
+    public function show(Profile $profile, Request $request)
     {
         $invitacionesPendientes = Invitation::where('user_id', auth()->id())->get();
 
-        $currentMonth = Carbon::now()->month;
-        $currentYear = Carbon::now()->year;
+        $currentMonth = $request->input('month', Carbon::now()->month);
+        $currentYear = $request->input('year', Carbon::now()->year);
 
+        // Obtener los duelos del usuario en el mes seleccionado
         $versus = Versus::orderBy('id', 'DESC')
             ->whereMonth('created_at', $currentMonth)
             ->whereYear('created_at', $currentYear)
-            ->where(
-           function($query) use ($profile) {
-             return $query->where('user_id_1', '=' , $profile->user_id)->orWhere('user_id_2', '=' , $profile->user_id);
+            ->where(function($query) use ($profile) {
+                return $query->where('user_id_1', '=' , $profile->user_id)
+                            ->orWhere('user_id_2', '=' , $profile->user_id);
             })
             ->get();
 
-        $beybladeStats = DB::table('tournament_results')
-    ->select(
-        'blade',
-        'ratchet',
-        'bit',
-        DB::raw('SUM(victorias) as total_victorias'),
-        DB::raw('SUM(derrotas) as total_derrotas'),
-        DB::raw('CASE
-            WHEN SUM(victorias) > 0 THEN SUM(puntos_ganados) / GREATEST(SUM(victorias), 1)
-            ELSE 0
-        END AS puntos_ganados_por_combate'),
-        DB::raw('CASE
-            WHEN SUM(derrotas) > 0 THEN SUM(puntos_perdidos) / GREATEST(SUM(derrotas), 1)
-            ELSE 0
-        END AS puntos_perdidos_por_combate'),
-        DB::raw('SUM(victorias + derrotas) as total_partidas'),
-        DB::raw('CASE
-            WHEN SUM(victorias + derrotas) > 0 THEN (SUM(victorias) / GREATEST(SUM(victorias + derrotas), 1)) * 100
-            ELSE 0
-        END AS percentage_victories'),
-        DB::raw('CASE
-            WHEN (SUM(victorias) + SUM(derrotas)) > 0 THEN
-                (
-                    (
-                        (SUM(puntos_ganados) / GREATEST(SUM(victorias), 1)) /
-                        ((SUM(puntos_ganados) / GREATEST(SUM(victorias), 1)) + (SUM(puntos_perdidos) / GREATEST(SUM(derrotas), 1)))
-                    )
-                    *
-                    ((SUM(victorias) / GREATEST(SUM(victorias + derrotas), 1)) * 100)
-                )
-                * LOG(SUM(victorias + derrotas) + 1)
-            ELSE 0
-        END AS eficiencia')
-    )
-        ->where('blade', 'NOT LIKE', '%Selecciona%')
-        ->where('user_id', auth()->id())
-        ->groupBy('blade', 'ratchet', 'bit')
-        ->orderBy('eficiencia', 'desc')
-        ->get();
+        // Obtener los eventos en los que ha participado el usuario en el mes seleccionado
+        $eventos = Event::join('assist_user_event', 'events.id', '=', 'assist_user_event.event_id')
+            ->where('assist_user_event.user_id', $profile->user_id)
+            ->whereMonth('events.date', $currentMonth)
+            ->whereYear('events.date', $currentYear)
+            ->orderBy('events.date', 'DESC')
+            ->get(['events.*']); // Seleccionamos todas las columnas de la tabla `events`
 
-        return view('profiles.show', compact('profile','versus','invitacionesPendientes', 'beybladeStats'));
+        return view('profiles.show', compact('profile', 'versus', 'eventos', 'invitacionesPendientes', 'currentMonth', 'currentYear'));
     }
+
+
+
 
     /**
      * Show the form for editing the specified resource.
@@ -342,6 +314,17 @@ class ProfileController extends Controller
             'ORO/aiga.gif' => 'upload-profiles/ORO/aiga.gif',*/
         ];
 
+        $copaLloros = DB::table('assist_user_event')
+            ->join('events', 'assist_user_event.event_id', '=', 'events.id')
+            ->where('assist_user_event.user_id', Auth::user()->id)
+            ->where('events.name', 'LIKE', '%lloro%')
+            ->exists(); // Devuelve true si hay algún resultado
+
+        $copaLlorosAvatar = [
+                'EXC/SWLLOROS.webp' => 'upload-profiles/EXC/SWLLOROS.webp',
+                'EXC/WRLLOROS.webp' => 'upload-profiles/EXC/WRLLOROS.webp',
+            ];
+
         $marcoOptions = [
             'BaseBlack.png' => 'upload-profiles/Marcos/BaseBlack.png',
             'BaseBlue.png' => 'upload-profiles/Marcos/BaseBlue.png',
@@ -413,7 +396,7 @@ class ProfileController extends Controller
         // Verificar el nivel de suscripción del usuario
         $subscriptionLevel = optional(Auth::user()->profile->trophies->first())->name;
 
-        return view('profiles.edit', compact('profile', 'regions', 'regionT', 'avatarOptions', 'marcoOptions', 'fondoOptions', 'subscriptionLevel', 'bronzeAvatars', 'silverAvatars', 'goldAvatars', 'marcoBronce', 'marcoPlata', 'marcoOro'));
+        return view('profiles.edit', compact('profile', 'regions', 'regionT', 'avatarOptions', 'marcoOptions', 'fondoOptions', 'subscriptionLevel', 'bronzeAvatars', 'silverAvatars', 'goldAvatars', 'marcoBronce', 'marcoPlata', 'marcoOro', 'copaLloros', 'copaLlorosAvatar'));
     }
 
     /**
