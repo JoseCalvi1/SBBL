@@ -15,3 +15,25 @@ $fa-font-path:        "../webfonts";
 @import "~@fortawesome/fontawesome-free/scss/solid";
 @import "~@fortawesome/fontawesome-free/scss/brands";
 @import "~@fortawesome/fontawesome-free/scss/regular";
+
+@font-face {
+    font-family: 'HelveticaNeue';
+    src: url('/fonts/Helvetica_Neue.otf') format('opentype');
+    font-weight: normal;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'Miedinger';
+    src: url('/fonts/Miedinger-W01-Bold.ttf') format('truetype');
+    font-weight: normal;
+    font-style: normal;
+}
+
+// Aplicar la fuente en el body o donde necesites
+body {
+    font-family: 'HelveticaNeue', sans-serif;
+}
+h1, h2 {
+    font-family: 'Miedinger', sans-serif;
+}
