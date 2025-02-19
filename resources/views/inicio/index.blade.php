@@ -216,7 +216,7 @@
 
         <div class="row border-bottom border-white" style="background-color: #283b63;">
             <div class="col-md-12 text-center pt-2">
-                <h2 style="font-size: 2em; font-weight: bold;">¿Cómo participo en la liga?</h2>
+                <h2 style="font-size: 1.5em; font-weight: bold;">¿Cómo participo en la liga?</h2>
             </div>
             <div class="col-md-4">
                 <div class="rrss text-center p-4">
@@ -243,7 +243,7 @@
 
         <div id="bladerofthemonth" class="row border-bottom border-white" style="background-color: rgb(59, 79, 148);">
             <div class="col-md-9 text-white text-center p-4" style="font-size: 1.2em; font-weight: bold; line-height: 1">
-                <h2 style="font-size: 2em; font-weight: bold;">
+                <h2 style="font-size: 1.5em; font-weight: bold;">
                     BLADER DEL MES {{ $lastMonthName ?? '' }} {{ $lastYear ?? '' }}
                 </h2>
                 <p>

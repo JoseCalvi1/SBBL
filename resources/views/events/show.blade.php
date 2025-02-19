@@ -43,11 +43,11 @@
                 </h1>
                 @if($event->status == "OPEN" && Auth::user() && $event->date > $hoy)
                     @if (!$suscribe)
-                @if($isRegistered)
-                    <span class="alert alert-warning d-block mt-3 p-2 text-center font-weight-bold">
-                        ⚠️ Ya te has apuntado a otro torneo esta semana. Recuerda que está prohibido participar en dos torneos la misma semana salvo excepción aprobada por los admins o ser un torneo especial.
-                    </span>
-                @endif
+                        @if($isRegistered && ($event->beys == "ranking" || $event->beys == "rankingplus"))
+                            <span class="alert alert-warning d-block mt-3 p-2 text-center font-weight-bold">
+                                ⚠️ Ya te has apuntado a otro torneo esta semana. Recuerda que está prohibido participar en dos torneos la misma semana salvo excepción aprobada por los admins o ser un torneo especial.
+                            </span>
+                        @endif
 
                         <form method="POST" action="{{ route('events.assist', ['event' => $event->id]) }}" enctype="multipart/form-data" novalidate style="text-align: center;">
                             @csrf

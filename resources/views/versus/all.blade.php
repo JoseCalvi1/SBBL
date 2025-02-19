@@ -107,7 +107,7 @@
                         <select name="status" id="statusFilter" class="form-control select2 bg-dark text-white border-secondary">
                             <option value="">Seleccione un estado</option>
                             <option value="OPEN" {{ request('status') == 'OPEN' ? 'selected' : '' }}>Abierto</option>
-                            <option value="CLOSED" {{ request('status') == 'CLOSED' ? 'selected' : '' }}>Cerrado</option>
+                            <option value="CLOSED" {{ request('status') == 'CLOSED' || is_null(request('status')) ? 'selected' : '' }}>Cerrado</option>
                         </select>
                     </div>
                 </div>

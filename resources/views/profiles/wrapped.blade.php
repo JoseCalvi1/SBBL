@@ -4,7 +4,6 @@
 <style>
     /* General */
     body {
-        font-family: 'Poppins', sans-serif;
         color: white;
         text-align: center;
         margin: 0;

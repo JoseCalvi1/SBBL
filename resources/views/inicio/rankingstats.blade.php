@@ -34,7 +34,6 @@
     body {
         background-color: #121212;
         color: #e0e0e0;
-        font-family: 'Roboto', sans-serif;
     }
 
     .ranking-title {

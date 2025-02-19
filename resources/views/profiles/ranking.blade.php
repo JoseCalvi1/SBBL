@@ -33,7 +33,7 @@
                 <div class="clasificacion" id="clasificacion_x1">
                     <div class="item encabezado">
                         <span class="posicion">#</span>
-                        <span>Equipo</span>
+                        <span></span>
                         <span>Blader</span>
                         <span>Región</span>
                         <span>Puntos</span>
@@ -59,11 +59,21 @@
                         @endphp
                         <div class="item {{ $index < 4 ? 'resaltado' : '' }}">
                             <span class="posicion">{{ $index + 1 }}</span>
-                            <span>
-                                @if ($blader->team_logo)
-                                    <img src="{{ $blader->team_logo }}" width="60" loading="lazy">
-                                @endif
+                            <span class="profile-container">
+                                <div class="blader-avatar d-none d-sm-block">
+                                    @if ($blader->imagen)
+                                        <img src="/storage/{{ $blader->imagen }}" class="blader-image">
+                                    @else
+                                        <img src="/storage/upload-profiles/Base/DranDagger.webp" class="blader-image">
+                                    @endif
+                                    @if ($blader->marco)
+                                        <img src="/storage/{{ $blader->marco }}" class="blader-frame">
+                                    @else
+                                        <img src="/storage/upload-profiles/Marcos/BaseBlue.png" class="blader-frame">
+                                    @endif
+                                </div>
                             </span>
+
                             <span class="{{ $subscriptionClass }}">{{ $blader->user->name }}</span>
                             <span>{{ $blader->region ? $blader->region->name : 'Región desconocida' }}</span>
                             <span>{{ $blader->points_x1 }} puntos</span>
@@ -214,5 +224,40 @@
             color: #CD7F32; /* Bronce */
             font-weight: bold;
         }
+        .profile-container {
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 50px; /* Tamaño del contenedor */
+            height: 50px;
+        }
+
+        .blader-avatar {
+            position: relative;
+            width: 100%;
+            height: 100%;
+        }
+
+        .blader-image {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            object-fit: cover;
+            position: absolute;
+            top: 0;
+            left: 0;
+        }
+
+        .blader-frame {
+            width: 50px;
+            height: 50px;
+            position: absolute;
+            top: 0;
+            left: 0;
+            border-radius: 50%;
+            z-index: 2; /* Asegura que el marco está encima */
+        }
+
     </style>
 @endsection

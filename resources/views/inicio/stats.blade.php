@@ -1,5 +1,11 @@
 @extends('layouts.app')
 
+@section('styles')
+<style>
+
+</style>
+@endsection
+
 @section('content')
 <div class="container">
     <h2 class="text-white pt-2">Estadísticas de Beyblades</h2>
@@ -45,6 +51,22 @@
                 </select>
             </div>
         </div>
+        @if(Auth::user())
+        <div class="form-group col-md-4 d-flex align-items-center">
+            <label for="only_user_parts" class="text-white mb-0 mr-2">Solo mis datos</label>
+            <div class="custom-control custom-switch">
+                <input
+                    type="checkbox"
+                    class="custom-control-input"
+                    id="only_user_parts"
+                    name="only_user_parts"
+                    {{ request()->has('only_user_parts') ? 'checked' : '' }}
+                >
+                <label class="custom-control-label" for="only_user_parts"></label>
+            </div>
+        </div>
+        @endif
+
         <button type="submit" class="btn btn-primary w-100">Filtrar</button>
     </form>
 

@@ -94,7 +94,7 @@ class TournamentResultController extends Controller
             DB::raw('SUM(derrotas) as total_derrotas'),
             DB::raw('CASE WHEN SUM(victorias) > 0 THEN SUM(puntos_ganados) / GREATEST(SUM(victorias), 1) ELSE 0 END AS puntos_ganados_por_combate'),
             DB::raw('CASE WHEN SUM(derrotas) > 0 THEN SUM(puntos_perdidos) / GREATEST(SUM(derrotas), 1) ELSE 0 END AS puntos_perdidos_por_combate'),
-            DB::raw('SUM(victorias + derrotas) as total_partidas'),
+            DB::raw('SUM(victorias) + SUM(derrotas) as total_partidas'),
             DB::raw('CASE WHEN SUM(victorias + derrotas) > 0 THEN (SUM(victorias) / GREATEST(SUM(victorias + derrotas), 1)) * 100 ELSE 0 END AS percentage_victories'),
             DB::raw('CASE WHEN (SUM(victorias) + SUM(derrotas)) > 0 THEN (((SUM(puntos_ganados) / GREATEST(SUM(victorias), 1)) / ((SUM(puntos_ganados) / GREATEST(SUM(victorias), 1)) + (SUM(puntos_perdidos) / GREATEST(SUM(derrotas), 1)))) * ((SUM(victorias) / GREATEST(SUM(victorias + derrotas), 1)) * 100)) * LOG(SUM(victorias + derrotas) + 1) ELSE 0 END AS eficiencia')
         )

@@ -117,7 +117,7 @@
 
     /* Cambio a 2 columnas en pantallas móviles */
     @media (max-width: 768px) {
-        .calendar-box, .navigation {
+        .calendar-box {
             display: none; /* Ocultar el calendario */
         }
 
@@ -191,7 +191,7 @@
         buildCalendar(currentYear, currentMonth);
 
         if (window.innerWidth <= 768) {
-            showMobileEvents(); // Mostrar los eventos de la semana en pantallas pequeñas
+            showMobileEvents(currentYear, currentMonth); // Pasar valores correctos
         }
     });
 
@@ -202,6 +202,7 @@
             currentYear--;
         }
         buildCalendar(currentYear, currentMonth);
+        showMobileEvents(currentYear, currentMonth);
     }
 
     function nextMonth() {
@@ -211,6 +212,7 @@
             currentYear++;
         }
         buildCalendar(currentYear, currentMonth);
+        showMobileEvents(currentYear, currentMonth);
     }
 
     function buildCalendar(year, month) {
@@ -275,12 +277,11 @@
         });
     }
 
-    function showMobileEvents() {
+    function showMobileEvents(year, month) {
     showLoading();
 
-    const today = new Date();
-    const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1); // Primer día del mes
-    const endOfMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0); // Último día del mes
+    const startOfMonth = new Date(year, month, 1);
+    const endOfMonth = new Date(year, month + 1, 0);
 
     fetch('/eventos/fetch', {
         method: 'POST',
@@ -288,20 +289,15 @@
             'Content-Type': 'application/json',
             'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
         },
-        body: JSON.stringify({ year: startOfMonth.getFullYear(), month: startOfMonth.getMonth() + 1 })
+        body: JSON.stringify({ year: year, month: month + 1 }) // +1 porque los meses van de 0 a 11
     })
     .then(response => response.json())
     .then(events => {
-        const eventsThisMonth = events.filter(event => {
-            const eventDate = new Date(event.date);
-            return eventDate >= startOfMonth && eventDate <= endOfMonth;
-        });
-
         document.getElementById('weekTitle').textContent =
-            `Eventos del Mes: ${startOfMonth.toLocaleDateString()} - ${endOfMonth.toLocaleDateString()}`;
+            `${getMonthName(month)} ${year}`;
 
         const eventListEl = document.getElementById('eventList');
-        eventListEl.innerHTML = eventsThisMonth
+        eventListEl.innerHTML = events
         .sort((a, b) => new Date(a.date) - new Date(b.date)) // Ordenar por fecha
         .map(event => `
             <div class="event">
@@ -315,8 +311,8 @@
             </div>
         `).join('');
 
-        eventListEl.style.display = eventsThisMonth.length > 0 ? 'block' : 'none';
-        document.getElementById('weekEvents').style.display = 'block'; // Mostrar eventos del mes
+        eventListEl.style.display = events.length > 0 ? 'block' : 'none';
+        document.getElementById('weekEvents').style.display = 'block';
 
         hideLoading();
     })
@@ -325,6 +321,7 @@
         hideLoading();
     });
 }
+
 
     function showLoading() {
         document.getElementById('loading').style.display = 'block';
@@ -343,5 +340,15 @@
         ];
         return monthNames[month];
     }
+
+    function goToToday() {
+        const today = new Date();
+        currentYear = today.getFullYear();
+        currentMonth = today.getMonth();
+
+        buildCalendar(currentYear, currentMonth);
+        showMobileEvents(currentYear, currentMonth);
+    }
+
 </script>
 @endsection

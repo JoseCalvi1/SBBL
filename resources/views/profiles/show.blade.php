@@ -8,7 +8,7 @@
         border-radius: 10px;
         padding: 20px;
         margin-bottom: 20px;
-        height: 200px;
+        height: 240px;
         color: white;
         background-size: cover;
         background-position: center;
@@ -169,68 +169,70 @@
 
 
 
+    {{-- Controles de navegación de meses --}}
+    <div class="d-flex justify-content-between align-items-center mt-4 mb-4">
+        <a href="{{ route('profiles.show', ['profile' => $profile->id, 'month' => $currentMonth == 1 ? 12 : $currentMonth - 1, 'year' => $currentMonth == 1 ? $currentYear - 1 : $currentYear]) }}" class="btn btn-secondary">
+            ← Mes Anterior
+        </a>
+        <h3 class="text-white">{{ \Carbon\Carbon::create($currentYear, $currentMonth)->translatedFormat('F Y') }}</h3>
+        <a href="{{ route('profiles.show', ['profile' => $profile->id, 'month' => $currentMonth == 12 ? 1 : $currentMonth + 1, 'year' => $currentMonth == 12 ? $currentYear + 1 : $currentYear]) }}" class="btn btn-secondary">
+            Mes Siguiente →
+        </a>
+    </div>
 
+    {{-- Duelos Mensuales --}}
     <h2 class="titulo-categoria text-uppercase mb-4 mt-4 text-white">Duelos mensuales</h2>
     <div class="row mt-2">
         @foreach ($versus as $duelo)
-        <div class="col-md-3 mb-3"> <!-- Cada tarjeta ocupará 3 columnas en una fila y tendrá un margen inferior -->
-            <div class="duel-card" style="background-image: url('/storage/{{ $duelo->result_1 > $duelo->result_2 ? $duelo->versus_1->profile->fondo : $duelo->versus_2->profile->fondo }}');">
-                <div class="overlay"></div>
-                <div class="duel-mode">
-                    <span class="mode">{{ ($duelo->matchup == "beybladex") ? "Beyblade X" : "Beyblade Burst"  }}{{ $duelo->status == "CLOSED" ? " - Válido" : ($duelo->status == "invalid" ? " - Inválido" : " - Enviado") }}</span>
-                </div>
-                <div class="duel-info">
-                    <div class="duel-player">
-                        <span class="player-name">{{ $duelo->versus_1->name }}</span>
+            <div class="col-md-3 mb-3">
+                <div class="duel-card" style="background-image: url('/storage/{{ $duelo->result_1 > $duelo->result_2 ? $duelo->versus_1->profile->fondo : $duelo->versus_2->profile->fondo }}');">
+                    <div class="overlay"></div>
+                    <div class="duel-mode">
+                        <span class="mode">{{ ($duelo->matchup == "beybladex") ? "Beyblade X" : "Beyblade Burst"  }}{{ $duelo->status == "CLOSED" ? " - Válido" : ($duelo->status == "invalid" ? " - Inválido" : " - Enviado") }}</span>
                     </div>
-                    <div class="vs"><span class="player-score">{{ $duelo->result_1 }}</span> VS <span class="player-score">{{ $duelo->result_2 }}</span></div>
-                    <div class="duel-player">
-                        <span class="player-name">{{ $duelo->versus_2->name }}</span>
+                    <div class="duel-info">
+                        <div class="duel-player">
+                            <span class="player-name">{{ $duelo->versus_1->name }}</span>
+                        </div>
+                        <div class="vs"><span class="player-score">{{ $duelo->result_1 }}</span> VS <span class="player-score">{{ $duelo->result_2 }}</span></div>
+                        <div class="duel-player">
+                            <span class="player-name">{{ $duelo->versus_2->name }}</span>
+                        </div>
+                        @if ($duelo->user_id_1 == Auth::user()->id || $duelo->user_id_2 == Auth::user()->id)
+                                <a href="{{ route('versus.versusdeck', ['duel' => $duelo->id, 'deck' => Auth::user()->id]) }}" type="button" class="btn btn-warning w-100">Introducir deck</a>
+                            @endif
                     </div>
                 </div>
+            </div>
+        @endforeach
+    </div>
 
+    {{-- Eventos Mensuales --}}
+    <h2 class="titulo-categoria text-uppercase mb-4 mt-4 text-white">Eventos mensuales</h2>
+    <div class="row mt-2">
+        @foreach ($eventos as $evento)
+        <div class="col-md-4 pb-2">
+            <div class="card d-flex flex-column text-center" style="background-color: #283b63; color: white; border: 2px solid #ffffff;">
+                @if ($evento->image_mod)
+                    <span style="width: 100%; min-height: 200px; background: url('data:image/png;base64,{{ $evento->image_mod }}') bottom center no-repeat; background-size: cover;"></span>
+                @else
+                    <span style="width: 100%; min-height: 200px; background: url('/storage/{{ $evento->imagen }}') bottom center no-repeat; background-size: cover;"></span>
+                @endif
+                <div class="card-body d-flex flex-column align-items-center justify-content-center text-center">
+                    <h3 style="font-weight: bold;">{{ $evento->name }}</h3>
+                    <h3>{{ $evento->region->name }}</h3>
+                    <p><event-date fecha="{{ $evento->date }}"></event-date></p>
+                </div>
+                <a href="{{ route('events.show', ['event' => $evento->id]) }}" class="d-block font-weight-bold text-uppercase pt-2 pb-2 text-center" style="text-decoration: none; color: white; width: 100%; background-color: #1e2a47; border-color: #ffffff;">
+                    Ver evento
+                </a>
             </div>
         </div>
         @endforeach
     </div>
 
-</div>
-<div class="container">
-    <h2 class="titulo-categoria text-uppercase mb-4 mt-4 text-white">Estadísticas de Beyblades</h2>
-    <div class="table-responsive">
-        <table class="table table-striped table-dark">
-            <thead>
-                <tr>
-                    <th>Blade</th>
-                    <th>Ratchet</th>
-                    <th>Bit</th>
-                    <th>Victorias</th>
-                    <th>Derrotas</th>
-                    <th>Total Partidas</th>
-                    <th>Porcentaje Victorias/Derrotas</th>
-                    <th>Puntos Ganados por Combate</th>
-                    <th>Puntos Perdidos por Combate</th>
-                    <th>Puntos OTH</th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach($beybladeStats as $stat)
-                    <tr>
-                        <td>{{ $stat->blade }}</td>
-                        <td>{{ $stat->ratchet }}</td>
-                        <td>{{ $stat->bit }}</td>
-                        <td>{{ $stat->total_victorias }}</td>
-                        <td>{{ $stat->total_derrotas }}</td>
-                        <td>{{ $stat->total_partidas }}</td>
-                        <td>{{ number_format($stat->percentage_victories, 2) }}%</td>
-                        <td>{{ number_format($stat->puntos_ganados_por_combate, 2) }}</td>
-                        <td>{{ number_format($stat->puntos_perdidos_por_combate, 2) }}</td>
-                        <td>{{ number_format($stat->eficiencia, 2) }}</td>
-                    </tr>
-                @endforeach
-            </tbody>
-        </table>
-    </div>
+
+
 </div>
 @endif
 @endsection

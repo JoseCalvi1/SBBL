@@ -18,14 +18,6 @@
      <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7050675485532592"
      crossorigin="anonymous"></script>
 
-<script type="text/javascript">
-var _iub = _iub || [];
-_iub.csConfiguration = {"siteId":3900878,"cookiePolicyId":74065134,"lang":"es","storage":{"useSiteId":true}};
-</script>
-<script type="text/javascript" src="https://cs.iubenda.com/autoblocking/3900878.js"></script>
-<script type="text/javascript" src="//cdn.iubenda.com/cs/gpp/stub.js"></script>
-<script type="text/javascript" src="//cdn.iubenda.com/cs/iubenda_cs.js" charset="UTF-8" async></script>
-
     <!-- Fonts -->
     <link rel="dns-prefetch" href="//fonts.gstatic.com">
     <link href="https://fonts.googleapis.com/css?family=Nunito" rel="stylesheet">
@@ -100,7 +92,7 @@ _iub.csConfiguration = {"siteId":3900878,"cookiePolicyId":74065134,"lang":"es","
             <div class="container">
                 <a class="navbar-brand d-none d-sm-none d-md-block" href="{{ url('/') }}">
                     <img src="/images/logo_new.png" alt="Logo" width="60" height="50">
-                    <span style="font-size: 0.8em; color: white;">Spanish BeyBattle League</span>
+                    <span style="color: white;">Spanish BeyBattle League</span>
                 </a>
                 <a class="navbar-brand d-block d-sm-block d-md-none" href="{{ url('/') }}">
                     <img src="/images/logo_new.png" alt="Logo" width="60" height="50">
@@ -198,7 +190,7 @@ _iub.csConfiguration = {"siteId":3900878,"cookiePolicyId":74065134,"lang":"es","
                             </a>
                         </li>
 
-                    @if (Auth::user()->is_referee)
+                    @if (Auth::user()->is_referee || Auth::user()->is_admin)
                         <li class="nav-item">
                             <a id="navbarAdmin" style="color: white;" class="nav-link" href="{{ route('admin.dashboard') }}">
                                 {{ 'ADMIN' }}
@@ -234,14 +226,49 @@ _iub.csConfiguration = {"siteId":3900878,"cookiePolicyId":74065134,"lang":"es","
 
         <main>
             <div class="container-fluid">
-                <div class="row">
-                    <div class="col-md-2" style="background-image: linear-gradient(to right, rgba(0, 0, 0, 0.8), rgba(0, 0, 0, 0.5)), url('/../images/webTile2.png'); background-size: auto; background-position: left;"></div>
-                    <div class="col-md-8 col-sm-12" style="padding: 0px; background-color: #27295B;">
-                        @yield('content')
+                @if (Request::is('beyblade-database*'))
+                    <!-- Vista a ancho completo -->
+                    <div class="row">
+                        @php
+                            $fondo = '/../images/webTile2.png'; // Imagen por defecto
+                            if (isset($blade)) {
+                                $fondo = match($blade->sistema) {
+                                    'UX' => '/../images/FONDO_UX.webp',
+                                    'CX' => '/../images/FONDO_CX.webp',
+                                    'BX' => '/../images/FONDO_BX.webp',
+                                    default => '/../images/webTile2.png',
+                                };
+                            }
+                            if (isset($beyblade->sistema)) {
+                                $fondo = match($beyblade->sistema) {
+                                    'UX' => '/../images/FONDO_UX.webp',
+                                    'CX' => '/../images/FONDO_CX.webp',
+                                    'BX' => '/../images/FONDO_BX.webp',
+                                    default => '/../images/webTile2.png',
+                                };
+                            }
+                        @endphp
+
+                        <div class="col-12 fondo-database"
+                            style="background-image: linear-gradient(to right, rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), url('{{ $fondo }}');
+                                background-size: auto;
+                                background-position: left;">
+                            @yield('content')
+                        </div>
+
                     </div>
-                    <div class="col-md-2" style="background-image: linear-gradient(to left, rgba(0, 0, 0, 0.8), rgba(0, 0, 0, 0.5)), url('/../images/webTile2.png'); background-size: auto; background-position: right;"></div>
-                </div>
+                @else
+                    <!-- Vista con columnas laterales -->
+                    <div class="row">
+                        <div class="col-md-2" style="background-image: linear-gradient(to right, rgba(0, 0, 0, 0.8), rgba(0, 0, 0, 0.5)), url('/../images/webTile2.png'); background-size: auto; background-position: left;"></div>
+                        <div class="col-md-8 col-sm-12" style="padding: 0px; background-color: #27295B;">
+                            @yield('content')
+                        </div>
+                        <div class="col-md-2" style="background-image: linear-gradient(to left, rgba(0, 0, 0, 0.8), rgba(0, 0, 0, 0.5)), url('/../images/webTile2.png'); background-size: auto; background-position: right;"></div>
+                    </div>
+                @endif
             </div>
+
 
             <!-- Botón flotante para suscripciones -->
             <div class="subscription-button" id="subscriptionButton" onclick="window.location.href='{{ route('subscriptions') }}'">
