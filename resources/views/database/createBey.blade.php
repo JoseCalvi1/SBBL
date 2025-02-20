@@ -133,3 +133,15 @@
     </form>
 </div>
 @endsection
+@section('scripts')
+<script src="https://cdnjs.cloudflare.com/ajax/libs/tinymce/6.7.1/tinymce.min.js"></script>
+
+<script>
+    tinymce.init({
+        selector: 'textarea#descripcion, textarea#analisis',
+        plugins: 'advlist autolink lists link charmap print preview anchor searchreplace visualblocks code fullscreen insertdatetime media table paste code help wordcount',
+        toolbar: 'undo redo | formatselect | bold italic backcolor | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | removeformat | help',
+        height: 300
+    });
+</script>
+@endsection

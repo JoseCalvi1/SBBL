@@ -121,11 +121,11 @@ class EventController extends Controller
 
         // Si el usuario sube una imagen
         if($request['region_id'] == 1) {
-            $ruta_imagen = 'upload-events/AndaluciaBase.png';
+            $ruta_imagen = 'upload-events/CartelAndalucia.webp';
         }   elseif($request['region_id'] == 2)  {
-            $ruta_imagen = 'upload-events/MadridBase.png';
+            $ruta_imagen = 'upload-events/CartelMadrid.webp';
         }   elseif($request['region_id'] == 4)  {
-            $ruta_imagen = 'upload-events/ValenciaBase.png';
+            $ruta_imagen = 'upload-events/ValenciaCartel.webp';
         }   elseif($request['region_id'] == 8)  {
             $ruta_imagen = 'upload-events/CanariasBase.png';
         }   else {
@@ -152,7 +152,7 @@ class EventController extends Controller
         ]);
 
         // TODO Comentar para probar en local
-        Self::notification(Event::find($eventId));
+        //Self::notification(Event::find($eventId));
 
         $events = Event::with('region')->get();
         $createEvent = Event::where('created_by', Auth::user()->id)->where('date', '>', Carbon::now())->get();
@@ -267,11 +267,11 @@ class EventController extends Controller
 
         // Si el usuario sube una imagen
         if($request['region_id'] == 1) {
-            $ruta_imagen = 'upload-events/AndaluciaBase.png';
+            $ruta_imagen = 'upload-events/CartelAndalucia.webp';
         }   elseif($request['region_id'] == 2)  {
-            $ruta_imagen = 'upload-events/MadridBase.png';
+            $ruta_imagen = 'upload-events/CartelMadrid.webp';
         }   elseif($request['region_id'] == 4)  {
-            $ruta_imagen = 'upload-events/ValenciaBase.png';
+            $ruta_imagen = 'upload-events/ValenciaCartel.webp';
         }   elseif($request['region_id'] == 8)  {
             $ruta_imagen = 'upload-events/CanariasBase.png';
         }elseif($request['beys'] == 'ranking' || $request['beys'] == 'rankingplus')  {
