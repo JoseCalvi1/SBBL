@@ -474,7 +474,7 @@ class EventController extends Controller
         $message .= "\n<@&$rolId>";
 
         // Envías el mensaje al webhook de Discord
-        return Http::post('https://discord.com/api/webhooks/1331670647696265258/W9yh-iyR0x1_W6PfbEaPAtfYWdl59X81TwUYsfiXOdrbJxP9VF8Ao95FK8V3hmrkAln0', [
+        return Http::post(env('DISCORD_WEBHOOK_URL'), [
             'content' => $message,
             'embeds' => [
                 [
