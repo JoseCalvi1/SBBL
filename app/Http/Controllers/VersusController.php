@@ -92,9 +92,10 @@ class VersusController extends Controller
         }
 
 
-        $bladeOptions = DB::table('blades')->pluck('nombre_takara')->toArray();
-        $ratchetOptions = DB::table('ratchets')->pluck('nombre')->toArray();
-        $bitOptions = DB::table('bits')->pluck('nombre')->toArray();
+        $bladeOptions = DB::table('blades')->orderBy('nombre_takara')->pluck('nombre_takara')->toArray();
+        $ratchetOptions = DB::table('ratchets')->orderBy('nombre')->pluck('nombre')->toArray();
+        $bitOptions = DB::table('bits')->orderBy('nombre')->pluck('nombre')->toArray();
+
 
         return view('versus.versusdeck', compact('versus', 'bladeOptions', 'ratchetOptions', 'bitOptions', 'results'));
     }

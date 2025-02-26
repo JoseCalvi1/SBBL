@@ -50,8 +50,19 @@
  </div>
 @endif
 
-        <div class="row" style="background-color: #283b63;">
-            <ul class="navbar-nav m-auto" style="flex-direction: row;">
+
+    </div>
+    <div class="navbar navbar-expand-lg" style="background-color: #283b63;">
+        <button class="navbar-toggler d-flex justify-content-center align-items-center w-100 h-100 d-lg-none"
+        type="button" data-toggle="collapse" data-target="#navbarNav"
+        aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation"
+        style="background: none; border: none;">
+    <i class="fas fa-cog fa-2x text-white"></i>
+</button>
+
+        <div class="collapse navbar-collapse" id="navbarNav" style="padding: unset;">
+            <ul class="navbar-nav m-auto flex-column flex-lg-row">
+                <!-- Usamos flex-column en móviles (pantallas pequeñas) para hacer el menú vertical -->
                 <li class="nav-item">
                     <a class="nav-link ml-2 mr-2" style="color: white; font-weight: bold; font-size:1.2em;" href="{{ route('inicio.events') }}">
                         {{ 'EVENTOS' }}
@@ -77,11 +88,9 @@
                         {{ 'STATS' }}
                     </a>
                 </li>
-
             </ul>
         </div>
     </div>
-
     <!--<div>
         <img src="../images/bannersbbl2.png" class="w-100">
     </div>-->
@@ -211,6 +220,26 @@
                 </div>
             </div>
         </div>
+
+        <div class="row mb-4" id="nacional">
+            <div class="col-md-12 text-white text-center p-4" style="border: 1px solid #1e2a47; border-radius: 5px; background:#1e2a47; box-shadow: 0px 0px 10px rgba(255, 255, 255, 0.5)">
+                <h2 class="text-lg font-bold mb-2">OBJETIVO NACIONAL SBBL</h2>
+                <div class="relative w-full h-6 rounded-full" style="height: 20px; border: 2px solid">
+                    <div class=" bg-white h-full rounded-full" style="width: 31%; height: 18px"></div>
+                </div>
+                <p class="text-sm mt-2">915€ / 3000€</p>
+
+                <div class="mt-4">
+                    <h3 class="text-md font-semibold">Aclaraciones</h3>
+                    <div class="w-full h-24 bg-gray-100 flex items-center justify-center text-gray-500">
+                        <p>El objetivo es para crear el nacional en las instalaciones de Movistar KOI en Madrid con todo tipo de ayudas y herramientas, premios sorprendentes y mucho mas con lo que se ha recaudado íntegramente de las suscripciones a la web, el merchandising y otras cosas que iremos anunciando.</p>
+                        <p>En el caso de no llegar al objetivo se barajarían diferentes opciones para el desarrollo del torneo pudiendo incluso no ser en Madrid ya que tenemos otras ofertas más asequibles pero también muy buenas.</p>
+                        <p>Con todo esto lo que queremos hacer es crear el mayor torneo que llevamos hasta la fecha y que sea una experiencia inolvidable para todos.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
     </div>
     <div class="container" style="background-color: #1e2a47; color: white;">
 

@@ -199,9 +199,10 @@ class EventController extends Controller
                                                                 ->get();
         }
 
-        $bladeOptions = DB::table('blades')->pluck('nombre_takara')->toArray();
-        $ratchetOptions = DB::table('ratchets')->pluck('nombre')->toArray();
-        $bitOptions = DB::table('bits')->pluck('nombre')->toArray();
+        $bladeOptions = DB::table('blades')->orderBy('nombre_takara')->pluck('nombre_takara')->toArray();
+        $ratchetOptions = DB::table('ratchets')->orderBy('nombre')->pluck('nombre')->toArray();
+        $bitOptions = DB::table('bits')->orderBy('nombre')->pluck('nombre')->toArray();
+
 
         $currentDate = Carbon::now();
         $startOfWeek = $currentDate->startOfWeek()->format('Y-m-d');
