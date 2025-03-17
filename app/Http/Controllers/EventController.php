@@ -261,6 +261,21 @@ class EventController extends Controller
             $event->image_mod = $imageData;
         }
 
+        // Realizamos el condicional para asignar el texto correspondiente
+        if ($request->imagen == 'quedada') {
+            $textoImagen = 'Quedada';
+        } elseif ($request->imagen == 'ranking') {
+            $textoImagen = 'Ranking';
+        } elseif ($request->imagen == 'rankingplus') {
+            $textoImagen = 'Ranking Plus';
+        } elseif ($request->imagen == 'grancopa') {
+            $textoImagen = 'Gran Copa';
+        } elseif ($request->imagen == 'hasbro') {
+            $textoImagen = 'Hasbro';
+        } else {
+            $textoImagen = 'Copa'; // Si no coincide con ninguno de los valores
+        }
+
         // Restaurar la imagen actual si el formulario se envía sin seleccionar un nuevo archivo de imagen
         if (!$request->hasFile('image_mod') && $currentImage !== null) {
             $event->image_mod = $currentImage;
@@ -291,7 +306,7 @@ class EventController extends Controller
         $event->date = $data['event_date'];
         $event->time = $data['event_time'];
         $event->imagen = $ruta_imagen;
-        $event->beys = $request['imagen'];
+        $event->beys = $request->imagen;
         $event->deck = $request['deck'];
         $event->configuration = $request['configuration'];
         $event->iframe = $request['iframe'];

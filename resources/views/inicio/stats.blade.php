@@ -60,7 +60,8 @@
                     class="custom-control-input"
                     id="only_user_parts"
                     name="only_user_parts"
-                    {{ request()->has('only_user_parts') ? 'checked' : '' }}
+                    value="on"
+                    {{ $userPartsFilter ? 'checked' : '' }}
                 >
                 <label class="custom-control-label" for="only_user_parts"></label>
             </div>
@@ -70,22 +71,17 @@
         <button type="submit" class="btn btn-primary w-100">Filtrar</button>
     </form>
 
-
-
     <div class="table-responsive">
         <table class="table table-striped table-dark">
             <thead>
                 <tr>
-                    <th><a href="{{ route('stats.index', ['sort' => 'blade', 'order' => $order == 'asc' ? 'desc' : 'asc', 'blade' => $bladeFilter, 'ratchet' => $ratchetFilter, 'bit' => $bitFilter]) }}">Blade</a></th>
-                    <th><a href="{{ route('stats.index', ['sort' => 'ratchet', 'order' => $order == 'asc' ? 'desc' : 'asc', 'blade' => $bladeFilter, 'ratchet' => $ratchetFilter, 'bit' => $bitFilter]) }}">Ratchet</a></th>
-                    <th><a href="{{ route('stats.index', ['sort' => 'bit', 'order' => $order == 'asc' ? 'desc' : 'asc', 'blade' => $bladeFilter, 'ratchet' => $ratchetFilter, 'bit' => $bitFilter]) }}">Bit</a></th>
-                    <th><a href="{{ route('stats.index', ['sort' => 'total_victorias', 'order' => $order == 'asc' ? 'desc' : 'asc', 'blade' => $bladeFilter, 'ratchet' => $ratchetFilter, 'bit' => $bitFilter]) }}">Victorias</a></th>
-                    <th><a href="{{ route('stats.index', ['sort' => 'total_derrotas', 'order' => $order == 'asc' ? 'desc' : 'asc', 'blade' => $bladeFilter, 'ratchet' => $ratchetFilter, 'bit' => $bitFilter]) }}">Derrotas</a></th>
-                    <th><a href="{{ route('stats.index', ['sort' => 'total_partidas', 'order' => $order == 'asc' ? 'desc' : 'asc', 'blade' => $bladeFilter, 'ratchet' => $ratchetFilter, 'bit' => $bitFilter]) }}">Total Partidas</a></th>
-                    <th><a href="{{ route('stats.index', ['sort' => 'percentage_victories', 'order' => $order == 'asc' ? 'desc' : 'asc', 'blade' => $bladeFilter, 'ratchet' => $ratchetFilter, 'bit' => $bitFilter]) }}">Porcentaje Victorias/Derrotas</a></th>
-                    <th><a href="{{ route('stats.index', ['sort' => 'puntos_ganados_por_combate', 'order' => $order == 'asc' ? 'desc' : 'asc', 'blade' => $bladeFilter, 'ratchet' => $ratchetFilter, 'bit' => $bitFilter]) }}">Puntos Ganados por Combate</a></th>
-                    <th><a href="{{ route('stats.index', ['sort' => 'puntos_perdidos_por_combate', 'order' => $order == 'asc' ? 'desc' : 'asc', 'blade' => $bladeFilter, 'ratchet' => $ratchetFilter, 'bit' => $bitFilter]) }}">Puntos Perdidos por Combate</a></th>
-                    <th><a href="{{ route('stats.index', ['sort' => 'eficiencia', 'order' => $order == 'asc' ? 'desc' : 'asc', 'blade' => $bladeFilter, 'ratchet' => $ratchetFilter, 'bit' => $bitFilter]) }}">Puntos OTH</a></th>
+                    @foreach(['blade', 'ratchet', 'bit', 'total_victorias', 'total_derrotas', 'total_partidas', 'percentage_victories', 'puntos_ganados_por_combate', 'puntos_perdidos_por_combate', 'eficiencia'] as $column)
+                        <th>
+                            <a href="{{ route('stats.index', array_merge(request()->query(), ['sort' => $column, 'order' => $order == 'asc' ? 'desc' : 'asc'])) }}">
+                                {{ ucfirst(str_replace('_', ' ', $column)) }}
+                            </a>
+                        </th>
+                    @endforeach
                 </tr>
             </thead>
             <tbody>

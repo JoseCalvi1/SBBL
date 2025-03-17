@@ -329,7 +329,7 @@
 
                 <br><br>Si eres blader, resides en España y buscas una liga donde competir y disfrutar del beyblade con otr@s como tú, este es tu sitio.
 
-                <br><br>!Únete a la SBBL!</p>
+                <br><br>¡Únete a la SBBL!</p>
             </div>
             <div class="col-md-3 col-sm-12 p-5">
                 <h3>Categorías</h3>

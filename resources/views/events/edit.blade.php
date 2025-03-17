@@ -63,13 +63,13 @@
                 <label for="imagen">Categoría</label>
                 <select name="imagen" id="imagen" class="form-control bg-dark text-white @error('imagen') is-invalid @enderror">
                     <option disabled selected>- Selecciona una imagen -</option>
-                    <option value="quedada" {{ $event->imagen == 'upload-events/quedada.jpg' ? 'selected' : '' }}>Quedada</option>
-                    <option value="ranking" {{ ($event->imagen == 'upload-events/ranking.jpg' || $event->imagen == 'upload-events/rankingx.jpg') ? 'selected' : '' }}>Ranking</option>
+                    <option value="quedada" {{ $event->beys == 'quedada' ? 'selected' : '' }}>Quedada</option>
+                    <option value="ranking" {{ ($event->beys == 'ranking' || $event->imagen == 'upload-events/rankingx.jpg') ? 'selected' : '' }}>Ranking</option>
                     @if (Auth::user()->is_admin || Auth::user()->is_referee)
-                    <option value="rankingplus" {{ $event->imagen == 'upload-events/rankingplus.jpg' ? 'selected' : '' }}>Ranking Plus</option>
-                    <option value="grancopa" {{ $event->imagen == 'upload-events/grancopa.jpg' ? 'selected' : '' }}>Gran Copa</option>
+                    <option value="rankingplus" {{ $event->beys == 'rankingplus' ? 'selected' : '' }}>Ranking Plus</option>
+                    <option value="grancopa" {{ $event->beys == 'grancopa' ? 'selected' : '' }}>Gran Copa</option>
                     @endif
-                    <option value="hasbro" {{ $event->imagen == 'upload-events/hasbro.jpg' ? 'selected' : '' }}>Hasbro</option>
+                    <option value="hasbro" {{ $event->imagen == 'hasbro' ? 'selected' : '' }}>Hasbro</option>
                 </select>
 
                     @error('imagen')

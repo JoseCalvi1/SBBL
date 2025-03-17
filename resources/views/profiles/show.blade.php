@@ -96,7 +96,6 @@
         </div>
         <div class="col-md-8">
             <h2 class="text-center mb-2 mt-5 mt-md-0 text-white">{{ $profile->user->name }}</h2>
-            <h3 class="text-center mb-2 mt-5 mt-md-0 text-white">{{ $profile->user->email }}</h3>
             <h3 class="text-center mb-2 mt-5 mt-md-0 text-white">Región: @if ($profile->region)
                 {{ $profile->region->name }}
             @else
@@ -137,12 +136,10 @@
                 {{ session('error') }}
             </div>
         @endif
+        @if(!$invitacionesPendientes->isEmpty())
         <div class="card bg-dark text-white">
             <div class="card-body">
                 <h1 class="card-title">Invitaciones Pendientes</h1>
-                @if ($invitacionesPendientes->isEmpty())
-                    <p class="card-text">No tienes invitaciones pendientes en este momento.</p>
-                @else
                     <ul class="list-group list-group-flush">
                         @foreach ($invitacionesPendientes as $invitacion)
                             <li class="list-group-item bg-dark border-bottom border-white mb-2">
@@ -162,9 +159,9 @@
                             </li>
                         @endforeach
                     </ul>
-                @endif
             </div>
         </div>
+        @endif
     </div>
 
 
@@ -183,6 +180,9 @@
     {{-- Duelos Mensuales --}}
     <h2 class="titulo-categoria text-uppercase mb-4 mt-4 text-white">Duelos mensuales</h2>
     <div class="row mt-2">
+        @if($versus->isEmpty())
+         <p class="col-md-12 text-white">No has participado en ningún duelo este mes</p>
+        @endif
         @foreach ($versus as $duelo)
             <div class="col-md-3 mb-3">
                 <div class="duel-card" style="background-image: url('/storage/{{ $duelo->result_1 > $duelo->result_2 ? $duelo->versus_1->profile->fondo : $duelo->versus_2->profile->fondo }}');">
@@ -210,6 +210,9 @@
     {{-- Eventos Mensuales --}}
     <h2 class="titulo-categoria text-uppercase mb-4 mt-4 text-white">Eventos mensuales</h2>
     <div class="row mt-2">
+        @if($eventos->isEmpty())
+         <p class="col-md-12 text-white">No has participado en ningún evento este mes</p>
+        @endif
         @foreach ($eventos as $evento)
         <div class="col-md-4 pb-2">
             <div class="card d-flex flex-column text-center" style="background-color: #283b63; color: white; border: 2px solid #ffffff;">
