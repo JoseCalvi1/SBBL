@@ -5,6 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
     @yield('head')
+<script id="Cookiebot" src="https://consent.cookiebot.com/uc.js" data-cbid="2d8bb2b2-b848-477f-9e4a-38ef11a84d9e" data-blockingmode="auto" type="text/javascript"></script>
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7050675485532592"
+     crossorigin="anonymous"></script>
 
     <!-- CSRF Token -->
     <meta name="csrf-token" content="{{ csrf_token() }}">
@@ -231,22 +234,34 @@
                     <div class="row">
                         @php
                             $fondo = '/../images/webTile2.png'; // Imagen por defecto
-                            if (isset($blade)) {
-                                $fondo = match($blade->sistema) {
-                                    'UX' => '/../images/FONDO_UX.webp',
-                                    'CX' => '/../images/FONDO_CX.webp',
-                                    'BX' => '/../images/FONDO_BX.webp',
-                                    default => '/../images/webTile2.png',
-                                };
-                            }
-                            if (isset($beyblade->sistema)) {
-                                $fondo = match($beyblade->sistema) {
-                                    'UX' => '/../images/FONDO_UX.webp',
-                                    'CX' => '/../images/FONDO_CX.webp',
-                                    'BX' => '/../images/FONDO_BX.webp',
-                                    default => '/../images/webTile2.png',
-                                };
-                            }
+
+    if (isset($blade)) {
+        switch ($blade->sistema) {
+            case 'UX':
+                $fondo = '/../images/FONDO_UX.webp';
+                break;
+            case 'CX':
+                $fondo = '/../images/FONDO_CX.webp';
+                break;
+            case 'BX':
+                $fondo = '/../images/FONDO_BX.webp';
+                break;
+        }
+    }
+
+    if (isset($beyblade->sistema)) {
+        switch ($beyblade->sistema) {
+            case 'UX':
+                $fondo = '/../images/FONDO_UX.webp';
+                break;
+            case 'CX':
+                $fondo = '/../images/FONDO_CX.webp';
+                break;
+            case 'BX':
+                $fondo = '/../images/FONDO_BX.webp';
+                break;
+        }
+    }
                         @endphp
 
                         <div class="col-12 fondo-database"
@@ -359,11 +374,16 @@
                         </a>
                     </li>
                     @endif
-                    <li class="nav-item">
-                        <a class="nav-link text-white" href="{{ route('inicio.privacy') }}">
-                            {{ 'Política de privacidad' }}
-                        </a>
+<li class="nav-item">
+                        <a href="https://www.iubenda.com/privacy-policy/74065134" class="iubenda-black iubenda-noiframe iubenda-embed iubenda-noiframe " title="Política de Privacidad ">Política de Privacidad</a><script type="text/javascript">(function (w,d) {var loader = function () {var s = d.createElement("script"), tag = d.getElementsByTagName("script")[0]; s.src="https://cdn.iubenda.com/iubenda.js"; tag.parentNode.insertBefore(s,tag);}; if(w.addEventListener){w.addEventListener("load", loader, false);}else if(w.attachEvent){w.attachEvent("onload", loader);}else{w.onload = loader;}})(window, document);</script>
                     </li>
+<li class="nav-item">
+                        <a href="https://www.iubenda.com/privacy-policy/74065134/cookie-policy" class="iubenda-black iubenda-noiframe iubenda-embed iubenda-noiframe " title="Política de Cookies ">Política de Cookies</a><script type="text/javascript">(function (w,d) {var loader = function () {var s = d.createElement("script"), tag = d.getElementsByTagName("script")[0]; s.src="https://cdn.iubenda.com/iubenda.js"; tag.parentNode.insertBefore(s,tag);}; if(w.addEventListener){w.addEventListener("load", loader, false);}else if(w.attachEvent){w.attachEvent("onload", loader);}else{w.onload = loader;}})(window, document);</script>
+                    </li>
+<li class="nav-item">
+                        <a href="https://www.iubenda.com/condiciones-de-uso/74065134" class="iubenda-black iubenda-noiframe iubenda-embed iubenda-noiframe " title="Términos y Condiciones ">Términos y Condiciones</a><script type="text/javascript">(function (w,d) {var loader = function () {var s = d.createElement("script"), tag = d.getElementsByTagName("script")[0]; s.src="https://cdn.iubenda.com/iubenda.js"; tag.parentNode.insertBefore(s,tag);}; if(w.addEventListener){w.addEventListener("load", loader, false);}else if(w.attachEvent){w.attachEvent("onload", loader);}else{w.onload = loader;}})(window, document);</script>
+                    </li>
+
                 </ul>
             </div>
             <div class="col-md-12 text-center pt-4 pb-2 border-top">
