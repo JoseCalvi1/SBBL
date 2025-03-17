@@ -21,7 +21,7 @@ class TeamController extends Controller
 
     public function indexAdmin()
     {
-        $equipos = Team::all();
+        $equipos = Team::orderBy('status', 'asc')->orderBy('name', 'asc')->get();
         return view('equipos.indexAdmin', compact('equipos'));
     }
 

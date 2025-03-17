@@ -70,7 +70,7 @@
                         <div class="event-meta mt-2">
                             <p>
                                 <span class="font-weight-bold text-primary">Modalidad:</span>
-                                {{ ($event->mode == 'beybladex') ? 'Beyblade X' : 'Beyblade Burst' }}
+                                {{ ($event->mode == 'beybladex') ? 'Beyblade X' : 'Beyblade Burst' }} ({{ $event->beys }})
                             </p>
                             <p>
                                 <span class="font-weight-bold text-primary">Configuración:</span>
@@ -124,15 +124,16 @@
                                     <div class="row mb-2">
                                         <div class="col-md-9">
                                             <p class="mb-0">
-                                                {{ $assist->name }} ({{ DB::table('assist_user_event')
-                                                    ->join('events', 'assist_user_event.event_id', '=', 'events.id')
-                                                    ->where('assist_user_event.user_id', $assist->id)
-                                                    ->whereMonth('events.date', \Carbon\Carbon::parse($event->date)->month)
-                                                    ->whereYear('events.date', \Carbon\Carbon::parse($event->date)->year)
-                                                    ->whereIn('assist_user_event.puesto', ['participante', 'primero', 'segundo', 'tercero'])
-                                                    ->count()
+                                                {{ $assist->name }} @if($event->beys == "ranking" || $event->beys == "rankingplus") ({{ DB::table('assist_user_event')
+                                                ->join('events', 'assist_user_event.event_id', '=', 'events.id')
+                                                ->where('assist_user_event.user_id', $assist->id)
+                                                ->whereMonth('events.date', \Carbon\Carbon::parse($event->date)->month)
+                                                ->whereYear('events.date', \Carbon\Carbon::parse($event->date)->year)
+                                                ->whereIn('events.beys', ['ranking', 'rankingplus']) // Añadir filtro de beys
+                                                ->count();
+
                                                 }}
-                                                torneos)
+                                                torneos) @endif
 
                                                 @if (Auth::user()->is_admin)
                                                     <b>{{ $assist->email }}</b>

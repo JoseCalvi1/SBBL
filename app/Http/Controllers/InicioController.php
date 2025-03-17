@@ -33,8 +33,10 @@ class InicioController extends Controller
         // Obtener el user_id con la media más alta de puntos_ganados / puntos_perdidos
         // Obtener el user_id con la media más alta del mes anterior
         // Obtener el mes y año del mes anterior
-        $lastMonth = (Carbon::now()->subMonthNoOverflow()->month);
-        $lastYear = Carbon::now()->year - 1;
+        $now = Carbon::now();
+        $lastMonth = $now->month === 1 ? 12 : $now->subMonth()->month;
+        $lastYear = $now->month === 1 ? $now->year - 1 : $now->year;
+
         // Obtener el mes anterior en español
         $lastMonthName = strtoupper(Carbon::now()->subMonth()->translatedFormat('F'));
 
@@ -76,7 +78,23 @@ class InicioController extends Controller
             return $usuario;
         });
 
-        return view('inicio.index', compact('usuarios', 'bladers', 'stamina', 'nuevos', 'antiguos', 'bestUserProfile', 'bestUserRecord', 'bestUser', 'lastMonthName', 'lastYear'));
+        // Obtener cantidad de usuarios por comunidad autónoma
+        $usuariosPorComunidad = Profile::with('region')
+        ->select('region_id', DB::raw('COUNT(*) as total'))
+        //->where('points_x1', '>', 0)
+        ->groupBy('region_id')
+        ->get()
+        ->map(function ($item) {
+            return [
+                'comunidad_autonoma' => $item->region->name ?? 'Desconocida',
+                'total' => $item->total
+            ];
+        });
+
+    return view('inicio.index', compact(
+        'usuarios', 'bladers', 'stamina', 'nuevos', 'antiguos', 'bestUserProfile',
+        'bestUserRecord', 'bestUser', 'lastMonthName', 'lastYear', 'usuariosPorComunidad'
+    ));
     }
 
     public function entrevistas()

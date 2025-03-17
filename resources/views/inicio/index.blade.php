@@ -29,7 +29,19 @@
         font-size: 1rem;
         margin-top: 5px;
     }
+    .custom-label {
+        background: rgba(255, 255, 255, 0.7);
+        padding: 5px;
+        border-radius: 5px;
+        text-align: center;
+    }
 </style>
+<head>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet-mini-map/dist/Control.MiniMap.css" />
+    <script src="https://unpkg.com/leaflet-mini-map/dist/Control.MiniMap.js"></script>
+</head>
 @endsection
 
 @section('content')
@@ -396,8 +408,103 @@
                         @endforeach
                 </div>
             </div>
+            <div class="row m-0">
+                <h2 id="heat-map" class="titulo-categoria text-uppercase mb-4 mt-4" style="color:white">Mapa de calor</h2>
+
+                <div id="map" style="width: 100%; height: 500px;"></div>
+            </div>
     </div>
     </div>
 </div>
 
+@endsection
+
+@section('scripts')
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        // Crear el mapa centrado en España y ajustado para incluir todas las regiones
+        var map = L.map('map', {
+            center: [40.5, -3], // Centrado en España
+            zoom: 6, // Aumentar el zoom para un detalle más cercano
+            zoomControl: false, // Ocultar controles de zoom
+            dragging: false, // Desactivar arrastre
+            scrollWheelZoom: false, // Desactivar zoom con la rueda del ratón
+            doubleClickZoom: false, // Desactivar zoom con doble clic
+            touchZoom: false, // Desactivar zoom táctil en móviles
+            attributionControl: false // Ocultar créditos de OpenStreetMap
+        });
+
+        // Cargar el GeoJSON con los límites de las comunidades autónomas (incluye Canarias, Ceuta y Melilla)
+        fetch("https://raw.githubusercontent.com/codeforamerica/click_that_hood/master/public/data/spain-communities.geojson")
+            .then(response => response.json())
+            .then(geojsonData => {
+                L.geoJSON(geojsonData, {
+                    style: function () {
+                        return {
+                            color: "#000", // Borde negro
+                            weight: 1, // Grosor de las líneas
+                            fillColor: "#ccc", // Color de fondo
+                            fillOpacity: 0.5 // Transparencia del fondo
+                        };
+                    }
+                }).addTo(map);
+
+                // Ajustar el mapa a los límites de las comunidades autónomas
+                var bounds = L.geoJSON(geojsonData).getBounds();
+                map.fitBounds(bounds); // Ajusta la vista para que incluya todo
+            });
+
+        // Coordenadas de cada comunidad autónoma
+        var coordenadas = {
+            "Andalucía": [37.3891, -5.9845],
+            "Aragón": [41.6519, -0.8773],
+            "Asturias": [43.3614, -5.8593],
+            "Baleares": [39.6953, 3.0176],
+            "Canarias": [28.2916, -16.6291], // Posición real de Canarias
+            "Cantabria": [43.4623, -3.8099],
+            "Castilla-La Mancha": [39.867, -4.0273],
+            "Castilla y León": [41.8357, -4.3976],
+            "Catalunya": [41.5912, 1.5209],
+            "Extremadura": [39.4833, -6.3723],
+            "Galicia": [42.5751, -8.1339],
+            "Madrid": [40.4165, -3.70256],
+            "Murcia": [37.9922, -1.1307],
+            "Navarra": [42.6954, -1.6761],
+            "La Rioja": [42.2871, -2.5396],
+            "País Vasco": [43.0853, -2.4937],
+            "Valencia": [39.4699, -0.3763],
+            "Ceuta": [35.8894, -5.3199],
+            "Melilla": [35.2923, -2.9381]
+        };
+
+        // Obtener los datos desde Laravel
+        var datos = @json($usuariosPorComunidad);
+
+        // Agregar etiquetas con la cantidad de usuarios
+        datos.forEach(function (dato) {
+            var coord = coordenadas[dato.comunidad_autonoma];
+            if (coord) {
+                L.marker(coord, { icon: L.divIcon({
+                        className: 'custom-label',
+                        html: `<b>${dato.total}</b>`,
+                        iconSize: [30, 30]
+                    })
+                }).addTo(map);
+            }
+        });
+
+        // Mini mapa que muestra Canarias en la esquina inferior izquierda
+        var miniMap = new L.Control.MiniMap(
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+            }),
+            {
+                position: 'bottomleft', // Coloca el mini mapa en la esquina inferior izquierda
+                width: 150,
+                height: 150,
+                zoomLevelOffset: -5, // Ajusta el zoom del mini mapa para mostrar toda España
+            }
+        ).addTo(map);
+    });
+</script>
 @endsection

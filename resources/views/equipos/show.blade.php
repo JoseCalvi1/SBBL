@@ -125,12 +125,22 @@
 <div class="container-fluid mb-3">
     <div class="row justify-content-center">
         <div class="col-12 p-0 mb-2">
-            <div class="equipo-banner" style="background-image: url(data:image/png;base64,{{ $equipo->image }});">
-                <div class="equipo-info">
-                    <img src="data:image/png;base64,{{ $equipo->logo }}" alt="Logo del Equipo" class="equipo-logo" width="150" >
-                    <p class="equipo-nombre">{{ $equipo->name }}</p>
+            @if($equipo->image)
+                <div class="equipo-banner" style="background-image: url(data:image/png;base64,{{ $equipo->image }});">
+                    <div class="equipo-info">
+                        <img src="data:image/png;base64,{{ $equipo->logo }}" alt="Logo del Equipo" class="equipo-logo" width="150" >
+                        <p class="equipo-nombre">{{ $equipo->name }}</p>
+                    </div>
                 </div>
-            </div>
+            @else
+                <div class="equipo-banner" style="background-image: url('/../images/webTile2.png');">
+                    <div class="equipo-info">
+                        <img src="../images/logo_new.png" alt="Logo del Equipo" class="equipo-logo" width="150" >
+                        <p class="equipo-nombre">{{ $equipo->name }}</p>
+                    </div>
+                </div>
+            @endif
+
         </div>
         @if(session('success'))
             <div class="alert alert-success">
