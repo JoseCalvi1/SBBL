@@ -103,9 +103,27 @@
             </ul>
         </div>
     </div>
-    <!--<div>
-        <img src="../images/bannersbbl2.png" class="w-100">
-    </div>-->
+    <a href="{{ route('inicio.nacional') }}" style="text-decoration: none; color: inherit;">
+        <div style="position: relative; text-align: center;">
+            <img src="../images/banner_nacional.webp" class="w-100">
+
+            <div class="text-white" style="
+                width: 100%;
+                background: rgba(0, 0, 0, 0.7); /* Fondo oscuro con opacidad */
+                color: white;
+                text-align: center;
+                padding: 10px;
+                position: absolute;
+                bottom: 0;
+                left: 0;
+            ">
+                PULSA AQUÍ PARA VER TODA LA INFORMACIÓN
+            </div>
+        </div>
+    </a>
+
+
+
 <div class="col-md-12 p-4 text-center">
         <h3 class="titulo-categoria text-uppercase mb-4 mt-4" style="color:white">Próximos eventos</h3>
         <div class="row m-0">
@@ -228,34 +246,6 @@
                         </div>
                         <h3 style="color: white; margin-top: 120px">{{ $bladers[4]->user->name }}</h3>
                         <h2 style="color: white">{{ $bladers[4]->points_x1 }}<span style="font-size:0.5em">pts</span></h2>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="row mb-4" id="nacional">
-            <div class="col-md-12 text-white text-center p-4" style="border: 1px solid #1e2a47; border-radius: 5px; background:#1e2a47; box-shadow: 0px 0px 10px rgba(255, 255, 255, 0.5)">
-                <h2 class="text-lg font-bold mb-2">OBJETIVO NACIONAL SBBL</h2>
-                <div class="relative w-full h-6 rounded-full" style="height: 20px; border: 2px solid">
-                    <div class=" bg-white h-full rounded-full" style="width: 45%; height: 18px"></div>
-                </div>
-                <p class="text-sm mt-2">1370€ / 3000€</p>
-
-                <div class="mt-2">
-                    <p><strong>¿Aún no tienes una suscripción?</strong> Consíguela fácilmente haciendo clic en
-                        <a href="https://sbbl.es/subscriptions" style="color: #007bff; font-weight: bold;">este enlace</a>.</p>
-
-                    <p>También puedes <strong>regalar una suscripción</strong> a un amigo, indicando su nombre de usuario y el nivel que deseas obsequiar.</p>
-
-                    <p>Si prefieres <strong>apoyar esta iniciativa</strong>, puedes contribuir directamente
-                        <a href="https://www.paypal.com/paypalme/sbbloficial" style="color: #28a745; font-weight: bold;">aquí</a>.</p>
-                </div>
-                <div class="mt-4">
-                    <h3 class="text-md font-semibold">Aclaraciones</h3>
-                    <div class="w-full h-24 bg-gray-100 flex items-center justify-center text-gray-500">
-                        <p>El objetivo es para crear el nacional en las instalaciones de Movistar KOI en Madrid con todo tipo de ayudas y herramientas, premios sorprendentes y mucho mas con lo que se ha recaudado íntegramente de las suscripciones a la web, el merchandising y otras cosas que iremos anunciando.</p>
-                        <p>En el caso de no llegar al objetivo se barajarían diferentes opciones para el desarrollo del torneo pudiendo incluso no ser en Madrid ya que tenemos otras ofertas más asequibles pero también muy buenas.</p>
-                        <p>Con todo esto lo que queremos hacer es crear el mayor torneo que llevamos hasta la fecha y que sea una experiencia inolvidable para todos.</p>
                     </div>
                 </div>
             </div>

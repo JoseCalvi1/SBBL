@@ -7,15 +7,39 @@
             color: white;
         }
         .hero {
+            position: relative;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
             padding: 100px 20px;
-            background: linear-gradient(45deg, #1a1a1a, #333);
             color: white;
             text-align: center;
+            width: 100%;
+            min-height: 400px;
+            background-image: url('/../images/fondo_banner_nacional.webp') !important;
+            background-size: cover;
+            background-position: bottom;
+            background-repeat: no-repeat;
+            overflow: hidden; /* Para evitar que la capa negra sobresalga */
         }
+
+        .hero::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5); /* Ajusta la opacidad (0.5 = 50%) */
+            z-index: 1;
+        }
+
+        .hero * {
+            position: relative;
+            z-index: 2; /* Asegura que el contenido esté sobre la capa oscura */
+        }
+
 
         #countdown {
             font-size: 3rem;
@@ -32,6 +56,13 @@
             text-align: center;
             padding: 50px 20px;
             color: white;
+        }
+
+        .sponsors .row {
+            display: flex;
+            justify-content: center; /* Centra horizontalmente */
+            align-items: center; /* Centra verticalmente */
+            height: 100%; /* Asegura que la fila ocupe toda la altura disponible */
         }
         .event-info {
             padding: 50px 20px;
@@ -68,7 +99,6 @@
     <div class="hero">
         <h1>Gran Copa Nacional de Beyblade X</h1>
         <h2 class="countdown mt-4" id="countdown"></h2>
-        <a href="#registro" class="btn btn-register">Inscribirse</a>
         <h4>¡Únete a la batalla definitiva el 7 de julio!</h4>
     </div>
 
@@ -76,9 +106,9 @@
         <div class="col-md-12 text-white text-center p-4" style="border: 1px solid #1e2a47; border-radius: 5px; background:#1e2a47; box-shadow: 0px 0px 10px rgba(255, 255, 255, 0.5)">
             <h2 class="text-lg font-bold mb-2">OBJETIVO NACIONAL SBBL</h2>
             <div class="relative w-full h-6 rounded-full" style="height: 20px; border: 2px solid">
-                <div class=" bg-white h-full rounded-full" style="width: 46%; height: 18px"></div>
+                <div class=" bg-white h-full rounded-full" style="width: 48%; height: 18px"></div>
             </div>
-            <p class="text-sm mt-2">1370€ / 3000€</p>
+            <p class="text-sm mt-2">1415€ / 3000€</p>
 
             <div class="mt-2">
                 <p><strong>¿Aún no tienes una suscripción?</strong> Consíguela fácilmente haciendo clic en
@@ -149,14 +179,20 @@
         <p>Gracias a nuestros patrocinadores por hacer posible este evento.</p>
         <div class="row justify-content-center">
             <div class="col-md-3">
+                <img src="/../images/Movistar_KOIlogo_square.webp" class="img-fluid" alt="Tierra Media">
+            </div>
+            <div class="col-md-3">
+                <img src="/../images/MahouLogo.svg" class="img-fluid" alt="Tierra Media">
+            </div>
+            <div class="col-md-3">
                 <img src="/../images/logotierramedia.png" class="img-fluid" alt="Tierra Media">
             </div>
         </div>
     </div>
 
-    <div class="hero" style="background: red !important">
+    <!--<div class="hero" style="background: red !important">
         <h1>Esta página ha sido aprobada por EXTINTOC</h1>
-    </div>
+    </div>-->
     @endsection
 
     @section('scripts')
