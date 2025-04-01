@@ -103,7 +103,6 @@ class EventController extends Controller
             'region_id' => 'required',
             'event_date' => 'required',
             'event_time' => 'required',
-            'image_mod' => 'image|mimes:jpeg,png,jpg,gif|max:2048',
         ]);
 
         // Procesamiento de la imagen
@@ -333,13 +332,25 @@ class EventController extends Controller
 
     public function assist(Request $request, Event $event)
     {
-        DB::table('assist_user_event')->insert([
-            'user_id' => Auth::user()->id,
-            'event_id' => $event->id,
-        ]);
+        $userId = Auth::id();
+        $eventId = $event->id;
+
+        // Verificar si la asistencia ya existe
+        $exists = DB::table('assist_user_event')
+            ->where('user_id', $userId)
+            ->where('event_id', $eventId)
+            ->exists();
+
+        if (!$exists) {
+            DB::table('assist_user_event')->insert([
+                'user_id' => $userId,
+                'event_id' => $eventId,
+            ]);
+        }
 
         return redirect()->back();
     }
+
 
     public function noassist(Event $event)
     {

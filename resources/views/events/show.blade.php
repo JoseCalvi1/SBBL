@@ -185,13 +185,13 @@
                                     @endif
                                 @endforeach
 
-                                @if (($event->status != "CLOSE" && $event->status != "INVALID") && Auth::user()->is_admin || ($event->status == "OPEN" && $event->created_by == Auth::user()->id))
+                                @if (($event->status != "CLOSE" && $event->status != "INVALID") && Auth::user()->is_referee || ($event->status == "OPEN" && $event->created_by == Auth::user()->id))
                                     <div class="form-group py-2">
                                         <input type="submit" class="btn btn-outline-success text-uppercase font-weight-bold flex-right" value="Enviar resultados"  style="width: 100%">
                                     </div>
                                 @endif
                             </form>
-                            @if (($event->status != "CLOSE" && $event->status != "INVALID") && Auth::user()->is_admin || ($event->status == "OPEN" && $event->created_by == Auth::user()->id))
+                            @if (($event->status != "CLOSE" && $event->status != "INVALID") && Auth::user()->is_referee || ($event->status == "OPEN" && $event->created_by == Auth::user()->id))
                                 <form method="POST" action="{{ route('events.updateVideo', ['event' => $event->id]) }}">
                                     @csrf
                                     @method('PUT') <!-- O POST según tu configuración -->

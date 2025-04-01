@@ -36,6 +36,7 @@ Route::get('/rules', [App\Http\Controllers\InicioController::class, 'rules'])->n
 Route::get('/policy-privacy', [App\Http\Controllers\InicioController::class, 'privacy'])->name('inicio.privacy');
 Route::get('/contact-us', [App\Http\Controllers\InicioController::class, 'contact'])->name('inicio.contact');
 Route::get('/entrevistas', [App\Http\Controllers\InicioController::class, 'entrevistas'])->name('inicio.entrevistas');
+Route::get('/beyblade-nacional-sbbl-temporada-uno', [App\Http\Controllers\InicioController::class, 'nacional'])->name('inicio.nacional');
 
 Route::get('/events/create', [App\Http\Controllers\EventController::class, 'create'])->name('events.create');
 Route::get('/events/{event}', [App\Http\Controllers\EventController::class, 'show'])->name('events.show');

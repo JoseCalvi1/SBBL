@@ -237,10 +237,19 @@
             <div class="col-md-12 text-white text-center p-4" style="border: 1px solid #1e2a47; border-radius: 5px; background:#1e2a47; box-shadow: 0px 0px 10px rgba(255, 255, 255, 0.5)">
                 <h2 class="text-lg font-bold mb-2">OBJETIVO NACIONAL SBBL</h2>
                 <div class="relative w-full h-6 rounded-full" style="height: 20px; border: 2px solid">
-                    <div class=" bg-white h-full rounded-full" style="width: 31%; height: 18px"></div>
+                    <div class=" bg-white h-full rounded-full" style="width: 45%; height: 18px"></div>
                 </div>
-                <p class="text-sm mt-2">915€ / 3000€</p>
+                <p class="text-sm mt-2">1370€ / 3000€</p>
 
+                <div class="mt-2">
+                    <p><strong>¿Aún no tienes una suscripción?</strong> Consíguela fácilmente haciendo clic en
+                        <a href="https://sbbl.es/subscriptions" style="color: #007bff; font-weight: bold;">este enlace</a>.</p>
+
+                    <p>También puedes <strong>regalar una suscripción</strong> a un amigo, indicando su nombre de usuario y el nivel que deseas obsequiar.</p>
+
+                    <p>Si prefieres <strong>apoyar esta iniciativa</strong>, puedes contribuir directamente
+                        <a href="https://www.paypal.com/paypalme/sbbloficial" style="color: #28a745; font-weight: bold;">aquí</a>.</p>
+                </div>
                 <div class="mt-4">
                     <h3 class="text-md font-semibold">Aclaraciones</h3>
                     <div class="w-full h-24 bg-gray-100 flex items-center justify-center text-gray-500">
@@ -462,7 +471,7 @@
             "Baleares": [39.6953, 3.0176],
             "Canarias": [28.2916, -16.6291], // Posición real de Canarias
             "Cantabria": [43.4623, -3.8099],
-            "Castilla-La Mancha": [39.867, -4.0273],
+            "Castilla La Mancha": [39.00, -3.2],
             "Castilla y León": [41.8357, -4.3976],
             "Catalunya": [41.5912, 1.5209],
             "Extremadura": [39.4833, -6.3723],

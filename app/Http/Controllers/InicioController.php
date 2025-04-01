@@ -102,6 +102,11 @@ class InicioController extends Controller
         return view('inicio.entrevistas');
     }
 
+    public function nacional()
+    {
+        return view('inicio.nacional');
+    }
+
     /**
      * Display a listing of the resource.
      *
