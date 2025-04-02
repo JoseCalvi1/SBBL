@@ -39,7 +39,7 @@
                         <div class="form-group">
                             <label for="assist_blade_{{ $index + 1 }}">Assist blade (Solo CX)</label>
                             <select class="form-control select2" id="assist_blade_{{ $index + 1 }}" name="assist_blade[]" required style="width: 100%">
-                                <option>-- Selecciona un ratchet --</option>
+                                <option>-- Selecciona un assist blade --</option>
                                 @foreach($assistBladeOptions as $option)
                                     <option value="{{ $option }}" {{ $result->assist_blade == $option ? 'selected' : '' }}>{{ $option }}</option>
                                 @endforeach

@@ -23,7 +23,7 @@
     <!-- Filtros -->
     <form method="GET" action="{{ route('stats.index') }}" class="mb-4">
         <div class="form-row align-items-end">
-            <div class="form-group col-md-4">
+            <div class="form-group col-md-3">
                 <label for="blade" class="text-white">Blade</label>
                 <select name="blade" id="blade" class="form-control bg-dark text-white border-secondary">
                     <option value="">Seleccionar Blade</option>
@@ -32,7 +32,20 @@
                     @endforeach
                 </select>
             </div>
-            <div class="form-group col-md-4">
+
+            <div class="form-group col-md-3">
+                <label for="assist_blade" class="text-white">Assist Blade</label>
+                <select name="assist_blade" id="assist_blade" class="form-control bg-dark text-white border-secondary">
+                    <option value="">Seleccionar Assist Blade</option>
+                    @foreach($assistBlades as $assistBlade)
+                        @if($assistBlade !== '-- Selecciona un assist blade --')
+                            <option value="{{ $assistBlade }}" {{ $assistBlade == $assistBladeFilter ? 'selected' : '' }}>{{ $assistBlade }}</option>
+                        @endif
+                    @endforeach
+                </select>
+            </div>
+
+            <div class="form-group col-md-3">
                 <label for="ratchet" class="text-white">Ratchet</label>
                 <select name="ratchet" id="ratchet" class="form-control bg-dark text-white border-secondary">
                     <option value="">Seleccionar Ratchet</option>
@@ -41,7 +54,8 @@
                     @endforeach
                 </select>
             </div>
-            <div class="form-group col-md-4">
+
+            <div class="form-group col-md-3">
                 <label for="bit" class="text-white">Bit</label>
                 <select name="bit" id="bit" class="form-control bg-dark text-white border-secondary">
                     <option value="">Seleccionar Bit</option>
@@ -51,6 +65,7 @@
                 </select>
             </div>
         </div>
+
         @if(Auth::user())
         <div class="form-group col-md-4 d-flex align-items-center">
             <label for="only_user_parts" class="text-white mb-0 mr-2">Solo mis datos</label>
@@ -71,11 +86,12 @@
         <button type="submit" class="btn btn-primary w-100">Filtrar</button>
     </form>
 
+
     <div class="table-responsive">
         <table class="table table-striped table-dark">
             <thead>
                 <tr>
-                    @foreach(['blade', 'ratchet', 'bit', 'total_victorias', 'total_derrotas', 'total_partidas', 'percentage_victories', 'puntos_ganados_por_combate', 'puntos_perdidos_por_combate', 'eficiencia'] as $column)
+                    @foreach(['blade', 'assist_blade', 'ratchet', 'bit', 'total_victorias', 'total_derrotas', 'total_partidas', 'percentage_victories', 'puntos_ganados_por_combate', 'puntos_perdidos_por_combate', 'eficiencia'] as $column)
                         <th>
                             <a href="{{ route('stats.index', array_merge(request()->query(), ['sort' => $column, 'order' => $order == 'asc' ? 'desc' : 'asc'])) }}">
                                 {{ ucfirst(str_replace('_', ' ', $column)) }}
@@ -88,6 +104,7 @@
                 @foreach($beybladeStats as $stat)
                     <tr>
                         <td>{{ $stat->blade }}</td>
+                        <td>{{ $stat->assist_blade }}</td>
                         <td>{{ $stat->ratchet }}</td>
                         <td>{{ $stat->bit }}</td>
                         <td>{{ $stat->total_victorias }}</td>

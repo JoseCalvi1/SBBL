@@ -358,7 +358,7 @@
                                     <div class="col-md-2">
                                         <label for="assist_blade_{{ Auth::user()->id }}_{{ $index }}">Assist blade (Solo CX)</label>
                                         <select class="form-control select2" id="ratchet_{{ Auth::user()->id }}_{{ $index }}" name="assist_blade[{{ Auth::user()->id }}][]" required>
-                                            <option>-- Selecciona un ratchet --</option>
+                                            <option>-- Selecciona un assist blade --</option>
                                             @foreach($assistBladeOptions as $option)
                                                 <option value="{{ $option }}"
                                                     @if(isset($results[$index-1]) && $results[$index-1]->assist_blade == $option) selected @endif>
