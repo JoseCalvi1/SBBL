@@ -2,7 +2,7 @@
 
 @section('content')
 <!-- Formulario normal sin modal -->
-<div class="container text-white pt-4" style="max-width: 80%">
+<div class="container-fluid text-white pt-4">
     <a href="{{ url()->previous() }}" class="btn btn-outline-primary m-4 text-uppercase font-weight-bold">
         <svg class="icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 15l-3-3m0 0l3-3m-3 3h8M3 12a9 9 0 1118 0 9 9 0 01-18 0z" />
@@ -31,6 +31,17 @@
                                 <option>-- Selecciona un blade --</option>
                                 @foreach($bladeOptions as $option)
                                     <option value="{{ $option }}" {{ $result->blade == $option ? 'selected' : '' }}>{{ $option }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-md-2">
+                        <div class="form-group">
+                            <label for="assist_blade_{{ $index + 1 }}">Assist blade (Solo CX)</label>
+                            <select class="form-control select2" id="assist_blade_{{ $index + 1 }}" name="assist_blade[]" required style="width: 100%">
+                                <option>-- Selecciona un ratchet --</option>
+                                @foreach($assistBladeOptions as $option)
+                                    <option value="{{ $option }}" {{ $result->assist_blade == $option ? 'selected' : '' }}>{{ $option }}</option>
                                 @endforeach
                             </select>
                         </div>
@@ -69,15 +80,15 @@
                             <input type="number" class="form-control" id="derrotas_{{ $index + 1 }}" name="derrotas[]" value="{{ $result->derrotas }}">
                         </div>
                     </div>
-                    <div class="col-md-2">
+                    <div class="col-md-1">
                         <div class="form-group">
-                            <label for="puntos_ganados_{{ $index + 1 }}">Puntos Ganados</label>
+                            <label for="puntos_ganados_{{ $index + 1 }}">P.Ganados</label>
                             <input type="number" class="form-control" id="puntos_ganados_{{ $index + 1 }}" name="puntos_ganados[]" value="{{ $result->puntos_ganados }}">
                         </div>
                     </div>
-                    <div class="col-md-2">
+                    <div class="col-md-1">
                         <div class="form-group">
-                            <label for="puntos_perdidos_{{ $index + 1 }}">Puntos Perdidos</label>
+                            <label for="puntos_perdidos_{{ $index + 1 }}">P.Perdidos</label>
                             <input type="number" class="form-control" id="puntos_perdidos_{{ $index + 1 }}" name="puntos_perdidos[]" value="{{ $result->puntos_perdidos }}">
                         </div>
                     </div>

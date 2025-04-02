@@ -26,6 +26,8 @@ class BeybladeSeeder extends Seeder
             'Tusk Mammoth', 'Tyranno Beat', 'Unicorn Sting', 'Venom', 'Viper Tail', 'Weiss Tiger', 'Whale Wave', 'Wizard Arrow',
             'Wizard Rod', 'Wyvern Gale', 'Yell Kong'];
 
+        $assist_bladeOptions = ['Slash', 'Bumper', 'Round', 'Turn', 'Charge'];
+
         $ratchetOptions = ['0-80', '1-60', '1-80', '2-60', '2-70', '2-80', '3-60', '3-70', '3-80', '3-85', '4-60', '4-70', '4-80',
             '5-60', '5-70', '5-80', '7-60', '7-70', '9-60', '9-70', '9-80'];
 
@@ -37,6 +39,15 @@ class BeybladeSeeder extends Seeder
         foreach ($bladeOptions as $blade) {
             DB::table('blades')->insert([
                 'nombre_takara' => $blade,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
+        }
+
+        // Poblar la tabla blades
+        foreach ($assist_bladeOptions as $assist_blade) {
+            DB::table('assist_blades')->insert([
+                'nombre' => $assist_blade,
                 'created_at' => now(),
                 'updated_at' => now(),
             ]);

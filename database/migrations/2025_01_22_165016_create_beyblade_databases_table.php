@@ -33,6 +33,25 @@ class CreateBeybladeDatabasesTable extends Migration
             $table->timestamps();
         });
 
+        // Tabla de Blades
+        Schema::create('assist_blades', function (Blueprint $table) {
+            $table->id();
+            $table->string('nombre')->nullable();
+            $table->boolean('marca_hasbro')->default(false);
+            $table->boolean('marca_takara')->default(false);
+            $table->string('tipo')->nullable();
+            $table->string('color')->nullable();
+            $table->string('giro')->nullable();
+            $table->text('descripcion')->nullable();
+            $table->text('analisis')->nullable();
+            $table->longText('imagen')->nullable();
+            $table->longText('tarjeta')->nullable();
+            $table->string('sistema')->nullable();
+            $table->string('wave_hasbro')->nullable();
+            $table->date('fecha_takara')->nullable();
+            $table->timestamps();
+        });
+
         // Tabla de Ratchets
         Schema::create('ratchets', function (Blueprint $table) {
             $table->id();

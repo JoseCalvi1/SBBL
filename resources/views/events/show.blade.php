@@ -2,7 +2,7 @@
 
 @section('content')
 
-    <article class="contenido-event bg-white p-5 shadow" style="color:white !important;background-color: transparent !important;">
+<article class="contenido-event bg-white p-5 shadow" style="color:white !important;background-color: transparent !important;">
         <div class="row">
             <div class="col-md-5">
                 <div class="imagen-event">
@@ -172,7 +172,7 @@
                                                         <div class="row">
                                                             <div class="col-md-12">
                                                                 <div class="form-group">
-                                                                    <p> · {{ $result->blade }} {{ $result->ratchet }} {{ $result->bit }}</p>
+                                                                    <p> · {{ $result->blade }} {{ $result->assist_blade }} {{ $result->ratchet }} {{ $result->bit }}</p>
                                                                 </div>
                                                             </div>
                                                         </div>
@@ -264,6 +264,20 @@
                                             </select>
                                         </div>
 
+                                        <!-- Assist blade -->
+                                        <div class="col-md-2">
+                                            <label for="assist_blade_{{ $assist->id }}_{{ $index }}">Assist blade (Solo CX)</label>
+                                            <select class="form-control select2" id="assist_blade_{{ $assist->id }}_{{ $index }}" name="assist_blade[{{ $assist->id }}][{{ $index }}]" required>
+                                                <option>-- Selecciona un assist blade --</option>
+                                                @foreach($assistBladeOptions as $option)
+                                                    <option value="{{ $option }}"
+                                                        @if(isset($resultsByParticipant[$assist->id][$index-1]) && $resultsByParticipant[$assist->id][$index-1]->assist_blade == $option) selected @endif>
+                                                        {{ $option }}
+                                                    </option>
+                                                @endforeach
+                                            </select>
+                                        </div>
+
                                         <!-- Ratchet -->
                                         <div class="col-md-2">
                                             <label for="ratchet_{{ $assist->id }}_{{ $index }}">Ratchet</label>
@@ -305,14 +319,14 @@
                                         </div>
 
                                         <!-- Puntos Ganados -->
-                                        <div class="col-md-2">
-                                            <label for="puntos_ganados_{{ $assist->id }}_{{ $index }}">Puntos Ganados</label>
+                                        <div class="col-md-1">
+                                            <label for="puntos_ganados_{{ $assist->id }}_{{ $index }}">P. Ganados</label>
                                             <input type="number" class="form-control" id="puntos_ganados_{{ $assist->id }}_{{ $index }}" name="puntos_ganados[{{ $assist->id }}][{{ $index }}]" value="{{ isset($resultsByParticipant[$assist->id][$index-1]) ? $resultsByParticipant[$assist->id][$index-1]->puntos_ganados : 0 }}">
                                         </div>
 
                                         <!-- Puntos Perdidos -->
-                                        <div class="col-md-2">
-                                            <label for="puntos_perdidos_{{ $assist->id }}_{{ $index }}">Puntos Perdidos</label>
+                                        <div class="col-md-1">
+                                            <label for="puntos_perdidos_{{ $assist->id }}_{{ $index }}">P. Perdidos</label>
                                             <input type="number" class="form-control" id="puntos_perdidos_{{ $assist->id }}_{{ $index }}" name="puntos_perdidos[{{ $assist->id }}][{{ $index }}]" value="{{ isset($resultsByParticipant[$assist->id][$index-1]) ? $resultsByParticipant[$assist->id][$index-1]->puntos_perdidos : 0 }}">
                                         </div>
                                     </div>
@@ -334,6 +348,20 @@
                                             @foreach($bladeOptions as $option)
                                                 <option value="{{ $option }}"
                                                     @if(isset($results[$index-1]) && $results[$index-1]->blade == $option) selected @endif>
+                                                    {{ $option }}
+                                                </option>
+                                            @endforeach
+                                        </select>
+                                    </div>
+
+                                    <!-- Assist blade -->
+                                    <div class="col-md-2">
+                                        <label for="assist_blade_{{ Auth::user()->id }}_{{ $index }}">Assist blade (Solo CX)</label>
+                                        <select class="form-control select2" id="ratchet_{{ Auth::user()->id }}_{{ $index }}" name="assist_blade[{{ Auth::user()->id }}][]" required>
+                                            <option>-- Selecciona un ratchet --</option>
+                                            @foreach($assistBladeOptions as $option)
+                                                <option value="{{ $option }}"
+                                                    @if(isset($results[$index-1]) && $results[$index-1]->assist_blade == $option) selected @endif>
                                                     {{ $option }}
                                                 </option>
                                             @endforeach
@@ -381,14 +409,14 @@
                                     </div>
 
                                     <!-- Puntos Ganados -->
-                                    <div class="col-md-2">
-                                        <label for="puntos_ganados_{{ Auth::user()->id }}_{{ $index }}">Puntos Ganados</label>
+                                    <div class="col-md-1">
+                                        <label for="puntos_ganados_{{ Auth::user()->id }}_{{ $index }}">P. Ganados</label>
                                         <input type="number" class="form-control" id="puntos_ganados_{{ Auth::user()->id }}_{{ $index }}" name="puntos_ganados[{{ Auth::user()->id }}][]" value="{{ isset($results[$index-1]) ? $results[$index-1]->puntos_ganados : 0 }}">
                                     </div>
 
                                     <!-- Puntos Perdidos -->
-                                    <div class="col-md-2">
-                                        <label for="puntos_perdidos_{{ Auth::user()->id }}_{{ $index }}">Puntos Perdidos</label>
+                                    <div class="col-md-1">
+                                        <label for="puntos_perdidos_{{ Auth::user()->id }}_{{ $index }}">P. Perdidos</label>
                                         <input type="number" class="form-control" id="puntos_perdidos_{{ Auth::user()->id }}_{{ $index }}" name="puntos_perdidos[{{ Auth::user()->id }}][]" value="{{ isset($results[$index-1]) ? $results[$index-1]->puntos_perdidos : 0 }}">
                                     </div>
                                 </div>

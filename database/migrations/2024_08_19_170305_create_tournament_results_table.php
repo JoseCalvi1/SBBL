@@ -19,6 +19,7 @@ class CreateTournamentResultsTable extends Migration
         $table->integer('event_id')->nullable(); // Para enlazar con la tabla de eventos
         $table->integer('versus_id')->nullable();
         $table->string('blade');
+        $table->string('assist_blade')->nullable();
         $table->string('ratchet');
         $table->string('bit');
         $table->integer('victorias');

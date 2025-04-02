@@ -199,6 +199,7 @@ class EventController extends Controller
         }
 
         $bladeOptions = DB::table('blades')->orderBy('nombre_takara')->pluck('nombre_takara')->toArray();
+        $assistBladeOptions = DB::table('assist_blades')->orderBy('nombre')->pluck('nombre')->toArray();
         $ratchetOptions = DB::table('ratchets')->orderBy('nombre')->pluck('nombre')->toArray();
         $bitOptions = DB::table('bits')->orderBy('nombre')->pluck('nombre')->toArray();
 
@@ -214,7 +215,7 @@ class EventController extends Controller
             ->whereBetween('events.date', [$startOfWeek, $endOfWeek])
             ->exists();
 
-        return view('events.show', compact('event', 'videos', 'assists', 'suscribe', 'hoy', 'bladeOptions', 'ratchetOptions', 'bitOptions', 'results', 'extraLines', 'resultsByParticipant', 'isRegistered'));
+        return view('events.show', compact('event', 'videos', 'assists', 'suscribe', 'hoy', 'bladeOptions', 'assistBladeOptions', 'ratchetOptions', 'bitOptions', 'results', 'extraLines', 'resultsByParticipant', 'isRegistered'));
     }
 
 

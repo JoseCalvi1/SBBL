@@ -26,6 +26,7 @@ class TournamentResultController extends Controller
                     'user_id' => $assistId,  // Cambiar por el 'assistId' para guardar con el propietario del deck
                     'event_id' => $eventId,
                     'blade' => $blade,
+                    'assist_blade' => $request->assist_blade[$assistId][$index],
                     'ratchet' => $request->ratchet[$assistId][$index],
                     'bit' => $request->bit[$assistId][$index],
                     'victorias' => $request->victorias[$assistId][$index],
@@ -54,6 +55,7 @@ class TournamentResultController extends Controller
             'user_id' => $user->id,
             'versus_id' => $versusId,
             'blade' => $blade,
+            'assist_blade' => $request->assist_blade[$index],
             'ratchet' => $request->ratchet[$index],
             'bit' => $request->bit[$index],
             'victorias' => $request->victorias[$index],

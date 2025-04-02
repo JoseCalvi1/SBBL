@@ -18,6 +18,7 @@ class TournamentResult extends Model
         'event_id',
         'versus_id',
         'blade',
+        'assist_blade',
         'ratchet',
         'bit',
         'victorias',

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\AssistBlade;
 use App\Models\Blade;
 use App\Models\Ratchet;
 use App\Models\Bit;
@@ -81,10 +82,11 @@ class BeybladeDatabaseController extends Controller
     public function indexPartes()
     {
         $blades = Blade::all()->sortBy('nombre_takara');
+        $assistBlades = AssistBlade::all()->sortBy('nombre');
         $ratchets = Ratchet::all()->sortBy('nombre');
         $bits = Bit::all()->sortBy('nombre');
 
-        return view('database.indexPartes', compact('blades', 'ratchets', 'bits'));
+        return view('database.indexPartes', compact('blades', 'assistBlades', 'ratchets', 'bits'));
     }
 
     /**
