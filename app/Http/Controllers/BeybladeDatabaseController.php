@@ -449,6 +449,9 @@ class BeybladeDatabaseController extends Controller
             'analisis' => 'nullable|string',
         ]);
 
+        $base64 = "";
+        $base64Tarjeta = "";
+
         if ($request->hasFile('imagen')) {
             $image = $request->file('imagen');
             $imageData = file_get_contents($image->getRealPath());
