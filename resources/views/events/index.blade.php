@@ -1,7 +1,7 @@
 @extends('layouts.app')
 
 @section('content')
-@if (Auth::user()->is_referee)
+@if (Auth::user()->is_referee || Auth::user()->is_admin)
 <div class="py-4">
     <h2 class="text-center mb-2 text-white">Administra los eventos</h2>
 
@@ -10,17 +10,46 @@
             Crear evento
         </a>
 
+        <!-- Formulario de filtros -->
+        <form method="GET" action="{{ route('events.indexAdmin') }}" class="mb-4">
+            <div class="row">
+                <div class="col-md-4">
+                    <label for="estado" class="text-white">Filtrar por Estado:</label>
+                    <select name="estado" id="estado" class="form-control">
+                        <option value="">Todos</option>
+                        <option value="OPEN" {{ request('estado') == 'OPEN' ? 'selected' : '' }}>Abierto</option>
+                        <option value="PENDING" {{ request('estado') == 'PENDING' ? 'selected' : '' }}>Pendiente</option>
+                        <option value="INVALID" {{ request('estado') == 'INVALID' ? 'selected' : '' }}>Inválido</option>
+                        <option value="CLOSE" {{ request('estado') == 'CLOSE' ? 'selected' : '' }}>Cerrado</option>
+                    </select>
+                </div>
+
+                <div class="col-md-4">
+                    <label for="beys" class="text-white">Filtrar por Tipo de Evento:</label>
+                    <select name="beys" id="beys" class="form-control">
+                        <option value="">Todos</option>
+                        <option value="ranking" {{ request('beys') == 'ranking' ? 'selected' : '' }}>Ranking / Ranking Plus</option>
+                    </select>
+                </div>
+
+                <div class="col-md-4 align-self-end">
+                    <button type="submit" class="btn btn-primary">Aplicar Filtros</button>
+                </div>
+            </div>
+        </form>
+
+
         <div class="table-responsive">
             <table class="table" style="color:white !important;">
                 <thead class="bg-primary text-light">
                     <tr>
-                        <th scole="col">Título</th>
-                        <th scole="col">Location</th>
-                        <th scole="col">Modalidad</th>
-                        <th scole="col">Region</th>
-                        <th scole="col">Fecha</th>
-                        <th scole="col">Estado</th>
-                        <th scole="col">Acciones</th>
+                        <th scope="col">Título</th>
+                        <th scope="col">Location</th>
+                        <th scope="col">Modalidad</th>
+                        <th scope="col">Region</th>
+                        <th scope="col">Fecha</th>
+                        <th scope="col">Estado</th>
+                        <th scope="col">Acciones</th>
                     </tr>
                 </thead>
 
@@ -32,32 +61,38 @@
                             <td>{{ $event->mode }}</td>
                             <td>{{ $event->region->name }}</td>
                             <td><event-date fecha="{{ $event->date }}"></event-date></td>
-                            <td>@if ($event->status == "OPEN")
-                        <span class="btn btn-success" style="width: 100%">ABIERTO</span>
-                    @elseif ($event->status == "PENDING")
-                        <span class="btn btn-warning" style="width: 100%">PENDIENTE CALIFICAR</span>
-                    @elseif ($event->status == "INVALID")
-                        <span class="btn btn-dark" style="width: 100%">INVÁLIDO</span>
-                    @else
-                        <span class="btn btn-danger" style="width: 100%">CERRADO</span>
-                    @endif
-                    @if ($event->iframe)
-                    <div>
-                        <a href="{{ $event->iframe }}" target="_blank" class="btn btn-info text-uppercase font-weight-bold mt-1"
-                        style="width: 100%">Ver Video</a>
-                    </div>
-                @endif</td>
+                            <td>
+                                @if ($event->status == "OPEN")
+                                    <span class="btn btn-success" style="width: 100%">ABIERTO</span>
+                                @elseif ($event->status == "PENDING")
+                                    <span class="btn btn-warning" style="width: 100%">PENDIENTE CALIFICAR</span>
+                                @elseif ($event->status == "INVALID")
+                                    <span class="btn btn-dark" style="width: 100%">INVÁLIDO</span>
+                                @else
+                                    <span class="btn btn-danger" style="width: 100%">CERRADO</span>
+                                @endif
+                                @if ($event->iframe)
+                                    <div>
+                                        <a href="{{ $event->iframe }}" target="_blank" class="btn btn-info text-uppercase font-weight-bold mt-1" style="width: 100%">Ver Video</a>
+                                    </div>
+                                @endif
+                                @if ($event->challonge)
+                                    <div>
+                                        <a href="{{ $event->challonge }}" target="_blank" class="btn btn-info text-uppercase font-weight-bold mt-1" style="width: 100%">Ver Challonge</a>
+                                    </div>
+                                @endif
+                            </td>
                             <td>
                                 <a href="{{ route('events.show', ['event' => $event->id]) }}" class="btn btn-success mb-2 d-block">Ver</a>
                                 <a href="{{ route('events.edit', ['event' => $event->id]) }}" class="btn btn-dark mb-2 d-block">Editar</a>
                                 <form method="POST" action="{{ route('events.invalidar', ['event' => $event->id]) }}">
                                     @csrf
-                                    @method('PUT') <!-- O POST según tu configuración -->
+                                    @method('PUT')
                                     <button type="submit" class="btn btn-warning mb-2" style="width: 100%">
                                         <i class="fas fa-times-circle"></i> Invalidar
                                     </button>
                                 </form>
-                                <event-delete event-id={{ $event->id }}></event-delete>
+                                <event-delete event-id="{{ $event->id }}"></event-delete>
                             </td>
                         </tr>
                     @endforeach

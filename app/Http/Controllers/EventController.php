@@ -25,13 +25,30 @@ class EventController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function index()
+    public function index(Request $request)
     {
-       $events = Event::where('date', '>=', '2024-06-31')
-               ->orderBy('date', 'DESC')
-               ->get();
+        // Obtener los filtros de la petición
+        $estado = $request->input('estado'); // Filtro por estado
+        $beys = $request->input('beys'); // Filtro por tipo de evento (ranking o rankingplus)
 
-       return view('events.index', compact('events'));
+        // Consulta base con los eventos a partir de una fecha específica
+        $query = Event::where('date', '>=', '2024-06-31')
+                    ->orderBy('date', 'DESC');
+
+        // Aplicar filtro por estado si se selecciona uno
+        if ($estado) {
+            $query->where('status', $estado);
+        }
+
+        // Aplicar filtro por beys si se selecciona uno
+        if ($beys == 'ranking') {
+            $query->whereIn('beys', ['ranking', 'rankingplus']);
+        }
+
+        // Obtener los eventos filtrados
+        $events = $query->get();
+
+        return view('events.index', compact('events', 'estado', 'beys'));
     }
 
     /**
