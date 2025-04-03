@@ -402,11 +402,23 @@ class EventController extends Controller
     public function actualizarPuntuaciones(Request $request, $id, $mode)
     {
 
-        self::actualizarStatus($id, 'CLOSE');
-
         $evento = Event::findOrFail($id);
 
         if($evento->beys == 'ranking' || $evento->beys == 'rankingplus') {
+
+            // Verificar si hay participantes con puesto vacío o null
+            $participantesSinPuesto = DB::table('assist_user_event')
+            ->where('event_id', $id)
+            ->where(function ($query) {
+                $query->whereNull('puesto')
+                    ->orWhere('puesto', '');
+            })
+            ->exists();
+
+            if ($participantesSinPuesto) {
+                return redirect()->back()->with('error', 'No se han enviado los resultados del torneo.');
+            }
+
             // Obtener los IDs de los participantes que están entre los tres primeros puestos
             $participantes = DB::table('assist_user_event')
                 ->where('event_id', $id)
@@ -449,9 +461,10 @@ class EventController extends Controller
                         ->increment($eventMode, 1); // Añadir 1 punto al perfil
                 }
             }
+            self::actualizarStatus($id, 'CLOSE');
             return redirect()->back()->with('success', 'Puntuaciones actualizadas correctamente');
         }
-
+        self::actualizarStatus($id, 'CLOSE');
         return redirect()->back()->with('success', 'Evento cerrado sin puntuaciones');
     }
 
@@ -525,13 +538,15 @@ class EventController extends Controller
     public function updateVideo(Request $request, Event $event)
     {
         $request->validate([
-            'iframe' => 'required|url'
+            'iframe' => 'required|url',
+            'challonge' => 'required|url'
         ]);
 
         $event->iframe = $request->input('iframe');
+        $event->challonge = $request->input('challonge');
         $event->save();
 
-        return redirect()->back()->with('success', 'Video añadido correctamente.');
+        return redirect()->back()->with('success', 'Datos añadidos correctamente.');
     }
 
 

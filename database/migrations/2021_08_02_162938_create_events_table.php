@@ -31,6 +31,7 @@ class CreateEventsTable extends Migration
             $table->time('time')->nullable();
             $table->string('beys')->nullable();
             $table->text('iframe')->nullable();
+            $table->text('challonge')->nullable();
             $table->timestamps();
         });
     }

@@ -19,6 +19,11 @@
                             {{ session('success') }}
                         </div>
                     @endif
+                    @if (session('error'))
+                        <div class="alert alert-danger" role="alert">
+                            {{ session('error') }}
+                        </div>
+                    @endif
 
                 <h1 class="text-center mb-4">{{ $event->name }}
                     @if ($event->status == "OPEN")
@@ -197,18 +202,36 @@
                                     @method('PUT') <!-- O POST según tu configuración -->
 
                                     <div class="form-group">
-                                        <input type="url" name="iframe" id="iframe" class="form-control mb-1" placeholder="https://www.youtube.com/embed/tu-video" required>
-                                        <input type="submit" class="btn btn-outline-success text-uppercase font-weight-bold flex-right" value="Enviar vídeo" style="width: 100%">
+                                        <label for="iframe">Link al video del torneo:</label>
+                                        <input type="url" name="iframe" id="iframe" class="form-control mb-1"
+                                               placeholder="https://www.youtube.com/embed/tu-video"
+                                               value="{{ old('iframe', $event->iframe ?? '') }}"
+                                               required>
                                     </div>
 
                                     <div class="form-group">
+                                        <label for="challonge">Enlace al torneo en Challonge:</label>
+                                        <input type="url" name="challonge" id="challonge" class="form-control mb-1"
+                                               placeholder="https://challonge.com/es/"
+                                               value="{{ old('challonge', $event->challonge ?? '') }}"
+                                               required>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <input type="submit" class="btn btn-outline-success text-uppercase font-weight-bold flex-right" value="Enviar datos" style="width: 100%">
                                     </div>
                                 </form>
                                 @if ($event->iframe)
-                                    <div>
+                                    <div class="m-2">
                                         <a href="{{ $event->iframe }}" target="_blank" class="btn btn-info text-uppercase font-weight-bold"
                                         style="width: 100%">Ver Video</a>
                                     </div>
+                                    @if ($event->iframe)
+                                    <div class="m-2">
+                                        <a href="{{ $event->challonge }}" target="_blank" class="btn btn-info text-uppercase font-weight-bold"
+                                        style="width: 100%">Ver Challonge</a>
+                                    </div>
+                                @endif
                                 @endif
                             @endif
 
@@ -219,14 +242,6 @@
                 </div>
             </div>
         </div>
-
-        @if ($event->iframe)
-            <div class="row my-4 pl-3">
-                <h2 class="my-4">Emparejamientos</h2>
-                {!! $event->iframe !!}
-            </div>
-        @endif
-
     </article>
 
 <!-- Modal para introducir decks -->
@@ -452,6 +467,19 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/js/select2.min.js"></script>
 
     <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const submitResultados = document.querySelector("input[type='submit'][value='Enviar resultados']");
+            if (submitResultados) {
+                submitResultados.addEventListener("click", function (event) {
+                    const iframeInput = document.querySelector("input[name='iframe']");
+                    if (!iframeInput || !iframeInput.value.trim()) {
+                        event.preventDefault();
+                        alert("⚠️ Debes introducir un enlace de video y de challonge antes de enviar los resultados.");
+                    }
+                });
+            }
+        });
+
         jQuery(document).ready(function() {
             // Inicializa Select2 cuando el documento esté listo
             jQuery('.select2').select2({
