@@ -106,9 +106,9 @@
         <div class="col-md-12 text-white text-center p-4" style="border: 1px solid #1e2a47; border-radius: 5px; background:#1e2a47; box-shadow: 0px 0px 10px rgba(255, 255, 255, 0.5)">
             <h2 class="text-lg font-bold mb-2">OBJETIVO NACIONAL SBBL</h2>
             <div class="relative w-full h-6 rounded-full" style="height: 20px; border: 2px solid">
-                <div class=" bg-white h-full rounded-full" style="width: 48%; height: 18px"></div>
+                <div class=" bg-white h-full rounded-full" style="width: 54%; height: 18px"></div>
             </div>
-            <p class="text-sm mt-2">1415€ / 3000€</p>
+            <p class="text-sm mt-2">1650€ / 3000€</p>
 
             <div class="mt-2">
                 <p><strong>¿Aún no tienes una suscripción?</strong> Consíguela fácilmente haciendo clic en

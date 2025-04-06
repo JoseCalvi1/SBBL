@@ -485,10 +485,15 @@ class EventController extends Controller
         return redirect()->back()->with('success', 'Evento cerrado sin puntuaciones');
     }
 
-    public function invalidarTorneo(Request $request, $id) {
-        self::actualizarStatus($id, 'INVALID');
+    public function estadoTorneo(Request $request, $id, $estado) {
+        if($estado == "invalidar") {
+            self::actualizarStatus($id, 'INVALID');
+            return redirect()->back()->with('success', 'Evento invalidado');
 
-        return redirect()->back()->with('success', 'Evento invalidado');
+        } elseif($estado == "revisar") {
+            self::actualizarStatus($id, 'REVIEW');
+            return redirect()->back()->with('success', 'Evento en revisión');
+        }
     }
 
 

@@ -44,7 +44,7 @@ Route::post('/events', [App\Http\Controllers\EventController::class, 'store'])->
 Route::get('/events/{event}/edit', [App\Http\Controllers\EventController::class, 'edit'])->name('events.edit');
 Route::put('/events/{event}', [App\Http\Controllers\EventController::class, 'update'])->name('events.update');
 Route::delete('/events/{event}', [App\Http\Controllers\EventController::class, 'destroy'])->name('events.destroy');
-Route::put('/events/{event}/invalidar', [App\Http\Controllers\EventController::class, 'invalidarTorneo'])->name('events.invalidar');
+Route::put('/events/{event}/{estado}/estado', [App\Http\Controllers\EventController::class, 'estadoTorneo'])->name('events.estado');
 Route::put('/events/{event}/update-video', [EventController::class, 'updateVideo'])->name('events.updateVideo');
 
 Route::post('/events/{event}', [App\Http\Controllers\EventController::class, 'assist'])->name('events.assist');

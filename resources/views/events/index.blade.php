@@ -66,9 +66,11 @@
                                     <span class="btn btn-success" style="width: 100%">ABIERTO</span>
                                 @elseif ($event->status == "PENDING")
                                     <span class="btn btn-warning" style="width: 100%">PENDIENTE CALIFICAR</span>
+                                @elseif ($event->status == "REVIEW")
+                                    <span class="btn btn-info" style="width: 100%">EN REVISIÓN</span>
                                 @elseif ($event->status == "INVALID")
-                                    <span class="btn btn-dark" style="width: 100%">INVÁLIDO</span>
-                                @else
+                                <span class="btn btn-dark" style="width: 100%">INVÁLIDO</span>
+                            @else
                                     <span class="btn btn-danger" style="width: 100%">CERRADO</span>
                                 @endif
                                 @if ($event->iframe)
@@ -85,11 +87,20 @@
                             <td>
                                 <a href="{{ route('events.show', ['event' => $event->id]) }}" class="btn btn-success mb-2 d-block">Ver</a>
                                 <a href="{{ route('events.edit', ['event' => $event->id]) }}" class="btn btn-dark mb-2 d-block">Editar</a>
-                                <form method="POST" action="{{ route('events.invalidar', ['event' => $event->id]) }}">
+                                @if ($event->status != "REVIEW")
+                                <form method="POST" action="{{ route('events.estado', ['event' => $event->id, 'estado' => 'revisar']) }}">
+                                    @csrf
+                                    @method('PUT')
+                                    <button type="submit" class="btn btn-info mb-2" style="width: 100%">
+                                        Revisar
+                                    </button>
+                                </form>
+                                @endif
+                                <form method="POST" action="{{ route('events.estado', ['event' => $event->id, 'estado' => 'invalidar']) }}">
                                     @csrf
                                     @method('PUT')
                                     <button type="submit" class="btn btn-warning mb-2" style="width: 100%">
-                                        <i class="fas fa-times-circle"></i> Invalidar
+                                        Invalidar
                                     </button>
                                 </form>
                                 <event-delete event-id="{{ $event->id }}"></event-delete>

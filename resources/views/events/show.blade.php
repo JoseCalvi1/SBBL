@@ -30,9 +30,11 @@
                         <span class="btn btn-success">ABIERTO</span>
                     @elseif ($event->status == "PENDING")
                         <span class="btn btn-warning">PENDIENTE CALIFICAR</span>
+                    @elseif ($event->status == "REVIEW")
+                        <span class="btn btn-info">EN REVISIÓN</span>
                     @elseif ($event->status == "INVALID")
-                        <span class="btn btn-dark">INVÁLIDO</span>
-                    @else
+                    <span class="btn btn-dark">INVÁLIDO</span>
+                @else
                         <span class="btn btn-danger">CERRADO</span>
                     @endif
                     @if (($event->status != "CLOSE" && $event->status != "INVALID") && (Auth::user()->is_admin || Auth::user()->is_referee))
