@@ -100,8 +100,8 @@ class TournamentResultController extends Controller
                 DB::raw('CASE WHEN SUM(victorias) > 0 THEN SUM(puntos_ganados) / GREATEST(SUM(victorias), 1) ELSE 0 END AS puntos_ganados_por_combate'),
                 DB::raw('CASE WHEN SUM(derrotas) > 0 THEN SUM(puntos_perdidos) / GREATEST(SUM(derrotas), 1) ELSE 0 END AS puntos_perdidos_por_combate'),
                 DB::raw('SUM(victorias) + SUM(derrotas) as total_partidas'),
-                DB::raw('CASE WHEN SUM(victorias + derrotas) > 0 THEN (SUM(victorias) / GREATEST(SUM(victorias + derrotas), 1)) * 100 ELSE 0 END AS percentage_victories'),
-                DB::raw('CASE WHEN (SUM(victorias) + SUM(derrotas)) > 0 THEN (((SUM(puntos_ganados) / GREATEST(SUM(victorias), 1)) / ((SUM(puntos_ganados) / GREATEST(SUM(victorias), 1)) + (SUM(puntos_perdidos) / GREATEST(SUM(derrotas), 1)))) * ((SUM(victorias) / GREATEST(SUM(victorias + derrotas), 1)) * 100)) * LOG(SUM(victorias + derrotas) + 1) ELSE 0 END AS eficiencia')
+                DB::raw('CASE WHEN SUM(victorias) + SUM(derrotas) > 0 THEN (SUM(victorias) / GREATEST(SUM(victorias) + SUM(derrotas), 1)) * 100 ELSE 0 END AS percentage_victories'),
+                DB::raw('CASE WHEN (SUM(victorias) + SUM(derrotas)) > 0 THEN (((SUM(puntos_ganados) / GREATEST(SUM(victorias), 1)) / ((SUM(puntos_ganados) / GREATEST(SUM(victorias), 1)) + (SUM(puntos_perdidos) / GREATEST(SUM(derrotas), 1)))) * ((SUM(victorias) / GREATEST(SUM(victorias) + SUM(derrotas), 1)) * 100)) * LOG(SUM(victorias) + SUM(derrotas) + 1) ELSE 0 END AS eficiencia')
             )
             ->where('blade', 'NOT LIKE', '%Selecciona%')
             ->when($bladeFilter, function ($query) use ($bladeFilter) {
@@ -120,7 +120,7 @@ class TournamentResultController extends Controller
                 return $query->where('user_id', Auth::user()->id);
             })
             ->groupBy('blade', 'assist_blade', 'ratchet', 'bit')
-            ->havingRaw('SUM(victorias + derrotas) >= 10')
+            ->havingRaw('SUM(victorias) + SUM(derrotas) >= 10')
             ->orderBy($sort, $order)
             ->get();
 
@@ -211,41 +211,58 @@ class TournamentResultController extends Controller
 
 
     public function showRanking()
-{
-    // Obtener la fecha actual
-    $fecha_actual = now();
+    {
+        // Obtener el rango del mes anterior
+        $fecha_actual = now();
+        $inicioMesAnterior = $fecha_actual->copy()->subMonth()->startOfMonth()->toDateString();
+        $finMesAnterior = $fecha_actual->copy()->subMonth()->endOfMonth()->toDateString();
 
-    // Calcular el mes y el año del mes anterior
-    $mes_anterior = $fecha_actual->month - 1; // Restar un mes
+        // Subconsulta base con fecha real
+        $subquery = DB::table('tournament_results')
+            ->leftJoin('events', 'tournament_results.event_id', '=', 'events.id')
+            ->leftJoin('versus', 'tournament_results.versus_id', '=', 'versus.id')
+            ->join('users', 'tournament_results.user_id', '=', 'users.id')
+            ->select(
+                'users.id as user_id',
+                'users.name',
+                'tournament_results.puntos_ganados',
+                'tournament_results.puntos_perdidos',
+                DB::raw("
+                    CASE
+                        WHEN tournament_results.event_id IS NOT NULL THEN events.date
+                        WHEN tournament_results.versus_id IS NOT NULL THEN versus.created_at
+                        ELSE NULL
+                    END as real_date
+                ")
+            )
+            ->where(function($query) use ($inicioMesAnterior, $finMesAnterior) {
+                $query->where(function($q) use ($inicioMesAnterior, $finMesAnterior) {
+                    $q->whereNotNull('tournament_results.event_id')
+                      ->whereBetween('events.date', [$inicioMesAnterior, $finMesAnterior]);
+                })->orWhere(function($q) use ($inicioMesAnterior, $finMesAnterior) {
+                    $q->whereNotNull('tournament_results.versus_id')
+                      ->whereBetween('versus.created_at', [$inicioMesAnterior, $finMesAnterior]);
+                });
+            });
 
-    // Ajustar el año si el mes es 0 (es decir, si estamos en enero y necesitamos diciembre del año anterior)
-    if ($mes_anterior === 0) {
-        $mes_anterior = 12; // Diciembre
-        $anio_anterior = $fecha_actual->year - 1; // Año anterior
-    } else {
-        $anio_anterior = $fecha_actual->year; // Mismo año
+        // Agrupar y calcular el ranking
+        $ranking = DB::table(DB::raw("({$subquery->toSql()}) as sub"))
+            ->mergeBindings($subquery)
+            ->select(
+                'sub.name',
+                DB::raw('SUM(sub.puntos_ganados) as total_puntos_ganados'),
+                DB::raw('SUM(sub.puntos_perdidos) as total_puntos_perdidos'),
+                DB::raw('SUM(sub.puntos_ganados + sub.puntos_perdidos) as total_participacion'),
+                DB::raw('ROUND((SUM(sub.puntos_ganados) / NULLIF(SUM(sub.puntos_ganados + sub.puntos_perdidos), 0)) * 100, 2) as porcentaje_ganados')
+            )
+            ->groupBy('sub.user_id', 'sub.name')
+            ->orderByDesc('total_participacion')
+            ->limit(15)
+            ->get();
+
+        // Retornar la vista con el ranking
+        return view('inicio.rankingstats', ['ranking' => $ranking]);
     }
-
-    // Consultar el ranking
-    $ranking = DB::table('tournament_results')
-        ->join('users', 'tournament_results.user_id', '=', 'users.id')
-        ->select(
-            'users.name',
-            DB::raw('SUM(tournament_results.puntos_ganados) as total_puntos_ganados'),
-            DB::raw('SUM(tournament_results.puntos_perdidos) as total_puntos_perdidos'),
-            DB::raw('SUM(tournament_results.puntos_ganados + tournament_results.puntos_perdidos) as total_participacion'),
-            DB::raw('(SUM(tournament_results.puntos_ganados) / (SUM(tournament_results.puntos_ganados) + SUM(tournament_results.puntos_perdidos))) * 100 as porcentaje_ganados')
-        )
-        ->whereMonth('tournament_results.created_at', $mes_anterior) // Filtrar por mes anterior
-        ->whereYear('tournament_results.created_at', $anio_anterior) // Filtrar por año
-        ->groupBy('users.id', 'users.name')
-        ->orderByDesc('total_participacion') // Ordenar por la suma de puntos_ganados + puntos_perdidos
-        ->limit(15)
-        ->get();
-
-    // Retornar la vista con el ranking
-    return view('inicio.rankingstats', ['ranking' => $ranking]);
-}
 
 
     public function getBeybladeStats(Request $request)
@@ -267,9 +284,9 @@ class TournamentResultController extends Controller
                 DB::raw('SUM(derrotas) as total_derrotas'),
                 DB::raw('CASE WHEN SUM(victorias) > 0 THEN SUM(puntos_ganados) / GREATEST(SUM(victorias), 1) ELSE 0 END AS puntos_ganados_por_combate'),
                 DB::raw('CASE WHEN SUM(derrotas) > 0 THEN SUM(puntos_perdidos) / GREATEST(SUM(derrotas), 1) ELSE 0 END AS puntos_perdidos_por_combate'),
-                DB::raw('SUM(victorias + derrotas) as total_partidas'),
-                DB::raw('CASE WHEN SUM(victorias + derrotas) > 0 THEN (SUM(victorias) / GREATEST(SUM(victorias + derrotas), 1)) * 100 ELSE 0 END AS percentage_victories'),
-                DB::raw('CASE WHEN (SUM(victorias) + SUM(derrotas)) > 0 THEN (((SUM(puntos_ganados) / GREATEST(SUM(victorias), 1)) / ((SUM(puntos_ganados) / GREATEST(SUM(victorias), 1)) + (SUM(puntos_perdidos) / GREATEST(SUM(derrotas), 1)))) * ((SUM(victorias) / GREATEST(SUM(victorias + derrotas), 1)) * 100)) * LOG(SUM(victorias + derrotas) + 1) ELSE 0 END AS eficiencia')
+                DB::raw('SUM(victorias) + SUM(derrotas) as total_partidas'),
+                DB::raw('CASE WHEN SUM(victorias) + SUM(derrotas) > 0 THEN (SUM(victorias) / GREATEST(SUM(victorias) + SUM(derrotas), 1)) * 100 ELSE 0 END AS percentage_victories'),
+                DB::raw('CASE WHEN (SUM(victorias) + SUM(derrotas)) > 0 THEN (((SUM(puntos_ganados) / GREATEST(SUM(victorias), 1)) / ((SUM(puntos_ganados) / GREATEST(SUM(victorias), 1)) + (SUM(puntos_perdidos) / GREATEST(SUM(derrotas), 1)))) * ((SUM(victorias) / GREATEST(SUM(victorias + derrotas), 1)) * 100)) * LOG(SUM(victorias) + SUM(derrotas) + 1) ELSE 0 END AS eficiencia')
             )
             ->where('blade', 'NOT LIKE', '%Selecciona%')
             ->when($bladeFilter, function ($query) use ($bladeFilter) {
@@ -281,8 +298,8 @@ class TournamentResultController extends Controller
             ->when($bitFilter, function ($query) use ($bitFilter) {
                 return $query->where('bit', $bitFilter);
             })
-            ->groupBy('blade', 'ratchet', 'bit')
-            ->havingRaw('SUM(victorias + derrotas) >= 10')
+            ->groupBy('blade', 'assist_blade', 'ratchet', 'bit')
+            ->havingRaw('SUM(victorias) + SUM(derrotas) >= 10')
             ->orderBy($sort, $order)
             ->get();
 

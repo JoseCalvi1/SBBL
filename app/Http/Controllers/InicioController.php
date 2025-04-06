@@ -33,34 +33,79 @@ class InicioController extends Controller
         // Obtener el user_id con la media más alta de puntos_ganados / puntos_perdidos
         // Obtener el user_id con la media más alta del mes anterior
         // Obtener el mes y año del mes anterior
-        $now = Carbon::now();
-        $lastMonth = $now->month === 1 ? 12 : $now->subMonth()->month;
-        $lastYear = $now->month === 1 ? $now->year - 1 : $now->year;
 
-        // Obtener el mes anterior en español
+        // Fechas del mes pasado
+        $now = Carbon::now();
+        $startOfLastMonth = $now->copy()->subMonth()->startOfMonth()->toDateString();
+        $endOfLastMonth = $now->copy()->subMonth()->endOfMonth()->toDateString();
+
+        // Nombre del mes anterior
         $lastMonthName = strtoupper(Carbon::now()->subMonth()->translatedFormat('F'));
 
-        // Obtener el user_id con la mayor cantidad de puntos ganados en total
-        $bestUser = TournamentResult::select('user_id', DB::raw('SUM(puntos_ganados) as total_puntos'))
-            ->whereMonth('updated_at', $lastMonth)
-            ->whereYear('updated_at', $lastYear)
+        // Subquery para traer la fecha real dependiendo del tipo de resultado
+        $resultsWithRealDate = TournamentResult::select(
+                'tournament_results.user_id',
+                'tournament_results.puntos_ganados',
+                DB::raw("
+                    CASE
+                        WHEN tournament_results.event_id IS NOT NULL THEN events.date
+                        WHEN tournament_results.versus_id IS NOT NULL THEN versus.created_at
+                        ELSE NULL
+                    END as real_date
+                ")
+            )
+            ->leftJoin('events', 'tournament_results.event_id', '=', 'events.id')
+            ->leftJoin('versus', 'tournament_results.versus_id', '=', 'versus.id')
+            ->where(function($query) use ($startOfLastMonth, $endOfLastMonth) {
+                $query->where(function($q) use ($startOfLastMonth, $endOfLastMonth) {
+                    $q->whereNotNull('tournament_results.event_id')
+                    ->whereBetween('events.date', [$startOfLastMonth, $endOfLastMonth]);
+                })->orWhere(function($q) use ($startOfLastMonth, $endOfLastMonth) {
+                    $q->whereNotNull('tournament_results.versus_id')
+                    ->whereBetween('versus.created_at', [$startOfLastMonth, $endOfLastMonth]);
+                });
+            });
+
+        // Ahora usamos este subquery como base para calcular el mejor usuario
+        $bestUser = DB::table(DB::raw("({$resultsWithRealDate->toSql()}) as sub"))
+            ->mergeBindings($resultsWithRealDate->getQuery())
+            ->select('user_id', DB::raw('SUM(puntos_ganados) as total_puntos'))
             ->groupBy('user_id')
             ->orderByDesc('total_puntos')
             ->first();
 
-
-
+        // Obtener perfil y mejor resultado
         $bestUserProfile = User::find($bestUser->user_id ?? 1);
 
         if ($bestUser) {
-            $bestUserRecord = TournamentResult::where('user_id', $bestUser->user_id)
-                ->whereMonth('updated_at', $lastMonth)
-                ->whereYear('updated_at', $lastYear)
+            $bestUserRecord = TournamentResult::select(
+                    'tournament_results.*',
+                    DB::raw("
+                        CASE
+                            WHEN tournament_results.event_id IS NOT NULL THEN events.date
+                            WHEN tournament_results.versus_id IS NOT NULL THEN versus.created_at
+                            ELSE NULL
+                        END as real_date
+                    ")
+                )
+                ->leftJoin('events', 'tournament_results.event_id', '=', 'events.id')
+                ->leftJoin('versus', 'tournament_results.versus_id', '=', 'versus.id')
+                ->where('tournament_results.user_id', $bestUser->user_id)
+                ->where(function($query) use ($startOfLastMonth, $endOfLastMonth) {
+                    $query->where(function($q) use ($startOfLastMonth, $endOfLastMonth) {
+                        $q->whereNotNull('tournament_results.event_id')
+                        ->whereBetween('events.date', [$startOfLastMonth, $endOfLastMonth]);
+                    })->orWhere(function($q) use ($startOfLastMonth, $endOfLastMonth) {
+                        $q->whereNotNull('tournament_results.versus_id')
+                        ->whereBetween('versus.created_at', [$startOfLastMonth, $endOfLastMonth]);
+                    });
+                })
                 ->orderBy(DB::raw('puntos_ganados / puntos_perdidos'), 'desc')
                 ->first();
         } else {
             $bestUserRecord = null;
         }
+
 
         $subtitulos = [
             1 => 'Co-Fundador',
@@ -93,7 +138,7 @@ class InicioController extends Controller
 
     return view('inicio.index', compact(
         'usuarios', 'bladers', 'stamina', 'nuevos', 'antiguos', 'bestUserProfile',
-        'bestUserRecord', 'bestUser', 'lastMonthName', 'lastYear', 'usuariosPorComunidad'
+        'bestUserRecord', 'bestUser', 'lastMonthName', 'usuariosPorComunidad'
     ));
     }
 
