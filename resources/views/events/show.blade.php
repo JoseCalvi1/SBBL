@@ -469,16 +469,22 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/js/select2.min.js"></script>
 
     <script>
+            // Pasamos el valor desde Blade a una variable JS
+            const isReferee = @json(Auth::user()->is_referee);
+
         document.addEventListener("DOMContentLoaded", function () {
-            const submitResultados = document.querySelector("input[type='submit'][value='Enviar resultados']");
-            if (submitResultados) {
-                submitResultados.addEventListener("click", function (event) {
-                    const iframeInput = document.querySelector("input[name='iframe']");
-                    if (!iframeInput || !iframeInput.value.trim()) {
-                        event.preventDefault();
-                        alert("⚠️ Debes introducir un enlace de video y de challonge antes de enviar los resultados.");
-                    }
-                });
+            // Solo ejecutamos si NO es referee
+            if (!isReferee) {
+                const submitResultados = document.querySelector("input[type='submit'][value='Enviar resultados']");
+                if (submitResultados) {
+                    submitResultados.addEventListener("click", function (event) {
+                        const iframeInput = document.querySelector("input[name='iframe']");
+                        if (!iframeInput || !iframeInput.value.trim()) {
+                            event.preventDefault();
+                            alert("⚠️ Debes introducir un enlace de video y de challonge antes de enviar los resultados.");
+                        }
+                    });
+                }
             }
         });
 
