@@ -179,6 +179,7 @@ class VersusController extends Controller
             'result_1' => $data['result_1'],
             'result_2' => $data['result_2'],
             'matchup' => $request['modalidad'],
+            'url' => $request['url'],
             'status' => 'OPEN',
             'created_at' => Carbon::now(),
         ]);
@@ -398,6 +399,18 @@ class VersusController extends Controller
         $duel->save();
 
         return redirect()->route('versus.index')->with('status', 'El duelo ha sido marcado como inválido.');
+    }
+
+    public function updateVideo(Request $request, Versus $versus)
+    {
+        $request->validate([
+            'url' => 'required|url',
+        ]);
+
+        $versus->url = $request->input('url');
+        $versus->save();
+
+        return redirect()->back()->with('success', 'Datos añadidos correctamente.');
     }
 
 

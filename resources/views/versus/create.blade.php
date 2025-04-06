@@ -2,7 +2,7 @@
 
 @section('content')
 
-<a href="{{ route('versus.index') }}" class="btn btn-outline-primary mr-2 text-uppercase font-weight-bold m-4">
+<a href="{{ route('versus.all') }}" class="btn btn-outline-primary mr-2 text-uppercase font-weight-bold m-4">
     Volver
 </a>
 
@@ -95,8 +95,25 @@
             </div>
 
             <div class="form-group">
-                <input type="submit" class="btn btn-primary" value="Agregar duelo">
+                <label for="url">Link al video del duelo:</label>
+                <input type="url" name="url" id="url" class="form-control mb-1"
+                       placeholder="https://www.youtube.com/embed/tu-video">
             </div>
+
+            @if(!Auth::user()->is_admin && !Auth::user()->is_referee)
+                <div class="form-group form-check mt-4">
+                    <input type="checkbox" class="form-check-input" id="acceptConditions">
+                    <label class="form-check-label" for="acceptConditions">En caso de NO HABER árbitro oficial de la liga presente, ENTIENDO que este duelo NO SERÁ REVISADO a menos que suba el vídeo ahora o posteriormente desde el apartado de todos los eventos o desde el perfil de los bladers implicados</label>
+                </div>
+
+                <div class="form-group">
+                    <input type="submit" class="btn btn-primary" id="submitBtn" value="Agregar duelo" disabled>
+                </div>
+            @else
+                <div class="form-group">
+                    <input type="submit" class="btn btn-primary" id="submitBtn" value="Agregar duelo">
+                </div>
+            @endif
         </form>
     </div>
 </div>
@@ -113,6 +130,12 @@
     <script>
         jQuery(document).ready(function() {
             jQuery('.select2').select2();
+
+            // ✅ Evento checkbox dentro del document.ready
+            $('#acceptConditions').on('change', function() {
+                $('#submitBtn').prop('disabled', !this.checked);
+            });
         });
     </script>
 @endsection
+

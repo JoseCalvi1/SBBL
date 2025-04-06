@@ -3,17 +3,20 @@
 @section('styles')
 <style>
     .duel-card {
-        position: relative;
-        border: 2px solid #343a40;
-        border-radius: 10px;
-        padding: 20px;
-        margin-bottom: 20px;
-        height: 240px;
-        color: white;
-        background-size: cover;
-        background-position: center;
-        overflow: hidden;
-    }
+            position: relative;
+            border: 2px solid #343a40;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+            color: white;
+            background-size: cover;
+            background-position: center;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            min-height: 250px;
+        }
 
     .overlay {
         position: absolute;
@@ -188,7 +191,17 @@
                 <div class="duel-card" style="background-image: url('/storage/{{ $duelo->result_1 > $duelo->result_2 ? $duelo->versus_1->profile->fondo : $duelo->versus_2->profile->fondo }}');">
                     <div class="overlay"></div>
                     <div class="duel-mode">
-                        <span class="mode">{{ ($duelo->matchup == "beybladex") ? "Beyblade X" : "Beyblade Burst"  }}{{ $duelo->status == "CLOSED" ? " - Válido" : ($duelo->status == "invalid" ? " - Inválido" : " - Enviado") }}</span>
+                        <span class="mode">{{ $duelo->matchup == "beybladex" ? "Beyblade X" : "Beyblade Burst" }}
+                            @if ($duelo->status == "CLOSED")
+                                - Válido
+                            @elseif ($duelo->status == "INVALID")
+                                - Inválido
+                            @elseif ($duelo->status == "OPEN" && $duelo->url)
+                                - Pendiente
+                            @else
+                                - Enviado
+                            @endif
+                        </span>
                     </div>
                     <div class="duel-info">
                         <div class="duel-player">
@@ -200,10 +213,41 @@
                         </div>
                         @if ($duelo->user_id_1 == Auth::user()->id || $duelo->user_id_2 == Auth::user()->id)
                                 <a href="{{ route('versus.versusdeck', ['duel' => $duelo->id, 'deck' => Auth::user()->id]) }}" type="button" class="btn btn-warning w-100">Introducir deck</a>
+                                <button type="button" class="btn btn-outline-light w-100 mt-2" data-toggle="modal" data-target="#modalDeck{{ $duelo->id }}">
+                                    Vídeo
+                                </button>
                             @endif
                     </div>
                 </div>
             </div>
+            <!-- Modal por duelo -->
+         @auth
+         <div class="modal fade" id="modalDeck{{ $duelo->id }}" tabindex="-1" role="dialog" aria-labelledby="modalDeckLabel{{ $duelo->id }}" aria-hidden="true">
+             <div class="modal-dialog modal-dialog-centered" role="document">
+                 <div class="modal-content bg-dark text-white">
+                     <div class="modal-header">
+                         <h5 class="modal-title" id="modalDeckLabel{{ $duelo->id }}">Actualizar video</h5>
+                         <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+                             <span aria-hidden="true">&times;</span>
+                         </button>
+                     </div>
+                     <form method="POST" action="{{ route('versus.updateVideo', ['versus' => $duelo->id]) }}" class="p-2">
+                         @csrf
+                         @method('PUT')
+                         <div class="form-group">
+                             <label for="url{{ $duelo->id }}">Link al video del duelo:</label>
+                             <input type="url" name="url" id="url{{ $duelo->id }}" class="form-control mb-1"
+                                    placeholder="https://www.youtube.com/embed/tu-video"
+                                    value="{{ old('url', $duelo->url ?? '') }}" required>
+                         </div>
+                         <div class="form-group">
+                             <input type="submit" class="btn btn-outline-success text-uppercase font-weight-bold" value="Enviar datos" style="width: 100%">
+                         </div>
+                     </form>
+                 </div>
+             </div>
+         </div>
+         @endauth
         @endforeach
     </div>
 

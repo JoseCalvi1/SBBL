@@ -9,6 +9,7 @@ use App\Http\Controllers\InvitationController;
 use App\Http\Controllers\TeamsVersusController;
 use App\Http\Controllers\TournamentResultController;
 use App\Http\Controllers\TrophyController;
+use App\Http\Controllers\VersusController;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 
@@ -63,6 +64,7 @@ Route::put('/versus/{duel}/{mode}/{winner}/puntuarDuelo', [App\Http\Controllers\
 Route::get('/versus/{duel}/deck/{deck}', [App\Http\Controllers\VersusController::class, 'versusdeck'])->name('versus.versusdeck');
 Route::put('/versusmass/puntuarDuelos', [App\Http\Controllers\VersusController::class, 'puntuarDuelos'])->name('puntuarDuelos');
 Route::put('/versus/{duel}/invalidar', [App\Http\Controllers\VersusController::class, 'invalidar'])->name('versus.invalidar');
+Route::put('/versus/{versus}/update-video', [VersusController::class, 'updateVideo'])->name('versus.updateVideo');
 
 Route::get('/profiles', [App\Http\Controllers\ProfileController::class, 'index'])->name('profiles.index');
 Route::get('/profiles/{profile}', [App\Http\Controllers\ProfileController::class, 'show'])->name('profiles.show');

@@ -28,13 +28,20 @@
                             <th scope="col">Puntuación 2</th>
                             <th scope="col">Modalidad</th>
                             <th scope="col">Fecha</th>
+                            <th scope="col">Estado</th>
                             <th scope="col">Acciones</th>
                         </tr>
                     </thead>
 
                     <tbody>
                         @foreach ($versus as $duel)
-                            <tr class="{{ $duel->status == 'OPEN' ? 'table-warning text-dark' : 'table-active text-white' }}">
+                            <tr class="@if ($duel->status == 'OPEN' && $duel->url)
+                                            table-info text-dark
+                                        @elseif ($duel->status == 'OPEN')
+                                            table-warning text-dark
+                                        @else
+                                            table-active text-white
+                                        @endif">
                                 <td>
                                     @if ($duel->status == 'OPEN')
                                         <input type="checkbox" name="duel_ids[]" value="{{ $duel->id }}" class="form-check-input" style="margin: 5px 0 0 0">
@@ -46,21 +53,42 @@
                                 <td>{{ $duel->result_2 }}</td>
                                 <td>{{ ucfirst($duel->matchup) }}</td>
                                 <td>{{ $duel->created_at->format('d-m-Y') }}</td>
+                                <td>@if ($duel->status == "CLOSED")
+                                    Válido
+                                @elseif ($duel->status == "INVALID")
+                                    Inválido
+                                @elseif ($duel->status == "OPEN" && $duel->url)
+                                    Pendiente
+                                @else
+                                    Enviado
+                                @endif</td>
                                 <td>
-                                    <a href="{{ route('versus.edit', ['duel' => $duel->id]) }}" class="btn btn-sm btn-warning mb-2">
-                                        <i class="fas fa-edit"></i> Editar
-                                    </a>
-                                    @if ($duel->status == 'OPEN')
-                                        <button type="submit" formaction="{{ route('versus.puntuarDuelo', ['duel' => $duel->id, 'mode' => $duel->matchup, 'winner' => $duel->user_id_1]) }}" class="btn btn-sm btn-success mb-2">
-                                            <i class="fas fa-check-circle"></i> Confirmar
-                                        </button>
-                                        <button type="submit" formaction="{{ route('versus.invalidar', ['duel' => $duel->id]) }}" class="btn btn-sm btn-danger mb-2">
-                                            <i class="fas fa-times-circle"></i> Invalidar
-                                        </button>
-                                    @else
-                                        <span class="badge badge-secondary">Cerrado</span>
-                                    @endif
+                                    <div class="d-flex flex-column flex-wrap" style="gap: 0.25rem;">
+                                        <div class="d-flex flex-wrap gap-1 mb-1">
+                                            <a href="{{ route('versus.edit', ['duel' => $duel->id]) }}" class="btn btn-sm btn-warning">
+                                                <i class="fas fa-edit"></i> Editar
+                                            </a>
+                                            @if ($duel->url)
+                                                <a href="{{ $duel->url }}" class="btn btn-sm btn-info">
+                                                    <i class="fas fa-play"></i> Ver vídeo
+                                                </a>
+                                            @endif
+                                        </div>
+                                        <div class="d-flex flex-wrap gap-1">
+                                            @if ($duel->status == 'OPEN')
+                                                <button type="submit" formaction="{{ route('versus.puntuarDuelo', ['duel' => $duel->id, 'mode' => $duel->matchup, 'winner' => $duel->user_id_1]) }}" class="btn btn-sm btn-success">
+                                                    <i class="fas fa-check-circle"></i> Confirmar
+                                                </button>
+                                                <button type="submit" formaction="{{ route('versus.invalidar', ['duel' => $duel->id]) }}" class="btn btn-sm btn-danger">
+                                                    <i class="fas fa-times-circle"></i> Invalidar
+                                                </button>
+                                            @else
+                                                <span class="badge badge-secondary mt-1">Cerrado</span>
+                                            @endif
+                                        </div>
+                                    </div>
                                 </td>
+
                             </tr>
                         @endforeach
                     </tbody>
