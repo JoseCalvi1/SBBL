@@ -41,7 +41,7 @@
     }
 
     .event {
-        background-color: #ffd700;
+        background-color: yellow;
         padding: 5px 10px;
         margin-bottom: 2px;
         border-radius: 5px;
@@ -150,6 +150,24 @@
     @endif
 </h1>
 
+<div style="text-align: center; margin: 20px 0; color:white">
+    <div style="display: inline-flex; gap: 20px; align-items: center; flex-wrap: wrap; justify-content: center;">
+        <div style="display: flex; align-items: center; gap: 5px;">
+            <span style="width: 16px; height: 16px; background-color: yellow; border: 1px solid #ccc; display: inline-block;"></span>
+            <span>Ranking / Ranking Plus</span>
+        </div>
+        <div style="display: flex; align-items: center; gap: 5px;">
+            <span style="width: 16px; height: 16px; background-color: lightblue; border: 1px solid #ccc; display: inline-block;"></span>
+            <span>Gran Copa</span>
+        </div>
+        <div style="display: flex; align-items: center; gap: 5px;">
+            <span style="width: 16px; height: 16px; background-color: lightgreen; border: 1px solid #ccc; display: inline-block;"></span>
+            <span>Quedada</span>
+        </div>
+    </div>
+</div>
+
+
 <div class="navigation mt-5">
     <button class="prev-button" onclick="prevMonth()"><i class="fas fa-chevron-left"></i> Anterior</button>
     <button class="current-day-button" onclick="goToToday()">Ir al día actual</button>
@@ -244,12 +262,24 @@
             for (let i = 1; i <= daysInMonth; i++) {
                 const date = `${year}-${String(month + 1).padStart(2, '0')}-${String(i).padStart(2, '0')}`;
                 const eventsOnDate = events.filter(event => event.date === date);
-                const eventsHTML = eventsOnDate.map(event => `
-                    <a class="event" href="/events/${event.id}" target="_blank">
-                        ${event.city ? event.city : event.region.name} (${event.mode === 'beybladex' ? 'X' : 'Burst'})
-                    </a>
 
-                `).join('');
+                const eventsHTML = eventsOnDate.map(event => {
+                    let backgroundColor = '';
+
+                    if (event.beys === 'ranking' || event.beys === 'rankingplus') {
+                        backgroundColor = 'background-color: yellow;';
+                    } else if (event.beys === 'grancopa') {
+                        backgroundColor = 'background-color: lightblue;';
+                    } else if (event.beys === 'quedada') {
+                        backgroundColor = 'background-color: lightgreen;';
+                    }
+
+                    return `
+                        <a class="event" href="/events/${event.id}" target="_blank" style="${backgroundColor}">
+                            ${event.city ? event.city : event.region.name} (${event.mode === 'beybladex' ? 'X' : 'Burst'})
+                        </a>
+                    `;
+                }).join('');
 
                 const isToday = new Date().toDateString() === new Date(year, month, i).toDateString();
                 weekHTML += `
@@ -278,49 +308,61 @@
     }
 
     function showMobileEvents(year, month) {
-    showLoading();
+        showLoading();
 
-    const startOfMonth = new Date(year, month, 1);
-    const endOfMonth = new Date(year, month + 1, 0);
+        const startOfMonth = new Date(year, month, 1);
+        const endOfMonth = new Date(year, month + 1, 0);
 
-    fetch('/eventos/fetch', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
-        },
-        body: JSON.stringify({ year: year, month: month + 1 }) // +1 porque los meses van de 0 a 11
-    })
-    .then(response => response.json())
-    .then(events => {
-        document.getElementById('weekTitle').textContent =
-            `${getMonthName(month)} ${year}`;
+        fetch('/eventos/fetch', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+            },
+            body: JSON.stringify({ year: year, month: month + 1 }) // +1 porque los meses van de 0 a 11
+        })
+        .then(response => response.json())
+        .then(events => {
+            document.getElementById('weekTitle').textContent =
+                `${getMonthName(month)} ${year}`;
 
-        const eventListEl = document.getElementById('eventList');
-        eventListEl.innerHTML = events
-        .sort((a, b) => new Date(a.date) - new Date(b.date)) // Ordenar por fecha
-        .map(event => `
-            <div class="event">
-                <a href="/events/${event.id}" target="_blank">
-                    ${event.city ? event.city : event.region.name}
-                    (${event.mode === 'beybladex' ? 'X' : 'Burst'}) -
-                    ${new Date(event.date).toLocaleDateString('es-ES', {
-                        day: 'numeric', month: 'long', year: 'numeric'
-                    })}
-                </a>
-            </div>
-        `).join('');
+            const eventListEl = document.getElementById('eventList');
+            eventListEl.innerHTML = events
+                .sort((a, b) => new Date(a.date) - new Date(b.date)) // Ordenar por fecha
+                .map(event => {
+                    let backgroundColor = '';
 
-        eventListEl.style.display = events.length > 0 ? 'block' : 'none';
-        document.getElementById('weekEvents').style.display = 'block';
+                    if (event.beys === 'ranking' || event.beys === 'rankingplus') {
+                        backgroundColor = 'background-color: yellow;';
+                    } else if (event.beys === 'grancopa') {
+                        backgroundColor = 'background-color: lightblue;';
+                    } else if (event.beys === 'quedada') {
+                        backgroundColor = 'background-color: lightgreen;';
+                    }
 
-        hideLoading();
-    })
-    .catch(() => {
-        alert('Error al cargar los eventos del mes.');
-        hideLoading();
-    });
-}
+                    return `
+                        <div class="event" style="${backgroundColor}; padding: 5px; border-radius: 5px; margin-bottom: 8px;">
+                            <a href="/events/${event.id}" target="_blank" style="color: inherit; text-decoration: none;">
+                                ${event.city ? event.city : event.region.name}
+                                (${event.mode === 'beybladex' ? 'X' : 'Burst'}) -
+                                ${new Date(event.date).toLocaleDateString('es-ES', {
+                                    day: 'numeric', month: 'long', year: 'numeric'
+                                })}
+                            </a>
+                        </div>
+                    `;
+                }).join('');
+
+            eventListEl.style.display = events.length > 0 ? 'block' : 'none';
+            document.getElementById('weekEvents').style.display = 'block';
+
+            hideLoading();
+        })
+        .catch(() => {
+            alert('Error al cargar los eventos del mes.');
+            hideLoading();
+        });
+    }
 
 
     function showLoading() {
