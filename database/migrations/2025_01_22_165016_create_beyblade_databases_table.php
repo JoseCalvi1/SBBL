@@ -107,6 +107,18 @@ class CreateBeybladeDatabasesTable extends Migration
             $table->string('tarjeta')->nullable();
             $table->timestamps();
         });
+
+        Schema::create('beyblade_collections', function (Blueprint $table) {
+            $table->id();
+            $table->foreignId('user_id')->constrained()->onDelete('cascade');
+            $table->unsignedBigInteger('part_id');
+            $table->string('type');
+            $table->string('color')->nullable();
+            $table->string('comment')->nullable();
+            $table->float('weight')->nullable();
+            $table->integer('quantity')->default(1)->nullable();
+            $table->timestamps();
+        });
     }
 
     /**
@@ -116,9 +128,11 @@ class CreateBeybladeDatabasesTable extends Migration
      */
     public function down()
     {
+        Schema::dropIfExists('beyblade_collections');
         Schema::dropIfExists('beyblades');
         Schema::dropIfExists('bits');
         Schema::dropIfExists('ratchets');
+        Schema::dropIfExists('assist_blades');
         Schema::dropIfExists('blades');
     }
 }

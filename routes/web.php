@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\BeybladeCollectionController;
 use App\Http\Controllers\BeybladeDatabaseController;
 use App\Http\Controllers\ChatController;
 use App\Http\Controllers\EventController;
@@ -186,6 +187,10 @@ Route::post('bits', [BeybladeDatabaseController::class, 'store'])->name('bits.st
 Route::get('/bits/{id}/edit', [BeybladeDatabaseController::class, 'editBit'])->name('bits.edit');
 Route::put('/bits/{id}', [BeybladeDatabaseController::class, 'updateBit'])->name('bits.update');
 Route::get('beyblade-database/bits/{id}', [BeybladeDatabaseController::class, 'showBit'])->name('database.showBit');
+
+Route::get('/beyblade-database/collection', [BeybladeCollectionController::class, 'index'])->name('collection.index');
+Route::post('/beyblade-database/collection/store', [BeybladeCollectionController::class, 'store'])->name('collection.store');
+Route::delete('/collection/{id}', [BeybladeCollectionController::class, 'destroy'])->name('collection.destroy');
 
 Route::group(['middleware' => 'admin'], function () {
    Route::get('/profiles-admin', [App\Http\Controllers\ProfileController::class, 'indexAdmin'])->name('profiles.indexAdmin');

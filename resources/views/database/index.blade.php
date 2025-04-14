@@ -112,7 +112,7 @@
             <a href="{{ route('database.beyblades') }}" class="menu-button">Beyblades</a>
             <a href="#" class="menu-button">Sistema</a>
             <a href="{{ route('database.parts') }}" class="menu-button">Partes</a>
-            <a href="#" class="menu-button coleccion">Colección</a> <!-- Botón Colección en naranja -->
+            <a href="{{ route('collection.index') }}" class="menu-button coleccion">Colección</a> <!-- Botón Colección en naranja -->
         </div>
         <div class="menu-row">
             <a href="#" class="menu-button">Estadios</a>
