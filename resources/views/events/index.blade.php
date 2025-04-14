@@ -88,22 +88,30 @@
                             <td>
                                 <a href="{{ route('events.show', ['event' => $event->id]) }}" class="btn btn-success mb-2 d-block">Ver</a>
                                 <a href="{{ route('events.edit', ['event' => $event->id]) }}" class="btn btn-dark mb-2 d-block">Editar</a>
-                                @if ($event->status != "REVIEW")
-                                <form method="POST" action="{{ route('events.estado', ['event' => $event->id, 'estado' => 'revisar']) }}">
-                                    @csrf
-                                    @method('PUT')
-                                    <button type="submit" class="btn btn-info mb-2" style="width: 100%">
-                                        Revisar
-                                    </button>
-                                </form>
+                                @php
+                                    $status = $event->status;
+                                @endphp
+
+                                @if ($status != 'INVALID' && $status != 'CLOSE')
+                                    @if ($status != 'REVIEW')
+                                        <form method="POST" action="{{ route('events.estado', ['event' => $event->id, 'estado' => 'revisar']) }}">
+                                            @csrf
+                                            @method('PUT')
+                                            <button type="submit" class="btn btn-info mb-2 w-100">
+                                                Revisar
+                                            </button>
+                                        </form>
+                                    @endif
+
+                                    <form method="POST" action="{{ route('events.estado', ['event' => $event->id, 'estado' => 'invalidar']) }}">
+                                        @csrf
+                                        @method('PUT')
+                                        <button type="submit" class="btn btn-warning mb-2 w-100">
+                                            Invalidar
+                                        </button>
+                                    </form>
                                 @endif
-                                <form method="POST" action="{{ route('events.estado', ['event' => $event->id, 'estado' => 'invalidar']) }}">
-                                    @csrf
-                                    @method('PUT')
-                                    <button type="submit" class="btn btn-warning mb-2" style="width: 100%">
-                                        Invalidar
-                                    </button>
-                                </form>
+
                                 <event-delete event-id="{{ $event->id }}"></event-delete>
                             </td>
                         </tr>
