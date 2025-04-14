@@ -27,7 +27,31 @@
 @endsection
 
 @section('content')
-@if(Auth::user())
+@php
+    // Determinar la clase CSS según el nivel de suscripción
+    $firstTrophyName = Auth::user()->profile->trophies->first()->name ?? '';
+    $subscriptionClass = '';
+    $isLevel2or3 = false;
+
+    switch ($firstTrophyName) {
+        case 'SUSCRIPCIÓN NIVEL 3':
+            $subscriptionClass = 'suscripcion-nivel-3';
+            $isLevel2or3 = true;
+            break;
+        case 'SUSCRIPCIÓN NIVEL 2':
+            $subscriptionClass = 'suscripcion';
+            $isLevel2or3 = true;
+            break;
+        case 'SUSCRIPCIÓN NIVEL 1':
+            $subscriptionClass = 'suscripcion';
+            break;
+        default:
+            $subscriptionClass = '';
+            break;
+    }
+@endphp
+
+@if(Auth::user() && ($isLevel2or3 || Auth::user()->is_admin ))
 <div class="container-fluid py-4">
     <h1 class="mb-5 text-center text-white">Gestión de piezas de Beyblade X</h1>
 
@@ -64,7 +88,17 @@
                                     <td>{{ $blade->quantity }}</td>
                                     <td>{{ $blade->comment }}</td>
                                     <td class="text-end"> <!-- Alineación de las acciones -->
-                                        <!-- <button class="btn btn-outline-warning btn-sm"><i class="fas fa-edit"></i></button>-->
+                                        <button type="button" class="btn btn-outline-warning btn-sm open-edit-modal"
+                                            data-id="{{ $blade->id }}"
+                                            data-type="Blade"
+                                            data-part-id="{{ $blade->part_id }}"
+                                            data-weight="{{ $blade->weight }}"
+                                            data-color="{{ $blade->color }}"
+                                            data-quantity="{{ $blade->quantity }}"
+                                            data-comment="{{ $blade->comment }}">
+                                            <i class="fas fa-edit"></i>
+                                        </button>
+
                                         <form method="POST" action="{{ route('collection.destroy', $blade->id) }}" class="d-inline delete-form">
                                             @csrf
                                             @method('DELETE')
@@ -114,7 +148,16 @@
                                     <td>{{ $ratchet->quantity }}</td>
                                     <td>{{ $ratchet->comment }}</td>
                                     <td class="text-end"> <!-- Alineación de las acciones -->
-                                        <!-- <button class="btn btn-outline-warning btn-sm"><i class="fas fa-edit"></i></button>-->
+                                        <button type="button" class="btn btn-outline-warning btn-sm open-edit-modal"
+                                            data-id="{{ $ratchet->id }}"
+                                            data-type="Ratchet"
+                                            data-part-id="{{ $ratchet->part_id }}"
+                                            data-weight="{{ $ratchet->weight }}"
+                                            data-color="{{ $ratchet->color }}"
+                                            data-quantity="{{ $ratchet->quantity }}"
+                                            data-comment="{{ $ratchet->comment }}">
+                                            <i class="fas fa-edit"></i>
+                                        </button>
                                         <form method="POST" action="{{ route('collection.destroy', $ratchet->id) }}" class="d-inline delete-form">
                                             @csrf
                                             @method('DELETE')
@@ -164,7 +207,16 @@
                                     <td>{{ $bit->quantity }}</td>
                                     <td>{{ $bit->comment }}</td>
                                     <td class="text-end"> <!-- Alineación de las acciones -->
-                                        <!-- <button class="btn btn-outline-warning btn-sm"><i class="fas fa-edit"></i></button>-->
+                                        <button type="button" class="btn btn-outline-warning btn-sm open-edit-modal"
+                                            data-id="{{ $blade->id }}"
+                                            data-type="Bit"
+                                            data-part-id="{{ $bit->part_id }}"
+                                            data-weight="{{ $bit->weight }}"
+                                            data-color="{{ $bit->color }}"
+                                            data-quantity="{{ $bit->quantity }}"
+                                            data-comment="{{ $bit->comment }}">
+                                            <i class="fas fa-edit"></i>
+                                        </button>
                                         <form method="POST" action="{{ route('collection.destroy', $bit->id) }}" class="d-inline delete-form">
                                             @csrf
                                             @method('DELETE')
@@ -214,7 +266,16 @@
                                     <td>{{ $assistBlade->quantity }}</td>
                                     <td>{{ $assistBlade->comment }}</td>
                                     <td class="text-end"> <!-- Alineación de las acciones -->
-                                        <!-- <button class="btn btn-outline-warning btn-sm"><i class="fas fa-edit"></i></button>-->
+                                        <button type="button" class="btn btn-outline-warning btn-sm open-edit-modal"
+                                            data-id="{{ $assistBlade->id }}"
+                                            data-type="Assist Blade"
+                                            data-part-id="{{ $assistBlade->part_id }}"
+                                            data-weight="{{ $assistBlade->weight }}"
+                                            data-color="{{ $assistBlade->color }}"
+                                            data-quantity="{{ $assistBlade->quantity }}"
+                                            data-comment="{{ $assistBlade->comment }}">
+                                            <i class="fas fa-edit"></i>
+                                        </button>
                                         <form method="POST" action="{{ route('collection.destroy', $assistBlade->id) }}" class="d-inline delete-form">
                                             @csrf
                                             @method('DELETE')
@@ -237,8 +298,9 @@
     {{-- Modal reutilizable --}}
     <div class="modal fade" id="modalPart" tabindex="-1" aria-labelledby="modalTitle" aria-hidden="true">
         <div class="modal-dialog">
-            <form method="POST" action="{{ route('collection.store') }}">
+            <form method="POST" id="partForm">
                 @csrf
+                <input type="hidden" name="_method" id="formMethod" value="POST">
                 <input type="hidden" name="type" id="partType">
                 <div class="modal-content bg-dark text-white">
                     <div class="modal-header border-secondary">
@@ -252,7 +314,7 @@
                         </div>
                         <div class="mb-3">
                             <label for="weight" class="form-label">Peso en gr (opcional)</label>
-                            <input type="text" class="form-control" name="weight" id="weight">
+                            <input type="number" class="form-control" name="weight" id="weight" step="0.01">
                         </div>
                         <div class="mb-3">
                             <label for="color" class="form-label">Color (opcional)</label>
@@ -260,7 +322,7 @@
                         </div>
                         <div class="mb-3">
                             <label for="quantity" class="form-label">Cantidad (opcional)</label>
-                            <input type="text" class="form-control" name="quantity" id="quantity">
+                            <input type="number" class="form-control" name="quantity" id="quantity">
                         </div>
                         <div class="mb-3">
                             <label for="comment" class="form-label">Comentarios (opcional)</label>
@@ -305,48 +367,63 @@ jQuery(document).ready(function() {
     });
 
 
-    // Asegúrate de que el evento solo se agregue cuando el modal esté cargado
-    jQuery('.open-modal').on('click', function () {
-        const type = jQuery(this).data('type');
-        const options = jQuery(this).data('options');
+    jQuery(document).on('click', '.open-edit-modal', function() {
+    const modal = jQuery('#modalPart');
+    const type = jQuery(this).data('type');
+    const id = jQuery(this).data('id');
 
-        // Convertimos 'options' a un array real si no lo es
-        const optionsArray = Array.isArray(options) ? options : Object.values(options);
+    // Establecer valores
+    jQuery('#modalTitle').text('Editar ' + type);
+    jQuery('#partType').val(type);
+    jQuery('#weight').val(jQuery(this).data('weight'));
+    jQuery('#color').val(jQuery(this).data('color'));
+    jQuery('#quantity').val(jQuery(this).data('quantity'));
+    jQuery('#comment').val(jQuery(this).data('comment'));
 
-        // Ahora procesamos las opciones
-        const select = jQuery('#partSelect');
-        jQuery('#partType').val(type);
-        select.empty();  // Limpiamos las opciones existentes
+    // Seleccionar la opción correcta en el select
+    const partId = jQuery(this).data('part-id');
+    const select = jQuery('#partSelect');
+    select.val(partId).trigger('change');
 
-        // Llenamos las opciones dependiendo del tipo de pieza
-        if (type === 'Blade') {
-            optionsArray.forEach(opt => {
-                select.append(new Option(opt.nombre_takara, opt.id));
-            });
-        } else if (type === 'Ratchet') {
-            optionsArray.forEach(opt => {
-                select.append(new Option(opt.nombre, opt.id));
-            });
-        } else if (type === 'Bit') {
-            optionsArray.forEach(opt => {
-                select.append(new Option(opt.nombre, opt.id));
-            });
-        } else if (type === 'Assist Blade') {
-            optionsArray.forEach(opt => {
-                select.append(new Option(opt.nombre, opt.id));
-            });
-        }
+    // Cambiar acción del formulario a UPDATE
+    const form = jQuery('#partForm');
+    form.attr('action', `/collection/${id}`);
+    jQuery('#formMethod').val('PUT');
 
-        // Mostrar el modal utilizando Bootstrap 5 sin jQuery
-        const modal = new bootstrap.Modal(document.getElementById('modalPart'));
-        modal.show();
-    });
+    modal.modal('show');
+});
+
+// Restaurar el modal cuando es para crear
+jQuery('.open-modal').on('click', function() {
+    const modal = jQuery('#modalPart');
+    const type = jQuery(this).data('type');
+    const options = jQuery(this).data('options');
+
+    jQuery('#modalTitle').text('Añadir ' + type);
+    jQuery('#partType').val(type);
+
+    // Limpiar campos
+    jQuery('#weight, #color, #quantity, #comment').val('');
+    jQuery('#formMethod').val('POST');
+    jQuery('#partForm').attr('action', '{{ route('collection.store') }}');
+
+    // Cargar las opciones en el select
+    const select = jQuery('#partSelect');
+    select.empty();
+    for (const item of options) {
+        select.append(new Option(item.nombre || item.nombre_takara, item.id));
+    }
+
+    select.val(null).trigger('change');
+    modal.modal('show');
+});
+
 });
 
 </script>
 @else
 <script type="text/javascript">
-    window.location = "/";
+    window.location = "/subscriptions";
 </script>
 @endif
 @endsection

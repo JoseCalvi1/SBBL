@@ -190,6 +190,7 @@ Route::get('beyblade-database/bits/{id}', [BeybladeDatabaseController::class, 's
 
 Route::get('/beyblade-database/collection', [BeybladeCollectionController::class, 'index'])->name('collection.index');
 Route::post('/beyblade-database/collection/store', [BeybladeCollectionController::class, 'store'])->name('collection.store');
+Route::put('/collection/{id}', [BeybladeCollectionController::class, 'update'])->name('collection.update');
 Route::delete('/collection/{id}', [BeybladeCollectionController::class, 'destroy'])->name('collection.destroy');
 
 Route::group(['middleware' => 'admin'], function () {

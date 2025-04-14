@@ -22,31 +22,44 @@ class BeybladeCollectionController extends Controller
     public function index()
     {
         // Traemos todas las piezas, ordenadas por nombre
-        $blades = Blade::all()->sortBy('nombre_takara')->toArray();
-        $assist_blades = AssistBlade::all()->sortBy('nombre')->toArray();
-        $ratchets = Ratchet::all()->sortBy('nombre')->toArray();
-        $bits = Bit::all()->sortBy('nombre')->toArray();
+        $blades = Blade::orderBy('nombre_takara')->get()->toArray();
+        $assist_blades = AssistBlade::orderBy('nombre')->get()->toArray();
+        $ratchets = Ratchet::orderBy('nombre')->get()->toArray();
+        $bits = Bit::orderBy('nombre')->get()->toArray();
 
-        // Traemos las colecciones del usuario, incluyendo las relaciones con las piezas
+
         $myBlades = BeybladeCollection::where('type', 'Blade')
-                                ->where('user_id', Auth::user()->id)
-                                ->with('partBlade')
-                                ->get();
+            ->where('user_id', Auth::user()->id)
+            ->with('partBlade')
+            ->get()
+            ->sortBy(function ($item) {
+                return $item->partBlade->nombre_takara ?? '';
+            });
 
         $myRatchets = BeybladeCollection::where('type', 'Ratchet')
-                                    ->where('user_id', Auth::user()->id)
-                                    ->with('partRatchet')
-                                    ->get();
+            ->where('user_id', Auth::user()->id)
+            ->with('partRatchet')
+            ->get()
+            ->sortBy(function ($item) {
+                return $item->partRatchet->nombre ?? '';
+            });
 
         $myBits = BeybladeCollection::where('type', 'Bit')
-                                    ->where('user_id', Auth::user()->id)
-                                    ->with('partBit')
-                                    ->get();
+            ->where('user_id', Auth::user()->id)
+            ->with('partBit')
+            ->get()
+            ->sortBy(function ($item) {
+                return $item->partBit->nombre ?? '';
+            });
 
         $myAssistBlades = BeybladeCollection::where('type', 'Assist Blade')
-                                            ->where('user_id', Auth::user()->id)
-                                            ->with('partAssistBlade')
-                                            ->get();
+            ->where('user_id', Auth::user()->id)
+            ->with('partAssistBlade')
+            ->get()
+            ->sortBy(function ($item) {
+                return $item->partAssistBlade->nombre ?? '';
+            });
+
 
         // Pasamos todos los datos a la vista
         return view('database.collection', compact('blades', 'assist_blades', 'ratchets', 'bits', 'myBlades', 'myRatchets', 'myBits', 'myAssistBlades'));
@@ -124,10 +137,18 @@ class BeybladeCollectionController extends Controller
      * @param  \App\Models\BeybladeCollection  $beybladeCollection
      * @return \Illuminate\Http\Response
      */
-    public function update(Request $request, BeybladeCollection $beybladeCollection)
+    public function update(Request $request, $id)
     {
-        //
+        $item = BeybladeCollection::findOrFail($id);
+        $item->weight = $request->weight;
+        $item->color = $request->color;
+        $item->quantity = $request->quantity;
+        $item->comment = $request->comment;
+        $item->save();
+
+        return redirect()->back()->with('success', 'Pieza actualizada correctamente');
     }
+
 
     /**
      * Remove the specified resource from storage.
