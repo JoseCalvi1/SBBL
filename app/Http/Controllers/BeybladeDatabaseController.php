@@ -99,7 +99,7 @@ class BeybladeDatabaseController extends Controller
     {
         $request->validate([
             'nombre' => 'required|string|max:255',
-            'type' => 'required|in:Blade,Ratchet,Bit',
+            'type' => 'required|in:Blade,Ratchet,Bit,AssistBlade',
         ]);
 
         $type = $request->type;
@@ -122,6 +122,11 @@ class BeybladeDatabaseController extends Controller
                         'nombre' => $name,
                     ]);
                     break;
+                    case 'AssistBlade':
+                        $part = AssistBlade::create([
+                            'nombre' => $name,
+                        ]);
+                        break;
             }
 
             return redirect()->back()->with('success', 'Parte creada con éxito!');
@@ -142,6 +147,7 @@ class BeybladeDatabaseController extends Controller
     {
         $type = $request->type;
         $part = null;
+
         switch ($type) {
             case 'blades':
                 $part = Blade::findOrFail($id);
@@ -151,6 +157,9 @@ class BeybladeDatabaseController extends Controller
                 break;
             case 'bits':
                 $part = Bit::findOrFail($id);
+                break;
+            case 'assistblades':
+                $part = AssistBlade::findOrFail($id);
                 break;
         }
 

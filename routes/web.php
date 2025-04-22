@@ -39,6 +39,10 @@ Route::get('/policy-privacy', [App\Http\Controllers\InicioController::class, 'pr
 Route::get('/contact-us', [App\Http\Controllers\InicioController::class, 'contact'])->name('inicio.contact');
 Route::get('/entrevistas', [App\Http\Controllers\InicioController::class, 'entrevistas'])->name('inicio.entrevistas');
 Route::get('/beyblade-nacional-sbbl-temporada-uno', [App\Http\Controllers\InicioController::class, 'nacional'])->name('inicio.nacional');
+Route::get('/politica-cookies', function () {
+    return view('inicio.cookies');
+})->name('politica.cookies');
+
 
 Route::get('/events/create', [App\Http\Controllers\EventController::class, 'create'])->name('events.create');
 Route::get('/events/{event}', [App\Http\Controllers\EventController::class, 'show'])->name('events.show');
@@ -187,6 +191,11 @@ Route::post('bits', [BeybladeDatabaseController::class, 'store'])->name('bits.st
 Route::get('/bits/{id}/edit', [BeybladeDatabaseController::class, 'editBit'])->name('bits.edit');
 Route::put('/bits/{id}', [BeybladeDatabaseController::class, 'updateBit'])->name('bits.update');
 Route::get('beyblade-database/bits/{id}', [BeybladeDatabaseController::class, 'showBit'])->name('database.showBit');
+
+Route::post('assistBlades', [BeybladeDatabaseController::class, 'store'])->name('assistBlade.store');
+Route::get('/assistBlades/{id}/edit', [BeybladeDatabaseController::class, 'editAssistBlade'])->name('assistBlade.edit');
+Route::put('/assistBlades/{id}', [BeybladeDatabaseController::class, 'updateAssistBlade'])->name('assistBlade.update');
+Route::get('beyblade-database/assistBlades/{id}', [BeybladeDatabaseController::class, 'showAssistBlade'])->name('assistBlade.showBit');
 
 Route::get('/beyblade-database/collection', [BeybladeCollectionController::class, 'index'])->name('collection.index');
 Route::post('/beyblade-database/collection/store', [BeybladeCollectionController::class, 'store'])->name('collection.store');

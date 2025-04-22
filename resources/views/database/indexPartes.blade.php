@@ -81,7 +81,7 @@
 <div id="app" class="container py-5">
     <div class="row">
         <!-- Blade Section -->
-        <div class="col-md-4">
+        <div class="col-md-6">
             <h3>Blades</h3>
             <form action="{{ route('blades.store') }}" method="POST" class="mb-3">
                 @csrf
@@ -108,7 +108,7 @@
 
 
         <!-- Ratchet Section -->
-        <div class="col-md-4">
+        <div class="col-md-6">
             <h3>Ratchets</h3>
             <form action="{{ route('ratchets.store') }}" method="POST" class="mb-3">
                 @csrf
@@ -126,7 +126,7 @@
                             @else
                                 <a href="{{ route('ratchets.edit', $ratchet->id) }}" class="btn btn-warning btn-sm">Editar</a>
                             @endif
-                            <button class="btn btn-danger btn-sm delete-btn" data-toggle="modal" data-target="#deleteConfirmationModal" data-id="{{ $ratchet->id }}" data-type="ratchets" data-name="{{ $ratchet->nombre_takara }}">Eliminar</button>
+                            <button class="btn btn-danger btn-sm delete-btn" data-toggle="modal" data-target="#deleteConfirmationModal" data-id="{{ $ratchet->id }}" data-type="ratchets" data-name="{{ $ratchet->nombre }}">Eliminar</button>
                         </div>
                     </div>
                 @endforeach
@@ -134,7 +134,7 @@
         </div>
 
         <!-- Bit Section -->
-        <div class="col-md-4">
+        <div class="col-md-6">
             <h3>Bits</h3>
             <form action="{{ route('bits.store') }}" method="POST" class="mb-3">
                 @csrf
@@ -152,7 +152,33 @@
                             @else
                                 <a href="{{ route('bits.edit', $bit->id) }}" class="btn btn-warning btn-sm">Editar</a>
                             @endif
-                            <button class="btn btn-danger btn-sm delete-btn" data-toggle="modal" data-target="#deleteConfirmationModal" data-id="{{ $bit->id }}" data-type="bits" data-name="{{ $bit->nombre_takara }}">Eliminar</button>
+                            <button class="btn btn-danger btn-sm delete-btn" data-toggle="modal" data-target="#deleteConfirmationModal" data-id="{{ $bit->id }}" data-type="bits" data-name="{{ $bit->nombre }}">Eliminar</button>
+                        </div>
+                    </div>
+                @endforeach
+            </div>
+        </div>
+
+        <!-- Assist Blade Section -->
+        <div class="col-md-6">
+            <h3>Assist Blades</h3>
+            <form action="{{ route('assistBlade.store') }}" method="POST" class="mb-3">
+                @csrf
+                <input type="text" name="nombre" class="form-control" placeholder="Nombre del Assist Blade" required>
+                <input type="hidden" name="type" class="form-control" value="AssistBlade">
+                <button type="submit" class="btn btn-primary mt-2 w-100">Crear Assist Blade</button>
+            </form>
+            <div id="ratchets-list">
+                @foreach ($assistBlades as $assistBlade)
+                    <div class="part-item">
+                        <span>{{ $assistBlade->nombre }}<br>({{ ($assistBlade->recolor == false ? 'Base' : 'Recolor') }})</span>
+                        <div>
+                            @if (!empty($assistBlade->nombre) && empty($assistBlade->imagen)) <!-- Asegúrate de agregar las condiciones correctas para los otros campos -->
+                                <a href="{{ route('assistBlade.edit', $assistBlade->id) }}" class="btn btn-info btn-sm">Completar</a>
+                            @else
+                                <a href="{{ route('assistBlade.edit', $assistBlade->id) }}" class="btn btn-warning btn-sm">Editar</a>
+                            @endif
+                            <button class="btn btn-danger btn-sm delete-btn" data-toggle="modal" data-target="#deleteConfirmationModal" data-id="{{ $assistBlade->id }}" data-type="assistBlade" data-name="{{ $assistBlade->nombre }}">Eliminar</button>
                         </div>
                     </div>
                 @endforeach
