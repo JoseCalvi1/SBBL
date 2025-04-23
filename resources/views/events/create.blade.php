@@ -60,6 +60,8 @@
                     <option value="grancopa">Gran Copa</option>
                     @endif
                     <option value="hasbro">Hasbro</option>
+                    <option value="copalloros">Copa Lloros</option>
+                    <option value="copaligera">Copa Ligera</option>
                 </select>
                     @error('imagen')
                         <span class="invalid-feedback d-block" role="alert">
@@ -147,7 +149,7 @@
                     @enderror
             </div>
 
-            <div class="form-group">
+            <div class="form-group" id="note-group">
                 <label for="note">Anotaciones</label>
                 <input type="text"
                     name="note"
@@ -233,6 +235,25 @@
             }
         }
 
+        function updateNoteVisibility() {
+            const noteGroup = document.getElementById("note-group");
+            if (imagenSelect.value === "copalloros" || imagenSelect.value === "copaligera") {
+                noteGroup.style.display = "none";
+            } else {
+                noteGroup.style.display = "block";
+            }
+        }
+
+        // Añadir llamada en los eventos existentes
+        imagenSelect.addEventListener("change", () => {
+            updateDeckOptions();
+            updateNoteVisibility();
+        });
+
+        // Llamar al cargar la página por si ya hay valores seleccionados
+        updateNoteVisibility();
+
+
         // Escuchar el cambio en el select de modalidad
         modeSelect.addEventListener("change", updateDeckOptions);
         imagenSelect.addEventListener("change", updateDeckOptions);
@@ -241,4 +262,4 @@
         updateDeckOptions();
     });
 </script>
-@endsection	
+@endsection

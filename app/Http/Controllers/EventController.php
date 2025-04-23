@@ -91,6 +91,10 @@ class EventController extends Controller
                 $textoImagen = 'Gran Copa';
             } elseif ($request->imagen == 'hasbro') {
                 $textoImagen = 'Hasbro';
+            } elseif ($request->imagen == 'copalloros') {
+                $textoImagen = 'Copa Lloros';
+            } elseif ($request->imagen == 'copaligera') {
+                $textoImagen = 'Copa Ligera';
             } else {
                 $textoImagen = 'Copa'; // Si no coincide con ninguno de los valores
             }
@@ -136,7 +140,13 @@ class EventController extends Controller
         }*/
 
         // Si el usuario sube una imagen
-        if($request['region_id'] == 1) {
+        if($request->imagen == 'copalloros')  {
+            $ruta_imagen = 'upload-events/copalloros.png';
+            $request['note'] = "FORMATO 5G. 5 combos distintos. Blades Baneados: Silver Wolf, Wizard Rod. Bits Baneados: Ball, Free Ball, Orb, Elevate";
+        }   elseif($request->imagen == 'copaligera')  {
+            $ruta_imagen = 'upload-events/copaligeraweb.png';
+            $request['note'] = "Blades permitidos : Wizard Arrow • Star Scream • Knight Shield • Optimus Prime • Iron Man • Luke Skywalker • Knight Lance • Thanos • Darth Vader • Leon Claw • The Mandalorian • Rhino Horn • Wyvern Gale • Sphinx Cowl • Black Shell • Shinobi Shadow • Ghost Circle • Tusk Mammoth • Savage Bear • Steel Samurai • Yell Kong • Knife Shinobi • Shelter Drake • Dranzer • Drigger • Draciel";
+        }   elseif($request['region_id'] == 1) {
             $ruta_imagen = 'upload-events/CartelAndalucia.webp';
         }   elseif($request['region_id'] == 2)  {
             $ruta_imagen = 'upload-events/CartelMadrid.webp';
@@ -147,6 +157,7 @@ class EventController extends Controller
         }   else {
             $ruta_imagen = 'upload-events/rankingx.jpg';
         }
+
 
         // Almacenar datos en la BD (sin modelos)
         $eventId = DB::table('events')->insertGetId([
@@ -168,7 +179,7 @@ class EventController extends Controller
         ]);
 
         // TODO Comentar para probar en local
-        //Self::notification(Event::find($eventId));
+        Self::notification(Event::find($eventId));
 
         $events = Event::with('region')->get();
         $createEvent = Event::where('created_by', Auth::user()->id)->where('date', '>', Carbon::now())->get();
