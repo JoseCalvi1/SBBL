@@ -235,4 +235,143 @@ class InicioController extends Controller
     {
         return view('inicio.dashboard');
     }
+
+    public function halloffame()
+    {
+        $burstusers = User::whereIn('id', [4, 18])->get();
+
+        // Usuario con más asistencias
+        $topAttenderData = DB::table('assist_user_event')
+            ->select('user_id', DB::raw('COUNT(*) as total'))
+            ->groupBy('user_id')
+            ->orderByDesc('total')
+            ->first();
+
+        $topAttender = null;
+        if ($topAttenderData) {
+            $topAttender = User::with('profile')->find($topAttenderData->user_id);
+            $topAttender->total_assists = $topAttenderData->total;
+        }
+
+        // Usuario con más primeros puestos
+        $topWinnerData = DB::table('assist_user_event')
+            ->select('user_id', DB::raw('COUNT(*) as wins'))
+            ->where('puesto', 'primero')
+            ->groupBy('user_id')
+            ->orderByDesc('wins')
+            ->first();
+
+        $topWinner = null;
+        if ($topWinnerData) {
+            $topWinner = User::with('profile')->find($topWinnerData->user_id);
+            $topWinner->total_wins = $topWinnerData->wins;
+        }
+
+        // Usuario con más duelos jugados
+        $duelParticipants = DB::table(function ($query) {
+            $query->select('user_id_1 as user_id')->from('versus')
+                ->unionAll(
+                    DB::table('versus')->select('user_id_2 as user_id')
+                );
+        }, 'all_users')
+            ->select('user_id', DB::raw('COUNT(*) as total'))
+            ->groupBy('user_id')
+            ->orderByDesc('total')
+            ->first();
+
+        $topDueler = null;
+        if ($duelParticipants) {
+            $topDueler = User::with('profile')->find($duelParticipants->user_id);
+            $topDueler->total_duels = $duelParticipants->total;
+        }
+
+        // Usuario con más duelos ganados
+        $duelWins = DB::table('versus')
+            ->selectRaw("
+                CASE
+                    WHEN result_1 > result_2 THEN user_id_1
+                    WHEN result_2 > result_1 THEN user_id_2
+                    ELSE NULL
+                END as winner_id
+            ")
+            ->whereNotNull('result_1')
+            ->whereNotNull('result_2');
+
+        $topDuelWinnerData = DB::table(DB::raw("({$duelWins->toSql()}) as winners"))
+            ->mergeBindings($duelWins)
+            ->select('winner_id', DB::raw('COUNT(*) as total'))
+            ->whereNotNull('winner_id')
+            ->groupBy('winner_id')
+            ->orderByDesc('total')
+            ->first();
+
+        $topDuelWinner = null;
+        if ($topDuelWinnerData) {
+            $topDuelWinner = User::with('profile')->find($topDuelWinnerData->winner_id);
+            $topDuelWinner->total_wins = $topDuelWinnerData->total;
+        }
+
+        // Usuario con más registros en tournament_results
+        $topRegisterData = DB::table('tournament_results')
+            ->select('user_id', DB::raw('COUNT(*) as total'))
+            ->groupBy('user_id')
+            ->orderByDesc('total')
+            ->first();
+
+        $topRegister = null;
+        if ($topRegisterData) {
+            $topRegister = User::with('profile')->find($topRegisterData->user_id);
+            $topRegister->total_registers = $topRegisterData->total;
+        }
+
+        // Usuario con más puntos ganados
+        $topPointsData = DB::table('tournament_results')
+            ->select('user_id', DB::raw('SUM(puntos_ganados) as total_points'))
+            ->groupBy('user_id')
+            ->orderByDesc('total_points')
+            ->first();
+
+        $topPoints = null;
+        if ($topPointsData) {
+            $topPoints = User::with('profile')->find($topPointsData->user_id);
+            $topPoints->total_points = $topPointsData->total_points;
+        }
+
+
+        $mejoresPorMes = DB::table('tournament_results')
+            ->join('events', 'events.id', '=', 'tournament_results.event_id')
+            ->where('events.date', '>=', Carbon::create(2024, 8, 1))
+            ->select(
+                'tournament_results.user_id',
+                DB::raw("DATE_FORMAT(events.date, '%Y-%m') as mes"),
+                DB::raw("SUM(tournament_results.puntos_ganados) as total_puntos")
+            )
+            ->groupBy('tournament_results.user_id', 'mes')
+            ->get()
+            ->groupBy('mes')
+            ->filter(function ($grupo, $mes) {
+                return $mes !== now()->format('Y-m'); // Filtra el mes actual
+            })
+            ->map(function ($grupo) {
+                $top = $grupo->sortByDesc('total_puntos')->first();
+                $user = \App\Models\User::with('profile')->find($top->user_id);
+                $user->total_puntos = $top->total_puntos;
+                return $user;
+            });
+
+
+
+        return view('inicio.halloffame', compact(
+            'topAttender',
+            'topWinner',
+            'topDueler',
+            'topDuelWinner',
+            'topRegister',
+            'topPoints',
+            'mejoresPorMes',
+            'burstusers'
+        ));
+    }
+
+
 }

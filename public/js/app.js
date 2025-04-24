@@ -2081,23 +2081,27 @@ function _toPropertyKey(t) { var i = _toPrimitive(t, "string"); return "symbol" 
 function _toPrimitive(t, r) { if ("object" != _typeof(t) || !t) return t; var e = t[Symbol.toPrimitive]; if (void 0 !== e) { var i = e.call(t, r || "default"); if ("object" != _typeof(i)) return i; throw new TypeError("@@toPrimitive must return a primitive value."); } return ("string" === r ? String : Number)(t); }
 
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = ({
-  props: ['articleId'],
+  props: ['eventId'],
   data: function data() {
     return {
       messages: [],
       newMessage: '',
-      //articleId: 1, // Cambia esto según el anuncio actual
+      eventId: 0,
+      // Cambia esto según el anuncio actual
       pollInterval: null
     };
   },
   mounted: function mounted() {
+    console.log('Componente montado');
+    console.log('Evento mounted: ', this.eventId);
     this.fetchMessages();
     this.pollInterval = setInterval(this.fetchMessages, 5000);
   },
   methods: {
     fetchMessages: function fetchMessages() {
       var _this = this;
-      axios__WEBPACK_IMPORTED_MODULE_0___default().get("/chat/messages/".concat(this.articleId)).then(function (response) {
+      console.log('Evento fetch: ', this.eventId);
+      axios__WEBPACK_IMPORTED_MODULE_0___default().get("/chat/messages/".concat(this.eventId)).then(function (response) {
         _this.messages = response.data.map(function (message) {
           return _objectSpread(_objectSpread({}, message), {}, {
             user: message.user || {
@@ -2105,14 +2109,17 @@ function _toPrimitive(t, r) { if ("object" != _typeof(t) || !t) return t; var e 
             }
           });
         });
+      })["catch"](function (error) {
+        console.error("Error fetching messages: ", error);
       });
     },
     sendMessage: function sendMessage() {
       var _this2 = this;
+      console.log('Evento send: ', this.eventId);
       if (this.newMessage.trim() === '') return;
       axios__WEBPACK_IMPORTED_MODULE_0___default().post('/chat/messages', {
         message: this.newMessage,
-        article_id: this.articleId
+        event_id: this.eventId
       }).then(function (response) {
         _this2.messages.push(response.data);
         _this2.newMessage = '';
@@ -28725,7 +28732,7 @@ __webpack_require__.r(__webpack_exports__);
 
 var ___CSS_LOADER_EXPORT___ = _node_modules_laravel_mix_node_modules_css_loader_dist_runtime_api_js__WEBPACK_IMPORTED_MODULE_0___default()(function(i){return i[1]});
 // Module
-___CSS_LOADER_EXPORT___.push([module.id, "\n.chat-container[data-v-0d66c37a] {\n  display: flex;\n  flex-direction: column;\n  justify-content: space-between;\n  height: 100vh;\n  /*max-width: 600px;*/\n  margin: 0 auto;\n  background-color: #2c2c2c;\n  border: 1px solid #555;\n  border-radius: 10px;\n  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);\n  color: #ffffff;\n}\n.messages-container[data-v-0d66c37a] {\n  flex: 1;\n  padding: 20px;\n  overflow-y: auto;\n  background-color: #1e1e1e;\n}\n.message[data-v-0d66c37a] {\n  margin-bottom: 10px;\n  padding: 10px;\n  background-color: #333;\n  border-radius: 8px;\n  color: #f1f1f1;\n}\n.input-container[data-v-0d66c37a] {\n  display: flex;\n  padding: 20px;\n  background-color: #1e1e1e;\n  border-top: 1px solid #555;\n}\n.message-input[data-v-0d66c37a] {\n  flex: 1;\n  padding: 10px;\n  font-size: 1em;\n  border-radius: 8px;\n  border: 1px solid #444;\n  background-color: #333;\n  color: #f1f1f1;\n  resize: none;\n  outline: none;\n}\n.send-button[data-v-0d66c37a] {\n  margin-left: 10px;\n  padding: 10px 20px;\n  background-color: #0288d1;\n  color: #fff;\n  border: none;\n  border-radius: 8px;\n  cursor: pointer;\n}\n.send-button[data-v-0d66c37a]:hover {\n  background-color: #026ca1;\n}\n", ""]);
+___CSS_LOADER_EXPORT___.push([module.id, "\n.chat-container[data-v-0d66c37a] {\n  display: flex;\n  flex-direction: column;\n  justify-content: space-between;\n  /*height: 100vh;*/\n  /*max-width: 600px;*/\n  margin: 0 auto;\n  background-color: #2c2c2c;\n  border: 1px solid #555;\n  border-radius: 10px;\n  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);\n  color: #ffffff;\n}\n.messages-container[data-v-0d66c37a] {\n  flex: 1;\n  padding: 20px;\n  overflow-y: auto;\n  background-color: #1e1e1e;\n}\n.message[data-v-0d66c37a] {\n  margin-bottom: 10px;\n  padding: 10px;\n  background-color: #333;\n  border-radius: 8px;\n  color: #f1f1f1;\n}\n.input-container[data-v-0d66c37a] {\n  display: flex;\n  padding: 20px;\n  background-color: #1e1e1e;\n  border-top: 1px solid #555;\n}\n.message-input[data-v-0d66c37a] {\n  flex: 1;\n  padding: 10px;\n  font-size: 1em;\n  border-radius: 8px;\n  border: 1px solid #444;\n  background-color: #333;\n  color: #f1f1f1;\n  resize: none;\n  outline: none;\n}\n.send-button[data-v-0d66c37a] {\n  margin-left: 10px;\n  padding: 10px 20px;\n  background-color: #0288d1;\n  color: #fff;\n  border: none;\n  border-radius: 8px;\n  cursor: pointer;\n}\n.send-button[data-v-0d66c37a]:hover {\n  background-color: #026ca1;\n}\n", ""]);
 // Exports
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (___CSS_LOADER_EXPORT___);
 

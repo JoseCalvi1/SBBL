@@ -1,5 +1,7 @@
 @extends('layouts.app')
 
+@section('title', 'Estadísticas Beyblade X')
+
 @section('styles')
 <style>
 

@@ -1,5 +1,7 @@
 @extends('layouts.app')
 
+@section('title', 'Bladers SBBL')
+
 @section('content')
 
 <div class="container">

@@ -42,6 +42,8 @@ Route::get('/beyblade-nacional-sbbl-temporada-uno', [App\Http\Controllers\Inicio
 Route::get('/politica-cookies', function () {
     return view('inicio.cookies');
 })->name('politica.cookies');
+Route::get('/salon-de-la-fama-beyblade', [App\Http\Controllers\InicioController::class, 'halloffame'])->name('inicio.halloffame');
+
 
 
 Route::get('/events/create', [App\Http\Controllers\EventController::class, 'create'])->name('events.create');
@@ -137,7 +139,7 @@ Route::get('/stats', [TournamentResultController::class, 'beybladeStats'])->name
 Route::get('/separate-stats', [TournamentResultController::class, 'separateStats'])->name('stats.separate');
 Route::get('/rankingstats', [TournamentResultController::class, 'showRanking'])->name('stats.rankingstats');
 
-Route::get('/chat/messages/{articleId}', [ChatController::class, 'getMessages']);
+Route::get('/chat/messages/{eventId}', [ChatController::class, 'getMessages']);
 Route::post('/chat/messages', [ChatController::class, 'storeMessage'])->middleware('auth');
 
 Route::resource('trophies', TrophyController::class); // Para los métodos index, create, store, etc.

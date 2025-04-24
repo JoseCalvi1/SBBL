@@ -8,23 +8,24 @@ use Illuminate\Support\Facades\Log;
 
 class ChatController extends Controller
 {
-    public function getMessages($articleId)
+    public function getMessages($eventId)
     {
-        Log::info('Article ID: ' . $articleId);
-        $messages = ChatMessage::where('article_id', $articleId)->with('user')->orderBy('id', 'DESC')->get();
+        Log::info('Event ID: ' . $eventId);
+        $messages = ChatMessage::where('event_id', $eventId)->with('user')->orderBy('id', 'DESC')->get();
         return response()->json($messages);
     }
 
     public function storeMessage(Request $request)
     {
+        Log::info('Request data:', $request->all());
         $request->validate([
             'message' => 'required|string',
-            'article_id' => 'required|exists:articles,id'
+            'event_id' => 'required|exists:events,id'
         ]);
 
         $message = ChatMessage::create([
             'user_id' => auth()->id(),
-            'article_id' => $request->article_id,
+            'event_id' => $request->event_id,
             'message' => $request->message,
         ]);
 

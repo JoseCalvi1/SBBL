@@ -1,5 +1,7 @@
 @extends('layouts.app')
 
+@section('title', 'Eventos Beyblade X')
+
 @section('styles')
 <style>
     .calendar {

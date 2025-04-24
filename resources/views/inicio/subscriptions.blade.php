@@ -1,5 +1,7 @@
 @extends('layouts.app') <!-- Cambia esto según tu layout -->
 
+@section('title', 'Suscripciones SBBL')
+
 @section('content')
 <div class="container my-5" style="border-radius: 8px; padding: 20px; color: #ffffff;">
     <h1 class="text-center mb-4" style="color: #f8f9fa;">Suscripciones</h1>

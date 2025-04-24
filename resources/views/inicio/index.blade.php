@@ -122,6 +122,16 @@
         </div>
     </a>
 
+    <div class="d-flex justify-content-center align-items-center mt-5">
+        <a href="{{ route('inicio.halloffame') }}"
+           class="btn btn-lg text-white fw-bold shadow"
+           style="background: linear-gradient(to right, #facc15, #ef4444, #ec4899); border: none;">
+           🏆 Ir al Salón de la Fama
+        </a>
+    </div>
+
+
+
 
 
 <div class="col-md-12 p-4 text-center">

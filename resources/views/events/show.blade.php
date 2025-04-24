@@ -4,6 +4,29 @@
 
 <article class="contenido-event bg-white p-5 shadow" style="color:white !important;background-color: transparent !important;">
         <div class="row">
+            <h1 class="text-center mb-4">{{ $event->name }}
+                @if ($event->status == "OPEN")
+                    <span class="btn btn-success">ABIERTO</span>
+                @elseif ($event->status == "PENDING")
+                    <span class="btn btn-warning">PENDIENTE CALIFICAR</span>
+                @elseif ($event->status == "REVIEW")
+                    <span class="btn btn-info">EN REVISIÓN</span>
+                @elseif ($event->status == "INVALID")
+                <span class="btn btn-dark">INVÁLIDO</span>
+            @else
+                    <span class="btn btn-danger">CERRADO</span>
+                @endif
+                @if (($event->status != "CLOSE" && $event->status != "INVALID") && (Auth::user()->is_admin || Auth::user()->is_referee))
+                    <form method="POST" action="{{ route('events.actualizarPuntuaciones', ['event' => $event->id, 'mode' => $event->mode]) }}" style="display: contents; text-align: center;">
+                        @method('PUT')
+                        @csrf
+                        <button type="submit" class="btn btn-secondary mb-2 mt-2 d-block" style="width: 100%" onclick="return confirm('¿Estás seguro de que deseas cerrar el evento? Esta acción no se puede deshacer.')">
+                            Cerrar evento
+                        </button>
+                    </form>
+                @endif
+
+            </h1>
             <div class="col-md-5">
                 <div class="imagen-event">
                     @if ($event->image_mod)
@@ -11,6 +34,9 @@
                     @else
                         <img src="/storage/{{ $event->imagen }}" class="w-100 h-25" style="border-radius: 5px;">
                     @endif
+                </div>
+                <div id="app" class="mt-2">
+                    <chat-component :event-id="{{$event->id}}" />
                 </div>
             </div>
             <div class="col-md-7">
@@ -25,29 +51,6 @@
                         </div>
                     @endif
 
-                <h1 class="text-center mb-4">{{ $event->name }}
-                    @if ($event->status == "OPEN")
-                        <span class="btn btn-success">ABIERTO</span>
-                    @elseif ($event->status == "PENDING")
-                        <span class="btn btn-warning">PENDIENTE CALIFICAR</span>
-                    @elseif ($event->status == "REVIEW")
-                        <span class="btn btn-info">EN REVISIÓN</span>
-                    @elseif ($event->status == "INVALID")
-                    <span class="btn btn-dark">INVÁLIDO</span>
-                @else
-                        <span class="btn btn-danger">CERRADO</span>
-                    @endif
-                    @if (($event->status != "CLOSE" && $event->status != "INVALID") && (Auth::user()->is_admin || Auth::user()->is_referee))
-                        <form method="POST" action="{{ route('events.actualizarPuntuaciones', ['event' => $event->id, 'mode' => $event->mode]) }}" style="display: contents; text-align: center;">
-                            @method('PUT')
-                            @csrf
-                            <button type="submit" class="btn btn-secondary mb-2 mt-2 d-block" style="width: 100%" onclick="return confirm('¿Estás seguro de que deseas cerrar el evento? Esta acción no se puede deshacer.')">
-                                Cerrar evento
-                            </button>
-                        </form>
-                    @endif
-
-                </h1>
                 @if($event->status == "OPEN" && Auth::user() && $event->date > $hoy)
                     @if (!$suscribe)
                         @if($isRegistered && ($event->beys == "ranking" || $event->beys == "rankingplus"))
@@ -97,14 +100,15 @@
                             </p>
 
                             <p>
+                                <span class="font-weight-bold text-primary">Fecha y hora:</span>
+                                <event-date fecha="{{ $event->date }}"></event-date> <span class="font-weight-bold">({{ $event->time }})</span>
+                            </p>
+
+                            <p>
                                 <span class="font-weight-bold text-primary">Anotaciones:</span>
                                 {!! $event->note !!}
                             </p>
 
-                            <p>
-                                <span class="font-weight-bold text-primary">Fecha y hora:</span>
-                                <event-date fecha="{{ $event->date }}"></event-date> <span class="font-weight-bold">({{ $event->time }})</span>
-                            </p>
                             @if (($event->status != "CLOSE" && $event->status != "INVALID") && Auth::user()->is_referee || ($event->status == "OPEN" && $event->created_by == Auth::user()->id))
                                 <a href="{{ route('events.edit', ['event' => $event->id]) }}" class="btn btn-dark mb-2 d-block">Editar</a>
                             @endif

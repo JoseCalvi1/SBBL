@@ -9,15 +9,15 @@ class ChatMessage extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['user_id', 'article_id', 'message'];
+    protected $fillable = ['user_id', 'event_id', 'message'];
 
     public function user()
     {
         return $this->belongsTo(User::class);
     }
 
-    public function advertisement()
+    public function event()
     {
-        return $this->belongsTo(Article::class);
+        return $this->belongsTo(Event::class);
     }
 }

@@ -21,34 +21,40 @@
   import axios from 'axios';
 
   export default {
-    props: ['articleId'],
+    props: ['eventId'],
     data() {
       return {
         messages: [],
         newMessage: '',
-        //articleId: 1, // Cambia esto según el anuncio actual
+        eventId: 0, // Cambia esto según el anuncio actual
         pollInterval: null,
       };
     },
     mounted() {
+        console.log('Componente montado');
+        console.log('Evento mounted: ', this.eventId);
       this.fetchMessages();
       this.pollInterval = setInterval(this.fetchMessages, 5000);
     },
     methods: {
       fetchMessages() {
-        axios.get(`/chat/messages/${this.articleId}`).then((response) => {
-          this.messages = response.data.map((message) => ({
-            ...message,
-            user: message.user || { name: 'Usuario desconocido' },
-          }));
+        console.log('Evento fetch: ', this.eventId);
+        axios.get(`/chat/messages/${this.eventId}`).then((response) => {
+            this.messages = response.data.map((message) => ({
+                ...message,
+                user: message.user || { name: 'Usuario desconocido' },
+            }));
+        }).catch(error => {
+            console.error("Error fetching messages: ", error);
         });
       },
       sendMessage() {
+        console.log('Evento send: ', this.eventId);
         if (this.newMessage.trim() === '') return;
         axios
           .post('/chat/messages', {
             message: this.newMessage,
-            article_id: this.articleId,
+            event_id: this.eventId,
           })
           .then((response) => {
             this.messages.push(response.data);
@@ -73,7 +79,7 @@
     display: flex;
     flex-direction: column;
     justify-content: space-between;
-    height: 100vh;
+    /*height: 100vh;*/
     /*max-width: 600px;*/
     margin: 0 auto;
     background-color: #2c2c2c;
