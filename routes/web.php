@@ -37,6 +37,7 @@ Route::get('/random-combo-generator', [App\Http\Controllers\InicioController::cl
 Route::get('/rules', [App\Http\Controllers\InicioController::class, 'rules'])->name('inicio.rules');
 Route::get('/policy-privacy', [App\Http\Controllers\InicioController::class, 'privacy'])->name('inicio.privacy');
 Route::get('/contact-us', [App\Http\Controllers\InicioController::class, 'contact'])->name('inicio.contact');
+Route::post('/contacto', [InicioController::class, 'enviar'])->name('contacto.enviar');
 Route::get('/entrevistas', [App\Http\Controllers\InicioController::class, 'entrevistas'])->name('inicio.entrevistas');
 Route::get('/beyblade-nacional-sbbl-temporada-uno', [App\Http\Controllers\InicioController::class, 'nacional'])->name('inicio.nacional');
 Route::get('/politica-cookies', function () {

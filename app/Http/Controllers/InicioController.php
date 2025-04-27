@@ -192,6 +192,30 @@ class InicioController extends Controller
         return view('inicio.contact');
     }
 
+    public function enviar(Request $request)
+    {
+        $datos = $request->validate([
+            'nombre' => 'required|string|max:255',
+            'email' => 'required|email',
+            'motivo' => 'required|string',
+            'mensaje' => 'required|string',
+        ]);
+
+        Mail::send([], [], function ($message) use ($datos) {
+            $message->to('info@sbbl.es')
+                ->subject($datos['motivo']) // 👉 El motivo como asunto
+                ->setBody("
+                    <h3>Nuevo mensaje de contacto</h3>
+                    <p><strong>Nombre:</strong> {$datos['nombre']}</p>
+                    <p><strong>Email:</strong> {$datos['email']}</p>
+                    <p><strong>Mensaje:</strong><br>{$datos['mensaje']}</p>
+                ", 'text/html');
+        });
+
+        return back()->with('success', 'Tu mensaje ha sido enviado correctamente.');
+    }
+
+
     public function sendMail(Request $request) {
 
     }

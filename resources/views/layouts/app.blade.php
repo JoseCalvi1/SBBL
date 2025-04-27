@@ -190,7 +190,7 @@
                             @endif
                         @else
                             <li class="nav-item">
-                                <a class="nav-link" href="{{ route('equipos.index') }}" style="color: white;">
+                                <a class="nav-link" href="{{ route('equipos.index') }}" style="color: gold;">
                                     {{ 'EQUIPOS' }}
                                 </a>
                             </li>
@@ -350,13 +350,11 @@
                                     {{ 'Reglamento' }}
                                 </a>
                             </li>
-                            @auth
                             <li class="nav-item">
                                 <a class="nav-link text-white" href="{{ route('inicio.contact') }}">
                                     {{ 'Contacta con nosotros' }}
                                 </a>
                             </li>
-                            @endauth
                         </ul>
                     </div>
                     <div class="col-md-12 text-center pt-4 pb-2 border-top">

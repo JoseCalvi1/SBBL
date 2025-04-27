@@ -93,7 +93,7 @@ class TeamController extends Controller
     public function ranking_teams()
     {
         // Obtener los equipos ordenados por puntuación de forma descendente
-        $teams = Team::orderBy('points_x1', 'desc')->get();
+        $teams = Team::orderBy('points_x1', 'desc')->where('points_x1','>',0)->get();
 
         // Pasar los datos a la vista 'ranking'
         return view('equipos.ranking', compact('teams'));

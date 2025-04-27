@@ -210,7 +210,7 @@
                                     <td>{{ $bit->comment }}</td>
                                     <td class="text-end"> <!-- Alineación de las acciones -->
                                         <button type="button" class="btn btn-outline-warning btn-sm open-edit-modal"
-                                            data-id="{{ $blade->id }}"
+                                            data-id="{{ $bit->id }}"
                                             data-type="Bit"
                                             data-part-id="{{ $bit->part_id }}"
                                             data-weight="{{ $bit->weight }}"

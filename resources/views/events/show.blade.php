@@ -4,7 +4,8 @@
 
 <article class="contenido-event bg-white p-5 shadow" style="color:white !important;background-color: transparent !important;">
         <div class="row">
-            <h1 class="text-center mb-4">{{ $event->name }}
+            <div class="col-md-12">
+            <h1 class="text-center mb-4 w-100">{{ $event->name }}
                 @if ($event->status == "OPEN")
                     <span class="btn btn-success">ABIERTO</span>
                 @elseif ($event->status == "PENDING")
@@ -27,6 +28,7 @@
                 @endif
 
             </h1>
+        </div>
             <div class="col-md-5">
                 <div class="imagen-event">
                     @if ($event->image_mod)
@@ -121,6 +123,8 @@
                     </div>
                     <div class="col-md-6">
                         <h4 style="font-weight: bold">Listado de participantes ({{ $assists->count() }})</h4>
+                        <!-- Botón para copiar nombres -->
+                        <button id="copyButton" class="btn btn-outline-primary mt-3 mb-3 w-100">Copiar nombres</button>
                         @if($assists->count() < 4 && $event->status == "OPEN")
                             <div class="alert alert-danger">
                                 Importante: Si el número de participantes es menor a 4 el torneo no se realizará.
@@ -477,6 +481,29 @@
             const isReferee = @json(Auth::user()->is_referee);
 
         document.addEventListener("DOMContentLoaded", function () {
+            document.getElementById('copyButton').addEventListener('click', function() {
+                // Obtener los nombres de los participantes
+                let participants = @json($assists->pluck('name')); // Usar `pluck` para obtener solo los nombres
+                let names = participants.join('\n'); // Unir los nombres con salto de línea
+
+                // Crear un elemento temporal de área de texto para copiar el texto al portapapeles
+                let tempTextArea = document.createElement('textarea');
+                tempTextArea.value = names;
+                document.body.appendChild(tempTextArea);
+
+                // Seleccionar y copiar el texto
+                tempTextArea.select();
+                document.execCommand('copy');
+
+                // Eliminar el elemento temporal
+                document.body.removeChild(tempTextArea);
+
+                // Notificar que se copió
+                alert('Nombres copiados al portapapeles');
+            });
+
+
+
             // Solo ejecutamos si NO es referee
             if (!isReferee) {
                 const submitResultados = document.querySelector("input[type='submit'][value='Enviar resultados']");
@@ -503,6 +530,7 @@
                 jQuery('.select2').select2(); // Re-inicializa Select2
             });
         });
+
     </script>
     <!-- Incluye el script para inicializar los tooltips y otros componentes de Bootstrap -->
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
