@@ -1,5 +1,7 @@
 @extends('layouts.app')
 
+@section('title', 'Ranking de piezas Beyblade X')
+
 @section('content')
 <div class="container pt-2">
 

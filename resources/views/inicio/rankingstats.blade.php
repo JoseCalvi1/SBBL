@@ -1,5 +1,7 @@
 @extends('layouts.app')
 
+@section('title', 'Ranking blader del mes')
+
 @section('content')
 <div class="container">
     <a href="{{ route('inicio.stats') }}" class="btn btn-outline-primary mr-2 text-uppercase font-weight-bold m-4">

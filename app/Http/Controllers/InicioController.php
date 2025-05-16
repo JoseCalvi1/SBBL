@@ -6,6 +6,7 @@ use App\Models\Event;
 use App\Models\Profile;
 use App\Models\TournamentResult;
 use App\Models\User;
+use App\Models\Versus;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -362,9 +363,12 @@ class InicioController extends Controller
         }
 
 
+        $inicio = Carbon::create(2024, 8, 1);
+        $fin = now()->startOfMonth()->subSecond(); // Último segundo del mes anterior
+
         $mejoresPorMes = DB::table('tournament_results')
             ->join('events', 'events.id', '=', 'tournament_results.event_id')
-            ->where('events.date', '>=', Carbon::create(2024, 8, 1))
+            ->whereBetween('events.date', [$inicio, $fin])
             ->select(
                 'tournament_results.user_id',
                 DB::raw("DATE_FORMAT(events.date, '%Y-%m') as mes"),
@@ -373,16 +377,12 @@ class InicioController extends Controller
             ->groupBy('tournament_results.user_id', 'mes')
             ->get()
             ->groupBy('mes')
-            ->filter(function ($grupo, $mes) {
-                return $mes !== now()->format('Y-m'); // Filtra el mes actual
-            })
             ->map(function ($grupo) {
                 $top = $grupo->sortByDesc('total_puntos')->first();
                 $user = \App\Models\User::with('profile')->find($top->user_id);
                 $user->total_puntos = $top->total_puntos;
                 return $user;
             });
-
 
 
         return view('inicio.halloffame', compact(
@@ -396,6 +396,48 @@ class InicioController extends Controller
             'burstusers'
         ));
     }
+
+    public function resumen_semanal()
+    {
+        $hoy = Carbon::now();
+        $hace_7_dias = $hoy->copy()->subDays(7);
+
+        // Eventos en los últimos 7 días
+        $eventos = Event::with('region')
+            ->whereBetween('date', [$hace_7_dias->toDateString(), $hoy->toDateString()])
+            ->get();
+
+
+        // Participantes con puesto 1, 2 o 3 en esos eventos
+        $eventos_ids = $eventos->pluck('id');
+
+        $participantes = DB::table('assist_user_event')
+            ->whereIn('event_id', $eventos_ids)
+            ->whereIn('puesto', ['primero', 'segundo', 'tercero'])
+            ->join('users', 'assist_user_event.user_id', '=', 'users.id')
+            ->select('assist_user_event.event_id', 'users.name as user_name', 'assist_user_event.puesto')
+            ->get()
+            ->groupBy('event_id');
+
+        // Duelos en los últimos 7 días
+        $duelos = DB::table('versus')
+            ->whereBetween('versus.created_at', [$hace_7_dias, $hoy])
+            ->join('users as u1', 'versus.user_id_1', '=', 'u1.id')
+            ->join('users as u2', 'versus.user_id_2', '=', 'u2.id')
+            ->select('versus.*', 'u1.name as user1_name', 'u2.name as user2_name')
+            ->get();
+
+        // Duelos en los últimos 7 días
+        $duelosEquipo = DB::table('teams_versus')
+            ->whereBetween('teams_versus.created_at', [$hace_7_dias, $hoy])
+            ->join('teams as t1', 'teams_versus.team_id_1', '=', 't1.id')
+            ->join('teams as t2', 'teams_versus.team_id_2', '=', 't2.id')
+            ->select('teams_versus.*', 't1.name as team1_name', 't2.name as team2_name')
+            ->get();
+
+        return view('inicio.resumen_semanal', compact('eventos', 'participantes', 'duelos', 'duelosEquipo'));
+    }
+
 
 
 }

@@ -1,5 +1,7 @@
 @extends('layouts.app')
 
+@section('title', 'Duelos Beyblade X')
+
 @section('styles')
     <style>
         .select2-container--default .select2-selection--single {

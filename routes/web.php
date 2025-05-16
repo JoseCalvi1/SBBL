@@ -44,6 +44,7 @@ Route::get('/politica-cookies', function () {
     return view('inicio.cookies');
 })->name('politica.cookies');
 Route::get('/salon-de-la-fama-beyblade', [App\Http\Controllers\InicioController::class, 'halloffame'])->name('inicio.halloffame');
+Route::get('/resumen-semanal', [App\Http\Controllers\InicioController::class, 'resumen_semanal'])->name('inicio.resumen_semanal');
 
 
 

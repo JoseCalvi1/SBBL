@@ -1,5 +1,7 @@
 @extends('layouts.app')
 
+@section('title', 'SBBL Wrapped')
+
 @section('styles')
 <style>
     /* General */

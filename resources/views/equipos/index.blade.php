@@ -1,5 +1,7 @@
 @extends('layouts.app')
 
+@section('title', 'Equipos Beyblade X')
+
 @section('content')
 <div class="container-fluid" style="background: #283b63">
     <div class="row">

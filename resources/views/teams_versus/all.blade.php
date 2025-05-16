@@ -1,5 +1,7 @@
 @extends('layouts.app')
 
+@section('title', 'Duelos de equipos Beyblade X')
+
 @section('styles')
 <style>
     .duel-card {

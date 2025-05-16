@@ -1,5 +1,7 @@
 @extends('layouts.app')
 
+@section('title', 'Sección de contacto')
+
 @section('styles')
 <style>
     .contact-form {

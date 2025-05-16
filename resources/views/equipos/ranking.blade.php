@@ -1,5 +1,7 @@
 @extends('layouts.app')
 
+@section('title', 'Ranking Equipos Beyblade X')
+
 @section('styles')
 <style>
     .ranking-container {

@@ -1,5 +1,7 @@
 @extends('layouts.app')
 
+@section('title', 'Página de equipo')
+
 @section('styles')
 <style>
     .equipo-banner {

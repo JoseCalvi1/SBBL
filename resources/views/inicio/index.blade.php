@@ -1,5 +1,7 @@
 @extends('layouts.app')
 
+@section('title', 'SBBL - Inicio')
+
 @section('head')
     <meta name="description" content="Organización de BeyBattle España"/>
     <meta name="keywords" content="sbbl, beyblade, españa, torneo, liga, discord, app, web, evento, ranking, español, hasbro, takara, tomy, burst, x, beyblade x, beyblade españa"/>
@@ -42,6 +44,7 @@
     <link rel="stylesheet" href="https://unpkg.com/leaflet-mini-map/dist/Control.MiniMap.css" />
     <script src="https://unpkg.com/leaflet-mini-map/dist/Control.MiniMap.js"></script>
 </head>
+@include('database.partials.mainmenu-styles')
 @endsection
 
 @section('content')
@@ -107,6 +110,9 @@
         <div style="position: relative; text-align: center;">
             <img src="../images/banner_nacional.webp" class="w-100">
 
+<div class="relative w-full h-6 rounded-full bg-blue" style="height: 20px; border: 2px solid;">
+                <div class=" bg-white h-full rounded-full" style="width: 83%; height: 18px"><span class="text-sm mt-2" style="color: black">2500 / 3000 €</span></div>
+            </div>
             <div class="text-white" style="
                 width: 100%;
                 background: rgba(0, 0, 0, 0.7); /* Fondo oscuro con opacidad */
@@ -114,7 +120,7 @@
                 text-align: center;
                 padding: 10px;
                 position: absolute;
-                bottom: 0;
+                bottom: 20px;
                 left: 0;
             ">
                 PULSA AQUÍ PARA VER TODA LA INFORMACIÓN
@@ -122,12 +128,12 @@
         </div>
     </a>
 
-    <div class="d-flex justify-content-center align-items-center mt-5">
-        <a href="{{ route('inicio.halloffame') }}"
-           class="btn btn-lg text-white fw-bold shadow"
-           style="background: linear-gradient(to right, #facc15, #ef4444, #ec4899); border: none;">
-           🏆 Ir al Salón de la Fama
-        </a>
+    <div class="menu-container-wrapper">
+        <button class="menu-toggle">☰ Especial</button>
+        <div class="menu-row">
+            <a href="{{ route('inicio.halloffame') }}" class="menu-button" style="width: 250px">🏆 Salón de la Fama</a>
+            <a href="{{ route('inicio.resumen_semanal') }}" class="menu-button" style="width: 250px">🎯 Resumen semanal</a>
+        </div>
     </div>
 
 

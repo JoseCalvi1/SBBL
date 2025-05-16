@@ -1,6 +1,6 @@
     @extends('layouts.app')
 
-    @section('title', 'Nacional Beyblade X SBBL')
+    @section('title', 'Nacional Beyblade X España')
 
     @section('styles')
     <style>
@@ -94,6 +94,25 @@
 
 
     }
+.inscripcion-btn {
+  margin-top: 40px;
+  display: inline-block;
+  padding: 12px 24px;
+  background: linear-gradient(135deg, #4f46e5, #3b82f6); /* Indigo to Blue */
+  color: white;
+  font-weight: 600;
+  font-size: 1rem;
+  text-decoration: none;
+  border-radius: 9999px;
+  box-shadow: 0 4px 14px rgba(59, 130, 246, 0.4);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.inscripcion-btn:hover {
+  transform: scale(1.05);
+  box-shadow: 0 6px 20px rgba(59, 130, 246, 0.6);
+  color: white;
+}
     </style>
     @endsection
 
@@ -102,15 +121,21 @@
         <h1>Gran Copa Nacional de Beyblade X</h1>
         <h2 class="countdown mt-4" id="countdown"></h2>
         <h4>¡Únete a la batalla definitiva el 7 de julio!</h4>
+
+    <a href="https://docs.google.com/forms/d/1N0QPoLmWTGSVcbvAF8_LBEmGDoEUQ9aHPt-P443USWs/preview" target="_blank" class="inscripcion-btn">
+       ¡Inscribirme!
+    </a>
+
+
     </div>
 
     <div class="event-info" id="nacional">
         <div class="col-md-12 text-white text-center p-4" style="border: 1px solid #1e2a47; border-radius: 5px; background:#1e2a47; box-shadow: 0px 0px 10px rgba(255, 255, 255, 0.5)">
             <h2 class="text-lg font-bold mb-2">OBJETIVO NACIONAL SBBL</h2>
             <div class="relative w-full h-6 rounded-full" style="height: 20px; border: 2px solid">
-                <div class=" bg-white h-full rounded-full" style="width: 60%; height: 18px"></div>
+                <div class=" bg-white h-full rounded-full" style="width: 83%; height: 18px"></div>
             </div>
-            <p class="text-sm mt-2">1850€ / 3000€</p>
+            <p class="text-sm mt-2">2500€ / 3000€</p>
 
             <div class="mt-2">
                 <p><strong>¿Aún no tienes una suscripción?</strong> Consíguela fácilmente haciendo clic en
