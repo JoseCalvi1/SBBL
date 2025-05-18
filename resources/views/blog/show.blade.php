@@ -1,18 +1,36 @@
 @extends('layouts.app')
 
+@section('title', $article->title)
 
 @section('content')
-<div class="m-4" style="color: white">
-    <a href="{{ route('blog.index') }}">Volver al listado de anuncios</a>
-    @if ((Auth::user() && Auth::user()->is_admin))
-        <a href="{{ route('blog.edit', $article->id) }}" class="btn btn-primary">Editar anuncio</a>
+<div class="container my-4 text-white">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <a href="{{ route('blog.index') }}" class="text-decoration-none text-info">
+            ← Volver al listado de posts
+        </a>
+        @if (Auth::user() && Auth::user()->is_admin)
+            <a href="{{ route('blog.edit', $article->id) }}" class="btn btn-primary">
+                Editar post
+            </a>
+        @endif
+    </div>
+
+    <h1 class="mb-3">{{ $article->title }}</h1>
+
+    @if ($article->image)
+        <img src="data:image/png;base64,{{ $article->image }}" alt="Imagen del artículo" class="img-fluid rounded mb-4">
     @endif
-    <h1>{{ $article->title }}</h1>
-    <img src="data:image/png;base64,{{ $article->image }}" width="100%" class="pb-2">
-    <p><strong>Tipo:</strong> {{ $article->article_type }}</p>
-    <p><strong>Publicado:</strong> {{ $article->created_at->format('d/m/Y') }}</p>
-    <p>{!! $article->description !!}</p>
+
+    <div class="mb-3 small text-muted">
+        <p><strong class="text-white">Tipo:</strong> {{ $article->article_type }}</p>
+        <p><strong class="text-white">Publicado:</strong> {{ $article->created_at->format('d/m/Y') }}</p>
+    </div>
+
+    <div class="article-content">
+        {!! $article->description !!}
+    </div>
 </div>
+
 @endsection
 
 @section('script')

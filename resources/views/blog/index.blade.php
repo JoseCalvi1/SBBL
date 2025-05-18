@@ -1,10 +1,12 @@
 @extends('layouts.app')
 
+@section('title', 'Blog')
+
 @section('content')
 <div class="container">
-    <h2 class="text-center mt-2 mb-4" style="color: white">Anuncio de artículos
-        @if (Auth::user()->is_admin || Auth::user()->profile->points_x1 > 0)
-            <a href="{{ route('blog.create') }}" class="btn btn-outline-warning text-uppercase font-weight-bold">Crear anuncio</a>
+    <h2 class="text-center mt-2 mb-4" style="color: white">Tablón Blader
+        @if (Auth::user() && (Auth::user()->is_admin || Auth::user()->profile->points_x1 > 0))
+            <a href="{{ route('blog.create') }}" class="btn btn-outline-warning text-uppercase font-weight-bold">Crear post</a>
         @endif
     </h2>
 
@@ -19,13 +21,13 @@
                         <h5 class="card-title ml-1">{{ $article->title }}</h5>
                         <p class="card-text ml-1"><strong>Tipo:</strong> {{ $article->article_type }}</p>
                         <p class="card-text ml-1"><strong>Publicado:</strong> {{ $article->created_at->format('d/m/Y') }}</p>
-                        <a href="{{ route('blog.show', $article->custom_url) }}" class="btn btn-primary">Ver artículo</a>
+                        <a href="{{ route('blog.show', $article->custom_url) }}" class="btn btn-primary">Ver post</a>
                     </div>
                 </div>
             </div>
         @empty
             <div class="col">
-                <p class="text-center" style="color: white">No hay anuncios publicados.</p>
+                <p class="text-center" style="color: white">No hay posts publicados.</p>
             </div>
         @endforelse
     </div>
