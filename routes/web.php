@@ -99,12 +99,12 @@ Route::put('/generations/{versus}', [App\Http\Controllers\VersusController::clas
 
 Route::post('/videos', [App\Http\Controllers\VideoController::class, 'store'])->name('videos.store');
 
-Route::get('/mercado', [App\Http\Controllers\ArticleController::class, 'index'])->name('mercado.index');
-Route::get('/mercado/{custom_url}', [App\Http\Controllers\ArticleController::class, 'show'])->name('mercado.show');
-Route::get('/article/create', [App\Http\Controllers\ArticleController::class, 'create'])->name('mercado.create');
-Route::post('/article/store', [App\Http\Controllers\ArticleController::class, 'store'])->name('mercado.store');
-Route::get('/mercado/{article}/edit', [App\Http\Controllers\ArticleController::class, 'edit'])->name('mercado.edit');
-Route::put('/mercado/{article}', [App\Http\Controllers\ArticleController::class, 'update'])->name('mercado.update');
+Route::get('/blog', [App\Http\Controllers\ArticleController::class, 'index'])->name('blog.index');
+Route::get('/blog/{custom_url}', [App\Http\Controllers\ArticleController::class, 'show'])->name('blog.show');
+Route::get('/article/create', [App\Http\Controllers\ArticleController::class, 'create'])->name('blog.create');
+Route::post('/article/store', [App\Http\Controllers\ArticleController::class, 'store'])->name('blog.store');
+Route::get('/blog/{article}/edit', [App\Http\Controllers\ArticleController::class, 'edit'])->name('blog.edit');
+Route::put('/blog/{article}', [App\Http\Controllers\ArticleController::class, 'update'])->name('blog.update');
 
 Route::get('/equipos-admin', [TeamController::class, 'indexAdmin'])->name('equipos.indexAdmin');
 Route::get('/equipos', [TeamController::class, 'index'])->name('equipos.index');

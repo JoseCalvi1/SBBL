@@ -4,7 +4,7 @@
 <div class="container">
     <h2 class="text-center mt-2 mb-4" style="color: white">Anuncio de artículos
         @if (Auth::user()->is_admin || Auth::user()->profile->points_x1 > 0)
-            <a href="{{ route('mercado.create') }}" class="btn btn-outline-warning text-uppercase font-weight-bold">Crear anuncio</a>
+            <a href="{{ route('blog.create') }}" class="btn btn-outline-warning text-uppercase font-weight-bold">Crear anuncio</a>
         @endif
     </h2>
 
@@ -19,7 +19,7 @@
                         <h5 class="card-title ml-1">{{ $article->title }}</h5>
                         <p class="card-text ml-1"><strong>Tipo:</strong> {{ $article->article_type }}</p>
                         <p class="card-text ml-1"><strong>Publicado:</strong> {{ $article->created_at->format('d/m/Y') }}</p>
-                        <a href="{{ route('mercado.show', $article->custom_url) }}" class="btn btn-primary">Ver artículo</a>
+                        <a href="{{ route('blog.show', $article->custom_url) }}" class="btn btn-primary">Ver artículo</a>
                     </div>
                 </div>
             </div>

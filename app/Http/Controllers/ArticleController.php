@@ -14,18 +14,18 @@ class ArticleController extends Controller
     public function index()
     {
         $articles = Article::orderBy('id', 'DESC')->get(); // Obtener todos los artículos
-        return view('mercado.index', compact('articles')); // Pasar los artículos a la vista
+        return view('blog.index', compact('articles')); // Pasar los artículos a la vista
     }
 
     public function show($custom_url)
     {
         $article = Article::where('custom_url', $custom_url)->firstOrFail();
-        return view('mercado.show', compact('article')); // Pasar el artículo a la vista
+        return view('blog.show', compact('article')); // Pasar el artículo a la vista
     }
 
     public function create()
     {
-        return view('mercado.create');
+        return view('blog.create');
     }
 
     public function store(Request $request)
@@ -33,7 +33,7 @@ class ArticleController extends Controller
 
         if ($request->hasFile('image')) {
             $request->validate([
-                'image' => 'image|mimes:jpeg,png,jpg,gif|max:2048',
+                'image' => 'image|mimes:jpeg,png,jpg,gif,webp|max:2048',
             ]);
         }
 
@@ -62,12 +62,12 @@ class ArticleController extends Controller
         // TODO Comentar para probar en local
         //Self::notification(Article::find($articleId));
 
-        return redirect()->route('mercado.index')->with('success', '¡Artículo creado exitosamente!');
+        return redirect()->route('blog.index')->with('success', '¡Artículo creado exitosamente!');
     }
 
     public function edit(Article $article)
     {
-        return view('mercado.edit', compact('article'));
+        return view('blog.edit', compact('article'));
     }
 
     public function update(Request $request, Article $article)
@@ -96,7 +96,7 @@ class ArticleController extends Controller
         $article->save();
     }
 
-    return redirect()->route('mercado.show', $article->custom_url)->with('success', 'Artículo actualizado correctamente.');
+    return redirect()->route('blog.show', $article->custom_url)->with('success', 'Artículo actualizado correctamente.');
 }
 
 
