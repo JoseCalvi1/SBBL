@@ -122,9 +122,9 @@
         <h2 class="countdown mt-4" id="countdown"></h2>
         <h4>¡Únete a la batalla definitiva el 7 de julio!</h4>
 
-    <a href="https://docs.google.com/forms/d/1N0QPoLmWTGSVcbvAF8_LBEmGDoEUQ9aHPt-P443USWs/preview" target="_blank" class="inscripcion-btn">
+    <!--<a href="https://docs.google.com/forms/d/1N0QPoLmWTGSVcbvAF8_LBEmGDoEUQ9aHPt-P443USWs/preview" target="_blank" class="inscripcion-btn">
        ¡Inscribirme!
-    </a>
+    </a>-->
 
 
     </div>
@@ -133,9 +133,9 @@
         <div class="col-md-12 text-white text-center p-4" style="border: 1px solid #1e2a47; border-radius: 5px; background:#1e2a47; box-shadow: 0px 0px 10px rgba(255, 255, 255, 0.5)">
             <h2 class="text-lg font-bold mb-2">OBJETIVO NACIONAL SBBL</h2>
             <div class="relative w-full h-6 rounded-full" style="height: 20px; border: 2px solid">
-                <div class=" bg-white h-full rounded-full" style="width: 83%; height: 18px"></div>
+                <div class=" bg-white h-full rounded-full" style="width: 98%; height: 18px"></div>
             </div>
-            <p class="text-sm mt-2">2500€ / 3000€</p>
+            <p class="text-sm mt-2">2980€ / 3000€</p>
 
             <div class="mt-2">
                 <p><strong>¿Aún no tienes una suscripción?</strong> Consíguela fácilmente haciendo clic en
@@ -216,6 +216,97 @@
             </div>
         </div>
     </div>
+    <div class="container my-4" style="color: white">
+  <h2>Participantes - Adultos</h2>
+  <div class="row m-1 p-2" style="border: 5px solid white; border-radius: 5px;">
+    <div class="col-12 col-sm-6 col-md-4 col-lg-3">A.LOU13</div>
+    <div class="col-12 col-sm-6 col-md-4 col-lg-3">ALX_EJEM</div>
+    <div class="col-12 col-sm-6 col-md-4 col-lg-3">Androide</div>
+    <div class="col-12 col-sm-6 col-md-4 col-lg-3">Arlen</div>
+    <div class="col-12 col-sm-6 col-md-4 col-lg-3">Asefron</div>
+    <div class="col-12 col-sm-6 col-md-4 col-lg-3">Blader V</div>
+    <div class="col-12 col-sm-6 col-md-4 col-lg-3">Calcifer</div>
+    <div class="col-12 col-sm-6 col-md-4 col-lg-3">Chapuzas</div>
+    <div class="col-12 col-sm-6 col-md-4 col-lg-3">Chistes_7r</div>
+    <div class="col-12 col-sm-6 col-md-4 col-lg-3">Cobalto-60</div>
+    <div class="col-12 col-sm-6 col-md-4 col-lg-3">CRISBROWN</div>
+    <div class="col-12 col-sm-6 col-md-4 col-lg-3">Ekumi</div>
+    <div class="col-12 col-sm-6 col-md-4 col-lg-3">El Hechicero</div>
+    <div class="col-12 col-sm-6 col-md-4 col-lg-3">ElKenja</div>
+    <div class="col-12 col-sm-6 col-md-4 col-lg-3">Emperador</div>
+    <div class="col-12 col-sm-6 col-md-4 col-lg-3">Entukara Tomy</div>
+    <div class="col-12 col-sm-6 col-md-4 col-lg-3">Erubita</div>
+    <div class="col-12 col-sm-6 col-md-4 col-lg-3">evapgg28</div>
+    <div class="col-12 col-sm-6 col-md-4 col-lg-3">EXTINTOR</div>
+    <div class="col-12 col-sm-6 col-md-4 col-lg-3">Fernandofrd</div>
+    <div class="col-12 col-sm-6 col-md-4 col-lg-3">Fujen</div>
+    <div class="col-12 col-sm-6 col-md-4 col-lg-3">Gadilongo</div>
+    <div class="col-12 col-sm-6 col-md-4 col-lg-3">Ghlimk</div>
+    <div class="col-12 col-sm-6 col-md-4 col-lg-3">Hell</div>
+    <div class="col-12 col-sm-6 col-md-4 col-lg-3">Hyliandwolf</div>
+    <div class="col-12 col-sm-6 col-md-4 col-lg-3">Jabalí táctico</div>
+    <div class="col-12 col-sm-6 col-md-4 col-lg-3">Jaickote</div>
+    <div class="col-12 col-sm-6 col-md-4 col-lg-3">jellboi</div>
+    <div class="col-12 col-sm-6 col-md-4 col-lg-3">Jivox</div>
+    <div class="col-12 col-sm-6 col-md-4 col-lg-3">Johan</div>
+    <div class="col-12 col-sm-6 col-md-4 col-lg-3">JoseCalvi1</div>
+    <div class="col-12 col-sm-6 col-md-4 col-lg-3">juancho69</div>
+    <div class="col-12 col-sm-6 col-md-4 col-lg-3">KA0S CØR3</div>
+    <div class="col-12 col-sm-6 col-md-4 col-lg-3">KaW</div>
+    <div class="col-12 col-sm-6 col-md-4 col-lg-3">Lana del Bey</div>
+    <div class="col-12 col-sm-6 col-md-4 col-lg-3">Lanza</div>
+    <div class="col-12 col-sm-6 col-md-4 col-lg-3">Lestat</div>
+    <div class="col-12 col-sm-6 col-md-4 col-lg-3">Lil Fruto Seco</div>
+    <div class="col-12 col-sm-6 col-md-4 col-lg-3">Lorz</div>
+    <div class="col-12 col-sm-6 col-md-4 col-lg-3">Lycanpower</div>
+    <div class="col-12 col-sm-6 col-md-4 col-lg-3">Maikelor</div>
+    <div class="col-12 col-sm-6 col-md-4 col-lg-3">MaMeiko</div>
+    <div class="col-12 col-sm-6 col-md-4 col-lg-3">Maverick</div>
+    <div class="col-12 col-sm-6 col-md-4 col-lg-3">Monarch</div>
+    <div class="col-12 col-sm-6 col-md-4 col-lg-3">Oliver Martinez</div>
+    <div class="col-12 col-sm-6 col-md-4 col-lg-3">Oni-sama</div>
+    <div class="col-12 col-sm-6 col-md-4 col-lg-3">PAULA X</div>
+    <div class="col-12 col-sm-6 col-md-4 col-lg-3">Pedro Menezes</div>
+    <div class="col-12 col-sm-6 col-md-4 col-lg-3">Peroxk</div>
+    <div class="col-12 col-sm-6 col-md-4 col-lg-3">Phaze0N</div>
+    <div class="col-12 col-sm-6 col-md-4 col-lg-3">Pinwinazo</div>
+    <div class="col-12 col-sm-6 col-md-4 col-lg-3">Quijote</div>
+    <div class="col-12 col-sm-6 col-md-4 col-lg-3">RedClaw</div>
+    <div class="col-12 col-sm-6 col-md-4 col-lg-3">Ricardo St</div>
+    <div class="col-12 col-sm-6 col-md-4 col-lg-3">SAMU X</div>
+    <div class="col-12 col-sm-6 col-md-4 col-lg-3">Sesiomaru</div>
+    <div class="col-12 col-sm-6 col-md-4 col-lg-3">Shirk</div>
+    <div class="col-12 col-sm-6 col-md-4 col-lg-3">Shurmiky</div>
+    <div class="col-12 col-sm-6 col-md-4 col-lg-3">ThuBerni15x</div>
+    <div class="col-12 col-sm-6 col-md-4 col-lg-3">Thunone</div>
+    <div class="col-12 col-sm-6 col-md-4 col-lg-3">Tragabuche</div>
+    <div class="col-12 col-sm-6 col-md-4 col-lg-3">Wildbyt</div>
+    <div class="col-12 col-sm-6 col-md-4 col-lg-3">XzO</div>
+    <div class="col-12 col-sm-6 col-md-4 col-lg-3">Zaiko</div>
+  </div>
+
+  <h2 class="mt-5">Participantes - Menores</h2>
+  <div class="row m-1 p-2" style="border: 5px solid white; border-radius: 5px;">
+    <div class="col-12 col-sm-6 col-md-4 col-lg-3">Alexkorbo</div>
+    <div class="col-12 col-sm-6 col-md-4 col-lg-3">Arqueos</div>
+    <div class="col-12 col-sm-6 col-md-4 col-lg-3">Darwin</div>
+    <div class="col-12 col-sm-6 col-md-4 col-lg-3">Hyuga</div>
+    <div class="col-12 col-sm-6 col-md-4 col-lg-3">Joel08</div>
+    <div class="col-12 col-sm-6 col-md-4 col-lg-3">Littencito</div>
+    <div class="col-12 col-sm-6 col-md-4 col-lg-3">Lukenix</div>
+    <div class="col-12 col-sm-6 col-md-4 col-lg-3">Megalodon</div>
+    <div class="col-12 col-sm-6 col-md-4 col-lg-3">Mr. H</div>
+    <div class="col-12 col-sm-6 col-md-4 col-lg-3">Nikkito</div>
+    <div class="col-12 col-sm-6 col-md-4 col-lg-3">OmegaManu</div>
+    <div class="col-12 col-sm-6 col-md-4 col-lg-3">Pabluto Moyija</div>
+    <div class="col-12 col-sm-6 col-md-4 col-lg-3">Ritsu</div>
+    <div class="col-12 col-sm-6 col-md-4 col-lg-3">SergioX</div>
+    <div class="col-12 col-sm-6 col-md-4 col-lg-3">Sertryek</div>
+    <div class="col-12 col-sm-6 col-md-4 col-lg-3">Vladimir</div>
+    <div class="col-12 col-sm-6 col-md-4 col-lg-3">XShu_Beyblade</div>
+  </div>
+</div>
+
 
     <!--<div class="hero" style="background: red !important">
         <h1>Esta página ha sido aprobada por EXTINTOC</h1>

@@ -66,10 +66,27 @@
                     @endforeach
                 </select>
             </div>
-        </div>
 
-        @if(Auth::user())
-        <div class="form-group col-md-4 d-flex align-items-center">
+            <div class="form-group col-md-3">
+                <label for="fecha_inicio" class="text-white">Desde</label>
+                <input type="date" name="fecha_inicio" id="fecha_inicio" class="form-control bg-dark text-white border-secondary" value="{{ request('fecha_inicio') }}">
+            </div>
+
+            <div class="form-group col-md-3">
+                <label for="fecha_fin" class="text-white">Hasta</label>
+                <input type="date" name="fecha_fin" id="fecha_fin" class="form-control bg-dark text-white border-secondary" value="{{ request('fecha_fin') }}">
+            </div>
+            <div class="form-group col-md-3">
+                <label for="min_partidas" class="text-white">Mínimo de Partidas</label>
+                <select name="min_partidas" id="min_partidas" class="form-control bg-dark text-white border-secondary">
+                    <option value="0" {{ $minPartidas == 1 ? 'selected' : '' }}>Todas</option>
+                    <option value="10" {{ $minPartidas == 10 ? 'selected' : '' }}>10+</option>
+                    <option value="50" {{ $minPartidas == 50 ? 'selected' : '' }}>50+</option>
+                    <option value="100" {{ $minPartidas == 100 ? 'selected' : '' }}>100+</option>
+                </select>
+            </div>
+            @if(Auth::user())
+        <div class="form-group col-md-3 d-flex align-items-center">
             <label for="only_user_parts" class="text-white mb-0 mr-2">Solo mis datos</label>
             <div class="custom-control custom-switch">
                 <input
@@ -84,6 +101,7 @@
             </div>
         </div>
         @endif
+        </div>
 
         <button type="submit" class="btn btn-primary w-100">Filtrar</button>
     </form>

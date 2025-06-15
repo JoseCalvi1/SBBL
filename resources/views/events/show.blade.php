@@ -147,6 +147,7 @@
                                                 ->whereMonth('events.date', \Carbon\Carbon::parse($event->date)->month)
                                                 ->whereYear('events.date', \Carbon\Carbon::parse($event->date)->year)
                                                 ->whereIn('events.beys', ['ranking', 'rankingplus']) // Añadir filtro de beys
+                                                ->where('assist_user_event.puesto', '<>', 'No presentado') // Filtro por puesto
                                                 ->count();
 
                                                 }}
@@ -294,8 +295,8 @@
                                         <!-- Assist blade -->
                                         <div class="col-md-2">
                                             <label for="assist_blade_{{ $assist->id }}_{{ $index }}">Assist blade (Solo CX)</label>
-                                            <select class="form-control select2" id="assist_blade_{{ $assist->id }}_{{ $index }}" name="assist_blade[{{ $assist->id }}][{{ $index }}]" required>
-                                                <option>-- Selecciona un assist blade --</option>
+                                            <select class="form-control select2" id="assist_blade_{{ $assist->id }}_{{ $index }}" name="assist_blade[{{ $assist->id }}][{{ $index }}]">
+                                                <option></option>
                                                 @foreach($assistBladeOptions as $option)
                                                     <option value="{{ $option }}"
                                                         @if(isset($resultsByParticipant[$assist->id][$index-1]) && $resultsByParticipant[$assist->id][$index-1]->assist_blade == $option) selected @endif>

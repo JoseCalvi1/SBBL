@@ -24,12 +24,12 @@
             <div class="container-fluid" style="background-color: red;">
                 <div class="row">
                     <div class="col-md-12 mt-3 mb-3 text-center">
-                        <p style="color: white; font-size: 1.4em;">Estas normas están basadas en las de la WBBA por lo que
+                        <p style="color: white; font-size: 1.4em;">Estas normas están basadas en las de B4 por lo que
                             si hay alguna duda de algo que no esté contemplado arriba no dudes en contactar con
-                            sbbl.oficial@gmail.com o escribirlo por nuestro <a style="color: white; font-weight: bold;"
+                            admin@sbbl.es o escribirlo por nuestro <a style="color: white; font-weight: bold;"
                                 target="_blank" href="https://discord.gg/vXhY4nGSwZ"> Discord</a></p>
                         <p style="color: white; font-size: 1.4em;">Si se observa alguna irregularidad que no esté
-                            contemplada en nuestras reglas se revisará el reglamento oficial de la WBBA para aclarar
+                            contemplada en nuestras reglas se revisará el reglamento oficial de B4 para aclarar
                             cualquier duda</p>
                     </div>
                 </div>

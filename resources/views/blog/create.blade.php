@@ -12,6 +12,18 @@
 
         <h1 style="color: white;">Crear Nuevo Post</h1>
 
+        {{-- Mostrar errores de validación --}}
+    @if ($errors->any())
+        <div class="alert alert-danger">
+            <h5 class="mb-2">Se encontraron los siguientes errores:</h5>
+            <ul class="mb-0">
+                @foreach ($errors->all() as $error)
+                    <li>{{ $error }}</li>
+                @endforeach
+            </ul>
+        </div>
+    @endif
+
         <form action="{{ route('blog.store') }}" method="POST" enctype="multipart/form-data">
             @csrf
             <div class="form-group">
@@ -32,7 +44,18 @@
 
             <div class="form-group">
                 <label for="article_type" style="color: white;">Tipo de post:</label>
-                <input type="text" class="form-control" id="article_type" name="article_type" placeholder="Por ejemplo: 'Guía de compra, Competitivo, etc'">
+                <select name="article_type" id="article_type" class="form-control">
+                    <option value="">-- Todos --</option>
+                    <option value="Borrador" {{ request('article_type') == 'Borrador' ? 'selected' : '' }}>Borrador</option>
+                    <option value="Competitivo" {{ request('article_type') == 'Competitivo' ? 'selected' : '' }}>Competitivo</option>
+                    <option value="Conoce a nuestros bladers" {{ request('article_type') == 'Conoce a nuestros bladers' ? 'selected' : '' }}>Conoce a nuestros bladers</option>
+                    <option value="Curiosidades" {{ request('article_type') == 'Curiosidades' ? 'selected' : '' }}>Curiosidades</option>
+                    <option value="Guía" {{ request('article_type') == 'Guía' ? 'selected' : '' }}>Guía</option>
+                    <option value="El Giro Semanal" {{ request('article_type') == 'El Giro Semanal' ? 'selected' : '' }}>El Giro Semanal</option>
+                    <option value="Eventos especiales" {{ request('article_type') == 'Eventos especiales' ? 'selected' : '' }}>Eventos especiales</option>
+                    <option value="Guía de compra" {{ request('article_type') == 'Guía de compra' ? 'selected' : '' }}>Guía de compra</option>
+                    <option value="Noticias" {{ request('article_type') == 'Noticias' ? 'selected' : '' }}>Noticias</option>
+                </select>
             </div>
 
             <div class="form-group">

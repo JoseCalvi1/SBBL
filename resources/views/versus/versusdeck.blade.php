@@ -39,8 +39,8 @@
                     <div class="col-md-2">
                         <div class="form-group">
                             <label for="assist_blade_{{ $index + 1 }}">Assist blade (Solo CX)</label>
-                            <select class="form-control select2" id="assist_blade_{{ $index + 1 }}" name="assist_blade[]" required>
-                                <option>-- Selecciona un assist blade --</option>
+                            <select class="form-control select2" id="assist_blade_{{ $index + 1 }}" name="assist_blade[]">
+                                <option></option>
                                 @foreach($assistBladeOptions as $option)
                                     <option value="{{ $option }}" {{ $result->assist_blade == $option ? 'selected' : '' }}>{{ $option }}</option>
                                 @endforeach

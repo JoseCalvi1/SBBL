@@ -111,7 +111,7 @@
             <img src="../images/banner_nacional.webp" class="w-100">
 
 <div class="relative w-full h-6 rounded-full bg-blue" style="height: 20px; border: 2px solid;">
-                <div class=" bg-white h-full rounded-full" style="width: 83%; height: 18px"><span class="text-sm mt-2" style="color: black">2500 / 3000 €</span></div>
+                <div class=" bg-white h-full rounded-full" style="width: 98%; height: 18px"><span class="text-sm mt-2" style="color: black">2980 / 3000 €</span></div>
             </div>
             <div class="text-white" style="
                 width: 100%;

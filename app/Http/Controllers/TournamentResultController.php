@@ -75,6 +75,9 @@ class TournamentResultController extends Controller
     {
         $sort = $request->get('sort', 'blade');
         $order = $request->get('order', 'asc');
+        $fechaInicio = $request->get('fecha_inicio');
+        $fechaFin = $request->get('fecha_fin');
+        $minPartidas = $request->get('min_partidas', 10);
 
         // Filtros
         $bladeFilter = $request->get('blade');
@@ -119,16 +122,23 @@ class TournamentResultController extends Controller
             ->when($userPartsFilter, function ($query) {
                 return $query->where('user_id', Auth::user()->id);
             })
+            ->when($fechaInicio, function ($query) use ($fechaInicio) {
+                return $query->whereDate('created_at', '>=', $fechaInicio);
+            })
+            ->when($fechaFin, function ($query) use ($fechaFin) {
+                return $query->whereDate('created_at', '<=', $fechaFin);
+            })
             ->groupBy('blade', 'assist_blade', 'ratchet', 'bit')
-            ->havingRaw('SUM(victorias) + SUM(derrotas) >= 10')
+            ->havingRaw('(SUM(victorias) + SUM(derrotas)) >= ?', [$minPartidas])
             ->orderBy($sort, $order)
             ->get();
 
-        return view('inicio.stats', compact(
-            'beybladeStats', 'sort', 'order',
-            'bladeFilter', 'assistBladeFilter', 'ratchetFilter', 'bitFilter',
-            'blades', 'assistBlades', 'ratchets', 'bits', 'userPartsFilter'
-        ));
+            return view('inicio.stats', compact(
+                'beybladeStats', 'sort', 'order',
+                'bladeFilter', 'assistBladeFilter', 'ratchetFilter', 'bitFilter',
+                'blades', 'assistBlades', 'ratchets', 'bits', 'userPartsFilter',
+                'fechaInicio', 'fechaFin', 'minPartidas'
+            ));
     }
 
     public function separateStats(Request $request)

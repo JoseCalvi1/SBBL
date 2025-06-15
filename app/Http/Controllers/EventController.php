@@ -179,7 +179,7 @@ class EventController extends Controller
         ]);
 
         // TODO Comentar para probar en local
-        Self::notification(Event::find($eventId));
+        //Self::notification(Event::find($eventId));
 
         $events = Event::with('region')->get();
         $createEvent = Event::where('created_by', Auth::user()->id)->where('date', '>', Carbon::now())->get();
@@ -403,6 +403,9 @@ class EventController extends Controller
 
     public function updatePuestos(Request $request, $id)
     {
+        if(!Auth::user()->is_referee && (!Event::findOrFail($id)->challonge || !Event::findOrFail($id)->iframe)) {
+            return redirect()->back()->with('error', 'Primero tienes que enviar los datos del torneo.');
+        }
 
         self::actualizarStatus($id, 'PENDING');
 

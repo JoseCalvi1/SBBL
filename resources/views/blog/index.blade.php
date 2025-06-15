@@ -5,10 +5,40 @@
 @section('content')
 <div class="container">
     <h2 class="text-center mt-2 mb-4" style="color: white">Tablón Blader
-        @if (Auth::user() && (Auth::user()->is_admin || Auth::user()->profile->points_x1 > 0))
+        @if (Auth::user() && (Auth::user()->is_referee || in_array(Auth::user()->id, [301, 513])))
             <a href="{{ route('blog.create') }}" class="btn btn-outline-warning text-uppercase font-weight-bold">Crear post</a>
         @endif
     </h2>
+
+    <form method="GET" class="mb-4" style="color: white">
+        <div class="row">
+            <div class="col-md-4 mb-2">
+                <label for="type">Tipo de post:</label>
+                <select name="type" id="type" class="form-control">
+                    <option value="">Todos</option>
+                    @foreach($types as $type)
+                        <option value="{{ $type }}" {{ request('type') == $type ? 'selected' : '' }}>
+                            {{ $type }}
+                        </option>
+                    @endforeach
+                </select>
+            </div>
+
+            <div class="col-md-3 mb-2">
+                <label for="date_from">Publicado desde:</label>
+                <input type="date" name="date_from" id="date_from" value="{{ request('date_from') }}" class="form-control">
+            </div>
+
+            <div class="col-md-3 mb-2">
+                <label for="date_to">Publicado hasta:</label>
+                <input type="date" name="date_to" id="date_to" value="{{ request('date_to') }}" class="form-control">
+            </div>
+
+            <div class="col-md-2 mb-2 d-flex align-items-end">
+                <button type="submit" class="btn btn-success w-100">Filtrar</button>
+            </div>
+        </div>
+    </form>
 
     <div class="row row-cols-1 row-cols-md-3">
         @forelse($articles as $article)

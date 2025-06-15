@@ -40,7 +40,18 @@
 
             <div class="form-group">
                 <label for="article_type" style="color: white;">Tipo de post:</label>
-                <input type="text" class="form-control" id="article_type" name="article_type" value="{{ $article->article_type }}">
+                <select name="article_type" id="article_type" class="form-control">
+                    <option value="">-- Selecciona tipo --</option>
+                    <option value="Borrador" {{ (old('article_type', $article->article_type) == 'Borrador') ? 'selected' : '' }}>Borrador</option>
+                    <option value="Competitivo" {{ (old('article_type', $article->article_type) == 'Competitivo') ? 'selected' : '' }}>Competitivo</option>
+                    <option value="Conoce a nuestros bladers" {{ (old('article_type', $article->article_type) == 'Conoce a nuestros bladers') ? 'selected' : '' }}>Conoce a nuestros bladers</option>
+                    <option value="Curiosidades" {{ (old('article_type', $article->article_type) == 'Curiosidades') ? 'selected' : '' }}>Curiosidades</option>
+                    <option value="Guía" {{ (old('article_type', $article->article_type) == 'Guía') ? 'selected' : '' }}>Guía</option>
+                    <option value="El Giro Semanal" {{ (old('article_type', $article->article_type) == 'El Giro Semanal') ? 'selected' : '' }}>El Giro Semanal</option>
+                    <option value="Eventos especiales" {{ (old('article_type', $article->article_type) == 'Eventos especiales') ? 'selected' : '' }}>Eventos especiales</option>
+                    <option value="Guía de compra" {{ (old('article_type', $article->article_type) == 'Guía de compra') ? 'selected' : '' }}>Guía de compra</option>
+                    <option value="Noticias" {{ (old('article_type', $article->article_type) == 'Noticias') ? 'selected' : '' }}>Noticias</option>
+                </select>
             </div>
 
             <div class="form-group">

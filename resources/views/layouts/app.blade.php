@@ -196,6 +196,12 @@
                             </li>
 
                             <li class="nav-item">
+                                <a class="nav-link" href="{{ route('blog.index') }}" style="color: white;">
+                                    {{ 'BLOG' }}
+                                </a>
+                            </li>
+
+                            <li class="nav-item">
                                 <a class="nav-link" href="https://discord.gg/JCtAHfJ8Ht" style="color: white;">
                                     {{ 'DISCORD' }}
                                 </a>

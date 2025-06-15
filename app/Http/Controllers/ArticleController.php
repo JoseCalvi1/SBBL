@@ -11,11 +11,44 @@ use Illuminate\Support\Facades\Http;
 
 class ArticleController extends Controller
 {
-    public function index()
+
+    public function index(Request $request)
     {
-        $articles = Article::orderBy('id', 'DESC')->get(); // Obtener todos los artículos
-        return view('blog.index', compact('articles')); // Pasar los artículos a la vista
+        $user = Auth::user();
+
+        $query = Article::query();
+
+        // Si el usuario NO es referee, se excluyen los borradores
+        if (!$user || !$user->is_referee) {
+            $query->where('article_type', '!=', 'Borrador');
+        }
+
+        // Filtro por tipo
+        if ($request->filled('type')) {
+            $query->where('article_type', $request->type);
+        }
+
+        // Filtro por fechas
+        if ($request->filled('date_from')) {
+            $query->whereDate('created_at', '>=', $request->date_from);
+        }
+        if ($request->filled('date_to')) {
+            $query->whereDate('created_at', '<=', $request->date_to);
+        }
+
+        $articles = $query->orderBy('id', 'DESC')->get();
+
+        // Mostrar tipos de post disponibles en el filtro
+        $typesQuery = Article::select('article_type')->distinct();
+        if (!$user || !$user->is_referee) {
+            $typesQuery->where('article_type', '!=', 'Borrador');
+        }
+        $types = $typesQuery->pluck('article_type')->sort();
+
+        return view('blog.index', compact('articles', 'types'));
     }
+
+
 
     public function show($custom_url)
     {
@@ -49,7 +82,6 @@ class ArticleController extends Controller
         } else {
             $imageData = null;
         }
-
         $articleId = Article::create([
             'title' => $request->title,
             'user_id' => Auth::user()->id,

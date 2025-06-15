@@ -224,6 +224,10 @@ class ProfileController extends Controller
             'Base/YellKong_1.webp' => 'upload-profiles/Base/YellKong_1.webp',
             'Base/YuniNamba_2.webp' => 'upload-profiles/Base/YuniNamba_2.webp',
             'Base/ZonamosNekoya.webp' => 'upload-profiles/Base/ZonamosNekoya.webp',
+            'Base/HellsReaper.webp' => 'upload-profiles/Base/HellsReaper.webp',
+            'Base/RhinoReaper.webp' => 'upload-profiles/Base/RhinoReaper.webp',
+            'Base/ScorpioSpear.webp' => 'upload-profiles/Base/ScorpioSpear.webp',
+            'Base/TriceraPress.webp' => 'upload-profiles/Base/TriceraPress.webp',
         ];
 
         $bronzeAvatars = [
@@ -279,6 +283,10 @@ class ProfileController extends Controller
             'BRONCE/YellowShinobiShadow_1.webp' => 'upload-profiles/BRONCE/YellowShinobiShadow_1.webp',
             'BRONCE/YellowViperTail.webp' => 'upload-profiles/BRONCE/YellowViperTail.webp',
             'BRONCE/YellowWyvernGale.webp' => 'upload-profiles/BRONCE/YellowWyvernGale.webp',
+            'BRONCE/BlackPhoenixRudder.webp' => 'upload-profiles/BRONCE/BlackPhoenixRudder.webp',
+            'BRONCE/HellsArc.webp' => 'upload-profiles/BRONCE/HellsArc.webp',
+            'BRONCE/WhiteLeonCrest.webp' => 'upload-profiles/BRONCE/WhiteLeonCrest.webp',
+            'BRONCE/YellowWhaleWave.webp' => 'upload-profiles/BRONCE/YellowWhaleWave.webp',
         ];
 
         $silverAvatars = [
@@ -300,6 +308,7 @@ class ProfileController extends Controller
             'PLATA/SilverDrake.webp' => 'upload-profiles/PLATA/SilverDrake.webp',
             'PLATA/SilverDranSword.webp' => 'upload-profiles/PLATA/SilverDranSword.webp',
             'PLATA/SushiroDranSword.webp' => 'upload-profiles/PLATA/SushiroDranSword.webp',
+            'PLATA/LeonFang.webp' => 'upload-profiles/PLATA/LeonFang.webp',
         ];
 
         $goldAvatars = [
@@ -311,6 +320,10 @@ class ProfileController extends Controller
             'ORO/Extintor.webp' => 'upload-profiles/ORO/Extintor.webp',
             'ORO/AsefronBeelze.webp' => 'upload-profiles/ORO/AsefronBeelze.webp',
             'ORO/ElPibeCalavera.webp' => 'upload-profiles/ORO/ElPibeCalavera.webp',
+            'ORO/Arlen.webp' => 'upload-profiles/ORO/Arlen.webp',
+            'ORO/Erubita.webp' => 'upload-profiles/ORO/Erubita.webp',
+            'ORO/Hyuga.webp' => 'upload-profiles/ORO/Hyuga.webp',
+            'ORO/Ritsu.webp' => 'upload-profiles/ORO/Ritsu.webp',
             /*'ORO/Leon.gif' => 'upload-profiles/ORO/Leon.gif',
             'ORO/dragoon.gif' => 'upload-profiles/ORO/dragoon.gif',
             'ORO/beyblade-tyson.gif' => 'upload-profiles/ORO/beyblade-tyson.gif',
