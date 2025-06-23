@@ -5,7 +5,7 @@
 @section('content')
 <div class="container">
     <h2 class="text-center mt-2 mb-4" style="color: white">Tablón Blader
-        @if (Auth::user() && (Auth::user()->is_referee || in_array(Auth::user()->id, [301, 513])))
+        @if (Auth::user() && Auth::user()->is_editor)
             <a href="{{ route('blog.create') }}" class="btn btn-outline-warning text-uppercase font-weight-bold">Crear post</a>
         @endif
     </h2>

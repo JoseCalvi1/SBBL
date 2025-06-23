@@ -18,8 +18,8 @@ class ArticleController extends Controller
 
         $query = Article::query();
 
-        // Si el usuario NO es referee, se excluyen los borradores
-        if (!$user || !$user->is_referee) {
+        // Si el usuario NO es editor, se excluyen los borradores
+        if (!$user || !$user->is_editor) {
             $query->where('article_type', '!=', 'Borrador');
         }
 
@@ -40,7 +40,7 @@ class ArticleController extends Controller
 
         // Mostrar tipos de post disponibles en el filtro
         $typesQuery = Article::select('article_type')->distinct();
-        if (!$user || !$user->is_referee) {
+        if (!$user || !$user->is_editor) {
             $typesQuery->where('article_type', '!=', 'Borrador');
         }
         $types = $typesQuery->pluck('article_type')->sort();
