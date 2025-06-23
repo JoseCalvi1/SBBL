@@ -1,7 +1,7 @@
 @extends('layouts.app')
 
 @section('content')
-@if (Auth::user()->is_referee)
+@if (Auth::user()->is_admin)
 <a href="{{ route('trophies.index') }}" class="btn btn-outline-primary mr-2 text-uppercase font-weight-bold m-4">
     Volver
 </a>

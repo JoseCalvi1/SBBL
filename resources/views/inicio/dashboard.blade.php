@@ -1,7 +1,7 @@
 @extends('layouts.app')
 
 @section('content')
-@if (Auth::user()->is_referee || Auth::user()->is_admin)
+@if (Auth::user()->is_jury || Auth::user()->is_admin)
 <div class="container py-4" style="color: white; border-radius: 10px;">
     <h1 class="text-center mb-4" style="font-weight: bold;">Panel de Administración</h1>
     <div class="row g-4">

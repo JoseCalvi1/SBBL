@@ -1,7 +1,7 @@
 @extends('layouts.app')
 
 @section('content')
-@if (Auth::user()->is_referee || Auth::user()->is_admin)
+@if (Auth::user()->is_jury || Auth::user()->is_admin)
 <div class="py-4">
     <h2 class="text-center mb-2 text-white">Administra los eventos</h2>
 

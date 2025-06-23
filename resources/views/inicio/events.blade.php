@@ -143,7 +143,7 @@
 <h1 class="current-month mt-5" style="color: white;">Calendario de Eventos
     @if (
         $countEvents < 2 ||
-        (Auth::user() && (Auth::user()->is_refereea ||
+        (Auth::user() && (Auth::user()->is_referee ||
         Auth::user()->created_at->diffInMonths(now()) >= 3))
         )
         <a href="{{ route('events.create') }}" class="btn btn-outline-warning text-uppercase font-weight-bold">
