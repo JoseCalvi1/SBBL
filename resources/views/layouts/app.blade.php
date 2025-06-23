@@ -18,6 +18,10 @@
     <link rel="dns-prefetch" href="//fonts.gstatic.com">
     <link href="https://fonts.googleapis.com/css?family=Nunito" rel="stylesheet">
 
+    <!-- Font Awesome 6 (recomendado) -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
+
     <link rel="shortcut icon" type="image/png" href="{{ asset('/images/sbbl.png') }}">
 
     @yield('styles')
@@ -122,6 +126,12 @@
             font-size: 0.8em;
             margin-top: 5px;
         }
+        #navbarSupportedContent > ul.navbar-nav.ml-auto > li.nav-item.dropdown.show > div > a:nth-child(1):hover,
+        #navbarSupportedContent > ul.navbar-nav.ml-auto > li.nav-item.dropdown.show > div > a:nth-child(2):hover,
+        #navbarSupportedContent > ul.navbar-nav.ml-auto > li.nav-item.dropdown.show > div > a:nth-child(3):hover,
+        #navbarSupportedContent > ul.navbar-nav.ml-auto > li.nav-item.dropdown.show > div > a:nth-child(4):hover {
+            color: #283b63 !important;
+        }
     </style>
 
     <!-- Styles -->
@@ -154,8 +164,8 @@
     </script>
 
 </head>
-<body>
-    <div id="app">
+<body style="display: flex; flex-direction: column; min-height: 100vh; height: 100%">
+    <div id="app" style="flex: 1;">
         <nav class="navbar navbar-expand-md shadow-sm" style="background-color: #1e2a47;">
             <div class="container">
                 <a class="navbar-brand d-none d-sm-none d-md-block" href="{{ url('/') }}">
@@ -202,13 +212,34 @@
                             </li>
 
                             <li class="nav-item">
-                                <a class="nav-link" href="https://discord.gg/JCtAHfJ8Ht" style="color: white;">
-                                    {{ 'DISCORD' }}
+                                <a class="nav-link" href="{{ route('profiles.index') }}" style="color: white;">
+                                    {{ 'BLADERS' }}
                                 </a>
                             </li>
 
+                            <li class="nav-item dropdown">
+                                <a id="navbarDropdown" style="color: white;" class="nav-link dropdown-toggle" href="#" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" v-pre>
+                                    {{ 'COMPETITIVO' }}
+                                </a>
+
+                                <div class="dropdown-menu dropdown-menu-right" style="background-color: #283b63" aria-labelledby="navbarDropdown">
+                                    <a class="dropdown-item menu-item-2" style="color: white; font-weight: bold; font-size:1.2em;" href="{{ route('inicio.events') }}">
+                                        <i class="fas fa-calendar-alt mr-2"></i> {{ 'Eventos' }}
+                                    </a>
+                                    <a class="dropdown-item menu-item-2" style="color: white; font-weight: bold; font-size:1.2em;" href="{{ route('profiles.ranking') }}">
+                                        <i class="fas fa-trophy mr-2"></i> {{ 'Rankings' }}
+                                    </a>
+                                    <a class="dropdown-item menu-item-2" style="color: white; font-weight: bold; font-size:1.2em;" href="{{ route('inicio.rules') }}">
+                                        <i class="fas fa-gavel mr-2"></i> {{ 'Reglamento' }}
+                                    </a>
+                                    <a class="dropdown-item menu-item-2" style="color: white; font-weight: bold; font-size:1.2em;" href="{{ route('inicio.stats') }}">
+                                        <i class="fas fa-chart-bar mr-2"></i> {{ 'Estadísticas' }}
+                                    </a>
+                                </div>
+                            </li>
+
                             @auth
-                                @if (Auth::user()->is_referee || Auth::user()->is_admin)
+                                @if (Auth::user()->is_jury || Auth::user()->is_admin)
                                     <li class="nav-item">
                                         <a id="navbarAdmin" style="color: white;" class="nav-link" href="{{ route('admin.dashboard') }}">
                                             {{ 'ADMIN' }}
@@ -291,12 +322,58 @@
                 @else
                     <!-- Vista con columnas laterales -->
                     <div class="row">
-                        <div class="col-md-2" style="background-image: linear-gradient(to right, rgba(0, 0, 0, 0.8), rgba(0, 0, 0, 0.5)), url('/../images/webTile2.png'); background-size: auto; background-position: left;"></div>
-                        <div class="col-md-8 col-sm-12" style="padding: 0px; background-color: #27295B;">
+                        <!-- LATERAL IZQUIERDO -->
+                        <div class="col-md-2 p-0" style="
+                            position: relative;
+                            background-color: transparent;
+                        ">
+                            <div style="
+                                position: absolute;
+                                inset: 0;
+                                background: linear-gradient(to left, rgba(30, 61, 132, 0.8), rgba(17, 230, 198, 0.5));
+                                z-index: 1;
+                            "></div>
+                            <div style="
+                                position: absolute;
+                                inset: 0;
+                                background-image: url('/../images/webTile2.png');
+                                background-repeat: repeat;
+                                background-size: auto;
+                                background-position: left;
+                                z-index: 2;
+                            "></div>
+                        </div>
+
+                        <!-- CONTENIDO CENTRAL -->
+                        <div class="col-md-8 col-sm-12" style="padding: 0px; background-color: #27295B; min-height:50vh; position: relative; z-index: 3; box-shadow: -8px 0 15px rgba(0, 0, 0, 0.5), 8px 0 15px rgba(0, 0, 0, 0.5);">
                             @yield('content')
                         </div>
-                        <div class="col-md-2" style="background-image: linear-gradient(to left, rgba(0, 0, 0, 0.8), rgba(0, 0, 0, 0.5)), url('/../images/webTile2.png'); background-size: auto; background-position: right;"></div>
+
+
+                        <!-- LATERAL DERECHO -->
+                        <div class="col-md-2 p-0" style="
+                            position: relative;
+                            background-color: transparent;
+                        ">
+                            <div style="
+                                position: absolute;
+                                inset: 0;
+                                background: linear-gradient(to right, rgba(30, 61, 132, 0.8), rgba(17, 230, 198, 0.5));
+                                z-index: 1;
+                            "></div>
+                            <div style="
+                                position: absolute;
+                                inset: 0;
+                                background-image: url('/../images/webTile2.png');
+                                background-repeat: repeat;
+                                background-size: auto;
+                                background-position: right;
+                                z-index: 2;
+                            "></div>
+                        </div>
                     </div>
+
+
                 @endif
             </div>
 

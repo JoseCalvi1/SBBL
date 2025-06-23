@@ -31,6 +31,7 @@ class CreateProfilesTable extends Migration
             $table->integer('points_s3')->default(0);
             $table->integer('points_g1')->default(0);
             $table->integer('points_x1')->default(0);
+            $table->integer('points_x2')->default(0);
             $table->foreignId('region_id')->nullable()->constrained()->onDelete('cascade');
             $table->timestamps();
         });

@@ -37,7 +37,7 @@ class ProfileController extends Controller
                     ->where('assist_user_event.event_id', '>=', 190)
             ])
             ->where(function ($query) {
-                $query->where('profiles.points_x1', '<>', 0)
+                $query->where('profiles.points_x2', '<>', 0)
                     ->orWhere('profiles.points_s3', '<>', 0)
                     ->orWhereNotNull('profiles.imagen');
             })
@@ -89,7 +89,7 @@ class ProfileController extends Controller
 
     public function indexAdminX()
     {
-        $profiles = Profile::orderBy('points_x1', 'DESC')->get();
+        $profiles = Profile::orderBy('points_x2', 'DESC')->get();
 
         return view('profiles.indexAdminX', compact('profiles'));
     }
@@ -491,11 +491,11 @@ class ProfileController extends Controller
 
         // Validar
         $data = request()->validate([
-            'points_x1' => 'required',
+            'points_x2' => 'required',
         ]);
 
         // Asignar los valores
-        $profile->points_x1 = $data['points_x1'];
+        $profile->points_x2 = $data['points_x2'];
 
         $profile->save();
 
@@ -508,14 +508,14 @@ class ProfileController extends Controller
     {
         // Validar que todos los puntos sean numéricos y opcionales
         $data = $request->validate([
-            'points_x1.*' => 'nullable|numeric',
+            'points_x2.*' => 'nullable|numeric',
         ]);
 
         // Iterar sobre los perfiles y actualizar los puntos
-        foreach ($request->input('points_x1', []) as $profileId => $points) {
+        foreach ($request->input('points_x2', []) as $profileId => $points) {
             $profile = Profile::find($profileId);
             if ($profile) {
-                $profile->points_x1 = $points;
+                $profile->points_x2 = $points;
                 $profile->save();
             }
         }
@@ -543,44 +543,50 @@ class ProfileController extends Controller
             $limit = $request->input('limit', 25); // Valor por defecto: 25
             $region = $request->input('region', null);
 
-            // Consulta para bladers_s3
-            $bladers_s3 = Profile::with(['user.teams', 'region'])
-                ->when($region, function ($query) use ($region) {
-                    return $query->whereHas('region', function ($q) use ($region) {
-                        $q->where('name', $region);
+            // Función para generar cada ranking
+            $getBladersByPoints = function ($column) use ($limit, $region) {
+                return Profile::with(['user.teams', 'region'])
+                    ->when($region, function ($query) use ($region) {
+                        return $query->whereHas('region', function ($q) use ($region) {
+                            $q->where('name', $region);
+                        });
+                    })
+                    ->where($column, '!=', 0)
+                    ->orderBy($column, 'DESC')
+                    ->take($limit)
+                    ->get()
+                    ->map(function ($blader) use ($column) {
+                        if ($blader->user->teams->isNotEmpty() && $blader->user->teams->first()->logo) {
+                            $blader->team_logo = 'data:image/png;base64,' . $blader->user->teams->first()->logo;
+                        } else {
+                            $blader->team_logo = null;
+                        }
+                        return $blader;
                     });
-                })
-                ->orderBy('points_s3', 'DESC')
-                ->where('points_s3', '!=', 0)
-                ->take($limit)
-                ->get();
+            };
 
-            // Consulta para bladers_x1
-            $bladers_x1 = Profile::with(['user.teams', 'region'])
-                ->when($region, function ($query) use ($region) {
-                    return $query->whereHas('region', function ($q) use ($region) {
-                        $q->where('name', $region);
-                    });
-                })
-                ->orderBy('points_x1', 'DESC')
-                ->where('points_x1', '!=', 0)
-                ->take($limit)
-                ->get()
-                ->map(function ($blader) {
-                    // Incluye el logo si existe
-                    if ($blader->user->teams->isNotEmpty() && $blader->user->teams->first()->logo) {
-                        $blader->team_logo = 'data:image/png;base64,' . $blader->user->teams->first()->logo;
-                    } else {
-                        $blader->team_logo = null;
-                    }
-                    return $blader;
-                });
+            // Rankings por temporada/sistema
+            $bladers_points     = $getBladersByPoints('points');       // Season 1
+            $bladers_points_s2  = $getBladersByPoints('points_s2');    // Season 2
+            $bladers_points_s3  = $getBladersByPoints('points_s3');    // Season 3
+            $bladers_points_x1  = $getBladersByPoints('points_x1');    // Beyblade X 1
+            $bladers_points_x2  = $getBladersByPoints('points_x2');    // Beyblade X 2
 
-            // Obtener lista de regiones para el filtro
+            // Lista de regiones
             $regions = Region::all()->pluck('name');
 
-            return view('profiles.ranking', compact('bladers_s3', 'bladers_x1', 'regions', 'limit', 'region'));
+            return view('profiles.ranking', [
+                'bladers_points' => $bladers_points,
+                'bladers_points_s2' => $bladers_points_s2,
+                'bladers_points_s3' => $bladers_points_s3,
+                'bladers_points_x1' => $bladers_points_x1,
+                'bladers_points_x2' => $bladers_points_x2,
+                'limit' => $limit,
+                'region' => $region,
+                'regions' => $regions,
+            ]);
         }
+
 
 
     public function wrapped(Profile $profile)

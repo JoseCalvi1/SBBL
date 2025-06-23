@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Event;
 use App\Models\Profile;
+use App\Models\Team;
 use App\Models\TournamentResult;
 use App\Models\User;
 use App\Models\Versus;
@@ -124,7 +125,8 @@ class InicioController extends Controller
             return $usuario;
         });
 
-        // Obtener cantidad de usuarios por comunidad autónoma
+        $usuariosPorComunidad = null;
+        /* Obtener cantidad de usuarios por comunidad autónoma
         $usuariosPorComunidad = Profile::with('region')
         ->select('region_id', DB::raw('COUNT(*) as total'))
         //->where('points_x1', '>', 0)
@@ -135,11 +137,16 @@ class InicioController extends Controller
                 'comunidad_autonoma' => $item->region->name ?? 'Desconocida',
                 'total' => $item->total
             ];
-        });
+        });*/
+
+        $teams = Team::orderBy('points_x1', 'desc')
+             ->take(3)
+             ->get();
+
 
     return view('inicio.index', compact(
         'usuarios', 'bladers', 'stamina', 'nuevos', 'antiguos', 'bestUserProfile',
-        'bestUserRecord', 'bestUser', 'lastMonthName', 'usuariosPorComunidad'
+        'bestUserRecord', 'bestUser', 'lastMonthName', 'usuariosPorComunidad', 'teams'
     ));
     }
 

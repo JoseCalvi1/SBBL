@@ -37,7 +37,148 @@
         border-radius: 5px;
         text-align: center;
     }
+.season-wrapper {
+    background: #121212;
+    color: #eee;
+    padding: 25px;
+    font-family: 'Segoe UI', sans-serif;
+    box-shadow: 0 0 20px rgba(0, 255, 255, 0.1);
+  }
+
+  .combined-bar {
+    display: flex;
+    height: 30px;
+    width: 100%;
+    border-radius: 8px;
+    overflow: hidden;
+    background: #2c2c2c;
+    margin: 10px 0;
+    box-shadow: inset 0 0 6px #000;
+  }
+
+  .segment {
+    height: 100%;
+    transition: width 1s ease-in-out;
+  }
+
+  .preseason {
+    background: linear-gradient(to right, #00c3ff, #007aff);
+  }
+
+  .season {
+    background: linear-gradient(to right, #ffc107, #ff5722);
+  }
+
+    .bar-labels-proportional {
+    position: relative;
+    height: 20px;
+    margin-top: 5px;
+    }
+
+    .bar-labels-proportional span {
+    position: absolute;
+    font-size: 0.8em;
+    color: #aaa;
+    }
+    .social-links {
+    margin-top: 1.5rem;
+    display: flex;
+    justify-content: center;
+    gap: 1rem;
+    font-size: 1.8rem;
+}
+
+.social-links a {
+    color: #ffffff;
+    transition: transform 0.2s ease, color 0.2s ease;
+}
+
+.social-links a:hover {
+    transform: scale(1.2);
+    color: #11e6c6; /* Azul claro de tu diseño */
+}
+
+    .ranking-title {
+        font-size: 2rem;
+        font-weight: bold;
+        text-transform: uppercase;
+        color: #ffc107;
+        text-align: center;
+        margin-bottom: 30px;
+    }
+
+    .team-card {
+        display: flex;
+        align-items: center;
+        background-size: cover;
+        background-position: center;
+        position: relative;
+        border-radius: 12px;
+        margin-bottom: 20px;
+        padding: 15px 20px;
+        overflow: hidden;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4);
+    }
+
+    .team-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        border-radius: 12px;
+        background: rgba(0, 0, 0, 0.6);
+        z-index: 1;
+    }
+
+    .team-logo {
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        object-fit: cover;
+        z-index: 2;
+        margin-right: 20px;
+    }
+
+    .team-info {
+        z-index: 2;
+        color: white;
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .team-name {
+        font-size: 1.4em;
+        font-weight: bold;
+    }
+
+    .team-points {
+        font-size: 1.2em;
+        color: #ffc107;
+    }
+
+    .team-rank {
+        z-index: 2;
+        font-size: 2em;
+        font-weight: bold;
+        color: white;
+        margin-right: 20px;
+        width: 50px;
+        text-align: center;
+    }
+
+    .team-entry {
+        display: flex;
+        align-items: center;
+        width: 100%;
+    }
+.bg-blader-month {
+    background: linear-gradient(135deg, #1e2a47, #3b4f94);
+}
+
 </style>
+
 <head>
     <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
@@ -67,51 +208,14 @@
 
 
     </div>
-    <div class="navbar navbar-expand-lg" style="background-color: #283b63;">
-        <button class="navbar-toggler d-flex justify-content-center align-items-center w-100 h-100 d-lg-none"
-        type="button" data-toggle="collapse" data-target="#navbarNav"
-        aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation"
-        style="background: none; border: none;">
-    <i class="fas fa-cog fa-2x text-white"></i>
-</button>
 
-        <div class="collapse navbar-collapse" id="navbarNav" style="padding: unset;">
-            <ul class="navbar-nav m-auto flex-column flex-lg-row">
-                <!-- Usamos flex-column en móviles (pantallas pequeñas) para hacer el menú vertical -->
-                <li class="nav-item">
-                    <a class="nav-link ml-2 mr-2" style="color: white; font-weight: bold; font-size:1.2em;" href="{{ route('inicio.events') }}">
-                        {{ 'EVENTOS' }}
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link ml-2 mr-2" style="color: white; font-weight: bold; font-size:1.2em;" href="{{ route('versus.all') }}">
-                        {{ 'DUELOS' }}
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link ml-2 mr-2" style="color: white; font-weight: bold; font-size:1.2em;" href="{{ route('profiles.index') }}">
-                        {{ 'BLADERS' }}
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link ml-2 mr-2" style="color: white; font-weight: bold; font-size:1.2em;" href="{{ route('profiles.ranking') }}">
-                        {{ 'RANKING' }}
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link ml-2 mr-2" style="color: white; font-weight: bold; font-size:1.2em;" href="{{ route('inicio.stats') }}">
-                        {{ 'STATS' }}
-                    </a>
-                </li>
-            </ul>
-        </div>
-    </div>
+
     <a href="{{ route('inicio.nacional') }}" style="text-decoration: none; color: inherit;">
         <div style="position: relative; text-align: center;">
             <img src="../images/banner_nacional.webp" class="w-100">
 
 <div class="relative w-full h-6 rounded-full bg-blue" style="height: 20px; border: 2px solid;">
-                <div class=" bg-white h-full rounded-full" style="width: 98%; height: 18px"><span class="text-sm mt-2" style="color: black">2980 / 3000 €</span></div>
+                <div class=" bg-white h-full rounded-full" style="width: 100%; height: 18px"><span class="text-sm mt-2" style="color: black">3000 / 3000 €</span></div>
             </div>
             <div class="text-white" style="
                 width: 100%;
@@ -127,6 +231,31 @@
             </div>
         </div>
     </a>
+
+    <div class="season-wrapper">
+        <h2>📅 Progreso de la Temporada</h2>
+        <p id="season-status"></p>
+
+        <div class="combined-bar">
+            <div id="pre-fill" class="segment preseason"></div>
+            <div id="season-fill" class="segment season"></div>
+        </div>
+
+        <div class="bar-labels-proportional">
+            <span style="left: 0%">22 Junio 2025</span>
+            <span style="left: 19%">1 Septiembre 2025</span>
+            <span style="left: 94%">30 Junio 2026</span>
+        </div>
+
+        <div class="social-links">
+            <a href="https://discord.gg/JCtAHfJ8Ht" target="_blank" title="Discord"><i class="fab fa-discord"></i></a>
+            <a href="https://www.youtube.com/@sbbl_oficial" target="_blank" title="YouTube"><i class="fab fa-youtube"></i></a>
+            <a href="https://www.twitch.tv/sbbl_oficial" target="_blank" title="Twitch"><i class="fab fa-twitch"></i></a>
+            <a href="https://www.instagram.com/sbbl_oficial/" target="_blank" title="Instagram"><i class="fab fa-instagram"></i></a>
+            <a href="https://x.com/SBBLOficial" target="_blank" title="Twitter"><i class="fab fa-twitter"></i></a>
+            <a href="https://bsky.app/profile/sbbloficial.bsky.social" target="_blank" title="Bluesky"><i class="fa-solid fa-cloud"></i></a>
+        </div>
+    </div>
 
     <div class="menu-container-wrapper">
         <button class="menu-toggle">☰ Especial</button>
@@ -176,7 +305,7 @@
     <div class="container">
         <div class="row">
             <div class="col-md-12 text-center d-none d-sm-block">
-                <h3 class="titulo-categoria text-uppercase mb-4 mt-4" style="color:white">Top 5 SBBL X</h3>
+                <h3 class="titulo-categoria text-uppercase mb-4 mt-4" style="color:white">Top individual</h3>
                 <div class="row" style="align-items: center;display: flex;justify-content: center;">
                     <div class="col-md-2 text-center m-2">
                         <h4 class="font-weight-bold top-1 ranking-card mb-3">1er Puesto</h4>
@@ -268,101 +397,69 @@
         </div>
 
     </div>
-    <div class="container" style="background-color: #1e2a47; color: white;">
 
-        <div class="row border-bottom border-white" style="background-color: #283b63;">
-            <div class="col-md-12 text-center pt-2">
-                <h2 style="font-size: 1.5em; font-weight: bold;">¿Cómo participo en la liga?</h2>
-            </div>
-            <div class="col-md-4">
-                <div class="rrss text-center p-4">
-                    <a style="display: inline-block; font-size: 1.2em; font-weight: bold; text-decoration: none; color: rgb(173, 159, 7);" target="_blank" href="{{ route('inicio.events') }}">
-                        <i class="fa fa-sitemap" style="font-size: 4em;"></i><br>Participa en<br><b>Torneos</b>
-                    </a>
-                </div>
-            </div>
-            <div class="col-md-4">
-                <div class="rrss text-center p-4">
-                    <a style="display: inline-block; font-size: 1.2em; font-weight: bold; text-decoration: none; color: rgb(160, 0, 0);" target="_blank" href="{{ route('versus.all') }}">
-                        <i class="fa fa-trophy" style="font-size: 4em;"></i><br>Compite en<br><b>Duelos</b>
-                    </a>
-                </div>
-            </div>
-            <div class="col-md-4">
-                <div class="rrss text-center p-4">
-                    <a style="display: inline-block; font-size: 1.2em; font-weight: bold; text-decoration: none; color: rgb(166, 1, 207);" target="_blank" href="#">
-                        <i class="fa fa-star" style="font-size: 4em;"></i><br>Torneos<br><b>Especiales</b>
-                    </a>
+    <div class="container ranking-container">
+        <h3 class="titulo-categoria text-uppercase mb-4 mt-4" style="color:white">Top Equipos</h3>
+
+        @foreach($teams as $key => $team)
+        <div class="team-card" style="background-image: url(data:image/png;base64,{{ $team->image }});">
+            <div class="team-overlay"></div>
+            <div class="team-entry">
+                <div class="team-rank">#{{ $key + 1 }}</div>
+                <img class="team-logo" src="@if($team->logo) data:image/png;base64,{{ $team->logo }} @else /images/logo_new.png @endif" alt="Logo de {{ $team->name }}">
+                <div class="team-info">
+                    <span class="team-name">{{ $team->name }}</span>
+                    <span class="team-points">{{ $team->points_x1 }} pts</span>
                 </div>
             </div>
         </div>
-
-        <div id="bladerofthemonth" class="row border-bottom border-white" style="background-color: rgb(59, 79, 148);">
-            <div class="col-md-9 text-white text-center p-4" style="font-size: 1.2em; font-weight: bold; line-height: 1">
-                <h2 style="font-size: 1.5em; font-weight: bold;">
-                    BLADER DEL MES {{ $lastMonthName ?? '' }} {{ $lastYear ?? '' }}
-                </h2>
-                <p>
-                    ¡El mes pasado el blader con la mayor cantidad de puntos obtenidos fue {{ $bestUserProfile->name ?? '' }} de {{ $bestUserProfile->profile->region->name ?? '' }}!
-                </p>
-                <p>
-                    Nada más y nada menos que con un total de {{ $bestUser->total_puntos ?? '' }}
-                </p>
-                <p>
-                    Su mejor combo fue {{ $bestUserRecord->blade ?? '' }} {{ $bestUserRecord->ratchet ?? '' }} {{ $bestUserRecord->bit ?? '' }}
-                </p>
-                <p>
-                    Con el que consiguió un total de {{ $bestUserRecord->puntos_ganados ?? '' }} puntos en {{ $bestUserRecord->victorias ?? '' }} victorias
-                </p>
-            </div>
-            <div class="col-md-3 text-center text-white p-4 d-none d-sm-block" style="border: unset;">
-                <div style="position: relative">
-                    @if ($bestUserProfile->profile->imagen)
-                        <img src="/storage/{{ $bestUserProfile->profile->imagen }}" class="rounded-circle" width="180" style="position: absolute; top: 0; left: 0;{{ strpos($bestUserProfile->profile->imagen, '.gif') !== false ? 'padding: 20px;' : '' }}">
-                    @else
-                        <img src="/storage/upload-profiles/Base/DranDagger.webp" class="rounded-circle" width="180" style="position: absolute; top: 0; left: 0;">
-                    @endif
-                    @if ($bestUserProfile->profile->marco)
-                        <img src="/storage/{{ $bestUserProfile->profile->marco }}" class="rounded-circle" width="180" style="position: absolute; top: 0; left: 0;">
-                    @else
-                        <img src="/storage/upload-profiles/Marcos/BaseBlue.png" class="rounded-circle" width="180" style="position: absolute; top: 0; left: 0;">
-                    @endif
-                </div>
-            </div>
-        </div>
-
-        <div class="row" style="background-color: #283b63;">
-            <div class="col-md-3">
-                <div class="rrss text-center p-4">
-                    <a style="display: inline-block; font-size: 1.2em; font-weight: bold; text-decoration: none; color: rgb(66, 31, 243);" target="_blank" href="https://discord.gg/JCtAHfJ8Ht">
-                        <i class="fab fa-discord" style="font-size: 4em;"></i><br>Únete a nuestro<br><b>Discord</b>
-                    </a>
-                </div>
-            </div>
-            <div class="col-md-3">
-                <div class="rrss text-center p-4">
-                    <a style="display: inline-block; font-size: 1.2em; font-weight: bold; text-decoration: none; color: rgb(160, 0, 112);" target="_blank" href="https://www.instagram.com/sbbl_oficial/">
-                        <i class="fab fa-instagram" style="font-size: 4em;"></i><br>Síguenos en<br><b>Instagram</b>
-                    </a>
-                </div>
-            </div>
-            <div class="col-md-3">
-                <div class="rrss text-center p-4">
-                    <a style="display: inline-block; font-size: 1.2em; font-weight: bold; text-decoration: none; color: rgb(207, 1, 1);" target="_blank" href="https://www.youtube.com/@sbbl_oficial">
-                        <i class="fab fa-youtube" style="font-size: 4em;"></i><br> Suscríbete en <br><b>YouTube</b>
-                    </a>
-                </div>
-            </div>
-            <div class="col-md-3">
-                <div class="rrss text-center p-4">
-                    <a style="display: inline-block; font-size: 1.2em; font-weight: bold; text-decoration: none; color: rgb(66, 31, 243);" target="_blank" href="https://x.com/SBBLOficial">
-                        <i class="fab fa-twitter" style="font-size: 4em;"></i><br>Síguenos en<br><b>Twitter</b>
-                    </a>
-                </div>
-            </div>
-        </div>
+        @endforeach
 
     </div>
+
+<div class="container text-white my-4 rounded shadow bg-blader-month">
+    <div class="row align-items-center py-4 px-2">
+        <!-- Texto -->
+        <div class="col-md-8 text-center">
+            <h2 class="fw-bold mb-3 text-uppercase" style="font-size: 1.5em;">
+                🏆 Blader del Mes {{ $lastMonthName ?? '' }} {{ $lastYear ?? '' }}
+            </h2>
+            <p class="mb-1">
+                El blader con más puntos fue <strong>{{ $bestUserProfile->name ?? 'Desconocido' }}</strong>
+                de <strong>{{ $bestUserProfile->profile->region->name ?? 'Región desconocida' }}</strong>
+            </p>
+            <p class="mb-1">
+                Total de puntos: <span class="text-warning fw-bold">{{ $bestUser->total_puntos ?? '0' }}</span>
+            </p>
+            <p class="mb-1">
+                Mejor combo: <strong>{{ $bestUserRecord->blade ?? '?' }} {{ $bestUserRecord->ratchet ?? '?' }} {{ $bestUserRecord->bit ?? '?' }}</strong>
+            </p>
+            <p class="mb-0">
+                Logró <strong>{{ $bestUserRecord->victorias ?? '0' }}</strong> victorias sumando
+                <strong class="text-success">{{ $bestUserRecord->puntos_ganados ?? '0' }} puntos</strong>
+            </p>
+        </div>
+
+        <!-- Imagen -->
+        <div class="col-md-3 text-center d-none d-md-block">
+            <div class="position-relative d-inline-block" style="width: 180px; height: 180px;">
+                <!-- Imagen del perfil -->
+                <img
+                    src="/storage/{{ $bestUserProfile->profile->imagen ?? 'upload-profiles/Base/DranDagger.webp' }}"
+                    class="rounded-circle position-absolute top-0 start-0 w-100 h-100"
+                    style="{{ isset($bestUserProfile->profile->imagen) && strpos($bestUserProfile->profile->imagen, '.gif') !== false ? 'padding: 20px;' : '' }}"
+                >
+
+                <!-- Marco -->
+                <img
+                    src="/storage/{{ $bestUserProfile->profile->marco ?? 'upload-profiles/Marcos/BaseBlue.png' }}"
+                    class="rounded-circle position-absolute top-0 start-0 w-100 h-100"
+                >
+            </div>
+        </div>
+    </div>
+</div>
+
 
 
     <!-- Quiénes somos -->
@@ -423,11 +520,11 @@
                         @endforeach
                 </div>
             </div>
-            <div class="row m-0">
+            <!--<div class="row m-0">
                 <h2 id="heat-map" class="titulo-categoria text-uppercase mb-4 mt-4" style="color:white">Mapa de calor</h2>
 
                 <div id="map" style="width: 100%; height: 500px;"></div>
-            </div>
+            </div>-->
     </div>
     </div>
 </div>
@@ -437,7 +534,7 @@
 @section('scripts')
 <script>
     document.addEventListener("DOMContentLoaded", function () {
-        // Crear el mapa centrado en España y ajustado para incluir todas las regiones
+        /* Crear el mapa centrado en España y ajustado para incluir todas las regiones
         var map = L.map('map', {
             center: [40.5, -3], // Centrado en España
             zoom: 6, // Aumentar el zoom para un detalle más cercano
@@ -521,5 +618,46 @@
             }
         ).addTo(map);
     });
+    */
+
+const today = new Date();
+
+  const startPre = new Date("2025-06-22");
+  const startSeason = new Date("2025-09-01");
+  const endSeason = new Date("2026-06-30");
+
+  const totalDuration = (endSeason - startPre) / (1000 * 60 * 60 * 24); // total días
+  const preDuration = (startSeason - startPre) / (1000 * 60 * 60 * 24); // días de pretemporada
+  const seasonDuration = (endSeason - startSeason) / (1000 * 60 * 60 * 24);
+
+  const elapsedDays = (today - startPre) / (1000 * 60 * 60 * 24);
+
+  let prePercent = 0, seasonPercent = 0;
+  let statusText = "";
+
+  if (today < startPre) {
+    prePercent = 0;
+    seasonPercent = 0;
+    statusText = "⏳ La pretemporada aún no ha comenzado.";
+  } else if (today >= startPre && today < startSeason) {
+    const progress = elapsedDays / totalDuration;
+    prePercent = (elapsedDays / totalDuration) * 100;
+    seasonPercent = 0;
+    statusText = "🔧 Estamos en <strong>pretemporada</strong>. ¡Calienta motores!";
+  } else if (today >= startSeason && today <= endSeason) {
+    prePercent = (preDuration / totalDuration) * 100;
+    const seasonDays = (today - startSeason) / (1000 * 60 * 60 * 24);
+    seasonPercent = (seasonDays / totalDuration) * 100;
+    statusText = "🔥 <strong>Temporada 2 en curso</strong>. ¡A luchar!";
+  } else {
+    prePercent = (preDuration / totalDuration) * 100;
+    seasonPercent = (seasonDuration / totalDuration) * 100;
+    statusText = "✅ La Temporada 2 ha finalizado. ¡Nos vemos en la próxima!";
+  }
+
+  document.getElementById("pre-fill").style.width = `${prePercent}%`;
+  document.getElementById("season-fill").style.width = `${seasonPercent}%`;
+  document.getElementById("season-status").innerHTML = statusText;
+  });
 </script>
 @endsection
