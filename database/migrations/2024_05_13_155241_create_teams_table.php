@@ -18,6 +18,7 @@ class CreateTeamsTable extends Migration
             $table->string('name');
             $table->text('description');
             $table->integer('points_x1')->default(0);
+            $table->integer('points_x2')->default(0);
             $table->longText('image')->nullable();
             $table->longText('logo')->nullable();
             $table->foreignId('captain_id')->references('id')->on('users');
