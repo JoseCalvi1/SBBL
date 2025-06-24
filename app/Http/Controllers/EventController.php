@@ -177,7 +177,7 @@ class EventController extends Controller
         ]);
 
         // TODO Comentar para probar en local
-        Self::notification(Event::find($eventId));
+        //Self::notification(Event::find($eventId));
 
         $events = Event::with('region')->get();
         $createEvent = Event::where('created_by', Auth::user()->id)->where('date', '>', Carbon::now())->get();
@@ -482,90 +482,96 @@ class EventController extends Controller
 
 
     public function actualizarPuntuaciones(Request $request, $id, $mode)
-    {
-        $evento = Event::findOrFail($id);
+{
+    $evento = Event::findOrFail($id);
 
-        if ($evento->beys == 'ranking' || $evento->beys == 'rankingplus') {
+    if ($evento->beys == 'ranking' || $evento->beys == 'rankingplus') {
 
-            // Verificar si hay participantes con puesto vacío o null
-            $participantesSinPuesto = DB::table('assist_user_event')
-                ->where('event_id', $id)
-                ->where(function ($query) {
-                    $query->whereNull('puesto')
-                        ->orWhere('puesto', '');
-                })
-                ->exists();
+        // Verificar si hay participantes con puesto vacío o null
+        $participantesSinPuesto = DB::table('assist_user_event')
+            ->where('event_id', $id)
+            ->where(function ($query) {
+                $query->whereNull('puesto')
+                    ->orWhere('puesto', '');
+            })
+            ->exists();
 
-            if ($participantesSinPuesto) {
-                return redirect()->back()->with('error', 'No se han enviado los resultados del torneo.');
-            }
+        if ($participantesSinPuesto) {
+            return redirect()->back()->with('error', 'No se han enviado los resultados del torneo.');
+        }
 
-            // Obtener todos los participantes válidos
-            $participantes = DB::table('assist_user_event')
-                ->where('event_id', $id)
-                ->where('puesto', '!=', 'nopresentado')
-                ->get();
+        // Obtener todos los participantes válidos
+        $participantes = DB::table('assist_user_event')
+            ->where('event_id', $id)
+            ->where('puesto', '!=', 'nopresentado')
+            ->get();
 
-            $eventMode = 'points_x2';
+        $eventMode = 'points_x2';
 
-            $totalParticipantes = DB::table('assist_user_event')
-                ->where('event_id', $id)
-                ->count();
+        $totalParticipantes = DB::table('assist_user_event')
+            ->where('event_id', $id)
+            ->count();
 
-            // Limitar máximo a 32
-            $totalParticipantes = min($totalParticipantes, 32);
+        // Limitar máximo a 32
+        $totalParticipantes = min($totalParticipantes, 32);
 
-            // Tabla de puntuaciones por rango de jugadores
-            $tabla = match (true) {
-                $totalParticipantes >= 32 => [7, 6, 5, 4, 3, 2, 1],
-                $totalParticipantes >= 24 => [6, 5, 4, 3, 2, 1, 1],
-                $totalParticipantes >= 16 => [5, 4, 3, 2, 1, 1, 1],
-                $totalParticipantes >= 8  => [4, 3, 2, 1, 1, 1, 1],
-                $totalParticipantes >= 4  => [3, 2, 1, 1, 1, 1, 1],
-                default                   => [1, 1, 1, 1, 1, 1, 1],
-            };
+        // Tabla de puntuaciones por rango de jugadores
+        if ($totalParticipantes >= 32) {
+            $tabla = [7, 6, 5, 4, 3, 2, 1];
+        } elseif ($totalParticipantes >= 24) {
+            $tabla = [6, 5, 4, 3, 2, 1, 1];
+        } elseif ($totalParticipantes >= 16) {
+            $tabla = [5, 4, 3, 2, 1, 1, 1];
+        } elseif ($totalParticipantes >= 8) {
+            $tabla = [4, 3, 2, 1, 1, 1, 1];
+        } elseif ($totalParticipantes >= 4) {
+            $tabla = [3, 2, 1, 1, 1, 1, 1];
+        } else {
+            $tabla = [1, 1, 1, 1, 1, 1, 1];
+        }
 
-            // Función para convertir puesto a índice en la tabla
-            $puestoAIndice = [
-                'primero' => 0,
-                'segundo' => 1,
-                'tercero' => 2,
-                'cuarto' => 3,
-                'quinto' => 4,
-                'septimo' => 5,
-            ];
+        // Función para convertir puesto a índice en la tabla
+        $puestoAIndice = [
+            'primero' => 0,
+            'segundo' => 1,
+            'tercero' => 2,
+            'cuarto' => 3,
+            'quinto' => 4,
+            'septimo' => 5,
+        ];
 
-            foreach ($participantes as $participante) {
-                $usuarioId = $participante->user_id;
-                $puesto = strtolower($participante->puesto);
-                $index = $puestoAIndice[$puesto] ?? null;
+        foreach ($participantes as $participante) {
+            $usuarioId = $participante->user_id;
+            $puesto = strtolower($participante->puesto);
+            $index = $puestoAIndice[$puesto] ?? null;
 
-                $puntos = $index !== null ? $tabla[$index] : 1;
+            $puntos = $index !== null ? $tabla[$index] : 1;
 
-                // Sumar puntos al perfil
-                DB::table('profiles')
-                    ->where('user_id', $usuarioId)
-                    ->increment($eventMode, $puntos);
+            // Sumar puntos al perfil
+            DB::table('profiles')
+                ->where('user_id', $usuarioId)
+                ->increment($eventMode, $puntos);
 
-                // Guardar en log
-                DB::table('points_log')->insert([
-                    'user_id' => $usuarioId,
-                    'event_id' => $id,
-                    'modo' => $eventMode,
-                    'puntos' => $puntos,
-                    'puesto' => $puesto,
-                    'created_at' => now(),
-                    'updated_at' => now(),
-                ]);
-            }
-
-            self::actualizarStatus($id, 'CLOSE');
-            return redirect()->back()->with('success', 'Puntuaciones actualizadas correctamente');
+            // Guardar en log
+            DB::table('points_log')->insert([
+                'user_id' => $usuarioId,
+                'event_id' => $id,
+                'modo' => $eventMode,
+                'puntos' => $puntos,
+                'puesto' => $puesto,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
         }
 
         self::actualizarStatus($id, 'CLOSE');
-        return redirect()->back()->with('success', 'Evento cerrado sin puntuaciones');
+        return redirect()->back()->with('success', 'Puntuaciones actualizadas correctamente');
     }
+
+    self::actualizarStatus($id, 'CLOSE');
+    return redirect()->back()->with('success', 'Evento cerrado sin puntuaciones');
+}
+
 
 
     public function estadoTorneo(Request $request, $id, $estado) {
