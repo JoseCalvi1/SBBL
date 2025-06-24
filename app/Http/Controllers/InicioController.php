@@ -27,7 +27,7 @@ class InicioController extends Controller
         $all = Event::orderBy('date', 'DESC')->get();
         $hoy = Carbon::today();
 
-        $bladers = Profile::orderBy('points_x1', 'DESC')->paginate(5);
+        $bladers = Profile::orderBy('points_x2', 'DESC')->paginate(5);
         $stamina = Profile::where('user_id', 1)->first();
         $antiguos = $all->where("date", "<", Carbon::now())->take(10);
         $nuevos = $all->where("date", ">=", Carbon::now()->subDays(1))->sortBy('date')->take(3);
@@ -139,7 +139,7 @@ class InicioController extends Controller
             ];
         });*/
 
-        $teams = Team::orderBy('points_x1', 'desc')
+        $teams = Team::orderBy('points_x2', 'desc')
              ->take(3)
              ->get();
 

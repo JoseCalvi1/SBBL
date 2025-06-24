@@ -322,7 +322,7 @@
                             @endif
                         </div>
                         <h3 style="color: white; margin-top: 120px">{{ $bladers[0]->user->name }}</h3>
-                        <h2 style="color: white">{{ $bladers[0]->points_x1 }}<span style="font-size:0.5em">pts</span></h2>
+                        <h2 style="color: white">{{ $bladers[0]->points_x2 }}<span style="font-size:0.5em">pts</span></h2>
                     </div>
                     <div class="col-md-2 text-center m-2">
                         <h4 class="font-weight-bold top-2 ranking-card mb-3">2º Puesto</h4>
@@ -339,7 +339,7 @@
                             @endif
                         </div>
                         <h3 style="color: white; margin-top: 120px">{{ $bladers[1]->user->name }}</h3>
-                        <h2 style="color: white">{{ $bladers[1]->points_x1 }}<span style="font-size:0.5em">pts</span></h2>
+                        <h2 style="color: white">{{ $bladers[1]->points_x2 }}<span style="font-size:0.5em">pts</span></h2>
                     </div>
                     <div class="col-md-2 text-center m-2">
                         <h4 class="font-weight-bold top-3 ranking-card mb-3">3º Puesto</h4>
@@ -356,7 +356,7 @@
                             @endif
                     </div>
                         <h3 style="color: white; margin-top: 120px">{{ $bladers[2]->user->name }}</h3>
-                        <h2 style="color: white">{{ $bladers[2]->points_x1 }}<span style="font-size:0.5em">pts</span></h2>
+                        <h2 style="color: white">{{ $bladers[2]->points_x2 }}<span style="font-size:0.5em">pts</span></h2>
                     </div>
                     <div class="col-md-2 text-center m-2">
                         <h4 class="font-weight-bold ranking-card mb-3">4º Puesto</h4>
@@ -373,7 +373,7 @@
                             @endif
                         </div>
                         <h3 style="color: white; margin-top: 120px">{{ $bladers[3]->user->name }}</h3>
-                        <h2 style="color: white">{{ $bladers[3]->points_x1 }}<span style="font-size:0.5em">pts</span></h2>
+                        <h2 style="color: white">{{ $bladers[3]->points_x2 }}<span style="font-size:0.5em">pts</span></h2>
                     </div>
                     <div class="col-md-2 text-center m-2">
                         <h4 class="font-weight-bold ranking-card mb-3">5º Puesto</h4>
@@ -390,7 +390,7 @@
                             @endif
                         </div>
                         <h3 style="color: white; margin-top: 120px">{{ $bladers[4]->user->name }}</h3>
-                        <h2 style="color: white">{{ $bladers[4]->points_x1 }}<span style="font-size:0.5em">pts</span></h2>
+                        <h2 style="color: white">{{ $bladers[4]->points_x2 }}<span style="font-size:0.5em">pts</span></h2>
                     </div>
                 </div>
             </div>
@@ -409,7 +409,7 @@
                 <img class="team-logo" src="@if($team->logo) data:image/png;base64,{{ $team->logo }} @else /images/logo_new.png @endif" alt="Logo de {{ $team->name }}">
                 <div class="team-info">
                     <span class="team-name">{{ $team->name }}</span>
-                    <span class="team-points">{{ $team->points_x1 }} pts</span>
+                    <span class="team-points">{{ $team->points_x2 }} pts</span>
                 </div>
             </div>
         </div>

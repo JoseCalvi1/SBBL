@@ -188,7 +188,7 @@ class TeamsVersusController extends Controller
         $winnerId = ($duel->result_1 > $duel->result_2) ? $duel->team_id_1 : $duel->team_id_2;
 
         // Modificar el modo según la condición
-        $mode = ($mode == "beybladex") ? 'points_x1' : 'points_s3';
+        $mode = 'points_x2';
 
         // Incrementar los puntos al equipo ganador
         DB::table('teams')

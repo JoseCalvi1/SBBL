@@ -142,10 +142,8 @@ class EventController extends Controller
         // Si el usuario sube una imagen
         if($request->imagen == 'copalloros')  {
             $ruta_imagen = 'upload-events/copalloros.png';
-            $request['note'] = "FORMATO 5G. 5 combos distintos. Blades Baneados: Silver Wolf, Wizard Rod. Bits Baneados: Ball, Free Ball, Orb, Elevate";
         }   elseif($request->imagen == 'copaligera')  {
             $ruta_imagen = 'upload-events/copaligeraweb.png';
-            $request['note'] = "Blades permitidos : Wizard Arrow • Star Scream • Knight Shield • Optimus Prime • Iron Man • Luke Skywalker • Knight Lance • Thanos • Darth Vader • Leon Claw • The Mandalorian • Rhino Horn • Wyvern Gale • Sphinx Cowl • Black Shell • Shinobi Shadow • Ghost Circle • Tusk Mammoth • Savage Bear • Steel Samurai • Yell Kong • Knife Shinobi • Shelter Drake • Dranzer • Drigger • Draciel";
         }   elseif($request['region_id'] == 1) {
             $ruta_imagen = 'upload-events/CartelAndalucia.webp';
         }   elseif($request['region_id'] == 2)  {
@@ -179,7 +177,7 @@ class EventController extends Controller
         ]);
 
         // TODO Comentar para probar en local
-        //Self::notification(Event::find($eventId));
+        Self::notification(Event::find($eventId));
 
         $events = Event::with('region')->get();
         $createEvent = Event::where('created_by', Auth::user()->id)->where('date', '>', Carbon::now())->get();
@@ -198,7 +196,7 @@ class EventController extends Controller
      public function show(Event $event)
     {
         $videos = DB::select('select * from videos where event_id = '.$event->id);
-        $assists = $event->users()->get();
+        $assists = $event->users()->withPivot('puesto')->get();
         $hoy = Carbon::now()->subDay()->format('Y-m-d');
         if(Auth::user()) {
            $suscribe = DB::table('assist_user_event')->where('user_id', Auth::user()->id)->where('event_id', $event->id)->first();
@@ -232,7 +230,7 @@ class EventController extends Controller
         $bitOptions = DB::table('bits')->orderBy('nombre')->pluck('nombre')->toArray();
 
 
-        $currentDate = Carbon::now();
+        $currentDate = Carbon::parse($event->date);
         $startOfWeek = $currentDate->startOfWeek()->format('Y-m-d');
         $endOfWeek = $currentDate->endOfWeek()->format('Y-m-d');
 
@@ -241,9 +239,32 @@ class EventController extends Controller
             ->join('events', 'assist_user_event.event_id', '=', 'events.id')
             ->where('assist_user_event.user_id', Auth::user()->id)
             ->whereBetween('events.date', [$startOfWeek, $endOfWeek])
+            ->whereIn('events.beys', ['ranking', 'rankingplus'])
             ->exists();
 
-        return view('events.show', compact('event', 'videos', 'assists', 'suscribe', 'hoy', 'bladeOptions', 'assistBladeOptions', 'ratchetOptions', 'bitOptions', 'results', 'extraLines', 'resultsByParticipant', 'isRegistered'));
+
+        $currentDateTicket = Carbon::now();
+        $startOfMonth = $currentDateTicket->startOfMonth()->format('Y-m-d');
+        $endOfMonth = $currentDateTicket->endOfMonth()->format('Y-m-d');
+
+        $userId = Auth::user()->id;
+
+        // Contar eventos tipo ranking o rankingplus en los que está inscrito este mes
+        $rankingTournamentsParticipated = DB::table('assist_user_event')
+            ->join('events', 'assist_user_event.event_id', '=', 'events.id')
+            ->where('assist_user_event.user_id', $userId)
+            ->whereBetween('events.date', [$startOfMonth, $endOfMonth])
+            ->whereIn('events.beys', ['ranking', 'rankingplus'])
+            ->where('assist_user_event.puesto', '!=', 'No presentado')
+            ->count();
+
+        // Límite de torneos de ranking al mes
+        $maxRankingTournaments = 2;
+
+        // Calcular cuántos le quedan
+        $rankingTournamentsLeft = max(0, $maxRankingTournaments - $rankingTournamentsParticipated);
+
+        return view('events.show', compact('event', 'videos', 'assists', 'suscribe', 'hoy', 'bladeOptions', 'assistBladeOptions', 'ratchetOptions', 'bitOptions', 'results', 'extraLines', 'resultsByParticipant', 'isRegistered' , 'rankingTournamentsLeft'));
     }
 
 
@@ -403,101 +424,149 @@ class EventController extends Controller
 
     public function updatePuestos(Request $request, $id)
     {
-        if(!Auth::user()->is_referee && (!Event::findOrFail($id)->challonge || !Event::findOrFail($id)->iframe)) {
+        // Buscar evento una sola vez
+        $event = Event::findOrFail($id);
+
+        // Validar que el usuario sea referee o que el evento tenga challonge e iframe
+        if (!Auth::user()->is_jury && (empty($event->challonge) || empty($event->iframe))) {
             return redirect()->back()->with('error', 'Primero tienes que enviar los datos del torneo.');
         }
 
+        // Validar iframe y challonge (requiere URL)
+        if (!Auth::user()->is_jury) {
+            $request->validate([
+                'iframe' => 'required|url',
+                'challonge' => 'required|url',
+            ]);
+
+            // Actualizar iframe y challonge
+            $event->iframe = $request->input('iframe');
+            $event->challonge = $request->input('challonge');
+            $event->save();
+        }
+
+        // Actualizar status (asumo que este método existe y funciona)
         self::actualizarStatus($id, 'PENDING');
 
-        /*$request->validate([
-            'participantes' => 'required|array', // Debe ser un array
-            'participantes.*.id' => 'exists:assist_user_event,id', // Cada ID de participante debe existir en la tabla assists
-            'participantes.*.puesto' => 'required|in:participante,primero,segundo,tercero', // Validación del puesto para cada participante
-        ]);*/
+        // Validar participantes - que exista array y que cada elemento tenga id y puesto válidos
+        $rules = [
+            'participantes' => 'required|array',
+            'participantes.*.id' => 'required|integer|exists:assist_user_event,user_id',
+            'participantes.*.puesto' => 'required|string',
+        ];
 
-        // Iterar sobre los participantes y actualizar sus puestos
+        $messages = [
+            'participantes.required' => 'Debes enviar la lista de participantes.',
+            'participantes.array' => 'Participantes debe ser un array.',
+            'participantes.*.id.required' => 'Cada participante debe tener un ID válido.',
+            'participantes.*.id.exists' => 'Uno de los participantes no está registrado en este evento.',
+            'participantes.*.puesto.required' => 'Cada participante debe tener un puesto asignado.',
+        ];
+
+        $request->validate($rules, $messages);
+
+        // Actualizar los puestos en la tabla pivot
         foreach ($request->input('participantes') as $participante) {
-            $exist = DB::table('assist_user_event')->where('user_id', $participante['id'])->exists();
+            $updated = DB::table('assist_user_event')
+                ->where('user_id', $participante['id'])
+                ->where('event_id', $id)
+                ->update(['puesto' => $participante['puesto']]);
 
-            if ($exist) {
-                DB::table('assist_user_event')
-                    ->where('user_id', $participante['id'])
-                    ->where('event_id', $id)
-                    ->update(['puesto' => $participante['puesto']]);
+            if (!$updated) {
+                return redirect()->back()->with('error', "No se pudo actualizar el puesto para el participante ID {$participante['id']}.");
             }
         }
 
-        return redirect()->back()->with('success', 'Puestos actualizados correctamente');
+        return redirect()->back()->with('success', 'Resultados actualizados correctamente.');
     }
+
 
     public function actualizarPuntuaciones(Request $request, $id, $mode)
     {
-
         $evento = Event::findOrFail($id);
 
-        if($evento->beys == 'ranking' || $evento->beys == 'rankingplus') {
+        if ($evento->beys == 'ranking' || $evento->beys == 'rankingplus') {
 
             // Verificar si hay participantes con puesto vacío o null
             $participantesSinPuesto = DB::table('assist_user_event')
-            ->where('event_id', $id)
-            ->where(function ($query) {
-                $query->whereNull('puesto')
-                    ->orWhere('puesto', '');
-            })
-            ->exists();
+                ->where('event_id', $id)
+                ->where(function ($query) {
+                    $query->whereNull('puesto')
+                        ->orWhere('puesto', '');
+                })
+                ->exists();
 
             if ($participantesSinPuesto) {
                 return redirect()->back()->with('error', 'No se han enviado los resultados del torneo.');
             }
 
-            // Obtener los IDs de los participantes que están entre los tres primeros puestos
+            // Obtener todos los participantes válidos
             $participantes = DB::table('assist_user_event')
                 ->where('event_id', $id)
                 ->where('puesto', '!=', 'nopresentado')
                 ->get();
 
-            $eventMode = ($mode == "beybladex") ? 'points_x1' : 'points_s3';
+            $eventMode = 'points_x2';
 
             $totalParticipantes = DB::table('assist_user_event')
                 ->where('event_id', $id)
                 ->count();
 
-            // Limitar el número máximo de participantes a 12
-            $totalParticipantes = min($totalParticipantes, 12);
+            // Limitar máximo a 32
+            $totalParticipantes = min($totalParticipantes, 32);
 
-            // Calcular el número de participantes que quedarían en los tres primeros puestos
-            $participantesTresPrimeros = floor($totalParticipantes / 4);
+            // Tabla de puntuaciones por rango de jugadores
+            $tabla = match (true) {
+                $totalParticipantes >= 32 => [7, 6, 5, 4, 3, 2, 1],
+                $totalParticipantes >= 24 => [6, 5, 4, 3, 2, 1, 1],
+                $totalParticipantes >= 16 => [5, 4, 3, 2, 1, 1, 1],
+                $totalParticipantes >= 8  => [4, 3, 2, 1, 1, 1, 1],
+                $totalParticipantes >= 4  => [3, 2, 1, 1, 1, 1, 1],
+                default                   => [1, 1, 1, 1, 1, 1, 1],
+            };
 
-            // Actualizar las puntuaciones de los perfiles de los participantes
+            // Función para convertir puesto a índice en la tabla
+            $puestoAIndice = [
+                'primero' => 0,
+                'segundo' => 1,
+                'tercero' => 2,
+                'cuarto' => 3,
+                'quinto' => 4,
+                'septimo' => 5,
+            ];
+
             foreach ($participantes as $participante) {
-                // Obtener el ID del usuario asociado a este participante
                 $usuarioId = $participante->user_id;
+                $puesto = strtolower($participante->puesto);
+                $index = $puestoAIndice[$puesto] ?? null;
 
-                // Actualizar la puntuación del usuario en la tabla de perfiles
-                if ($participante->puesto === 'primero') {
-                    DB::table('profiles')
-                        ->where('user_id', $usuarioId)
-                        ->increment($eventMode, 1 + $participantesTresPrimeros + 2); // Añadir puntos al primero
-                } elseif ($participante->puesto === 'segundo') {
-                    DB::table('profiles')
-                        ->where('user_id', $usuarioId)
-                        ->increment($eventMode, 1 + $participantesTresPrimeros + 1); // Añadir puntos al segundo
-                } elseif ($participante->puesto === 'tercero') {
-                    DB::table('profiles')
-                        ->where('user_id', $usuarioId)
-                        ->increment($eventMode, 1 + $participantesTresPrimeros); // Añadir puntos al tercero
-                } else {
-                    DB::table('profiles')
-                        ->where('user_id', $usuarioId)
-                        ->increment($eventMode, 1); // Añadir 1 punto al perfil
-                }
+                $puntos = $index !== null ? $tabla[$index] : 1;
+
+                // Sumar puntos al perfil
+                DB::table('profiles')
+                    ->where('user_id', $usuarioId)
+                    ->increment($eventMode, $puntos);
+
+                // Guardar en log
+                DB::table('points_log')->insert([
+                    'user_id' => $usuarioId,
+                    'event_id' => $id,
+                    'modo' => $eventMode,
+                    'puntos' => $puntos,
+                    'puesto' => $puesto,
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ]);
             }
+
             self::actualizarStatus($id, 'CLOSE');
             return redirect()->back()->with('success', 'Puntuaciones actualizadas correctamente');
         }
+
         self::actualizarStatus($id, 'CLOSE');
         return redirect()->back()->with('success', 'Evento cerrado sin puntuaciones');
     }
+
 
     public function estadoTorneo(Request $request, $id, $estado) {
         if($estado == "invalidar") {
@@ -507,6 +576,9 @@ class EventController extends Controller
         } elseif($estado == "revisar") {
             self::actualizarStatus($id, 'REVIEW');
             return redirect()->back()->with('success', 'Evento en revisión');
+        } elseif($estado == "inscripcion") {
+            self::actualizarStatus($id, 'INSCRIPCION');
+            return redirect()->back()->with('success', 'Inscripción cerrada');
         }
     }
 
