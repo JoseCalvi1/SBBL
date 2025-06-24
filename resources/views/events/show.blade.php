@@ -10,6 +10,8 @@
             <h1 class="text-center mb-4 w-100">{{ $event->name }}
                 @if ($event->status == "OPEN")
                     <span class="btn btn-success">ABIERTO</span>
+                @elseif ($event->status == "INSCRIPCION")
+                    <span class="btn btn-light">INSCRIPCIÓN CERRADA</span>
                 @elseif ($event->status == "PENDING")
                     <span class="btn btn-warning">PENDIENTE CALIFICAR</span>
                 @elseif ($event->status == "REVIEW")
@@ -19,7 +21,7 @@
             @else
                     <span class="btn btn-danger">CERRADO</span>
                 @endif
-                @if (($event->status != "CLOSE" && $event->status != "INVALID") && (Auth::user()->is_admin || Auth::user()->is_referee))
+                @if (($event->status != "CLOSE" && $event->status != "INVALID") && (Auth::user()->is_admin || Auth::user()->is_jury))
                     <form method="POST" action="{{ route('events.actualizarPuntuaciones', ['event' => $event->id, 'mode' => $event->mode]) }}" style="display: contents; text-align: center;">
                         @method('PUT')
                         @csrf
@@ -28,7 +30,6 @@
                         </button>
                     </form>
                 @endif
-
             </h1>
         </div>
             <div class="col-md-5">
@@ -66,9 +67,22 @@
                         <form method="POST" action="{{ route('events.assist', ['event' => $event->id]) }}" enctype="multipart/form-data" novalidate style="text-align: center;">
                             @csrf
                             <div class="form-group py-2">
-                                <input type="submit" class="btn btn-primary text-uppercase font-weight-bold m-1 flex-right" value="Inscribirse">
+                                <input
+                                    type="submit"
+                                    class="btn btn-primary text-uppercase font-weight-bold m-1 flex-right"
+                                    value="Inscribirse"
+                                    @if(in_array($event->beys, ['ranking', 'rankingplus']) && $rankingTournamentsLeft == 0)
+                                        disabled
+                                    @endif
+                                >
+                                @if(in_array($event->beys, ['ranking', 'rankingplus']))
+                                    <span class="badge badge-warning ml-2" title="Torneos de ranking restantes este mes" style="font-size: 1rem;">
+                                        🎟️ {{ $rankingTournamentsLeft }}
+                                    </span>
+                                @endif
                             </div>
                         </form>
+
 
                     @else
                         <form method="POST" action="{{ route('events.noassist', ['event' => $event->id]) }}" style="display: contents; text-align: center;">
@@ -81,47 +95,86 @@
 
                 <div class="row">
                     <div class="col-md-6">
-                        <div class="event-meta mt-2">
-                            <p>
-                                <span class="font-weight-bold text-primary">Modalidad:</span>
-                                {{ ($event->mode == 'beybladex') ? 'Beyblade X' : 'Beyblade Burst' }} ({{ $event->beys }})
-                            </p>
-                            <p>
-                                <span class="font-weight-bold text-primary">Configuración:</span>
-                                {{ $event->deck }} <span class="font-weight-bold">({{ $event->configuration }})</span>
-                            </p>
-                            <p>
-                                <span class="font-weight-bold text-primary">Región:</span>
-                                {{ $event->region->name }}
-                            </p>
-                            <p>
-                                <span class="font-weight-bold text-primary">Localidad:</span>
-                                {{ $event->city }}
-                            </p>
-                            <p>
-                                <span class="font-weight-bold text-primary">Lugar:</span>
-                                {{ $event->location }}
-                            </p>
+                        <div class="event-meta">
+                        <p class="mb-2">
+                            <span class="fw-bold text-primary">Modalidad:</span>
+                            {{ ($event->mode == 'beybladex') ? 'Beyblade X' : 'Beyblade Burst' }} ({{ $event->beys }})
+                        </p>
 
-                            <p>
-                                <span class="font-weight-bold text-primary">Fecha y hora:</span>
-                                <event-date fecha="{{ $event->date }}"></event-date> <span class="font-weight-bold">({{ $event->time }})</span>
+                        @if(in_array($event->beys, ['ranking', 'rankingplus']))
+                            <p class="mb-3">
+                                <a href="{{ route('inicio.rules') }}" target="_blank"
+                                class="btn btn-outline-info btn-sm d-inline-flex align-items-center gap-1">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
+                                        class="bi bi-journal-text" viewBox="0 0 16 16">
+                                        <path d="M5 10.5a.5.5 0 0 1 .5-.5h5a.5.5 0 0 1 0 1h-5a.5.5 0 0 1-.5-.5zm0-2a.5.5 0 0 1 .5-.5h5a.5.5 0 0 1 0 1h-5a.5.5 0 0 1-.5-.5zm0-2a.5.5 0 0 1 .5-.5h5a.5.5 0 0 1 0 1h-5a.5.5 0 0 1-.5-.5z"/>
+                                        <path d="M3 1v14a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1V1H3zm8 13H5a.5.5 0 0 1 0-1h6a.5.5 0 0 1 0 1z"/>
+                                    </svg>
+                                    Reglas del torneo
+                                </a>
                             </p>
+                        @endif
 
-                            <p>
-                                <span class="font-weight-bold text-primary">Anotaciones:</span>
-                                {!! $event->note !!}
-                            </p>
+                        <p class="mb-2">
+                            <span class="fw-bold text-primary">Configuración:</span>
+                            {{ $event->deck }} <span class="fw-bold">({{ $event->configuration }})</span>
+                        </p>
+                        <p class="mb-2">
+                            <span class="fw-bold text-primary">Región:</span>
+                            {{ $event->region->name }}
+                        </p>
+                        <p class="mb-2">
+                            <span class="fw-bold text-primary">Localidad:</span>
+                            {{ $event->city }}
+                        </p>
+                        <p class="mb-2">
+                            <span class="fw-bold text-primary">Lugar:</span>
+                            {{ $event->location }}
+                        </p>
+                        <p class="mb-2">
+                            <span class="fw-bold text-primary">Fecha y hora:</span>
+                            <event-date fecha="{{ $event->date }}"></event-date> <span class="fw-bold">({{ $event->time }})</span>
+                        </p>
+                        <p class="mb-3">
+                            <span class="fw-bold text-primary">Anotaciones:</span>
+                            {!! $event->note !!}
+                        </p>
 
-                            @if (($event->status != "CLOSE" && $event->status != "INVALID") && Auth::user()->is_referee || ($event->status == "OPEN" && $event->created_by == Auth::user()->id))
-                                <a href="{{ route('events.edit', ['event' => $event->id]) }}" class="btn btn-dark mb-2 d-block">Editar</a>
-                            @endif
-                            @if ($suscribe && $event->status != "INVALID")
-                                <button type="button" class="btn btn-warning" data-toggle="modal" data-target="#formModal" style="width: 100%">
-                                    Introducir deck
+                        @php
+                            use Carbon\Carbon;
+                            $now = Carbon::now();
+                            $eventDate = Carbon::parse($event->date);
+                            $diffInHours = $eventDate->diffInHours($now, false); // negativo si está en el futuro
+                        @endphp
+
+                        @if (
+                            ($event->status == "OPEN") &&
+                            (Auth::user()->is_admin || Auth::user()->is_referee) &&
+                            ($diffInHours <= 24 && $diffInHours >= 0)
+                        )
+                            <form method="POST" action="{{ route('events.estado', ['event' => $event->id, 'estado' => 'inscripcion']) }}">
+                                @csrf
+                                @method('PUT')
+                                <button type="submit" class="btn btn-light mb-2 w-100">
+                                    Cerrar inscripción
                                 </button>
-                            @endif
-                        </div>
+                            </form>
+                        @endif
+
+
+                        @if (($event->status != "CLOSE" && $event->status != "INVALID") && Auth::user()->is_referee || ($event->status == "OPEN" && $event->created_by == Auth::user()->id))
+                            <a href="{{ route('events.edit', ['event' => $event->id]) }}" class="btn btn-dark mb-3 d-block">
+                                Editar
+                            </a>
+                        @endif
+
+                        @if ($suscribe && $event->status != "INVALID")
+                            <button type="button" class="btn btn-warning w-100" data-bs-toggle="modal" data-bs-target="#formModal">
+                                Introducir deck
+                            </button>
+                        @endif
+                    </div>
+
                     </div>
                     <div class="col-md-6">
                         <h4 style="font-weight: bold">Listado de participantes ({{ $assists->count() }})</h4>
@@ -141,7 +194,8 @@
                                     <div class="row mb-2">
                                         <div class="col-md-9">
                                             <p class="mb-0">
-                                                {{ $assist->name }} @if($event->beys == "ranking" || $event->beys == "rankingplus") ({{ DB::table('assist_user_event')
+                                                {{ $assist->name }}
+                                                @if($event->beys == "ranking" || $event->beys == "rankingplus") ({{ DB::table('assist_user_event')
                                                 ->join('events', 'assist_user_event.event_id', '=', 'events.id')
                                                 ->where('assist_user_event.user_id', $assist->id)
                                                 ->whereMonth('events.date', \Carbon\Carbon::parse($event->date)->month)
@@ -153,19 +207,52 @@
                                                 }}
                                                 torneos) @endif
 
+                                                @if(!empty($assist->pivot->puesto) && $assist->pivot->puesto !== 'No presentado')
+                                                    - {{ $assist->pivot->puesto }}
+                                                @endif
+
                                                 @if (Auth::user()->is_admin)
                                                     <b>{{ $assist->email }}</b>
                                                 @endif
 
                                                 @if (($event->status != "CLOSE" && $event->status != "INVALID") && Auth::user()->is_referee || ($event->status == "OPEN" && $event->created_by == Auth::user()->id))
                                                     <input type="hidden" name="participantes[{{ $assist->id }}][id]" value="{{ $assist->id }}">
+                                                    @php
+                                                        $count = $assists->count();
+                                                        $options = ['primero', 'segundo']; // Default para <8
+
+                                                        if ($count >= 8 && $count <= 15) {
+                                                            $options = ['primero', 'segundo', 'tercero'];
+                                                        } elseif ($count >= 16 && $count <= 23) {
+                                                            $options = ['primero', 'segundo', 'tercero', 'cuarto'];
+                                                        } elseif ($count >= 24 && $count <= 31) {
+                                                            $options = ['primero', 'segundo', 'tercero', 'cuarto', 'quinto'];
+                                                        } elseif ($count > 31) {
+                                                            $options = ['primero', 'segundo', 'tercero', 'cuarto', 'quinto', 'septimo'];
+                                                        }
+
+                                                        // Etiquetas para mostrar (puedes modificar si quieres)
+                                                        $labels = [
+                                                            'primero' => 'Primer puesto',
+                                                            'segundo' => 'Segundo puesto',
+                                                            'tercero' => 'Tercer puesto',
+                                                            'cuarto' => 'Cuarto puesto',
+                                                            'quinto' => 'Quinto puesto',
+                                                            'septimo' => 'Séptimo puesto',
+                                                        ];
+                                                    @endphp
+
                                                     <select class="form-control" name="participantes[{{ $assist->id }}][puesto]">
                                                         <option value="participante" {{ $assist->pivot->puesto == 'participante' ? 'selected' : '' }}>-- Selecciona un puesto --</option>
-                                                        <option value="primero" {{ $assist->pivot->puesto == 'primero' ? 'selected' : '' }}>Primer puesto</option>
-                                                        <option value="segundo" {{ $assist->pivot->puesto == 'segundo' ? 'selected' : '' }}>Segundo puesto</option>
-                                                        <option value="tercero" {{ $assist->pivot->puesto == 'tercero' ? 'selected' : '' }}>Tercer puesto</option>
+
+                                                        @foreach ($options as $opt)
+                                                            <option value="{{ $opt }}" {{ $assist->pivot->puesto == $opt ? 'selected' : '' }}>
+                                                                {{ $labels[$opt] }}
+                                                            </option>
+                                                        @endforeach
                                                         <option value="nopresentado" {{ $assist->pivot->puesto == 'nopresentado' ? 'selected' : '' }}>No presentado/a</option>
                                                     </select>
+
                                                 @endif
                                             </p>
                                         </div>
@@ -203,37 +290,34 @@
                                     @endif
                                 @endforeach
 
+                                <div class="mt-4">
+                                    <h4 class="mb-4 text-info border-bottom border-info pb-2">Datos del torneo</h4>
+
+                                    <div class="form-group">
+                                        <label for="iframe" class="fw-semibold text-light">Link al video del torneo:</label>
+                                        <input type="url" name="iframe" id="iframe" class="form-control mb-2 bg-dark text-light border-secondary"
+                                            placeholder="https://www.youtube.com/embed/tu-video"
+                                            value="{{ old('iframe', $event->iframe ?? '') }}"
+                                            required>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label for="challonge" class="fw-semibold text-light">Enlace al torneo en Challonge:</label>
+                                        <input type="url" name="challonge" id="challonge" class="form-control mb-2 bg-dark text-light border-secondary"
+                                            placeholder="https://challonge.com/es/"
+                                            value="{{ old('challonge', $event->challonge ?? '') }}"
+                                            required>
+                                    </div>
+                                </div>
+
                                 @if (($event->status != "CLOSE" && $event->status != "INVALID") && Auth::user()->is_referee || ($event->status == "OPEN" && $event->created_by == Auth::user()->id))
                                     <div class="form-group py-2">
                                         <input type="submit" class="btn btn-outline-success text-uppercase font-weight-bold flex-right" value="Enviar resultados"  style="width: 100%">
                                     </div>
                                 @endif
                             </form>
+
                             @if (($event->status != "CLOSE" && $event->status != "INVALID") && Auth::user()->is_referee || ($event->status == "OPEN" && $event->created_by == Auth::user()->id))
-                                <form method="POST" action="{{ route('events.updateVideo', ['event' => $event->id]) }}">
-                                    @csrf
-                                    @method('PUT') <!-- O POST según tu configuración -->
-
-                                    <div class="form-group">
-                                        <label for="iframe">Link al video del torneo:</label>
-                                        <input type="url" name="iframe" id="iframe" class="form-control mb-1"
-                                               placeholder="https://www.youtube.com/embed/tu-video"
-                                               value="{{ old('iframe', $event->iframe ?? '') }}"
-                                               required>
-                                    </div>
-
-                                    <div class="form-group">
-                                        <label for="challonge">Enlace al torneo en Challonge:</label>
-                                        <input type="url" name="challonge" id="challonge" class="form-control mb-1"
-                                               placeholder="https://challonge.com/es/"
-                                               value="{{ old('challonge', $event->challonge ?? '') }}"
-                                               required>
-                                    </div>
-
-                                    <div class="form-group">
-                                        <input type="submit" class="btn btn-outline-success text-uppercase font-weight-bold flex-right" value="Enviar datos" style="width: 100%">
-                                    </div>
-                                </form>
                                 @if ($event->iframe)
                                     <div class="m-2">
                                         <a href="{{ $event->iframe }}" target="_blank" class="btn btn-info text-uppercase font-weight-bold"
@@ -257,15 +341,18 @@
         </div>
     </article>
 
-<!-- Modal para introducir decks -->
-<div class="modal fade" id="formModal" tabindex="-1" role="dialog" aria-labelledby="formModalLabel" aria-hidden="true">
-    <div class="modal-dialog" role="document" style="max-width: 80%">
+
+
+@endsection
+
+@section('scripts')
+<!-- Modal para introducir decks - Versión Bootstrap 5 -->
+<div class="modal fade" id="formModal" tabindex="-1" aria-labelledby="formModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl">
         <div class="modal-content">
-            <div class="modal-header">
+            <div class="modal-header bg-primary text-white">
                 <h5 class="modal-title" id="formModalLabel">Resultados del deck en el torneo</h5>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
-                </button>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
                 <!-- Formulario dentro del popup -->
@@ -274,15 +361,15 @@
 
                     @if(Auth::user()->is_referee)
                         @foreach($assists as $assist)
-                            <div class="form-group">
+                            <div class="mb-4">
                                 <h4>{{ $assist->name }} ({{ $assist->email }})</h4>
                                 @foreach(range(1, 3) as $index)
-                                    <div class="row">
+                                    <div class="row g-3 mb-3">
                                         <!-- Blade -->
                                         <div class="col-md-2">
-                                            <label for="blade_{{ $assist->id }}_{{ $index }}">Blade</label>
-                                            <select class="form-control select2" id="blade_{{ $assist->id }}_{{ $index }}" name="blade[{{ $assist->id }}][{{ $index }}]" required>
-                                                <option>-- Selecciona un blade --</option>
+                                            <label for="blade_{{ $assist->id }}_{{ $index }}" class="form-label">Blade</label>
+                                            <select class="form-select select2" id="blade_{{ $assist->id }}_{{ $index }}" name="blade[{{ $assist->id }}][{{ $index }}]" required>
+                                                <option value="">-- Selecciona un blade --</option>
                                                 @foreach($bladeOptions as $option)
                                                     <option value="{{ $option }}"
                                                         @if(isset($resultsByParticipant[$assist->id][$index-1]) && $resultsByParticipant[$assist->id][$index-1]->blade == $option) selected @endif>
@@ -294,9 +381,9 @@
 
                                         <!-- Assist blade -->
                                         <div class="col-md-2">
-                                            <label for="assist_blade_{{ $assist->id }}_{{ $index }}">Assist blade (Solo CX)</label>
-                                            <select class="form-control select2" id="assist_blade_{{ $assist->id }}_{{ $index }}" name="assist_blade[{{ $assist->id }}][{{ $index }}]">
-                                                <option></option>
+                                            <label for="assist_blade_{{ $assist->id }}_{{ $index }}" class="form-label">Assist blade (Solo CX)</label>
+                                            <select class="form-select select2" id="assist_blade_{{ $assist->id }}_{{ $index }}" name="assist_blade[{{ $assist->id }}][{{ $index }}]">
+                                                <option value=""></option>
                                                 @foreach($assistBladeOptions as $option)
                                                     <option value="{{ $option }}"
                                                         @if(isset($resultsByParticipant[$assist->id][$index-1]) && $resultsByParticipant[$assist->id][$index-1]->assist_blade == $option) selected @endif>
@@ -308,9 +395,9 @@
 
                                         <!-- Ratchet -->
                                         <div class="col-md-2">
-                                            <label for="ratchet_{{ $assist->id }}_{{ $index }}">Ratchet</label>
-                                            <select class="form-control select2" id="ratchet_{{ $assist->id }}_{{ $index }}" name="ratchet[{{ $assist->id }}][{{ $index }}]" required>
-                                                <option>-- Selecciona un ratchet --</option>
+                                            <label for="ratchet_{{ $assist->id }}_{{ $index }}" class="form-label">Ratchet</label>
+                                            <select class="form-select select2" id="ratchet_{{ $assist->id }}_{{ $index }}" name="ratchet[{{ $assist->id }}][{{ $index }}]" required>
+                                                <option value="">-- Selecciona un ratchet --</option>
                                                 @foreach($ratchetOptions as $option)
                                                     <option value="{{ $option }}"
                                                         @if(isset($resultsByParticipant[$assist->id][$index-1]) && $resultsByParticipant[$assist->id][$index-1]->ratchet == $option) selected @endif>
@@ -322,9 +409,9 @@
 
                                         <!-- Bit -->
                                         <div class="col-md-2">
-                                            <label for="bit_{{ $assist->id }}_{{ $index }}">Bit</label>
-                                            <select class="form-control select2" id="bit_{{ $assist->id }}_{{ $index }}" name="bit[{{ $assist->id }}][{{ $index }}]" required>
-                                                <option>-- Selecciona un bit --</option>
+                                            <label for="bit_{{ $assist->id }}_{{ $index }}" class="form-label">Bit</label>
+                                            <select class="form-select select2" id="bit_{{ $assist->id }}_{{ $index }}" name="bit[{{ $assist->id }}][{{ $index }}]" required>
+                                                <option value="">-- Selecciona un bit --</option>
                                                 @foreach($bitOptions as $option)
                                                     <option value="{{ $option }}"
                                                         @if(isset($resultsByParticipant[$assist->id][$index-1]) && $resultsByParticipant[$assist->id][$index-1]->bit == $option) selected @endif>
@@ -336,25 +423,25 @@
 
                                         <!-- Victorias -->
                                         <div class="col-md-1">
-                                            <label for="victorias_{{ $assist->id }}_{{ $index }}">Victorias</label>
+                                            <label for="victorias_{{ $assist->id }}_{{ $index }}" class="form-label">Victorias</label>
                                             <input type="number" class="form-control" id="victorias_{{ $assist->id }}_{{ $index }}" name="victorias[{{ $assist->id }}][{{ $index }}]" value="{{ isset($resultsByParticipant[$assist->id][$index-1]) ? $resultsByParticipant[$assist->id][$index-1]->victorias : 0 }}">
                                         </div>
 
                                         <!-- Derrotas -->
                                         <div class="col-md-1">
-                                            <label for="derrotas_{{ $assist->id }}_{{ $index }}">Derrotas</label>
+                                            <label for="derrotas_{{ $assist->id }}_{{ $index }}" class="form-label">Derrotas</label>
                                             <input type="number" class="form-control" id="derrotas_{{ $assist->id }}_{{ $index }}" name="derrotas[{{ $assist->id }}][{{ $index }}]" value="{{ isset($resultsByParticipant[$assist->id][$index-1]) ? $resultsByParticipant[$assist->id][$index-1]->derrotas : 0 }}">
                                         </div>
 
                                         <!-- Puntos Ganados -->
                                         <div class="col-md-1">
-                                            <label for="puntos_ganados_{{ $assist->id }}_{{ $index }}">P. Ganados</label>
+                                            <label for="puntos_ganados_{{ $assist->id }}_{{ $index }}" class="form-label">P. Ganados</label>
                                             <input type="number" class="form-control" id="puntos_ganados_{{ $assist->id }}_{{ $index }}" name="puntos_ganados[{{ $assist->id }}][{{ $index }}]" value="{{ isset($resultsByParticipant[$assist->id][$index-1]) ? $resultsByParticipant[$assist->id][$index-1]->puntos_ganados : 0 }}">
                                         </div>
 
                                         <!-- Puntos Perdidos -->
                                         <div class="col-md-1">
-                                            <label for="puntos_perdidos_{{ $assist->id }}_{{ $index }}">P. Perdidos</label>
+                                            <label for="puntos_perdidos_{{ $assist->id }}_{{ $index }}" class="form-label">P. Perdidos</label>
                                             <input type="number" class="form-control" id="puntos_perdidos_{{ $assist->id }}_{{ $index }}" name="puntos_perdidos[{{ $assist->id }}][{{ $index }}]" value="{{ isset($resultsByParticipant[$assist->id][$index-1]) ? $resultsByParticipant[$assist->id][$index-1]->puntos_perdidos : 0 }}">
                                         </div>
                                     </div>
@@ -364,15 +451,15 @@
 
                     @else
                         <!-- Si no es referee, solo se muestra su propio deck -->
-                        <div class="form-group">
+                        <div class="mb-4">
                             <h4>{{ Auth::user()->name }}'s Deck</h4>
                             @foreach(range(1, 3) as $index)
-                                <div class="row">
+                                <div class="row g-3 mb-3">
                                     <!-- Blade -->
                                     <div class="col-md-2">
-                                        <label for="blade_{{ Auth::user()->id }}_{{ $index }}">Blade</label>
-                                        <select class="form-control select2" id="blade_{{ Auth::user()->id }}_{{ $index }}" name="blade[{{ Auth::user()->id }}][]" required>
-                                            <option>-- Selecciona un blade --</option>
+                                        <label for="blade_{{ Auth::user()->id }}_{{ $index }}" class="form-label">Blade</label>
+                                        <select class="form-select select2" id="blade_{{ Auth::user()->id }}_{{ $index }}" name="blade[{{ Auth::user()->id }}][]" required>
+                                            <option value="">-- Selecciona un blade --</option>
                                             @foreach($bladeOptions as $option)
                                                 <option value="{{ $option }}"
                                                     @if(isset($results[$index-1]) && $results[$index-1]->blade == $option) selected @endif>
@@ -384,9 +471,9 @@
 
                                     <!-- Assist blade -->
                                     <div class="col-md-2">
-                                        <label for="assist_blade_{{ Auth::user()->id }}_{{ $index }}">Assist blade (Solo CX)</label>
-                                        <select class="form-control select2" id="ratchet_{{ Auth::user()->id }}_{{ $index }}" name="assist_blade[{{ Auth::user()->id }}][]" required>
-                                            <option>-- Selecciona un assist blade --</option>
+                                        <label for="assist_blade_{{ Auth::user()->id }}_{{ $index }}" class="form-label">Assist blade (Solo CX)</label>
+                                        <select class="form-select select2" id="ratchet_{{ Auth::user()->id }}_{{ $index }}" name="assist_blade[{{ Auth::user()->id }}][]">
+                                            <option value="">-- Selecciona un assist blade --</option>
                                             @foreach($assistBladeOptions as $option)
                                                 <option value="{{ $option }}"
                                                     @if(isset($results[$index-1]) && $results[$index-1]->assist_blade == $option) selected @endif>
@@ -398,9 +485,9 @@
 
                                     <!-- Ratchet -->
                                     <div class="col-md-2">
-                                        <label for="ratchet_{{ Auth::user()->id }}_{{ $index }}">Ratchet</label>
-                                        <select class="form-control select2" id="ratchet_{{ Auth::user()->id }}_{{ $index }}" name="ratchet[{{ Auth::user()->id }}][]" required>
-                                            <option>-- Selecciona un ratchet --</option>
+                                        <label for="ratchet_{{ Auth::user()->id }}_{{ $index }}" class="form-label">Ratchet</label>
+                                        <select class="form-select select2" id="ratchet_{{ Auth::user()->id }}_{{ $index }}" name="ratchet[{{ Auth::user()->id }}][]" required>
+                                            <option value="">-- Selecciona un ratchet --</option>
                                             @foreach($ratchetOptions as $option)
                                                 <option value="{{ $option }}"
                                                     @if(isset($results[$index-1]) && $results[$index-1]->ratchet == $option) selected @endif>
@@ -412,9 +499,9 @@
 
                                     <!-- Bit -->
                                     <div class="col-md-2">
-                                        <label for="bit_{{ Auth::user()->id }}_{{ $index }}">Bit</label>
-                                        <select class="form-control select2" id="bit_{{ Auth::user()->id }}_{{ $index }}" name="bit[{{ Auth::user()->id }}][]" required>
-                                            <option>-- Selecciona un bit --</option>
+                                        <label for="bit_{{ Auth::user()->id }}_{{ $index }}" class="form-label">Bit</label>
+                                        <select class="form-select select2" id="bit_{{ Auth::user()->id }}_{{ $index }}" name="bit[{{ Auth::user()->id }}][]" required>
+                                            <option value="">-- Selecciona un bit --</option>
                                             @foreach($bitOptions as $option)
                                                 <option value="{{ $option }}"
                                                     @if(isset($results[$index-1]) && $results[$index-1]->bit == $option) selected @endif>
@@ -426,25 +513,25 @@
 
                                     <!-- Victorias -->
                                     <div class="col-md-1">
-                                        <label for="victorias_{{ Auth::user()->id }}_{{ $index }}">Victorias</label>
+                                        <label for="victorias_{{ Auth::user()->id }}_{{ $index }}" class="form-label">Victorias</label>
                                         <input type="number" class="form-control" id="victorias_{{ Auth::user()->id }}_{{ $index }}" name="victorias[{{ Auth::user()->id }}][]" value="{{ isset($results[$index-1]) ? $results[$index-1]->victorias : 0 }}">
                                     </div>
 
                                     <!-- Derrotas -->
                                     <div class="col-md-1">
-                                        <label for="derrotas_{{ Auth::user()->id }}_{{ $index }}">Derrotas</label>
+                                        <label for="derrotas_{{ Auth::user()->id }}_{{ $index }}" class="form-label">Derrotas</label>
                                         <input type="number" class="form-control" id="derrotas_{{ Auth::user()->id }}_{{ $index }}" name="derrotas[{{ Auth::user()->id }}][]" value="{{ isset($results[$index-1]) ? $results[$index-1]->derrotas : 0 }}">
                                     </div>
 
                                     <!-- Puntos Ganados -->
                                     <div class="col-md-1">
-                                        <label for="puntos_ganados_{{ Auth::user()->id }}_{{ $index }}">P. Ganados</label>
+                                        <label for="puntos_ganados_{{ Auth::user()->id }}_{{ $index }}" class="form-label">P. Ganados</label>
                                         <input type="number" class="form-control" id="puntos_ganados_{{ Auth::user()->id }}_{{ $index }}" name="puntos_ganados[{{ Auth::user()->id }}][]" value="{{ isset($results[$index-1]) ? $results[$index-1]->puntos_ganados : 0 }}">
                                     </div>
 
                                     <!-- Puntos Perdidos -->
                                     <div class="col-md-1">
-                                        <label for="puntos_perdidos_{{ Auth::user()->id }}_{{ $index }}">P. Perdidos</label>
+                                        <label for="puntos_perdidos_{{ Auth::user()->id }}_{{ $index }}" class="form-label">P. Perdidos</label>
                                         <input type="number" class="form-control" id="puntos_perdidos_{{ Auth::user()->id }}_{{ $index }}" name="puntos_perdidos[{{ Auth::user()->id }}][]" value="{{ isset($results[$index-1]) ? $results[$index-1]->puntos_perdidos : 0 }}">
                                     </div>
                                 </div>
@@ -452,7 +539,9 @@
                         </div>
                     @endif
 
-                    <button type="submit" class="btn btn-primary">Guardar resultados</button>
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-4">
+                        <button type="submit" class="btn btn-primary">Guardar resultados</button>
+                    </div>
                 </form>
             </div>
         </div>
@@ -481,7 +570,7 @@
 
     <script>
             // Pasamos el valor desde Blade a una variable JS
-            const isReferee = @json(Auth::user()->is_referee);
+            const isReferee = @json(Auth::user()->is_jury);
 
         document.addEventListener("DOMContentLoaded", function () {
             document.getElementById('copyButton').addEventListener('click', function() {
@@ -535,10 +624,6 @@
         });
 
     </script>
-    <!-- Incluye el script para inicializar los tooltips y otros componentes de Bootstrap -->
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.min.js"></script>
     <script>
         $(function () {
             $('[data-toggle="tooltip"]').tooltip()

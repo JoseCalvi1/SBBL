@@ -35,12 +35,12 @@
                                 </td>
                                 <td>
                                     <input type="text"
-                                        name="points_x1[{{ $profile->id }}]"
-                                        class="form-control @error('points_x1.' . $profile->id) is-invalid @enderror"
+                                        name="points_x2[{{ $profile->id }}]"
+                                        class="form-control @error('points_x2.' . $profile->id) is-invalid @enderror"
                                         placeholder="Puntos"
-                                        value="{{ old('points_x1.' . $profile->id, $profile->points_x1) }}"
+                                        value="{{ old('points_x2.' . $profile->id, $profile->points_x2) }}"
                                     />
-                                    @error('points_x1.' . $profile->id)
+                                    @error('points_x2.' . $profile->id)
                                         <span class="invalid-feedback d-block" role="alert">
                                             <strong>{{ $message }}</strong>
                                         </span>

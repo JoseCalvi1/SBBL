@@ -126,12 +126,11 @@
             font-size: 0.8em;
             margin-top: 5px;
         }
-        #navbarSupportedContent > ul.navbar-nav.ml-auto > li.nav-item.dropdown.show > div > a:nth-child(1):hover,
-        #navbarSupportedContent > ul.navbar-nav.ml-auto > li.nav-item.dropdown.show > div > a:nth-child(2):hover,
-        #navbarSupportedContent > ul.navbar-nav.ml-auto > li.nav-item.dropdown.show > div > a:nth-child(3):hover,
-        #navbarSupportedContent > ul.navbar-nav.ml-auto > li.nav-item.dropdown.show > div > a:nth-child(4):hover {
+        /* Selecciona todos los enlaces dentro del dropdown */
+        .navbar-nav .dropdown-menu a:hover {
             color: #283b63 !important;
         }
+
     </style>
 
     <!-- Styles -->
@@ -164,116 +163,116 @@
     </script>
 
 </head>
-<body style="display: flex; flex-direction: column; min-height: 100vh; height: 100%">
+<body style="display: flex; flex-direction: column; min-height: 100vh; height: 100%; font-family: HelveticaNeue">
     <div id="app" style="flex: 1;">
-        <nav class="navbar navbar-expand-md shadow-sm" style="background-color: #1e2a47;">
-            <div class="container">
-                <a class="navbar-brand d-none d-sm-none d-md-block" href="{{ url('/') }}">
-                    <img src="/images/logo_new.png" alt="Logo Spanish BeyBattle League" width="60" height="50">
-                    <span style="color: white;">Spanish BeyBattle League</span>
-                </a>
-                <a class="navbar-brand d-block d-sm-block d-md-none" href="{{ url('/') }}">
-                    <img src="/images/logo_new.png" alt="Logo SBBL" width="60" height="50">
-                </a>
-                <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="{{ __('Toggle navigation') }}">
-                    <span class="navbar-toggler-icon" style="color:white"><i class="fas fa-bars" style="font-size:2em;"></i></span>
-                </button>
+<nav class="navbar navbar-expand-md shadow-sm" style="background-color: #1e2a47;">
+    <div class="container">
+        <a class="navbar-brand d-none d-sm-none d-md-block" href="{{ url('/') }}">
+            <img src="/images/logo_new.png" alt="Logo Spanish BeyBattle League" width="60" height="50">
+            <span style="color: white;">Spanish BeyBattle League</span>
+        </a>
+        <a class="navbar-brand d-block d-sm-block d-md-none" href="{{ url('/') }}">
+            <img src="/images/logo_new.png" alt="Logo SBBL" width="60" height="50">
+        </a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="{{ __('Toggle navigation') }}">
+            <span class="navbar-toggler-icon" style="color:white"><i class="fas fa-bars" style="font-size:2em;"></i></span>
+        </button>
 
-                <div class="collapse navbar-collapse" id="navbarSupportedContent">
-                    <!-- Left Side Of Navbar -->
-                    <ul class="navbar-nav mr-auto"></ul>
+        <div class="collapse navbar-collapse" id="navbarSupportedContent">
+            <!-- Left Side Of Navbar -->
+            <ul class="navbar-nav me-auto"></ul>
 
-                    <!-- Right Side Of Navbar -->
-                    <ul class="navbar-nav ml-auto" style="color: white;">
-                        <!-- Authentication Links -->
-                        @guest
-                            @if (Route::has('login'))
-                                <li class="nav-item">
-                                    <a class="nav-link" style="color: white;" href="{{ route('login') }}">{{ __('Login') }}</a>
-                                </li>
-                            @endif
+            <!-- Right Side Of Navbar -->
+            <ul class="navbar-nav ms-auto" style="color: white;">
+                <!-- Authentication Links -->
+                @guest
+                    @if (Route::has('login'))
+                        <li class="nav-item">
+                            <a class="nav-link" style="color: white;" href="{{ route('login') }}">{{ __('Login') }}</a>
+                        </li>
+                    @endif
 
-                            @if (Route::has('register'))
-                                <li class="nav-item">
-                                    <a class="nav-link" style="color: white;" href="{{ route('register') }}">{{ __('Register') }}</a>
-                                </li>
-                            @endif
-                        @else
+                    @if (Route::has('register'))
+                        <li class="nav-item">
+                            <a class="nav-link" style="color: white;" href="{{ route('register') }}">{{ __('Register') }}</a>
+                        </li>
+                    @endif
+                @else
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ route('equipos.index') }}" style="color: gold;">
+                            {{ 'EQUIPOS' }}
+                        </a>
+                    </li>
+
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ route('blog.index') }}" style="color: white;">
+                            {{ 'BLOG' }}
+                        </a>
+                    </li>
+
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ route('profiles.index') }}" style="color: white;">
+                            {{ 'BLADERS' }}
+                        </a>
+                    </li>
+
+                    <li class="nav-item dropdown">
+                        <a id="navbarDropdown" style="color: white;" class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false" v-pre>
+                            {{ 'COMPETITIVO' }}
+                        </a>
+
+                        <div class="dropdown-menu dropdown-menu-end" style="background-color: #283b63" aria-labelledby="navbarDropdown">
+                            <a class="dropdown-item menu-item-2" style="color: white; font-weight: bold; font-size:1.2em;" href="{{ route('inicio.events') }}">
+                                <i class="fas fa-calendar-alt me-2"></i> {{ 'Eventos' }}
+                            </a>
+                            <a class="dropdown-item menu-item-2" style="color: white; font-weight: bold; font-size:1.2em;" href="{{ route('profiles.ranking') }}">
+                                <i class="fas fa-trophy me-2"></i> {{ 'Rankings' }}
+                            </a>
+                            <a class="dropdown-item menu-item-2" style="color: white; font-weight: bold; font-size:1.2em;" href="{{ route('inicio.rules') }}">
+                                <i class="fas fa-gavel me-2"></i> {{ 'Reglamento' }}
+                            </a>
+                            <a class="dropdown-item menu-item-2" style="color: white; font-weight: bold; font-size:1.2em;" href="{{ route('inicio.stats') }}">
+                                <i class="fas fa-chart-bar me-2"></i> {{ 'Estadísticas' }}
+                            </a>
+                        </div>
+                    </li>
+
+                    @auth
+                        @if (Auth::user()->is_jury || Auth::user()->is_admin)
                             <li class="nav-item">
-                                <a class="nav-link" href="{{ route('equipos.index') }}" style="color: gold;">
-                                    {{ 'EQUIPOS' }}
+                                <a id="navbarAdmin" style="color: white;" class="nav-link" href="{{ route('admin.dashboard') }}">
+                                    {{ 'ADMIN' }}
                                 </a>
                             </li>
+                        @endif
+                    @endauth
 
-                            <li class="nav-item">
-                                <a class="nav-link" href="{{ route('blog.index') }}" style="color: white;">
-                                    {{ 'BLOG' }}
-                                </a>
-                            </li>
+                    <li class="nav-item dropdown">
+                        <a id="navbarDropdown" style="color: white;" class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false" v-pre>
+                            {{ strtoupper(Auth::user()->name) }}
+                        </a>
 
-                            <li class="nav-item">
-                                <a class="nav-link" href="{{ route('profiles.index') }}" style="color: white;">
-                                    {{ 'BLADERS' }}
-                                </a>
-                            </li>
+                        <div class="dropdown-menu dropdown-menu-end" style="background-color: #283b63" aria-labelledby="navbarDropdown">
+                            <a class="dropdown-item" style="color: white;" href="{{ route('profiles.show', ['profile' => Auth::user()->id]) }}">
+                                {{ 'Ver perfil' }}
+                            </a>
 
-                            <li class="nav-item dropdown">
-                                <a id="navbarDropdown" style="color: white;" class="nav-link dropdown-toggle" href="#" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" v-pre>
-                                    {{ 'COMPETITIVO' }}
-                                </a>
+                            <a class="dropdown-item" style="color: white;" href="{{ route('logout') }}"
+                               onclick="event.preventDefault();
+                                             document.getElementById('logout-form').submit();">
+                                {{ __('Logout') }}
+                            </a>
 
-                                <div class="dropdown-menu dropdown-menu-right" style="background-color: #283b63" aria-labelledby="navbarDropdown">
-                                    <a class="dropdown-item menu-item-2" style="color: white; font-weight: bold; font-size:1.2em;" href="{{ route('inicio.events') }}">
-                                        <i class="fas fa-calendar-alt mr-2"></i> {{ 'Eventos' }}
-                                    </a>
-                                    <a class="dropdown-item menu-item-2" style="color: white; font-weight: bold; font-size:1.2em;" href="{{ route('profiles.ranking') }}">
-                                        <i class="fas fa-trophy mr-2"></i> {{ 'Rankings' }}
-                                    </a>
-                                    <a class="dropdown-item menu-item-2" style="color: white; font-weight: bold; font-size:1.2em;" href="{{ route('inicio.rules') }}">
-                                        <i class="fas fa-gavel mr-2"></i> {{ 'Reglamento' }}
-                                    </a>
-                                    <a class="dropdown-item menu-item-2" style="color: white; font-weight: bold; font-size:1.2em;" href="{{ route('inicio.stats') }}">
-                                        <i class="fas fa-chart-bar mr-2"></i> {{ 'Estadísticas' }}
-                                    </a>
-                                </div>
-                            </li>
-
-                            @auth
-                                @if (Auth::user()->is_jury || Auth::user()->is_admin)
-                                    <li class="nav-item">
-                                        <a id="navbarAdmin" style="color: white;" class="nav-link" href="{{ route('admin.dashboard') }}">
-                                            {{ 'ADMIN' }}
-                                        </a>
-                                    </li>
-                                @endif
-                            @endauth
-
-                            <li class="nav-item dropdown">
-                                <a id="navbarDropdown" style="color: white;" class="nav-link dropdown-toggle" href="#" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" v-pre>
-                                    {{ strtoupper(Auth::user()->name) }}
-                                </a>
-
-                                <div class="dropdown-menu dropdown-menu-right" style="background-color: #283b63" aria-labelledby="navbarDropdown">
-                                    <a class="dropdown-item" style="color: white;" href="{{ route('profiles.show', ['profile' => Auth::user()->id]) }}">
-                                        {{ 'Ver perfil' }}
-                                    </a>
-
-                                    <a class="dropdown-item" style="color: white;" href="{{ route('logout') }}"
-                                       onclick="event.preventDefault();
-                                                     document.getElementById('logout-form').submit();">
-                                        {{ __('Logout') }}
-                                    </a>
-
-                                    <form id="logout-form" action="{{ route('logout') }}" method="POST" class="d-none">
-                                        @csrf
-                                    </form>
-                                </div>
-                            </li>
-                        @endguest
-                    </ul>
-                </div>
-            </div>
-        </nav>
+                            <form id="logout-form" action="{{ route('logout') }}" method="POST" class="d-none">
+                                @csrf
+                            </form>
+                        </div>
+                    </li>
+                @endguest
+            </ul>
+        </div>
+    </div>
+</nav>
 
         <main>
             <div class="container-fluid">
@@ -519,6 +518,15 @@
         </div>
     </div>
 
+<!-- jQuery primero -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<!-- Bootstrap CSS -->
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+<!-- Bootstrap Bundle con Popper -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<!-- Select2 -->
+<link href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/css/select2.min.css" rel="stylesheet" />
+<script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/js/select2.min.js"></script>
 <!-- Scripts Actualizados -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/0.4.1/html2canvas.min.js"></script>
 <script>

@@ -120,7 +120,6 @@
         height: 100px;
     }
 </style>
-<link href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/css/select2.min.css" rel="stylesheet" />
 @endsection
 
 @section('content')
@@ -237,7 +236,7 @@
                 @endforeach
             </div>
             @if ($equipo->captain_id === Auth::user()->id)
-                <button type="button" class="btn btn-outline-success mt-3" data-toggle="modal" data-target="#sendInvitationModal">
+                <button type="button" class="btn btn-outline-success mt-3" data-bs-toggle="modal" data-bs-target="#sendInvitationModal">
                     Enviar Invitación
                 </button>
             @endif
@@ -246,23 +245,24 @@
     </div>
 </div>
 
+@endsection
+
+@section('scripts')
 <!-- Modal para enviar invitación -->
-<div class="modal fade" id="sendInvitationModal" tabindex="-1" role="dialog" aria-labelledby="sendInvitationModalLabel" aria-hidden="true">
-    <div class="modal-dialog" role="document">
+<div class="modal fade" id="sendInvitationModal" tabindex="-1" aria-labelledby="sendInvitationModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
-            <div class="modal-header">
+            <div class="modal-header bg-primary text-white">
                 <h5 class="modal-title" id="sendInvitationModalLabel">Enviar Invitación</h5>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
-                </button>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <form method="POST" action="{{ route('equipos.sendInvitation', $equipo) }}">
+            <form method="POST" action="{{ route('equipos.sendInvitation', $equipo) }}" id="invitationForm">
                 @csrf
                 <div class="modal-body">
                     <div class="form-group">
                         <label for="user_id">Seleccionar Usuario:</label>
-                        <select name="user_id" id="user_id" class="form-control select2" style="width: 100%" required>
-                            <option disabled selected>Seleccionar Usuario</option>
+                        <select name="user_id" id="user_id" class="form-control select2" required>
+                            <option value="" disabled selected>Seleccionar Usuario</option>
                             @foreach ($users as $user)
                                 <option value="{{ $user->id }}">{{ $user->name }}</option>
                             @endforeach
@@ -270,25 +270,36 @@
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
                     <button type="submit" class="btn btn-primary">Enviar Invitación</button>
                 </div>
             </form>
         </div>
     </div>
 </div>
-@endsection
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Inicializa Select2 con el modal como parent
+    const select2 = $('#user_id').select2({
+        dropdownParent: $('#sendInvitationModal'),
+        width: '100%'
+    });
 
-@section('scripts')
-    <!-- CDN de jQuery -->
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <!-- CDN de Select2 -->
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/css/select2.min.css" rel="stylesheet" />
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/js/select2.min.js"></script>
+    // Inicializa el modal de Bootstrap
+    const modal = new bootstrap.Modal(document.getElementById('sendInvitationModal'));
 
-    <script>
-        jQuery(document).ready(function() {
-            jQuery('.select2').select2();
-        });
-    </script>
+    // Manejar el envío del formulario
+    $('#invitationForm').on('submit', function(e) {
+        if (!$('#user_id').val()) {
+            e.preventDefault();
+            alert('Por favor selecciona un usuario');
+        }
+    });
+
+    // Limpiar el select al cerrar el modal
+    $('#sendInvitationModal').on('hidden.bs.modal', function () {
+        $('#user_id').val(null).trigger('change');
+    });
+});
+</script>
 @endsection

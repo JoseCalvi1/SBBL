@@ -1,7 +1,6 @@
 @extends('layouts.app')
 
 @section('styles')
-<link href="https://cdn.jsdelivr.net/npm/bootstrap@4.5.2/dist/css/bootstrap.min.css" rel="stylesheet">
 <style>
     h2 {
         color: #ffffff;

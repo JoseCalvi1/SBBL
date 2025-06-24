@@ -1,7 +1,6 @@
 @extends('layouts.app')
 
 @section('styles')
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@4.5.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
         /* Tema oscuro global */
         body, .container, .modal-content {
@@ -217,7 +216,6 @@
 
 @section('scripts')
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.2/dist/js/bootstrap.bundle.min.js"></script>
 <script>
     $(document).ready(function() {
         // Cuando se hace clic en el botón de eliminar, se actualiza el modal

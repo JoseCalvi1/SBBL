@@ -118,7 +118,7 @@
                 <img class="team-logo" src="@if($team->logo) data:image/png;base64,{{ $team->logo }} @else /images/logo_new.png @endif" alt="Logo de {{ $team->name }}">
                 <div class="team-info">
                     <span class="team-name">{{ $team->name }}</span>
-                    <span class="team-points">{{ $team->points_x1 }} pts</span>
+                    <span class="team-points">{{ $team->points_x2 }} pts</span>
                 </div>
             </div>
         </div>

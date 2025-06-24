@@ -26,7 +26,6 @@
       return {
         messages: [],
         newMessage: '',
-        eventId: 0, // Cambia esto según el anuncio actual
         pollInterval: null,
       };
     },
