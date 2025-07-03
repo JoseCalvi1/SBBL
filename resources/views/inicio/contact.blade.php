@@ -71,6 +71,7 @@
                             <option value="Duda general">Duda general</option>
                             <option value="Problemas técnicos">Problemas técnicos</option>
                             <option value="Colaboración">Colaboración</option>
+                            <option value="Sugerencias">Sugerencias</option>
                             <option value="Otros">Otros</option>
                         </select>
                     </div>

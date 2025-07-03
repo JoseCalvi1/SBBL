@@ -127,7 +127,7 @@
     <div class="background"></div>
     <div class="content">
         <h1>¡Hola, {{ strtoupper($profile->user->name) }}!</h1>
-        <p>¡Gracias por formar parte de nuestra liga! Aquí te traemos tu <b>SBBL Wrapped</b> de media temporada. Ha sido una aventura increíble hasta ahora y hemos vivido muchas cosas en solo medio año.</p>
+        <p>¡Gracias por formar parte de la liga! Aquí te traemos tu <b>SBBL Wrapped</b> de final de temporada. Ha sido una aventura increíble y queremos darte las gracias por todo.</p>
 
         @if($datosTorneo)
             <div class="stat">🌟 <b>Primer torneo:</b> {{ $datosTorneo->name }} ({{ $datosTorneo->region->name }})</div>
@@ -153,7 +153,7 @@
             <div class="stat">😓 <b>Combo desafortunado:</b> No disponible</div>
         @endif
 
-        <p>Gracias por acompañarnos en esta aventura. ¡Felices fiestas y nos vemos en la próxima batalla!</p>
+        <p>Gracias por acompañarnos en esta aventura. ¡Ha sido un placer contar contigo!</p>
     </div>
 </div>
 

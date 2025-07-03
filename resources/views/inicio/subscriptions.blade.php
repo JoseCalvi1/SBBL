@@ -11,7 +11,7 @@
             <div class="card bg-dark text-light h-100 shadow-sm" style="border-radius: 10px;">
                 <div class="card-body">
                     <h2 class="card-title" style="color: #cd7f32;">Nivel 1</h2>
-                    <h4>15€/año</h4>
+                    <h4>15€/temporada</h4>
                     <ul class="list-unstyled mt-3">
                         <li>Nombre destacado en color bronce</li>
                         <li>Subtítulo personal (10 opciones)</li>
@@ -29,7 +29,7 @@
             <div class="card bg-dark text-light h-100 shadow-sm" style="border-radius: 10px;">
                 <div class="card-body">
                     <h2 class="card-title" style="color: #c0e5fb;">Nivel 2</h2>
-                    <h4>25€/año</h4>
+                    <h4>25€/temporada</h4>
                     <ul class="list-unstyled mt-3">
                         <li>Todo lo del Nivel 1</li>
                         <li>Nombre destacado en color plata azulado</li>
@@ -48,7 +48,7 @@
             <div class="card bg-dark text-light h-100 shadow-sm" style="border-radius: 10px;">
                 <div class="card-body">
                     <h2 class="card-title" style="color: gold;">Nivel 3</h2>
-                    <h4>50€/año</h4>
+                    <h4>50€/temporada</h4>
                     <ul class="list-unstyled mt-3">
                         <li>Todo lo del Nivel 2</li>
                         <li>Nombre destacado en color oro</li>
@@ -65,6 +65,7 @@
     <div class="text-center mt-4">
         <!--<p>La suscripciones estarán disponibles a partir del día 1 de enero</p>-->
         <p>Haz el envío poniendo tu nombre en la web y el nivel de suscripción que solicitas (Ej: JoseCalvi1 Nivel 3)</p>
+        <p>La duración de la suscripción será la duración de la temporada en curso de cuando se ha comprado debido a que lo recaudado se prioriza invertir en la temporada en cuestión.</p>
         <a href="https://www.paypal.com/paypalme/sbbloficial" target="_blank" class="btn btn-primary btn-lg" style="background-color: #1e1e2f; border: none;">
             Suscribirse ahora
         </a>
