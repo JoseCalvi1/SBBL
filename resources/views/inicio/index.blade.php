@@ -200,7 +200,7 @@
 
 @section('content')
 <div class="container-fluid" style="background-image: url('../images/webTile2.png'); background-size: 20%; background-repeat: repeat; background-position: center; padding: 0px;">
-    <div class="container-fluid" style="background: darkblue">
+    <div class="container-fluid">
 
 @if ((Auth::user() && !Auth::user()->profile->region))
 <div class="row text-center" style="background-color: red; color: white; padding: 20px;">
@@ -209,7 +209,7 @@
 @endif
 
 @if (Auth::user())
-<div class="row text-center" style="background: linear-gradient(135deg, #28a745, #218838); color: white; padding: 20px; border-radius: 8px;">
+<div class="row text-center" style="background: linear-gradient(135deg, #28a745, #218838); color: white; padding: 20px;">
     <p class="text-center" style="margin-bottom: 0; font-size: 1.2em; font-weight: bold;">
        🎉 ¡DESCUBRE TU <a style="color: #ffc107; text-decoration: underline;" href="{{ route('profiles.wrapped', ['profile' => Auth::user()->id]) }}">SBBL WRAPPED DE FINAL DE TEMPORADA</a>! 🎯
     </p>
@@ -220,11 +220,11 @@
     </div>
 
 
-    <a href="{{ route('inicio.nacional') }}" style="text-decoration: none; color: inherit;">
+<!--    <a href="{{ route('inicio.nacional') }}" style="text-decoration: none; color: inherit;">
         <div style="position: relative; text-align: center;">
             <img src="../images/banner_nacional.webp" class="w-100">
 
-<div class="relative w-full h-6 rounded-full bg-blue" style="height: 20px; border: 2px solid;">
+            <div class="relative w-full h-6 rounded-full bg-blue" style="height: 20px; border: 2px solid;">
                 <div class=" bg-white h-full rounded-full" style="width: 100%; height: 18px"><span class="text-sm mt-2" style="color: black">3000 / 3000 €</span></div>
             </div>
             <div class="text-white" style="
@@ -240,7 +240,7 @@
                 PULSA AQUÍ PARA VER TODA LA INFORMACIÓN
             </div>
         </div>
-    </a>
+    </a> -->
 
     <div class="season-wrapper">
         <h2>📅 Progreso de la Temporada</h2>
@@ -274,6 +274,14 @@
         </div>
 
     </div>
+
+    <div class="container my-5">
+        <div class="card shadow-lg border-0 rounded-4 overflow-hidden" data-aos="fade-up">
+            <div class="ratio ratio-16x9">
+            <iframe width="560" height="315" src="https://www.youtube.com/embed/wkFnz8kPs3M?si=Dot6IDj6hHy7WqLc" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+            </div>
+        </div>
+        </div>
 
     <div class="menu-container-wrapper">
         <button class="menu-toggle">☰ Especial</button>
@@ -420,11 +428,14 @@
         <h3 class="titulo-categoria text-uppercase mb-4 mt-4" style="color:white">Top Equipos</h3>
 
         @foreach($teams as $key => $team)
-        <div class="team-card" style="background-image: url(data:image/png;base64,{{ $team->image }});">
+        <div class="team-card lazy-bg" data-bg="data:image/png;base64,{{ $team->image }}">
             <div class="team-overlay"></div>
             <div class="team-entry">
                 <div class="team-rank">#{{ $key + 1 }}</div>
-                <img class="team-logo" src="@if($team->logo) data:image/png;base64,{{ $team->logo }} @else /images/logo_new.png @endif" alt="Logo de {{ $team->name }}">
+                <img class="team-logo lazy-logo"
+                    src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///ywAAAAAAQABAAACAUwAOw==" {{-- placeholder transparente --}}
+                    data-src="@if($team->logo) data:image/png;base64,{{ $team->logo }} @else /images/logo_new.png @endif"
+                    alt="Logo de {{ $team->name }}">
                 <div class="team-info">
                     <span class="team-name">{{ $team->name }}</span>
                     <span class="team-points">{{ $team->points_x2 }} pts</span>
@@ -432,8 +443,8 @@
             </div>
         </div>
         @endforeach
-
     </div>
+
 
 <div class="container text-white my-4 rounded shadow bg-blader-month">
     <div class="row align-items-center py-4 px-2">
@@ -538,11 +549,6 @@
                         @endforeach
                 </div>
             </div>
-            <!--<div class="row m-0">
-                <h2 id="heat-map" class="titulo-categoria text-uppercase mb-4 mt-4" style="color:white">Mapa de calor</h2>
-
-                <div id="map" style="width: 100%; height: 500px;"></div>
-            </div>-->
     </div>
     </div>
 </div>
@@ -552,130 +558,82 @@
 @section('scripts')
 <script>
     document.addEventListener("DOMContentLoaded", function () {
-        /* Crear el mapa centrado en España y ajustado para incluir todas las regiones
-        var map = L.map('map', {
-            center: [40.5, -3], // Centrado en España
-            zoom: 6, // Aumentar el zoom para un detalle más cercano
-            zoomControl: false, // Ocultar controles de zoom
-            dragging: false, // Desactivar arrastre
-            scrollWheelZoom: false, // Desactivar zoom con la rueda del ratón
-            doubleClickZoom: false, // Desactivar zoom con doble clic
-            touchZoom: false, // Desactivar zoom táctil en móviles
-            attributionControl: false // Ocultar créditos de OpenStreetMap
-        });
 
-        // Cargar el GeoJSON con los límites de las comunidades autónomas (incluye Canarias, Ceuta y Melilla)
-        fetch("https://raw.githubusercontent.com/codeforamerica/click_that_hood/master/public/data/spain-communities.geojson")
-            .then(response => response.json())
-            .then(geojsonData => {
-                L.geoJSON(geojsonData, {
-                    style: function () {
-                        return {
-                            color: "#000", // Borde negro
-                            weight: 1, // Grosor de las líneas
-                            fillColor: "#ccc", // Color de fondo
-                            fillOpacity: 0.5 // Transparencia del fondo
-                        };
-                    }
-                }).addTo(map);
+        // Lazy loading de background-image
+    const lazyBackgrounds = document.querySelectorAll(".lazy-bg");
 
-                // Ajustar el mapa a los límites de las comunidades autónomas
-                var bounds = L.geoJSON(geojsonData).getBounds();
-                map.fitBounds(bounds); // Ajusta la vista para que incluya todo
-            });
-
-        // Coordenadas de cada comunidad autónoma
-        var coordenadas = {
-            "Andalucía": [37.3891, -5.9845],
-            "Aragón": [41.6519, -0.8773],
-            "Asturias": [43.3614, -5.8593],
-            "Baleares": [39.6953, 3.0176],
-            "Canarias": [28.2916, -16.6291], // Posición real de Canarias
-            "Cantabria": [43.4623, -3.8099],
-            "Castilla La Mancha": [39.00, -3.2],
-            "Castilla y León": [41.8357, -4.3976],
-            "Catalunya": [41.5912, 1.5209],
-            "Extremadura": [39.4833, -6.3723],
-            "Galicia": [42.5751, -8.1339],
-            "Madrid": [40.4165, -3.70256],
-            "Murcia": [37.9922, -1.1307],
-            "Navarra": [42.6954, -1.6761],
-            "La Rioja": [42.2871, -2.5396],
-            "País Vasco": [43.0853, -2.4937],
-            "Valencia": [39.4699, -0.3763],
-            "Ceuta": [35.8894, -5.3199],
-            "Melilla": [35.2923, -2.9381]
-        };
-
-        // Obtener los datos desde Laravel
-        var datos = @json($usuariosPorComunidad);
-
-        // Agregar etiquetas con la cantidad de usuarios
-        datos.forEach(function (dato) {
-            var coord = coordenadas[dato.comunidad_autonoma];
-            if (coord) {
-                L.marker(coord, { icon: L.divIcon({
-                        className: 'custom-label',
-                        html: `<b>${dato.total}</b>`,
-                        iconSize: [30, 30]
-                    })
-                }).addTo(map);
+    const bgObserver = new IntersectionObserver(entries => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                const bg = entry.target.getAttribute("data-bg");
+                if (bg) {
+                    entry.target.style.backgroundImage = `url(${bg})`;
+                    entry.target.removeAttribute("data-bg");
+                }
+                bgObserver.unobserve(entry.target);
             }
         });
-
-        // Mini mapa que muestra Canarias en la esquina inferior izquierda
-        var miniMap = new L.Control.MiniMap(
-            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-            }),
-            {
-                position: 'bottomleft', // Coloca el mini mapa en la esquina inferior izquierda
-                width: 150,
-                height: 150,
-                zoomLevelOffset: -5, // Ajusta el zoom del mini mapa para mostrar toda España
-            }
-        ).addTo(map);
     });
-    */
 
-const today = new Date();
+    lazyBackgrounds.forEach(bg => bgObserver.observe(bg));
 
-  const startPre = new Date("2025-06-22");
-  const startSeason = new Date("2025-09-01");
-  const endSeason = new Date("2026-06-30");
+    // Lazy loading de imágenes <img>
+    const lazyImages = document.querySelectorAll("img.lazy-logo");
 
-  const totalDuration = (endSeason - startPre) / (1000 * 60 * 60 * 24); // total días
-  const preDuration = (startSeason - startPre) / (1000 * 60 * 60 * 24); // días de pretemporada
-  const seasonDuration = (endSeason - startSeason) / (1000 * 60 * 60 * 24);
+    const imgObserver = new IntersectionObserver(entries => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                const img = entry.target;
+                const realSrc = img.getAttribute("data-src");
+                if (realSrc) {
+                    img.src = realSrc;
+                    img.removeAttribute("data-src");
+                }
+                imgObserver.unobserve(img);
+            }
+        });
+    });
 
-  const elapsedDays = (today - startPre) / (1000 * 60 * 60 * 24);
+    lazyImages.forEach(img => imgObserver.observe(img));
 
-  let prePercent = 0, seasonPercent = 0;
-  let statusText = "";
+        const today = new Date();
 
-  if (today < startPre) {
-    prePercent = 0;
-    seasonPercent = 0;
-    statusText = "⏳ La pretemporada aún no ha comenzado.";
-  } else if (today >= startPre && today < startSeason) {
-    const progress = elapsedDays / totalDuration;
-    prePercent = (elapsedDays / totalDuration) * 100;
-    seasonPercent = 0;
-    statusText = "🔧 Estamos en <strong>pretemporada</strong>. ¡Calienta motores!";
-  } else if (today >= startSeason && today <= endSeason) {
-    prePercent = (preDuration / totalDuration) * 100;
-    const seasonDays = (today - startSeason) / (1000 * 60 * 60 * 24);
-    seasonPercent = (seasonDays / totalDuration) * 100;
-    statusText = "🔥 <strong>Temporada 2 en curso</strong>. ¡A luchar!";
-  } else {
-    prePercent = (preDuration / totalDuration) * 100;
-    seasonPercent = (seasonDuration / totalDuration) * 100;
-    statusText = "✅ La Temporada 2 ha finalizado. ¡Nos vemos en la próxima!";
-  }
+        const startPre = new Date("2025-06-22");
+        const startSeason = new Date("2025-09-01");
+        const endSeason = new Date("2026-06-30");
 
-  document.getElementById("pre-fill").style.width = `${prePercent}%`;
-  document.getElementById("season-fill").style.width = `${seasonPercent}%`;
-  document.getElementById("season-status").innerHTML = statusText;
+        const totalDuration = (endSeason - startPre) / (1000 * 60 * 60 * 24); // total días
+        const preDuration = (startSeason - startPre) / (1000 * 60 * 60 * 24); // días de pretemporada
+        const seasonDuration = (endSeason - startSeason) / (1000 * 60 * 60 * 24);
+
+        const elapsedDays = (today - startPre) / (1000 * 60 * 60 * 24);
+
+        let prePercent = 0, seasonPercent = 0;
+        let statusText = "";
+
+        if (today < startPre) {
+            prePercent = 0;
+            seasonPercent = 0;
+            statusText = "⏳ La pretemporada aún no ha comenzado.";
+        } else if (today >= startPre && today < startSeason) {
+            const progress = elapsedDays / totalDuration;
+            prePercent = (elapsedDays / totalDuration) * 100;
+            seasonPercent = 0;
+            statusText = "🔧 Estamos en <strong>pretemporada</strong>. ¡Calienta motores!";
+        } else if (today >= startSeason && today <= endSeason) {
+            prePercent = (preDuration / totalDuration) * 100;
+            const seasonDays = (today - startSeason) / (1000 * 60 * 60 * 24);
+            seasonPercent = (seasonDays / totalDuration) * 100;
+            statusText = "🔥 <strong>Temporada 2 en curso</strong>. ¡A luchar!";
+        } else {
+            prePercent = (preDuration / totalDuration) * 100;
+            seasonPercent = (seasonDuration / totalDuration) * 100;
+            statusText = "✅ La Temporada 2 ha finalizado. ¡Nos vemos en la próxima!";
+        }
+
+        document.getElementById("pre-fill").style.width = `${prePercent}%`;
+        document.getElementById("season-fill").style.width = `${seasonPercent}%`;
+        document.getElementById("season-status").innerHTML = statusText;
   });
 </script>
 @endsection
