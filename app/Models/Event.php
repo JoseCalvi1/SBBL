@@ -32,4 +32,15 @@ class Event extends Model
     {
         return $this->belongsToMany(User::class, 'assist_user_event', 'event_id' /* de subject */, 'user_id' /* de user */)->withPivot('puesto');
     }
+
+    public function reviews()
+    {
+        return $this->hasMany(EventReview::class);
+    }
+
+    public function judgeReview()
+    {
+        return $this->hasOne(EventJudgeReview::class);
+    }
+
 }

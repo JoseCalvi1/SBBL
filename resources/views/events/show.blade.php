@@ -21,15 +21,6 @@
             @else
                     <span class="btn btn-danger">CERRADO</span>
                 @endif
-                @if (($event->status != "CLOSE" && $event->status != "INVALID") && (Auth::user()->is_admin || Auth::user()->is_jury))
-                    <form method="POST" action="{{ route('events.actualizarPuntuaciones', ['event' => $event->id, 'mode' => $event->mode]) }}" style="display: contents; text-align: center;">
-                        @method('PUT')
-                        @csrf
-                        <button type="submit" class="btn btn-secondary mb-2 mt-2 d-block" style="width: 100%" onclick="return confirm('¿Estás seguro de que deseas cerrar el evento? Esta acción no se puede deshacer.')">
-                            Cerrar evento
-                        </button>
-                    </form>
-                @endif
             </h1>
         </div>
             <div class="col-md-5">
@@ -173,6 +164,20 @@
                                 Introducir deck
                             </button>
                         @endif
+
+                                @if ($event->iframe)
+                                    <div class="mt-2">
+                                        <a href="{{ $event->iframe }}" target="_blank" class="btn btn-info text-uppercase w-100"
+                                        style="width: 100%">Ver Video</a>
+                                    </div>
+                                @endif
+                                @if ($event->challonge)
+                                    <div class="mt-2">
+                                        <a href="{{ $event->challonge }}" target="_blank" class="btn btn-info text-uppercase w-100"
+                                        style="width: 100%">Ver Challonge</a>
+                                    </div>
+                                @endif
+
                     </div>
 
                     </div>
@@ -316,21 +321,6 @@
                                     </div>
                                 @endif
                             </form>
-
-                            @if (($event->status != "CLOSE" && $event->status != "INVALID") && Auth::user()->is_referee || ($event->status == "OPEN" && $event->created_by == Auth::user()->id))
-                                @if ($event->iframe)
-                                    <div class="m-2">
-                                        <a href="{{ $event->iframe }}" target="_blank" class="btn btn-info text-uppercase font-weight-bold"
-                                        style="width: 100%">Ver Video</a>
-                                    </div>
-                                    @if ($event->iframe)
-                                    <div class="m-2">
-                                        <a href="{{ $event->challonge }}" target="_blank" class="btn btn-info text-uppercase font-weight-bold"
-                                        style="width: 100%">Ver Challonge</a>
-                                    </div>
-                                @endif
-                                @endif
-                            @endif
 
                         @else
                             <p>No hay participantes.</p>

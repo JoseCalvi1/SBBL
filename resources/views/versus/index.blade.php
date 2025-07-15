@@ -1,7 +1,7 @@
 @extends('layouts.app')
 
 @section('content')
-@if (Auth::user()->is_jury)
+@if (Auth::user()->is_admin)
 <div class="py-4">
     <h2 class="text-center mb-4 text-white font-weight-bold">Administrar Duelos</h2>
 

@@ -34,6 +34,27 @@ class CreateEventsTable extends Migration
             $table->text('challonge')->nullable();
             $table->timestamps();
         });
+
+        Schema::create('event_reviews', function (Blueprint $table) {
+            $table->id();
+            $table->foreignId('event_id')->constrained()->onDelete('cascade');
+            $table->foreignId('referee_id')->constrained('users')->onDelete('cascade'); // asume que los árbitros son usuarios
+            $table->enum('status', ['approved', 'rejected', 'pending'])->nullable(); // o null mientras no revisen
+            $table->text('comment')->nullable();
+            $table->timestamps();
+
+            $table->unique(['event_id', 'referee_id']); // evita que un árbitro revise dos veces el mismo evento
+        });
+
+        Schema::create('event_judge_reviews', function (Blueprint $table) {
+            $table->id();
+            $table->foreignId('event_id')->constrained()->onDelete('cascade');
+            $table->foreignId('judge_id')->constrained('users')->onDelete('cascade');
+            $table->enum('final_status', ['approved', 'rejected']);
+            $table->text('comment')->nullable();
+            $table->timestamps();
+        });
+
     }
 
     /**

@@ -32,7 +32,7 @@ class EventController extends Controller
         $beys = $request->input('beys'); // Filtro por tipo de evento (ranking o rankingplus)
 
         // Consulta base con los eventos a partir de una fecha específica
-        $query = Event::where('date', '>=', '2024-06-31')
+        $query = Event::where('date', '>=', '2025-06-22')
                     ->orderBy('date', 'DESC');
 
         // Aplicar filtro por estado si se selecciona uno
@@ -45,11 +45,15 @@ class EventController extends Controller
             $query->whereIn('beys', ['ranking', 'rankingplus']);
         }
 
-        // Obtener los eventos filtrados
-        $events = $query->get();
+        // Cargamos también las revisiones y los árbitros (validadores)
+        $query->with(['region', 'reviews.referee']);
+
+        // Obtener los eventos filtrados con paginación para mejor rendimiento
+        $events = $query->paginate(20);
 
         return view('events.index', compact('events', 'estado', 'beys'));
     }
+
 
     /**
      * Show the form for creating a new resource.
@@ -177,7 +181,7 @@ class EventController extends Controller
         ]);
 
         // TODO Comentar para probar en local
-        //Self::notification(Event::find($eventId));
+        Self::notification(Event::find($eventId));
 
         $events = Event::with('region')->get();
         $createEvent = Event::where('created_by', Auth::user()->id)->where('date', '>', Carbon::now())->get();
@@ -428,15 +432,16 @@ class EventController extends Controller
         $event = Event::findOrFail($id);
 
         // Validar que el usuario sea referee o que el evento tenga challonge e iframe
-        if (!Auth::user()->is_jury && (empty($event->challonge) || empty($event->iframe))) {
+        if (!Auth::user()->is_jury && (empty($request->input('iframe')) || empty($request->input('challonge')))) {
             return redirect()->back()->with('error', 'Primero tienes que enviar los datos del torneo.');
         }
+
 
         // Validar iframe y challonge (requiere URL)
         if (!Auth::user()->is_jury) {
             $request->validate([
-                'iframe' => 'required|url',
-                'challonge' => 'required|url',
+                'iframe' => 'required',
+                'challonge' => 'required',
             ]);
 
             // Actualizar iframe y challonge
@@ -444,7 +449,6 @@ class EventController extends Controller
             $event->challonge = $request->input('challonge');
             $event->save();
         }
-
         // Actualizar status (asumo que este método existe y funciona)
         self::actualizarStatus($id, 'PENDING');
 
@@ -513,7 +517,7 @@ class EventController extends Controller
             ->count();
 
         // Limitar máximo a 32
-        $totalParticipantes = min($totalParticipantes, 32);
+        //$totalParticipantes = min($totalParticipantes, 32);
 
         // Tabla de puntuaciones por rango de jugadores
         if ($totalParticipantes >= 32) {
@@ -661,6 +665,84 @@ class EventController extends Controller
         $event->save();
 
         return redirect()->back()->with('success', 'Datos añadidos correctamente.');
+    }
+
+    public function startReview(Event $event)
+    {
+        $user = auth()->user();
+
+        // Comprobamos si ya existe una revisión del usuario
+        if ($event->reviews()->where('referee_id', $user->id)->exists()) {
+            return back()->with('error', 'Ya has iniciado la revisión de este evento.');
+        }
+
+        // Creamos la revisión vacía en estado 'pending'
+        $event->reviews()->create([
+            'referee_id' => $user->id,
+            'status' => 'pending',
+            'comment' => '',
+        ]);
+
+        Self::actualizarStatus($event->id, "REVIEW");
+
+        return back()->with('success', 'Revisión iniciada. Ahora puedes completarla.');
+    }
+
+
+    public function submitReview(Request $request, $eventId)
+    {
+        $user = auth()->user();
+
+        // Verifica que el evento exista
+        $event = Event::find($eventId);
+        if (!$event) {
+            return back()->with('error', 'Evento no encontrado.');
+        }
+
+        if ($user->is_referee) {
+            // Buscar la revisión pendiente del árbitro
+            $review = $event->reviews()->where('referee_id', $user->id)->first();
+
+            if (!$review) {
+                return back()->with('error', 'No has iniciado una revisión para este evento.');
+            }
+
+            // Actualizar la revisión existente
+            $review->update([
+                'status'  => $request->status,
+                'comment' => $request->comment,
+            ]);
+
+            // Verificar si hay 3 revisiones y tomar decisiones
+            $reviews = $event->reviews;
+
+            if ($reviews->count() == 3) {
+                $allApproved = $reviews->every(fn($r) => $r->status === 'approved');
+                $hasRejected = $reviews->contains(fn($r) => $r->status === 'rejected');
+
+                if ($allApproved) {
+                    $event->update(['status' => 'approved']);
+                } elseif ($hasRejected) {
+                    $event->update(['status' => 'requires_judge']);
+                }
+            }
+        }
+
+        if ($user->is_jury && $event->status === 'requires_judge') {
+            DB::table('event_judge_reviews')->insert([
+                'event_id'     => $event->id,
+                'judge_id'     => $user->id,
+                'final_status' => $request->final_status,
+                'comment'      => $request->comment,
+                'created_at'   => now(),
+                'updated_at'   => now(),
+            ]);
+
+            $finalStatus = $request->final_status === 'approved' ? 'approved' : 'rejected';
+            $event->update(['status' => $finalStatus]);
+        }
+
+        return back()->with('success', 'Revisión registrada.');
     }
 
 

@@ -23,14 +23,18 @@ class InicioController extends Controller
      */
     public function index()
     {
-
-        $all = Event::orderBy('date', 'DESC')->get();
         $hoy = Carbon::today();
 
         $bladers = Profile::orderBy('points_x2', 'DESC')->paginate(5);
         $stamina = Profile::where('user_id', 1)->first();
-        $antiguos = $all->where("date", "<", Carbon::now())->take(10);
-        $nuevos = $all->where("date", ">=", Carbon::now()->subDays(1))->sortBy('date')->take(3);
+        $antiguos = Event::where('date', '<', now())
+            ->orderBy('date', 'desc')
+            ->limit(10)
+            ->get();
+        $nuevos = Event::where('date', '>=', now()->subDay())
+            ->orderBy('date', 'asc')
+            ->limit(3)
+            ->get();
 
         // Obtener el user_id con la media más alta de puntos_ganados / puntos_perdidos
         // Obtener el user_id con la media más alta del mes anterior
@@ -125,19 +129,6 @@ class InicioController extends Controller
             return $usuario;
         });
 
-        $usuariosPorComunidad = null;
-        /* Obtener cantidad de usuarios por comunidad autónoma
-        $usuariosPorComunidad = Profile::with('region')
-        ->select('region_id', DB::raw('COUNT(*) as total'))
-        //->where('points_x1', '>', 0)
-        ->groupBy('region_id')
-        ->get()
-        ->map(function ($item) {
-            return [
-                'comunidad_autonoma' => $item->region->name ?? 'Desconocida',
-                'total' => $item->total
-            ];
-        });*/
 
         $teams = Team::orderBy('points_x2', 'desc')
              ->take(3)
@@ -146,7 +137,7 @@ class InicioController extends Controller
 
     return view('inicio.index', compact(
         'usuarios', 'bladers', 'stamina', 'nuevos', 'antiguos', 'bestUserProfile',
-        'bestUserRecord', 'bestUser', 'lastMonthName', 'usuariosPorComunidad', 'teams'
+        'bestUserRecord', 'bestUser', 'lastMonthName', 'teams'
     ));
     }
 
@@ -181,7 +172,8 @@ class InicioController extends Controller
     {
         $year = $request->input('year');
         $month = $request->input('month');
-        $events = Event::with('region')
+        $events = Event::select('id', 'date', 'city', 'region_id', 'mode', 'beys')
+            ->with(['region:id,name']) // Solo traer el id y name de la región
             ->whereYear('date', $year)
             ->whereMonth('date', $month)
             ->get();
