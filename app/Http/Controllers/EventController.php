@@ -181,7 +181,7 @@ class EventController extends Controller
         ]);
 
         // TODO Comentar para probar en local
-        Self::notification(Event::find($eventId));
+        //Self::notification(Event::find($eventId));
 
         $events = Event::with('region')->get();
         $createEvent = Event::where('created_by', Auth::user()->id)->where('date', '>', Carbon::now())->get();
