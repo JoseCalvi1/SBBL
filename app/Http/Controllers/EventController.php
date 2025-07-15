@@ -32,7 +32,7 @@ class EventController extends Controller
         $beys = $request->input('beys'); // Filtro por tipo de evento (ranking o rankingplus)
 
         // Consulta base con los eventos a partir de una fecha específica
-        $query = Event::where('date', '>=', '2025-06-22')
+        $query = Event::where('date', '>=', '2025-06-23')
                     ->orderBy('date', 'DESC');
 
         // Aplicar filtro por estado si se selecciona uno
