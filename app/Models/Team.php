@@ -22,9 +22,14 @@ class Team extends Model
         return $this->belongsToMany(User::class, 'team_user')->withPivot('is_captain')->withPivot('user_id')->withTimestamps();
     }
 
-    public function captain()
+    public function is_captain()
     {
         return $this->members()->wherePivot('is_captain', true)->first();
+    }
+
+    public function captain()
+    {
+        return $this->belongsTo(User::class, 'captain_id');
     }
 
     public function versus_1()

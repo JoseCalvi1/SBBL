@@ -3,68 +3,86 @@
 @section('title', 'Equipos Beyblade X')
 
 @section('content')
-<div class="container-fluid" style="background: #283b63">
-    <div class="row">
-        <ul class="navbar-nav m-auto" style="flex-direction: row;">
-            <li class="nav-item">
-                <a class="nav-link ml-2 mr-2" style="color: white; font-weight: bold; font-size:1.2em;" href="{{ route('equipos.index') }}">
-                    {{ 'INICIO' }}
-                </a>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link ml-2 mr-2" style="color: white; font-weight: bold; font-size:1.2em;" href="{{ route('teams_versus.all') }}">
-                    {{ 'DUELOS' }}
-                </a>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link ml-2 mr-2" style="color: white; font-weight: bold; font-size:1.2em;" href="{{ route('equipos.ranking') }}">
-                    {{ 'RANKING' }}
-                </a>
-            </li>
-        </ul>
+
+<div class="container-fluid bg-dark shadow-sm py-2">
+    <div class="d-flex justify-content-center gap-4">
+        <a class="btn btn-outline-light fw-bold text-uppercase px-4 rounded-pill" href="{{ route('equipos.index') }}">
+            Inicio
+        </a>
+        <a class="btn btn-outline-light fw-bold text-uppercase px-4 rounded-pill" href="{{ route('teams_versus.all') }}">
+            Duelos
+        </a>
+        <a class="btn btn-outline-light fw-bold text-uppercase px-4 rounded-pill" href="{{ route('equipos.ranking') }}">
+            Ranking
+        </a>
     </div>
 </div>
 
-<div class="container">
-    <h2 class="text-center mt-2 mb-4" style="color: white">Listado de equipos
-        @if (Auth::user() && Auth::user()->teams->isEmpty())
-            <a href="{{ route('equipos.create') }}" class="btn btn-outline-warning mb-2 text-uppercase font-weight-bold">
-                Crear equipo
-            </a>
-        @endif
-    </h2>
+<div class="container my-5">
+    <div class="d-flex align-items-center justify-content-center text-white mb-4">
+        <h2 class="text-center mb-0 text-uppercase fw-bold">Listado de Equipos</h2>
+    </div>
 
-    <div class="row row-cols-1 row-cols-md-3">
-        @forelse($equipos as $equipo)
-        <div class="col mb-4">
-            <div class="card bg-dark text-white">
-                <div class="card-body p-0 d-flex flex-column">
-                    @if($equipo->image)
-                        <div class="mb-2" style="position: relative; padding-top: 56.25%; background-image: url(data:image/png;base64,{{ $equipo->image }}); background-size: cover; background-position: center; background-repeat: no-repeat; text-align: center;">
-                            <!-- Imagen con Lazy Load -->
-                            <img src="data:image/png;base64,{{ $equipo->logo }}" alt="Logo del Equipo" loading="lazy" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); max-width: 80%; max-height: 80%;">
-                        </div>
-                    @else
-                        <div class="mb-2" style="position: relative; padding-top: 56.25%; background-image: url('/images/webTile2.png'); background-size: cover; background-position: center; background-repeat: no-repeat; text-align: center;">
-                            <!-- Imagen con Lazy Load -->
-                            <img src="/images/logo_new.png" alt="Logo del Equipo" loading="lazy" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); max-width: 80%; max-height: 80%;">
-                        </div>
-                    @endif
+@if (Auth::user() && Auth::user()->teams->isEmpty())
+    <div class="text-center mb-3">
+        <a href="{{ route('equipos.create') }}" class="btn btn-warning text-uppercase fw-bold shadow-sm rounded-pill px-4">
+            Crear equipo
+        </a>
+    </div>
+@endif
 
-                    <h5 class="card-title ml-1"><strong>{{ $equipo->name }}</strong></h5>
-                    <p class="card-text ml-1">{{ Illuminate\Support\Str::limit($equipo->description, 100) }}</p>
-                    <div class="mt-auto">
-                        <a href="{{ route('equipos.show', $equipo) }}" class="btn btn-outline-warning w-100">Ver equipo</a>
+<div class="mb-4 d-flex justify-content-center gap-3">
+    <form method="GET" action="{{ route('equipos.index') }}" class="d-flex align-items-center gap-2">
+        <label for="region" class="text-white fw-bold text-uppercase">Filtrar región:</label>
+        <select name="region" id="region" class="form-select" onchange="this.form.submit()">
+            <option value="all" {{ $regionFilter === 'all' ? 'selected' : '' }}>Todas</option>
+            @foreach ($regiones as $region)
+                <option value="{{ $region->id }}" {{ $regionFilter == $region->id ? 'selected' : '' }}>
+                    {{ $region->name }}
+                </option>
+            @endforeach
+        </select>
+    </form>
+</div>
+
+
+<div class="row row-cols-1 row-cols-sm-2 row-cols-md-4 g-4">
+    @forelse($equipos as $equipo)
+        <div class="col">
+            <div class="d-flex align-items-center justify-content-between bg-dark text-white rounded shadow-sm px-3 py-2 h-100">
+                <div class="d-flex align-items-center">
+                    <img src="{{ !empty($equipo['logo']) ? 'data:image/png;base64,' . $equipo['logo'] : '/images/logo_new.png' }}"
+                         alt="Logo del equipo"
+                         class="me-3"
+                         style="width: 64px; height: 64px; object-fit: contain;">
+                    <div>
+                        <h6 class="mb-1 text-warning fw-bold text-uppercase">{{ $equipo['name'] }}</h6>
+                        <span class="mb-1 text-uppercase" style="color: #c7c9cc; opacity: 0.7;">{{ $equipo['region_name'] }}</span>
                     </div>
                 </div>
+                <a href="{{ route('equipos.show', $equipo['id']) }}" class="btn btn-sm btn-outline-warning fw-bold text-nowrap">Ver</a>
             </div>
         </div>
-
-        @empty
-            <div class="col">
-                <p class="text-center" style="color: white">No hay equipos disponibles.</p>
-            </div>
-        @endforelse
-    </div>
+    @empty
+        <div class="col">
+            <p class="text-center text-muted">No hay equipos disponibles.</p>
+        </div>
+    @endforelse
 </div>
+
+
+</div>
+@endsection
+
+@section('styles')
+
+<style>
+    img.me-3 {
+        transition: transform 0.3s ease;
+    }
+    img.me-3:hover {
+        transform: scale(1.1);
+    }
+</style>
+
 @endsection

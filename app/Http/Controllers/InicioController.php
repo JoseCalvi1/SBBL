@@ -25,11 +25,11 @@ class InicioController extends Controller
     {
         $hoy = Carbon::today();
 
-        $bladers = Profile::orderBy('points_x2', 'DESC')->paginate(5);
+        $bladers = Profile::orderBy('points_x2', 'DESC')->limit(5)->get();
         $stamina = Profile::where('user_id', 1)->first();
         $antiguos = Event::where('date', '<', now())
             ->orderBy('date', 'desc')
-            ->limit(10)
+            ->limit(5)
             ->get();
         $nuevos = Event::where('date', '>=', now()->subDay())
             ->orderBy('date', 'asc')

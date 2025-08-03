@@ -90,19 +90,17 @@
 @endsection
 
 @section('content')
-<div class="container-fluid" style="background: #283b63">
-    <div class="row">
-        <ul class="navbar-nav m-auto" style="flex-direction: row;">
-            <li class="nav-item">
-                <a class="nav-link ml-2 mr-2" style="color: white; font-weight: bold; font-size:1.2em;" href="{{ route('equipos.index') }}">INICIO</a>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link ml-2 mr-2" style="color: white; font-weight: bold; font-size:1.2em;" href="{{ route('teams_versus.all') }}">DUELOS</a>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link ml-2 mr-2" style="color: white; font-weight: bold; font-size:1.2em;" href="{{ route('equipos.ranking') }}">RANKING</a>
-            </li>
-        </ul>
+<div class="container-fluid bg-dark shadow-sm py-2">
+    <div class="d-flex justify-content-center gap-4">
+        <a class="btn btn-outline-light fw-bold text-uppercase px-4 rounded-pill" href="{{ route('equipos.index') }}">
+            Inicio
+        </a>
+        <a class="btn btn-outline-light fw-bold text-uppercase px-4 rounded-pill" href="{{ route('teams_versus.all') }}">
+            Duelos
+        </a>
+        <a class="btn btn-outline-light fw-bold text-uppercase px-4 rounded-pill" href="{{ route('equipos.ranking') }}">
+            Ranking
+        </a>
     </div>
 </div>
 

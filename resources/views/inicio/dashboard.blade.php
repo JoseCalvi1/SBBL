@@ -1,10 +1,12 @@
 @extends('layouts.app')
 
 @section('content')
-@if (Auth::user()->is_jury || Auth::user()->is_admin)
+@if (Auth::user()->is_referee || Auth::user()->is_admin)
 <div class="container py-4" style="color: white; border-radius: 10px;">
     <h1 class="text-center mb-4" style="font-weight: bold;">Panel de Administración</h1>
     <div class="row g-4">
+
+        {{-- Sección visible para referee y admin --}}
         <!-- Eventos -->
         <div class="col-md-4 pb-2">
             <div class="card text-center bg-dark text-white h-100 shadow-lg">
@@ -19,20 +21,7 @@
             </div>
         </div>
 
-        <!-- Duelos -->
-        <div class="col-md-4 pb-2">
-            <div class="card text-center bg-dark text-white h-100 shadow-lg">
-                <div class="card-body d-flex flex-column">
-                    <i class="fa fa-gamepad fa-3x mb-3" style="color: #4e73df;"></i>
-                    <h5 class="card-title">Duelos</h5>
-                    <p class="card-text">Controla los enfrentamientos entre jugadores.</p>
-                    <div class="mt-auto">
-                        <a href="{{ route('versus.index') }}" class="btn btn-outline-primary w-100">Acceder</a>
-                    </div>
-                </div>
-            </div>
-        </div>
-
+        @if (Auth::user()->is_jury || Auth::user()->is_admin)
         <!-- Equipos Duelos -->
         <div class="col-md-4 pb-2">
             <div class="card text-center bg-dark text-white h-100 shadow-lg">
@@ -61,7 +50,7 @@
             </div>
         </div>
 
-        <!-- Beyblades partes -->
+        <!-- Partes Beyblades -->
         <div class="col-md-4 pb-2">
             <div class="card text-center bg-dark text-white h-100 shadow-lg">
                 <div class="card-body d-flex flex-column">
@@ -75,6 +64,24 @@
             </div>
         </div>
 
+@endif
+{{-- Solo para admin --}}
+        @if (Auth::user()->is_admin)
+        <!-- Duelos -->
+        <div class="col-md-4 pb-2">
+            <div class="card text-center bg-dark text-white h-100 shadow-lg">
+                <div class="card-body d-flex flex-column">
+                    <i class="fa fa-gamepad fa-3x mb-3" style="color: #4e73df;"></i>
+                    <h5 class="card-title">Duelos</h5>
+                    <p class="card-text">Controla los enfrentamientos entre jugadores.</p>
+                    <div class="mt-auto">
+                        <a href="{{ route('versus.index') }}" class="btn btn-outline-primary w-100">Acceder</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Crear Beyblades -->
         <div class="col-md-4 pb-2">
             <div class="card text-center bg-dark text-white h-100 shadow-lg">
                 <div class="card-body d-flex flex-column">
@@ -88,14 +95,13 @@
             </div>
         </div>
 
-        @if (Auth::user()->is_admin)
         <!-- Usuarios Burst -->
         <div class="col-md-4 pb-2">
             <div class="card text-center bg-dark text-white h-100 shadow-lg">
                 <div class="card-body d-flex flex-column">
                     <i class="fas fa-user-shield fa-3x mb-3" style="color: #e74a3b;"></i>
-                    <h5 class="card-title">Usuarios Burst</h5>
-                    <p class="card-text">Gestiona los usuarios de Beyblade Burst.</p>
+                    <h5 class="card-title">Gestión de roles</h5>
+                    <p class="card-text">Gestiona los roles de los usuarios.</p>
                     <div class="mt-auto">
                         <a href="{{ route('profiles.indexAdmin') }}" class="btn btn-outline-danger w-100">Acceder</a>
                     </div>
@@ -130,7 +136,9 @@
                 </div>
             </div>
         </div>
+
         @endif
+
     </div>
 </div>
 @else
@@ -141,12 +149,12 @@
 @endsection
 
 @section('styles')
-    <style>
-        .btn {
-            transition: background-color 0.3s ease, transform 0.2s ease;
-        }
-        .btn:hover {
-            transform: translateY(-2px);
-        }
-    </style>
+<style>
+    .btn {
+        transition: background-color 0.3s ease, transform 0.2s ease;
+    }
+    .btn:hover {
+        transform: translateY(-2px);
+    }
+</style>
 @endsection

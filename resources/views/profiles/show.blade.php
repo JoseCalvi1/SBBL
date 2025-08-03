@@ -146,7 +146,7 @@
                     <ul class="list-group list-group-flush">
                         @foreach ($invitacionesPendientes as $invitacion)
                             <li class="list-group-item bg-dark border-bottom border-white mb-2">
-                                <div class="d-flex justify-content-between align-items-center">
+                                <div class="d-flex justify-content-between align-items-center text-white">
                                     <span>Equipo: {{ $invitacion->team->name }}</span>
                                     <div class="btn-group" role="group">
                                         <form action="{{ route('invitations.accept', $invitacion) }}" method="POST">

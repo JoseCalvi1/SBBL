@@ -165,6 +165,51 @@
                             </button>
                         @endif
 
+
+                @if (in_array($event->beys, ['ranking', 'rankingplus']) && (in_array($event->status, ['INVALID', 'CLOSE']) || auth()->user()->is_admin))
+                    <!-- BOTÓN PARA MOSTRAR VALIDADORES -->
+                    <button class="btn btn-danger mt-2 w-100" type="button"
+                            data-bs-toggle="collapse" data-bs-target="#reviewCollapse{{ $event->id }}"
+                            aria-expanded="false" aria-controls="reviewCollapse{{ $event->id }}">
+                    Mostrar validadores y comentarios
+                    </button>
+
+                    <!-- SECCIÓN DESPLEGABLE DE VALIDADORES -->
+                    <div class="collapse mt-2" id="reviewCollapse{{ $event->id }}">
+                    <div class="card card-body bg-light text-dark p-2" style="font-size: 0.85rem;">
+                        <strong>Validadores y comentarios:</strong>
+                        @if($event->reviews->isEmpty())
+                        <em>No hay revisiones aún.</em>
+                        @else
+                        <ul class="mb-0 ps-3" style="max-height: 150px; overflow-y: auto;">
+                            @foreach($event->reviews as $review)
+                            <li class="mb-1">
+                                <strong>
+                                @if(auth()->user()->is_admin || Auth::user()->name == $review->referee->name)
+                                    {{ $review->referee->name ?? 'Árbitro desconocido' }}
+                                @else
+                                    Árbitro {{ $loop->iteration }}
+                                @endif
+                                </strong>:
+                                <span class="badge
+                                @if($review->status == 'approved') bg-success
+                                @elseif($review->status == 'rejected') bg-danger
+                                @else bg-secondary
+                                @endif">
+                                {{ strtoupper($review->status) }}
+                                </span><br>
+                                <em>{{ $review->comment }}</em>
+                            </li>
+                            @endforeach
+                        </ul>
+                        @endif
+                    </div>
+                    </div>
+
+                @endif
+
+
+
                                 @if ($event->iframe)
                                     <div class="mt-2">
                                         <a href="{{ $event->iframe }}" target="_blank" class="btn btn-info text-uppercase w-100"
@@ -191,7 +236,7 @@
                             </div>
                         @endif
                         @if (count($assists) > 0)
-                            <form method="POST" action="{{ route('events.updatePuestos', ['event' => $event->id]) }}" enctype="multipart/form-data" novalidate>
+                            <form id="puestos-form" method="POST" action="{{ route('events.updatePuestos', ['event' => $event->id]) }}" enctype="multipart/form-data" novalidate>
                                 @csrf
                                 @method('PUT')
 
@@ -317,7 +362,7 @@
 
                                 @if (($event->status != "CLOSE" && $event->status != "INVALID") && Auth::user()->is_referee || ($event->status == "OPEN" && $event->created_by == Auth::user()->id))
                                     <div class="form-group py-2">
-                                        <input type="submit" class="btn btn-outline-success text-uppercase font-weight-bold flex-right" value="Enviar resultados"  style="width: 100%">
+                                        <input type="submit" onclick="return confirm('¿Has rellenado el podio y los enlaces correctamente?');" class="btn btn-outline-success text-uppercase font-weight-bold flex-right" value="Enviar resultados"  style="width: 100%">
                                     </div>
                                 @endif
                             </form>
@@ -331,11 +376,90 @@
         </div>
     </article>
 
+@endsection
+
+@section('styles')
+<!-- jQuery -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+<!-- Select2 CSS -->
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+
+<!-- Select2 JS -->
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+
+    <!-- CDN de Select2 CSS -->
+    <style>
+        .select2-container--default .select2-selection--single {
+            z-index: 9999 !important; /* Asegúrate de que el select2 se muestra sobre otros elementos */
+        }
+        .select2-selection--single {
+    height: 38px !important; /* igual que form-control de Bootstrap */
+    padding: 0.375rem 0.75rem;
+}
 
 
+    </style>
 @endsection
 
 @section('scripts')
+<!-- jQuery y Select2 -->
+        <script>
+        jQuery(document).ready(function () {
+
+            const isReferee = @json(Auth::user()->is_jury);
+
+            // Copiar nombres al portapapeles
+            const copyBtn = jQuery('#copyButton');
+            if (copyBtn.length) {
+                copyBtn.on('click', () => {
+                    const participants = {!! json_encode($assists->pluck('name')->values()->toArray()) !!};
+                    const names = participants.join('\n');
+
+                    if (navigator.clipboard) {
+                        navigator.clipboard.writeText(names)
+                            .then(() => alert('Nombres copiados al portapapeles'))
+                            .catch(() => fallbackCopy(names));
+                    } else {
+                        fallbackCopy(names);
+                    }
+
+                    function fallbackCopy(text) {
+                        const tempTextArea = document.createElement('textarea');
+                        tempTextArea.value = text;
+                        document.body.appendChild(tempTextArea);
+                        tempTextArea.select();
+                        document.execCommand('copy');
+                        document.body.removeChild(tempTextArea);
+                        alert('Nombres copiados al portapapeles');
+                    }
+                });
+            }
+
+            // Validación de formulario si no es referee
+            if (!isReferee) {
+                jQuery("input[type='submit'][value='Enviar resultados']").on('click', function(event) {
+                    const iframeInput = jQuery("input[name='iframe']");
+                    const challongeInput = jQuery("input[name='challonge']");
+                    if (!iframeInput.val()?.trim() || !challongeInput.val()?.trim()) {
+                        event.preventDefault();
+                        alert("⚠️ Debes introducir un enlace de video y de challonge antes de enviar los resultados.");
+                    }
+                });
+            }
+
+            // Re-inicializar Select2 al mostrar el modal (por si cambia el DOM)
+            jQuery('#formModal').on('shown.bs.modal', function () {
+                jQuery('.select2').select2({
+                    dropdownParent: $('#formModal')
+                });
+            });
+
+            // Inicializar tooltips
+            jQuery('[data-toggle="tooltip"]').tooltip();
+        });
+    </script>
+
 <!-- Modal para introducir decks - Versión Bootstrap 5 -->
 <div class="modal fade" id="formModal" tabindex="-1" aria-labelledby="formModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-xl">
@@ -349,7 +473,7 @@
                 <form method="POST" action="{{ route('tournament.results.store', ['eventId' => $event->id]) }}">
                     @csrf
 
-                    @if(Auth::user()->is_referee)
+                    @if(Auth::user()->is_referee && 1==2 )
                         @foreach($assists as $assist)
                             <div class="mb-4">
                                 <h4>{{ $assist->name }} ({{ $assist->email }})</h4>
@@ -537,86 +661,4 @@
         </div>
     </div>
 </div>
-
-
-
-@endsection
-
-@section('styles')
-    <!-- CDN de Select2 CSS -->
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/css/select2.min.css" rel="stylesheet" />
-    <style>
-        .select2-container--default .select2-selection--single {
-            z-index: 9999; /* Asegúrate de que el select2 se muestra sobre otros elementos */
-        }
-    </style>
-@endsection
-
-@section('scripts')
-    <!-- CDN de jQuery -->
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <!-- CDN de Select2 JS -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/js/select2.min.js"></script>
-
-    <script>
-            // Pasamos el valor desde Blade a una variable JS
-            const isReferee = @json(Auth::user()->is_jury);
-
-        document.addEventListener("DOMContentLoaded", function () {
-            document.getElementById('copyButton').addEventListener('click', function() {
-                // Obtener los nombres de los participantes
-                let participants = @json($assists->pluck('name')); // Usar `pluck` para obtener solo los nombres
-                let names = participants.join('\n'); // Unir los nombres con salto de línea
-
-                // Crear un elemento temporal de área de texto para copiar el texto al portapapeles
-                let tempTextArea = document.createElement('textarea');
-                tempTextArea.value = names;
-                document.body.appendChild(tempTextArea);
-
-                // Seleccionar y copiar el texto
-                tempTextArea.select();
-                document.execCommand('copy');
-
-                // Eliminar el elemento temporal
-                document.body.removeChild(tempTextArea);
-
-                // Notificar que se copió
-                alert('Nombres copiados al portapapeles');
-            });
-
-
-
-            // Solo ejecutamos si NO es referee
-            if (!isReferee) {
-                const submitResultados = document.querySelector("input[type='submit'][value='Enviar resultados']");
-                if (submitResultados) {
-                    submitResultados.addEventListener("click", function (event) {
-                        const iframeInput = document.querySelector("input[name='iframe']");
-                        if (!iframeInput || !iframeInput.value.trim()) {
-                            event.preventDefault();
-                            alert("⚠️ Debes introducir un enlace de video y de challonge antes de enviar los resultados.");
-                        }
-                    });
-                }
-            }
-        });
-
-        jQuery(document).ready(function() {
-            // Inicializa Select2 cuando el documento esté listo
-            jQuery('.select2').select2({
-                dropdownParent: $("#formModal")
-            });
-
-            // Inicializa Select2 cuando el modal se muestra
-            jQuery('#formModal').on('shown.bs.modal', function () {
-                jQuery('.select2').select2(); // Re-inicializa Select2
-            });
-        });
-
-    </script>
-    <script>
-        $(function () {
-            $('[data-toggle="tooltip"]').tooltip()
-        })
-    </script>
 @endsection

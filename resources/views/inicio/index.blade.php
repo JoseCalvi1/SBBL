@@ -40,7 +40,7 @@
 .season-wrapper {
     background: #121212;
     color: #eee;
-    padding: 25px;
+    padding: 25px 10px;
     font-family: 'Segoe UI', sans-serif;
     box-shadow: 0 0 20px rgba(0, 255, 255, 0.1);
   }
@@ -208,7 +208,7 @@
 </div>
 @endif
 
-@if (Auth::user())
+@if (Auth::user() && 1==2)
 <div class="row text-center" style="background: linear-gradient(135deg, #28a745, #218838); color: white; padding: 20px;">
     <p class="text-center" style="margin-bottom: 0; font-size: 1.2em; font-weight: bold;">
        🎉 ¡DESCUBRE TU <a style="color: #ffc107; text-decoration: underline;" href="{{ route('profiles.wrapped', ['profile' => Auth::user()->id]) }}">SBBL WRAPPED DE FINAL DE TEMPORADA</a>! 🎯
@@ -243,45 +243,48 @@
     </a> -->
 
     <div class="season-wrapper">
-        <h2>📅 Progreso de la Temporada</h2>
-        <p id="season-status"></p>
+        <div class="row">
+        <div class="col-md-7">
+            <h2>📅 Progreso de la Temporada</h2>
+                <p id="season-status"></p>
 
-        <div class="combined-bar">
-            <div id="pre-fill" class="segment preseason"></div>
-            <div id="season-fill" class="segment season"></div>
+                <div class="combined-bar">
+                    <div id="pre-fill" class="segment preseason"></div>
+                    <div id="season-fill" class="segment season"></div>
+                </div>
+
+                <div class="bar-labels-proportional">
+                    <span style="left: 0%">22 Junio 2025</span>
+                    <span style="left: 19%">1 Septiembre 2025</span>
+                    <span style="left: 86%">30 Junio 2026</span>
+                </div>
+
+
+                <p class="mt-2">Si tienes alguna sugerencia que hacer no dudes en <a href="{{ route('inicio.contact') }}">escribirnos un correo</a> o <a href="https://forms.gle/g9eWmD5KwgjoXWeu5">mandar tu sugerencia</a></p>
+
+                <div class="social-links">
+                    <a href="https://discord.gg/JCtAHfJ8Ht" target="_blank" title="Discord"><i class="fab fa-discord"></i></a>
+                    <a href="https://www.youtube.com/@sbbl_oficial" target="_blank" title="YouTube"><i class="fab fa-youtube"></i></a>
+                    <a href="https://www.twitch.tv/sbbl_oficial" target="_blank" title="Twitch"><i class="fab fa-twitch"></i></a>
+                    <a href="https://www.instagram.com/sbbl_oficial/" target="_blank" title="Instagram"><i class="fab fa-instagram"></i></a>
+                    <a href="https://x.com/SBBLOficial" target="_blank" title="Twitter"><i class="fab fa-twitter"></i></a>
+                    <a href="https://bsky.app/profile/sbbloficial.bsky.social" target="_blank" title="Bluesky" aria-label="Bluesky">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 600">
+                            <path d="m135.72 44.03c66.496 49.921 138.02 151.14 164.28 205.46 26.262-54.316 97.782-155.54 164.28-205.46 47.98-36.021 125.72-63.892 125.72 24.795 0 17.712-10.155 148.79-16.111 170.07-20.703 73.984-96.144 92.854-163.25 81.433 117.3 19.964 147.14 86.092 82.697 152.22-122.39 125.59-175.91-31.511-189.63-71.766-2.514-7.3797-3.6904-10.832-3.7077-7.8964-0.0174-2.9357-1.1937 0.51669-3.7077 7.8964-13.714 40.255-67.233 197.36-189.63 71.766-64.444-66.128-34.605-132.26 82.697-152.22-67.108 11.421-142.55-7.4491-163.25-81.433-5.9562-21.282-16.111-152.36-16.111-170.07 0-88.687 77.742-60.816 125.72-24.795z"/>
+                        </svg>
+                    </a>
+                </div>
         </div>
-
-        <div class="bar-labels-proportional">
-            <span style="left: 0%">22 Junio 2025</span>
-            <span style="left: 19%">1 Septiembre 2025</span>
-            <span style="left: 94%">30 Junio 2026</span>
-        </div>
-
-
-        <p class="mt-2">Si tienes alguna sugerencia que hacer no dudes en <a href="{{ route('inicio.contact') }}">escribirnos un correo</a> o <a href="https://forms.gle/g9eWmD5KwgjoXWeu5">mandar tu sugerencia</a></p>
-
-        <div class="social-links">
-            <a href="https://discord.gg/JCtAHfJ8Ht" target="_blank" title="Discord"><i class="fab fa-discord"></i></a>
-            <a href="https://www.youtube.com/@sbbl_oficial" target="_blank" title="YouTube"><i class="fab fa-youtube"></i></a>
-            <a href="https://www.twitch.tv/sbbl_oficial" target="_blank" title="Twitch"><i class="fab fa-twitch"></i></a>
-            <a href="https://www.instagram.com/sbbl_oficial/" target="_blank" title="Instagram"><i class="fab fa-instagram"></i></a>
-            <a href="https://x.com/SBBLOficial" target="_blank" title="Twitter"><i class="fab fa-twitter"></i></a>
-            <a href="https://bsky.app/profile/sbbloficial.bsky.social" target="_blank" title="Bluesky" aria-label="Bluesky">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 600">
-                    <path d="m135.72 44.03c66.496 49.921 138.02 151.14 164.28 205.46 26.262-54.316 97.782-155.54 164.28-205.46 47.98-36.021 125.72-63.892 125.72 24.795 0 17.712-10.155 148.79-16.111 170.07-20.703 73.984-96.144 92.854-163.25 81.433 117.3 19.964 147.14 86.092 82.697 152.22-122.39 125.59-175.91-31.511-189.63-71.766-2.514-7.3797-3.6904-10.832-3.7077-7.8964-0.0174-2.9357-1.1937 0.51669-3.7077 7.8964-13.714 40.255-67.233 197.36-189.63 71.766-64.444-66.128-34.605-132.26 82.697-152.22-67.108 11.421-142.55-7.4491-163.25-81.433-5.9562-21.282-16.111-152.36-16.111-170.07 0-88.687 77.742-60.816 125.72-24.795z"/>
-                </svg>
-            </a>
-        </div>
-
-    </div>
-
-    <div class="container my-5">
-        <div class="card shadow-lg border-0 rounded-4 overflow-hidden" data-aos="fade-up">
-            <div class="ratio ratio-16x9">
-            <iframe width="560" height="315" src="https://www.youtube.com/embed/wkFnz8kPs3M?si=Dot6IDj6hHy7WqLc" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+        <div class="col-md-5">
+            <div class="card shadow-lg border-0 rounded-4 overflow-hidden" data-aos="fade-up">
+                <div class="ratio ratio-16x9">
+                    <iframe width="560" height="315" src="https://www.youtube.com/embed/wkFnz8kPs3M?si=Dot6IDj6hHy7WqLc" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+                </div>
             </div>
         </div>
         </div>
+
+    </div>
 
     <div class="menu-container-wrapper">
         <button class="menu-toggle">☰ Especial</button>

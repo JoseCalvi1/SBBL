@@ -103,7 +103,7 @@
     $canReview = $reviewsCount < $maxReviews && !$userReview;
 @endphp
 
-@if(!in_array($event->status, ['INVALID', 'CLOSE']) && in_array($event->beys, ['ranking', 'rankingplus']))
+@if(!in_array($event->status, ['INVALID', 'CLOSE', 'OPEN']) && in_array($event->beys, ['ranking', 'rankingplus']))
 <div class="d-flex flex-wrap gap-2 mb-2" id="review-buttons-{{ $event->id }}">
 
     {{-- Mostrar contador de revisiones --}}
@@ -113,7 +113,7 @@
         {{-- Usuario aún no ha empezado revisión y hay sitio --}}
         <form action="{{ route('event.review.start', $event) }}" method="POST" class="d-inline">
             @csrf
-            <button type="submit" class="btn btn-sm btn-outline-info me-1 review-button">
+            <button type="submit" class="btn btn-sm btn-info me-1 review-button">
                 Revisar
             </button>
         </form>
@@ -203,8 +203,10 @@
       <!-- ACCIONES: Ver, Editar, Eliminar -->
       <div class="d-flex flex-column flex-shrink-0 me-md-3 mb-3 mb-md-0" style="min-width: 140px;">
         <a href="{{ route('events.show', $event->id) }}" class="btn btn-success btn-sm mb-1">Ver</a>
-        <a href="{{ route('events.edit', $event->id) }}" class="btn btn-dark btn-sm mb-1">Editar</a>
-        <event-delete event-id="{{ $event->id }}"></event-delete>
+        @if (auth()->user()->is_admin || auth()->user()->is_jury)
+            <a href="{{ route('events.edit', $event->id) }}" class="btn btn-dark btn-sm mb-1">Editar</a>
+            <event-delete event-id="{{ $event->id }}"></event-delete>
+        @endif
       </div>
 
     </div>

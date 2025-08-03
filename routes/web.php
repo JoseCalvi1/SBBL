@@ -7,7 +7,9 @@ use App\Http\Controllers\EventController;
 use App\Http\Controllers\InicioController;
 use App\Http\Controllers\TeamController;
 use App\Http\Controllers\InvitationController;
+use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\TeamsVersusController;
+use App\Http\Controllers\TiendaController;
 use App\Http\Controllers\TournamentResultController;
 use App\Http\Controllers\TrophyController;
 use App\Http\Controllers\VersusController;
@@ -85,6 +87,7 @@ Route::put('/profiles-admin/{profile}', [App\Http\Controllers\ProfileController:
 Route::put('/profiles-admin-x/{profile}', [App\Http\Controllers\ProfileController::class, 'updatePointsX'])->name('profiles.updatePointsX');
 Route::put('/update-admin-x/update-all', [App\Http\Controllers\ProfileController::class, 'updateAllPointsX'])->name('profiles.updateAllPointsX');
 Route::get('/wrapped/{profile}', [App\Http\Controllers\ProfileController::class, 'wrapped'])->name('profiles.wrapped');
+Route::put('/profiles/update-roles/{user}', [ProfileController::class, 'updateRoles'])->name('profiles.updateRoles');
 
 Route::get('/rankings', [App\Http\Controllers\ProfileController::class, 'ranking'])->name('profiles.ranking');
 
@@ -151,6 +154,15 @@ Route::get('/trophies/user/{userId}', [TrophyController::class, 'showUserTrophie
 Route::delete('/trophies/removeAssignment/{assignmentId}', [TrophyController::class, 'removeAssignment'])->name('trophies.removeAssignment');
 Route::put('/trophies/{userId}/updateCount/{trophyId}', [TrophyController::class, 'updateCount'])->name('trophies.updateCount');
 Route::delete('/trophies/{userId}/remove/{trophyId}', [TrophyController::class, 'remove'])->name('trophies.remove');
+
+Route::get('/tienda', [TiendaController::class, 'index'])->name('tienda.index');
+Route::get('/tienda/create', [TiendaController::class, 'create'])->name('tienda.create');
+Route::post('/tienda', [TiendaController::class, 'store'])->name('tienda.store');
+Route::get('/tienda/{tienda}', [TiendaController::class, 'show'])->name('tienda.show');
+Route::get('/tienda/{tienda}/edit', [TiendaController::class, 'edit'])->name('tienda.edit');
+Route::put('/tienda/{tienda}', [TiendaController::class, 'update'])->name('tienda.update');
+Route::patch('/tienda/{tienda}', [TiendaController::class, 'update']);
+Route::delete('/tienda/{tienda}', [TiendaController::class, 'destroy'])->name('tienda.destroy');
 
 
 Route::get('/eventos', [InicioController::class, 'events'])->name('events.index');

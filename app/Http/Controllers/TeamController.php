@@ -13,11 +13,41 @@ use App\Models\Invitation;
 class TeamController extends Controller
 {
     // Mostrar todos los equipos
-    public function index()
+    public function index(Request $request)
     {
-        $equipos = Team::where('status', 'accepted')->get();
-        return view('equipos.index', compact('equipos'));
+        $user = Auth::user();
+
+        // Obtener todas las regiones para el filtro
+        $regiones = DB::table('regions')->select('id', 'name')->get();
+
+        // Por defecto mostrar equipos de la región del usuario
+        $regionId = null;
+        if ($user && $user->profile) {
+            $regionId = $user->profile->region_id;
+        }
+
+        // Permitir filtro por región desde request (ejemplo ?region=3 o ?region=all)
+        $regionFilter = $request->query('region', $regionId);
+
+        $query = DB::table('teams')
+            ->join('users', 'teams.captain_id', '=', 'users.id')
+            ->join('profiles', 'users.id', '=', 'profiles.user_id')
+            ->join('regions', 'profiles.region_id', '=', 'regions.id')
+            ->select('teams.id', 'teams.name', 'teams.description', 'teams.logo', 'teams.image', 'regions.name as region_name')
+            ->where('teams.status', 'accepted');
+
+        if ($regionFilter && $regionFilter !== 'all') {
+            $query->where('profiles.region_id', $regionFilter);
+        }
+
+        $equipos = $query->get()->map(function ($equipo) {
+            return (array) $equipo;
+        });
+
+        return view('equipos.index', compact('equipos', 'regiones', 'regionFilter'));
     }
+
+
 
     public function indexAdmin()
     {

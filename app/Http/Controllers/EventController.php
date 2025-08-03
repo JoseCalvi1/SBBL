@@ -476,7 +476,7 @@ class EventController extends Controller
                 ->where('event_id', $id)
                 ->update(['puesto' => $participante['puesto']]);
 
-            if (!$updated) {
+            if ($updated === false) {
                 return redirect()->back()->with('error', "No se pudo actualizar el puesto para el participante ID {$participante['id']}.");
             }
         }

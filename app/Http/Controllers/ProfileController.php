@@ -9,6 +9,7 @@ use App\Models\Profile;
 use App\Models\Region;
 use App\Models\Versus;
 use App\Models\Invitation;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -80,12 +81,41 @@ class ProfileController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
+    // Mostrar usuarios con roles especiales
     public function indexAdmin()
     {
-        $profiles = Profile::orderBy('points_s3', 'DESC')->get();
+        $profiles = Profile::whereHas('user', function ($query) {
+            $query->where('is_admin', 1)
+                ->orWhere('is_jury', 1)
+                ->orWhere('is_referee', 1)
+                ->orWhere('is_editor', 1);
+        })->with('user', 'region')->get();
 
-        return view('profiles.indexAdmin', compact('profiles'));
+        $allUsers = User::orderBy('name')->get();
+
+        return view('profiles.indexAdmin', compact('profiles', 'allUsers'));
     }
+
+    // Actualizar roles
+    public function updateRoles(Request $request, $userId)
+    {
+        if ($userId == 0) {
+            // Caso formulario para asignar roles a usuario existente
+            $user = User::findOrFail($request->input('user_id'));
+        } else {
+            $user = User::findOrFail($userId);
+        }
+
+        $user->is_admin = $request->has('is_admin');
+        $user->is_jury = $request->has('is_jury');
+        $user->is_referee = $request->has('is_referee');
+        $user->is_editor = $request->has('is_editor');
+        $user->save();
+
+    return back()->with('success', 'Roles actualizados correctamente.');
+}
+
+
 
     public function indexAdminX()
     {
