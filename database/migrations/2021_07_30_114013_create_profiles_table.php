@@ -23,6 +23,7 @@ class CreateProfilesTable extends Migration
             $table->id();
             $table->foreignId('user_id')->references('id')->on('users');
             $table->string('subtitulo')->nullable();
+            $table->boolean('free_agent')->default(false);
             $table->string('imagen')->nullable();
             $table->string('marco')->nullable();
             $table->string('fondo')->nullable();
