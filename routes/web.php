@@ -88,6 +88,7 @@ Route::put('/profiles-admin-x/{profile}', [App\Http\Controllers\ProfileControlle
 Route::put('/update-admin-x/update-all', [App\Http\Controllers\ProfileController::class, 'updateAllPointsX'])->name('profiles.updateAllPointsX');
 Route::get('/wrapped/{profile}', [App\Http\Controllers\ProfileController::class, 'wrapped'])->name('profiles.wrapped');
 Route::put('/profiles/update-roles/{user}', [ProfileController::class, 'updateRoles'])->name('profiles.updateRoles');
+Route::get('/ranking-splits', [ProfileController::class, 'rankingPorSplits'])->name('profiles.splits');
 
 Route::get('/rankings', [App\Http\Controllers\ProfileController::class, 'ranking'])->name('profiles.ranking');
 

@@ -73,7 +73,15 @@
                                 @endif
                             </div>
                         </form>
+                    @php
+                        $user = \App\Models\User::findOrFail($event->created_by);
+                    @endphp
 
+                    @if ($user && !($user->is_jury || $user->is_referee))
+                        <span class="alert alert-warning d-block mt-3 p-2 text-center font-weight-bold">
+                            ⚠️ Este evento <bold>NO HA SIDO CREADO POR UN ÁRBITRO</bold>, el material tiene que ser proporcionado por los participantes.
+                        </span>
+                    @endif
 
                     @else
                         <form method="POST" action="{{ route('events.noassist', ['event' => $event->id]) }}" style="display: contents; text-align: center;">

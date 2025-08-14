@@ -10,7 +10,7 @@ class InvitationController extends Controller
 {
     public function accept(Invitation $invitation)
     {
-        if ($invitation->team->members->count() >= 5) {
+        if ($invitation->team->members->count() >= 6) {
             return redirect()->back()->with('error', 'El equipo ya tiene el número máximo de miembros.');
         }
 

@@ -13,7 +13,7 @@
         <!-- Formulario de filtros -->
         <form method="GET" action="{{ route('events.indexAdmin') }}" class="mb-4">
             <div class="row">
-                <div class="col-md-4">
+                <div class="col-md-4 mt-2">
                     <label for="estado" class="text-white">Filtrar por Estado:</label>
                     <select name="estado" id="estado" class="form-control">
                         <option value="">Todos</option>
@@ -25,7 +25,7 @@
                     </select>
                 </div>
 
-                <div class="col-md-4">
+                <div class="col-md-4 mt-2">
                     <label for="beys" class="text-white">Filtrar por Tipo de Evento:</label>
                     <select name="beys" id="beys" class="form-control">
                         <option value="">Todos</option>
@@ -33,7 +33,7 @@
                     </select>
                 </div>
 
-                <div class="col-md-4 align-self-end">
+                <div class="col-md-4 align-self-end mt-2">
                     <button type="submit" class="btn btn-primary w-100">Aplicar Filtros</button>
                 </div>
             </div>
@@ -56,13 +56,16 @@
 
 
       <!-- INFORMACIÓN DEL EVENTO -->
-      <div class="flex-grow-1">
+      <div class="flex-grow-1" style="width: 100%">
         <div class="d-flex justify-content-between align-items-center flex-wrap">
           <h5 class="mb-1 me-2">{{ $event->name }}</h5>
         </div>
 
         <p class="mb-1 small text-truncate">
-          {{ $event->city }} • {{ $event->region->name }} • {{ $event->mode }} • <event-date fecha="{{ $event->date }}"></event-date>
+          {{ $event->city }} • {{ $event->region->name }}
+        </p>
+        <p class="mb-1 small text-truncate">
+          <event-date fecha="{{ $event->date }}"></event-date> • {{ $event->mode }}
         </p>
 
         <!-- ESTADO -->
@@ -79,6 +82,9 @@
               @break
             @case('INVALID')
               <span class="badge bg-dark">INVÁLIDO</span>
+              @break
+            @case('INSCRIPCION')
+              <span class="badge bg-light">INSCRIPCION CERRADA</span>
               @break
             @default
               <span class="badge bg-danger">CERRADO</span>
@@ -201,7 +207,7 @@
 
       </div>
       <!-- ACCIONES: Ver, Editar, Eliminar -->
-      <div class="d-flex flex-column flex-shrink-0 me-md-3 mb-3 mb-md-0" style="min-width: 140px;">
+      <div class="d-flex flex-column flex-shrink-0 me-md-3 mt-3 mb-3 mb-md-0" style="min-width: 140px;">
         <a href="{{ route('events.show', $event->id) }}" class="btn btn-success btn-sm mb-1">Ver</a>
         @if (auth()->user()->is_admin || auth()->user()->is_jury)
             <a href="{{ route('events.edit', $event->id) }}" class="btn btn-dark btn-sm mb-1">Editar</a>

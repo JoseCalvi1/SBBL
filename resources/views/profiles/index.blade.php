@@ -9,31 +9,31 @@
     <div>
         <div class="row">
             <form method="GET" class="mb-4" style="display: flex; gap: 1rem; flex-wrap: wrap;">
-    <div>
-        <label for="region" style="color: white;">Región:</label>
-        <select name="region" id="region" class="form-control">
-            <option value="">Todas</option>
-            @foreach ($regiones as $region)
-                <option value="{{ $region->id }}" {{ request('region') == $region->id ? 'selected' : '' }}>
-                    {{ $region->name }}
-                </option>
-            @endforeach
-        </select>
-    </div>
+                <div>
+                    <label for="region" style="color: white;">Región:</label>
+                    <select name="region" id="region" class="form-control">
+                        <option value="">Todas</option>
+                        @foreach ($regiones as $region)
+                            <option value="{{ $region->id }}" {{ request('region') == $region->id ? 'selected' : '' }}>
+                                {{ $region->name }}
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
 
-    <div>
-        <label for="free_agent" style="color: white;">Buscando equipo:</label>
-        <select name="free_agent" id="free_agent" class="form-control">
-            <option value="">Todos</option>
-            <option value="1" {{ request('free_agent') === '1' ? 'selected' : '' }}>Sí</option>
-            <option value="0" {{ request('free_agent') === '0' ? 'selected' : '' }}>No</option>
-        </select>
-    </div>
+                <div>
+                    <label for="free_agent" style="color: white;">Buscando equipo:</label>
+                    <select name="free_agent" id="free_agent" class="form-control">
+                        <option value="">Todos</option>
+                        <option value="1" {{ request('free_agent') === '1' ? 'selected' : '' }}>Sí</option>
+                        <option value="0" {{ request('free_agent') === '0' ? 'selected' : '' }}>No</option>
+                    </select>
+                </div>
 
-    <div style="align-self: end;">
-        <button type="submit" class="btn btn-primary">Filtrar</button>
-    </div>
-</form>
+                <div style="align-self: end;">
+                    <button type="submit" class="btn btn-primary">Filtrar</button>
+                </div>
+            </form>
 
             @foreach ($bladers as $blader)
                 @php
@@ -91,7 +91,7 @@
                         <div class="subtitulo">{{ $blader->subtitulo }}</div>
                         <div class="region">
                             {{ ($blader->region) ? $blader->region->name : 'No definida' }}
-                            @if (in_array($subscriptionClass, ['suscripcion-nivel-1', 'suscripcion-nivel-2', 'suscripcion-nivel-3']) && $blader->trophies_count > 0)
+                            @if (1==2 && in_array($subscriptionClass, ['suscripcion-nivel-1', 'suscripcion-nivel-2', 'suscripcion-nivel-3']) && $blader->trophies_count > 0)
                                 <span style="font-size: 16px;">
                                     {{ $blader->trophies_count }}x
                                     <i class="fas fa-trophy" style="color: gold;"></i>

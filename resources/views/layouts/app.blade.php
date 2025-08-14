@@ -155,11 +155,11 @@
     <div id="app" style="flex: 1;">
 <nav class="navbar navbar-expand-md shadow-sm" style="background-color: #1e2a47;">
     <div class="container">
-        <a class="navbar-brand d-none d-sm-none d-md-block" href="{{ url('/') }}">
+        <a class="navbar-brand d-none d-md-none d-xl-block" href="{{ url('/') }}">
             <img src="/images/logo_new.png" alt="Logo Spanish BeyBattle League" width="60" height="50">
             <span style="color: white;">Spanish BeyBattle League</span>
         </a>
-        <a class="navbar-brand d-block d-sm-block d-md-none" href="{{ url('/') }}">
+        <a class="navbar-brand d-block d-md-block d-xl-none" href="{{ url('/') }}">
             <img src="/images/logo_new.png" alt="Logo SBBL" width="60" height="50">
         </a>
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="{{ __('Toggle navigation') }}">

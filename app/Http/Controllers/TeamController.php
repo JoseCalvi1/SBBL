@@ -285,7 +285,7 @@ class TeamController extends Controller
     public function acceptInvitation(Team $equipo)
     {
         // Verificar si el equipo ya tiene el número máximo de miembros
-        if ($equipo->members->count() >= 5) {
+        if ($equipo->members->count() >= 6) {
             return redirect()->back()->with('error', 'El equipo ya tiene el número máximo de miembros.');
         }
 
@@ -294,7 +294,6 @@ class TeamController extends Controller
 
         return redirect()->back()->with('success', 'Invitación aceptada exitosamente.');
     }
-
 
 
 }
