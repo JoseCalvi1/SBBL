@@ -9,6 +9,7 @@ use App\Models\Profile;
 use App\Models\Region;
 use App\Models\Versus;
 use App\Models\Invitation;
+use App\Models\Team;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -25,8 +26,11 @@ class ProfileController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function index()
+    public function index(Request $request)
     {
+        $regionId = $request->input('region');
+        $isFreeAgent = $request->input('free_agent');
+
         $bladers = Profile::select('profiles.*')
             ->leftJoin('profilestrophies', 'profiles.id', '=', 'profilestrophies.profiles_id')
             ->leftJoin('trophies', 'profilestrophies.trophies_id', '=', 'trophies.id')
@@ -37,6 +41,13 @@ class ProfileController extends Controller
                     ->where('assist_user_event.puesto', 'primero')
                     ->where('assist_user_event.event_id', '>=', 190)
             ])
+            ->with(['user', 'region', 'trophies']) // para mostrar info adicional en la vista
+            ->withCount('trophies')
+            ->when($regionId, fn($query) => $query->where('profiles.region_id', $regionId))
+            ->when(isset($isFreeAgent) && $isFreeAgent !== '', function($query) use ($isFreeAgent) {
+                $value = $isFreeAgent == '1' ? true : false;
+                $query->where('profiles.free_agent', $value);
+            })
             ->where(function ($query) {
                 $query->where('profiles.points_x2', '<>', 0)
                     ->orWhere('profiles.points_s3', '<>', 0)
@@ -71,8 +82,12 @@ class ProfileController extends Controller
             }
         }
 
-        return view('profiles.index', compact('bladers'));
+        $regiones = Region::all();
+        $equipo = Team::where('captain_id', Auth::user()->id)->first();
+
+        return view('profiles.index', compact('bladers', 'regiones', 'equipo'));
     }
+
 
 
 
@@ -460,10 +475,13 @@ class ProfileController extends Controller
         $data = request()->validate([
             'nombre' => 'required',
             'region_id' => 'required',
+            'free_agent' => 'nullable|boolean',
             'fondo' => 'required',
             'marco' => 'required',
             'subtitulo' => 'nullable|string',  // No es obligatorio
         ]);
+
+        $data['free_agent'] = $request->has('free_agent') ? 1 : 0;
 
         // Si el usuario sube una imagen
         if($request['imagen']) {
@@ -583,6 +601,7 @@ class ProfileController extends Controller
                     })
                     ->where($column, '!=', 0)
                     ->orderBy($column, 'DESC')
+                    ->orderBy('id', 'ASC')
                     ->take($limit)
                     ->get()
                     ->map(function ($blader) use ($column) {
@@ -662,6 +681,34 @@ class ProfileController extends Controller
             ->first();
 
         return view('profiles.wrapped', compact('profile', 'datosTorneo', 'numeroTorneos', 'torneosGanados', 'mejorCombo', 'peorCombo'));
+    }
+
+    public function rankingPorSplits()
+    {
+        $splits = [
+            'Pretemporada' => ['2025-06-01', '2025-08-31'],
+            'Split 0' => ['2025-09-01', '2025-09-30'],
+            'Split 1' => ['2025-10-01', '2025-11-30'],
+            'Split 2' => ['2025-12-01', '2026-01-31'],
+            'Split 3' => ['2026-02-01', '2026-03-31'],
+            'Split 4' => ['2026-04-01', '2026-05-31'],
+            'Split final' => ['2026-06-01', '2026-06-30'],
+        ];
+
+        $data = [];
+
+        foreach ($splits as $nombre => [$start, $end]) {
+            $data[$nombre] = DB::table('points_log')
+                ->join('events', 'points_log.event_id', '=', 'events.id')
+                ->join('users', 'points_log.user_id', '=', 'users.id')
+                ->select('users.id', 'users.name', DB::raw('SUM(points_log.puntos) as total_puntos'))
+                ->whereBetween('events.date', [$start, $end])
+                ->groupBy('users.id', 'users.name')
+                ->orderByDesc('total_puntos')
+                ->get();
+        }
+
+        return view('profiles.splits', compact('data', 'splits'));
     }
 
 

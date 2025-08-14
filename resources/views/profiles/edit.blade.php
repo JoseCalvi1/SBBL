@@ -75,7 +75,7 @@ h4 {
             @csrf
             @method('PUT')
 
-            <div class="form-group">
+            <div class="form-group mt-2">
                 <label for="nombre">Nombre</label>
                 <input type="text"
                     name="nombre"
@@ -110,7 +110,7 @@ h4 {
                 @endphp
 
                     @if ($subscriptionClass == "suscripcion")
-                    <div class="form-group">
+                    <div class="form-group mt-2">
                         <label for="subtitulo">Opción personalizada</label>
                         <select name="subtitulo" id="subtitulo" class="form-control @error('subtitulo') is-invalid @enderror">
                             <option value="" selected>- Selecciona una opción -</option>
@@ -143,7 +143,7 @@ h4 {
                     </div>
 
                     @elseif ($subscriptionClass == "suscripcion-nivel-3")
-                    <div class="form-group">
+                    <div class="form-group mt-2">
                         <label for="subtitulo">Subtítulo</label>
                         <input type="text"
                             name="subtitulo"
@@ -160,7 +160,7 @@ h4 {
                     </div>
                     @endif
 
-            <div class="form-group">
+            <div class="form-group mt-2">
                 <label for="region_id">Región</label>
                 <select name="region_id" id="region_id" class="form-control @error('nombre') is-invalid @enderror">
                     @if ($regionT)
@@ -179,8 +179,21 @@ h4 {
                 @enderror
             </div>
 
+            <div class="form-group mt-2 form-check">
+                <input
+                    type="checkbox"
+                    class="form-check-input"
+                    id="free_agent"
+                    name="free_agent"
+                    value="1"
+                    {{ old('free_agent', $profile->free_agent) ? 'checked' : '' }}
+                >
+                <label class="form-check-label" for="free_agent">Estoy buscando equipo</label>
+            </div>
+
+
             <!-- Avatar -->
-            <div class="form-group">
+            <div class="form-group mt-2">
                 <div class="d-flex justify-content-between align-items-center mb-2" style="cursor: pointer;" onclick="toggleOptions('avatarOptions')">
                     <label for="default_img">Avatar</label>
                     <svg xmlns="http://www.w3.org/2000/svg" class="icon" fill="none" viewBox="0 0 24 24" stroke="currentColor" width="20" height="20">
@@ -256,7 +269,7 @@ h4 {
             </div>
 
             <!-- Marco -->
-            <div class="form-group">
+            <div class="form-group mt-2">
                 <div class="d-flex justify-content-between align-items-center mb-2" style="cursor: pointer;" onclick="toggleOptions('marcoOptions')">
                     <label for="marco">Marco de avatar</label>
                     <svg xmlns="http://www.w3.org/2000/svg" class="icon" fill="none" viewBox="0 0 24 24" stroke="currentColor" width="20" height="20">
@@ -345,7 +358,7 @@ h4 {
             </div>
 
             <!-- Fondo de tarjeta -->
-            <div class="form-group">
+            <div class="form-group mt-2">
                 <div class="d-flex justify-content-between align-items-center mb-2" style="cursor: pointer;" onclick="toggleOptions('fondoOptions')">
                     <label for="fondo">Fondo de tarjeta</label>
                     <svg xmlns="http://www.w3.org/2000/svg" class="icon" fill="none" viewBox="0 0 24 24" stroke="currentColor" width="20" height="20">
