@@ -166,6 +166,7 @@ class TeamController extends Controller
         $equipo->update([
             'name' => $request->name,
             'description' => $request->description,
+            'status' => 'updated',
             // No es necesario actualizar la imagen o el logo aquí
         ]);
 

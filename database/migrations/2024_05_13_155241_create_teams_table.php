@@ -22,7 +22,7 @@ class CreateTeamsTable extends Migration
             $table->longText('image')->nullable();
             $table->longText('logo')->nullable();
             $table->foreignId('captain_id')->references('id')->on('users');
-            $table->enum('status', ['pending', 'accepted'])->default('pending');
+            $table->enum('status', ['pending', 'accepted', 'updated'])->default('pending');
             $table->timestamps();
         });
     }

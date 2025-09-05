@@ -127,7 +127,7 @@
 
     <h3 class="mt-4">📋 SOBRE EL FORMATO</h3>
     <ol>
-        <li>Formato 3on3 (Todos los jugadores lleven llevar un deck compuesto por 3 beys).</li>
+        <li>Formato 3on3 (Todos los jugadores deben llevar un deck compuesto por 3 beys).</li>
         <li>No se pueden repetir piezas entre beys en un mismo deck.</li>
         <li>Todas las piezas que componen el bey deben ser oficiales (Takara Tomy o Hasbro).</li>
         <li>El árbitro podrá desensamblar el bey de un jugador para comprobar cada parte.</li>
@@ -135,7 +135,7 @@
         <li>Antes de empezar la partida, se decidirá el orden en el que se van a utilizar los beys ocultándolo al rival.</li>
         <li>Se jugará los beys de izquierda a derecha  (1ºvs1º, 2ºvs2º y 3ºvs3º).</li>
         <li>Los combates se jugarán a 4 puntos. El primer blader en alcanzarlos, será el vencedor.</li>
-        <li>En caso de que ninguno de los dos jugadores llegue a 4 puntos despues de realizar el tercer combate, se reorganizará el deck para seguir combatiendo hasta que alguno de los dos llegue a la puntuación.</li>
+        <li>En caso de que ninguno de los dos jugadores llegue a 4 puntos después de realizar el tercer combate, se reorganizará el deck para seguir combatiendo hasta que alguno de los dos llegue a la puntuación.</li>
         <li>En caso de empate en alguno de los matchups, se volverán a utilizar ambos beys para repetir ese combate hasta que se obtenga un final claro.</li>
         <li>Si una puntuación no puede ser determinada se repetirá el combate (Ej: Sale el bey por la parte superior del estadio).</li>
     </ol>

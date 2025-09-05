@@ -235,12 +235,22 @@
                 </div>
                 @endforeach
             </div>
-            @if ($equipo->captain_id === Auth::user()->id)
-                <button type="button" class="btn btn-outline-success mt-3" data-bs-toggle="modal" data-bs-target="#sendInvitationModal">
-                    Enviar Invitación
-                </button>
-            @endif
-            <a href="{{ route('equipos.index') }}" class="btn btn-outline-info mt-3">Volver a la lista de equipos</a>
+            <div class="d-flex justify-content-between mt-3">
+                <div class="d-flex gap-2">
+                    @if ($equipo->captain_id === Auth::user()->id)
+                        <a href="{{ route('equipos.edit', $equipo) }}" class="btn btn-outline-primary">Editar</a>
+                        <button type="button" class="btn btn-outline-success"
+                                data-bs-toggle="modal" data-bs-target="#sendInvitationModal">
+                            Enviar Invitación
+                        </button>
+                    @endif
+                </div>
+
+                <a href="{{ route('equipos.index') }}" class="btn btn-outline-info">
+                    Volver a la lista de equipos →
+                </a>
+            </div>
+
         </div>
     </div>
 </div>

@@ -42,7 +42,13 @@
                                             @if ($equipo->status == "pending")
                                                 <form action="{{ route('equipos.acceptInvitation', $equipo) }}" method="POST" style="display: inline;">
                                                     @csrf
-                                                    <button type="submit" class="btn btn-success btn-sm mb-1">Aceptar Invitación</button>
+                                                    <button type="submit" class="btn btn-success btn-sm mb-1">Aceptar equipo</button>
+                                                </form>
+                                            @endif
+                                            @if ($equipo->status == "updated")
+                                                <form action="{{ route('equipos.acceptInvitation', $equipo) }}" method="POST" style="display: inline;">
+                                                    @csrf
+                                                    <button type="submit" class="btn btn-info btn-sm mb-1">Aceptar cambios</button>
                                                 </form>
                                             @endif
                                         </td>
