@@ -20,9 +20,12 @@ class TeamsVersusController extends Controller
      */
     public function index()
     {
-        $versus = TeamsVersus::orderBy('id', 'DESC')->get();
+        $versus = TeamsVersus::whereDate('created_at', '>=', '2025-09-01')
+            ->orderBy('id', 'DESC')
+            ->get();
 
         return view('teams_versus.index', compact('versus'));
+
     }
 
     /**

@@ -686,8 +686,8 @@ class ProfileController extends Controller
     public function rankingPorSplits()
     {
         $splits = [
-            'Pretemporada' => ['2025-06-01', '2025-08-31'],
-            'Split 0' => ['2025-09-01', '2025-09-30'],
+            'Pretemporada' => ['2025-06-22', '2025-08-31'],
+            'Split inicial' => ['2025-09-01', '2025-09-30'],
             'Split 1' => ['2025-10-01', '2025-11-30'],
             'Split 2' => ['2025-12-01', '2026-01-31'],
             'Split 3' => ['2026-02-01', '2026-03-31'],

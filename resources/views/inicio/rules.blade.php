@@ -117,11 +117,11 @@
         </thead>
         <tbody>
             <tr><td>4–5</td><td>2</td><td>1</td><td>1</td><td>1</td><td>1</td><td>1</td><td>1</td></tr>
-            <tr><td>6–7</td><td>3</td><td>2</td><td>1</td><td>1</td><td>1</td><td>1</td><td>1</td></tr>
-            <tr><td>8–15</td><td>4</td><td>3</td><td>2</td><td>1</td><td>1</td><td>1</td><td>1</td></tr>
-            <tr><td>16–23</td><td>5</td><td>4</td><td>3</td><td>2</td><td>1</td><td>1</td><td>1</td></tr>
-            <tr><td>24–31</td><td>6</td><td>5</td><td>4</td><td>3</td><td>2</td><td>1</td><td>1</td></tr>
-            <tr><td>32 en adelante</td><td>7</td><td>6</td><td>5</td><td>4</td><td>3</td><td>2</td><td>1</td></tr>
+            <tr><td>6–8</td><td>3</td><td>2</td><td>1</td><td>1</td><td>1</td><td>1</td><td>1</td></tr>
+            <tr><td>9–16</td><td>4</td><td>3</td><td>2</td><td>1</td><td>1</td><td>1</td><td>1</td></tr>
+            <tr><td>17–24</td><td>5</td><td>4</td><td>3</td><td>2</td><td>1</td><td>1</td><td>1</td></tr>
+            <tr><td>25–32</td><td>6</td><td>5</td><td>4</td><td>3</td><td>2</td><td>1</td><td>1</td></tr>
+            <tr><td>33 en adelante</td><td>7</td><td>6</td><td>5</td><td>4</td><td>3</td><td>2</td><td>1</td></tr>
         </tbody>
     </table>
 

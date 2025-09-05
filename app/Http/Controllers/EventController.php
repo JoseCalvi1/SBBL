@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Event;
+use App\Models\EventReview;
 use App\Models\Region;
 use App\Models\TournamentResult;
 use App\Models\User;
@@ -49,7 +50,7 @@ class EventController extends Controller
         $query->with(['region', 'reviews.referee']);
 
         // Obtener los eventos filtrados con paginación para mejor rendimiento
-        $events = $query->paginate(20);
+        $events = $query->get();
 
         return view('events.index', compact('events', 'estado', 'beys'));
     }
@@ -181,7 +182,7 @@ class EventController extends Controller
         ]);
 
         // TODO Comentar para probar en local
-        //Self::notification(Event::find($eventId));
+        Self::notification(Event::find($eventId));
 
         $events = Event::with('region')->get();
         $createEvent = Event::where('created_by', Auth::user()->id)->where('date', '>', Carbon::now())->get();
@@ -491,6 +492,17 @@ class EventController extends Controller
 
     if ($evento->beys == 'ranking' || $evento->beys == 'rankingplus') {
 
+        if($request->comment != null) {
+            DB::table('event_judge_reviews')->insert([
+                'event_id'     => $id,
+                'judge_id'     => Auth::user()->id,
+                'final_status' => 'approved',
+                'comment'      => $request->comment,
+                'created_at'   => now(),
+                'updated_at'   => now(),
+            ]);
+        }
+
         // Verificar si hay participantes con puesto vacío o null
         $participantesSinPuesto = DB::table('assist_user_event')
             ->where('event_id', $id)
@@ -520,18 +532,18 @@ class EventController extends Controller
         //$totalParticipantes = min($totalParticipantes, 32);
 
         // Tabla de puntuaciones por rango de jugadores
-        if ($totalParticipantes >= 32) {
+        if ($totalParticipantes >= 33) {
             $tabla = [7, 6, 5, 4, 3, 2, 1];
-        } elseif ($totalParticipantes >= 24) {
+        } elseif ($totalParticipantes >= 25) {
             $tabla = [6, 5, 4, 3, 2, 1, 1];
-        } elseif ($totalParticipantes >= 16) {
+        } elseif ($totalParticipantes >= 17) {
             $tabla = [5, 4, 3, 2, 1, 1, 1];
-        } elseif ($totalParticipantes >= 8) {
+        } elseif ($totalParticipantes >= 9) {
             $tabla = [4, 3, 2, 1, 1, 1, 1];
-        } elseif ($totalParticipantes >= 4) {
+        } elseif ($totalParticipantes >= 6) {
             $tabla = [3, 2, 1, 1, 1, 1, 1];
         } else {
-            $tabla = [1, 1, 1, 1, 1, 1, 1];
+            $tabla = [2, 1, 1, 1, 1, 1, 1];
         }
 
         // Función para convertir puesto a índice en la tabla
@@ -580,6 +592,18 @@ class EventController extends Controller
 
     public function estadoTorneo(Request $request, $id, $estado) {
         if($estado == "invalidar") {
+
+            if($request->comment != null) {
+            DB::table('event_judge_reviews')->insert([
+                'event_id'     => $id,
+                'judge_id'     => Auth::user()->id,
+                'final_status' => 'rejected',
+                'comment'      => $request->comment,
+                'created_at'   => now(),
+                'updated_at'   => now(),
+            ]);
+        }
+
             self::actualizarStatus($id, 'INVALID');
             return redirect()->back()->with('success', 'Evento invalidado');
 
@@ -744,6 +768,27 @@ class EventController extends Controller
 
         return back()->with('success', 'Revisión registrada.');
     }
+
+    public function destroyReview($eventId, $userId)
+    {
+        $review = EventReview::where('event_id', $eventId)
+                    ->where('referee_id', $userId)
+                    ->first();
+
+        if (!$review) {
+            return back()->with('error', 'Revisión no encontrada.');
+        }
+
+        // Solo el dueño o admin puede borrar
+        if (auth()->id() !== (int)$userId && !auth()->user()->is_admin) {
+            abort(403, 'No autorizado');
+        }
+
+        $review->delete();
+
+        return back()->with('success', 'Revisión eliminada correctamente.');
+    }
+
 
 
 }

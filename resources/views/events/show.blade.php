@@ -186,9 +186,9 @@
                     <div class="collapse mt-2" id="reviewCollapse{{ $event->id }}">
                     <div class="card card-body bg-light text-dark p-2" style="font-size: 0.85rem;">
                         <strong>Validadores y comentarios:</strong>
-                        @if($event->reviews->isEmpty())
+                        @if($event->reviews->isEmpty() && !$event->judgeReview)
                         <em>No hay revisiones aún.</em>
-                        @else
+                        @elseif (!$event->judgeReview)
                         <ul class="mb-0 ps-3" style="max-height: 150px; overflow-y: auto;">
                             @foreach($event->reviews as $review)
                             <li class="mb-1">
@@ -209,6 +209,26 @@
                                 <em>{{ $review->comment }}</em>
                             </li>
                             @endforeach
+                        </ul>
+                        @else
+                        <ul class="mb-0 ps-3" style="max-height: 150px; overflow-y: auto;">
+                            <li class="mb-1">
+                                <strong>
+                                @if(auth()->user()->is_admin || Auth::user()->name == $event->judgeReview->referee->name)
+                                    {{ $event->judgeReview->referee->name ?? 'Juez' }}
+                                @else
+                                    Juez
+                                @endif
+                                </strong>:
+                                <span class="badge
+                                @if($event->judgeReview->final_status == 'approved') bg-success
+                                @elseif($event->judgeReview->final_status == 'rejected') bg-danger
+                                @else bg-secondary
+                                @endif">
+                                {{ strtoupper($event->judgeReview->final_status) }}
+                                </span><br>
+                                <em>{{ $event->judgeReview->comment }}</em>
+                            </li>
                         </ul>
                         @endif
                     </div>
@@ -279,13 +299,13 @@
                                                         $count = $assists->count();
                                                         $options = ['primero', 'segundo']; // Default para <8
 
-                                                        if ($count >= 8 && $count <= 15) {
+                                                        if ($count >= 9 && $count <= 16) {
                                                             $options = ['primero', 'segundo', 'tercero'];
-                                                        } elseif ($count >= 16 && $count <= 23) {
+                                                        } elseif ($count >= 17 && $count <= 24) {
                                                             $options = ['primero', 'segundo', 'tercero', 'cuarto'];
-                                                        } elseif ($count >= 24 && $count <= 31) {
+                                                        } elseif ($count >= 25 && $count <= 32) {
                                                             $options = ['primero', 'segundo', 'tercero', 'cuarto', 'quinto'];
-                                                        } elseif ($count > 31) {
+                                                        } elseif ($count > 32) {
                                                             $options = ['primero', 'segundo', 'tercero', 'cuarto', 'quinto', 'septimo'];
                                                         }
 
@@ -622,7 +642,7 @@
                                     <!-- Bit -->
                                     <div class="col-md-2">
                                         <label for="bit_{{ Auth::user()->id }}_{{ $index }}" class="form-label">Bit</label>
-                                        <select class="form-select select2" id="bit_{{ Auth::user()->id }}_{{ $index }}" name="bit[{{ Auth::user()->id }}][]" required>
+                                        <select class="form-select select2" id="bit_{{ Auth::user()->id }}_{{ $index }}" name="bit[{{ Auth::user()->id }}][]">
                                             <option value="">-- Selecciona un bit --</option>
                                             @foreach($bitOptions as $option)
                                                 <option value="{{ $option }}"

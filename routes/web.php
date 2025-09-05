@@ -60,6 +60,8 @@ Route::put('/events/{event}/{estado}/estado', [App\Http\Controllers\EventControl
 Route::put('/events/{event}/update-video', [EventController::class, 'updateVideo'])->name('events.updateVideo');
 Route::post('/events/{event}/review', [EventController::class, 'submitReview'])->name('event.review');
 Route::post('/event/{event}/review/start', [EventController::class, 'startReview'])->name('event.review.start');
+Route::delete('/events/{event}/reviews/{user}', [EventController::class, 'destroyReview'])->name('event.destroyReview');
+
 
 Route::post('/events/{event}', [App\Http\Controllers\EventController::class, 'assist'])->name('events.assist');
 Route::delete('/assist/{event}', [App\Http\Controllers\EventController::class, 'noassist'])->name('events.noassist');

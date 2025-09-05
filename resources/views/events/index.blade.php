@@ -131,28 +131,32 @@
                 id="revisar-evento-btn-{{ $event->id }}">
             Revisar Evento
         </button>
+        {{-- Botón para eliminar la revisión --}}
+        <form action="{{ route('event.destroyReview', ['event' => $event->id, 'user' => Auth::id()]) }}"
+            method="POST" class="d-inline"
+            onsubmit="return confirm('¿Seguro que deseas eliminar tu revisión?');">
+            @csrf
+            @method('DELETE')
+            <button type="submit" class="btn btn-danger btn-sm">
+                Dejar Revisión
+            </button>
+        </form>
     @endif
 
     @auth
     @if((auth()->user()->is_jury || auth()->user()->is_admin) && in_array($event->beys, ['ranking', 'rankingplus']))
         {{-- Botón invalidar visible para árbitros --}}
         <div style="display: flex; gap: 10px; align-items: center;">
-            <form method="POST" action="{{ route('events.actualizarPuntuaciones', ['event' => $event->id, 'mode' => $event->mode]) }}">
-                @method('PUT')
-                @csrf
-                <button type="submit" class="btn btn-success btn-sm"
-                    onclick="return confirm('¿Estás seguro de que deseas validar el evento? Esta acción no se puede deshacer.')">
-                    Validar
-                </button>
-            </form>
+            <button type="button" class="btn btn-success btn-sm"
+                data-bs-toggle="modal" data-bs-target="#validarModal{{ $event->id }}">
+                Validar
+            </button>
 
-            <form method="POST" action="{{ route('events.estado', ['event' => $event->id, 'estado' => 'invalidar']) }}">
-                @csrf
-                @method('PUT')
-                <button type="submit" class="btn btn-warning btn-sm"
-                    onclick="return confirm('¿Estás seguro de que deseas invalidar el evento? Esta acción no se puede deshacer.')">
-                    Invalidar</button>
-            </form>
+            <!-- Botón Invalidar en la tabla o card del evento -->
+            <button type="button" class="btn btn-warning btn-sm" data-bs-toggle="modal" data-bs-target="#invalidarModal{{ $event->id }}">
+                Invalidar
+            </button>
+
         </div>
     @endif
 @endauth
@@ -230,6 +234,97 @@
 @endsection
 
 @section('scripts')
+    @foreach ($events as $event)
+        @if (!in_array($event->status, ['INVALID', 'CLOSE', 'OPEN']))
+            <!-- Modal Validar -->
+            <div class="modal fade" id="validarModal{{ $event->id }}" tabindex="-1" aria-labelledby="validarModalLabel{{ $event->id }}" aria-hidden="true">
+              <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                  <div class="modal-header">
+                    <h5 class="modal-title" id="validarModalLabel{{ $event->id }}">Confirmar validación</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                  </div>
+
+                  <div class="modal-body">
+                    <p>¿Cómo deseas validar el evento <strong>{{ $event->name }}</strong>?</p>
+
+                    <!-- Formulario con comentario (oculto por defecto, se muestra al pulsar botón correspondiente) -->
+                    <form method="POST" action="{{ route('events.actualizarPuntuaciones', ['event' => $event->id, 'mode' => $event->mode]) }}"
+                          id="form-validar-comentario-{{ $event->id }}" style="display: none;">
+                        @method('PUT')
+                        @csrf
+                        <div class="mb-3">
+                            <label for="comment{{ $event->id }}" class="form-label">Comentario</label>
+                            <textarea name="comment" id="comment{{ $event->id }}" class="form-control" rows="3" required></textarea>
+                        </div>
+                        <button type="submit" class="btn btn-primary w-100">Validar con comentario</button>
+                    </form>
+                  </div>
+
+                  <div class="modal-footer d-flex flex-column gap-2">
+                    <!-- Validar sin comentario -->
+                    <form method="POST" action="{{ route('events.actualizarPuntuaciones', ['event' => $event->id, 'mode' => $event->mode]) }}" class="w-100">
+                      @method('PUT')
+                      @csrf
+                      <button type="submit" class="btn btn-success w-100">Validar sin comentario</button>
+                    </form>
+
+                    <!-- Botón que activa el textarea -->
+                    <button type="button" class="btn btn-primary w-100"
+                        onclick="document.getElementById('form-validar-comentario-{{ $event->id }}').style.display='block'; this.style.display='none';">
+                        Validar con comentario
+                    </button>
+
+                    <!-- Cancelar -->
+                    <button type="button" class="btn btn-secondary w-100" data-bs-dismiss="modal">Cancelar</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+        @endif
+
+                <!-- Modal Invalidar -->
+        <div class="modal fade" id="invalidarModal{{ $event->id }}" tabindex="-1" aria-labelledby="invalidarModalLabel{{ $event->id }}" aria-hidden="true">
+          <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+              <div class="modal-header">
+                <h5 class="modal-title" id="invalidarModalLabel{{ $event->id }}">Invalidar evento</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+              </div>
+
+              <div class="modal-body">
+                <p>¿Deseas invalidar el evento <strong>{{ $event->name }}</strong>?</p>
+
+                <form method="POST" action="{{ route('events.estado', ['event' => $event->id, 'estado' => 'invalidar']) }}" id="form-invalidar-comentario-{{ $event->id }}" style="display: none;">
+                    @csrf
+                    @method('PUT')
+                    <div class="mb-3">
+                        <label for="commentInvalidar{{ $event->id }}" class="form-label">Comentario</label>
+                        <textarea name="comment" id="commentInvalidar{{ $event->id }}" class="form-control" rows="3" required></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-danger w-100">Invalidar con comentario</button>
+                </form>
+              </div>
+
+              <div class="modal-footer d-flex flex-column gap-2">
+                <form method="POST" action="{{ route('events.estado', ['event' => $event->id, 'estado' => 'invalidar']) }}" class="w-100">
+                    @csrf
+                    @method('PUT')
+                    <button type="submit" class="btn btn-warning w-100">Invalidar sin comentario</button>
+                </form>
+
+                <button type="button" class="btn btn-secondary w-100"
+                    onclick="document.getElementById('form-invalidar-comentario-{{ $event->id }}').style.display='block'; this.style.display='none';">
+                    Invalidar con comentario
+                </button>
+
+                <button type="button" class="btn btn-outline-secondary w-100" data-bs-dismiss="modal">Cancelar</button>
+              </div>
+            </div>
+          </div>
+        </div>
+    @endforeach
+
     @foreach ($events as $event)
         @if (!in_array($event->status, ['INVALID', 'CLOSE']))
             <!-- Modal de revisión para cada evento -->
