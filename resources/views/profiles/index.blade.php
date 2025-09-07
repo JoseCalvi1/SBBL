@@ -5,7 +5,7 @@
 @section('content')
 
 <div class="container">
-    <h2 class="titulo-categoria text-uppercase mb-4 mt-4" style="color: white">Bladers</h2>
+    <h2 class="titulo-categoria text-uppercase mb-4 mt-4" style="color: white">Bladers ({{ count($bladers) }})</h2>
     <div>
         <div class="row">
             <form method="GET" class="mb-4" style="display: flex; gap: 1rem; flex-wrap: wrap;">

@@ -264,6 +264,10 @@ class InicioController extends Controller
     {
         $burstusers = User::whereIn('id', [4, 18])->get();
 
+        $xusers = User::where('id', 215)->get();
+
+        $nacionalusers2025 = User::whereIn('id', [142, 766, 304])->get();
+
         // Usuario con más asistencias
         $topAttenderData = DB::table('assist_user_event')
             ->select('user_id', DB::raw('COUNT(*) as total'))
@@ -376,6 +380,7 @@ class InicioController extends Controller
             ->groupBy('tournament_results.user_id', 'mes')
             ->get()
             ->groupBy('mes')
+            ->sortKeys() // <- Ordena los meses de forma cronológica descendente
             ->map(function ($grupo) {
                 $top = $grupo->sortByDesc('total_puntos')->first();
                 $user = \App\Models\User::with('profile')->find($top->user_id);
@@ -392,7 +397,9 @@ class InicioController extends Controller
             'topRegister',
             'topPoints',
             'mejoresPorMes',
-            'burstusers'
+            'burstusers',
+            'xusers',
+            'nacionalusers2025'
         ));
     }
 

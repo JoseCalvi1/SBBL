@@ -216,6 +216,9 @@
                             <a class="dropdown-item menu-item-2" style="color: white; font-weight: bold; font-size:1.2em;" href="{{ route('profiles.ranking') }}">
                                 <i class="fas fa-trophy me-2"></i> {{ 'Rankings' }}
                             </a>
+                            <a class="dropdown-item menu-item-2" style="color: white; font-weight: bold; font-size:1.2em;" href="{{ route('profiles.splits') }}">
+                                <i class="fas fa-code-branch me-2"></i> {{ 'Splits' }}
+                            </a>
                             <a class="dropdown-item menu-item-2" style="color: white; font-weight: bold; font-size:1.2em;" href="{{ route('inicio.rules') }}">
                                 <i class="fas fa-gavel me-2"></i> {{ 'Reglamento' }}
                             </a>
@@ -317,13 +320,13 @@
                             <div style="
                                 position: absolute;
                                 inset: 0;
-                                background: linear-gradient(to left, rgba(30, 61, 132, 0.8), rgba(17, 230, 198, 0.5));
+                                background: linear-gradient(to right, rgba(51, 51, 153, 1), rgba(0, 255, 204, 0.5));
                                 z-index: 1;
                             "></div>
                             <div style="
                                 position: absolute;
                                 inset: 0;
-                                background-image: url('/../images/webTile2.png');
+                                background-image: url('/../images/s2tile_3.png');
                                 background-repeat: repeat;
                                 background-size: auto;
                                 background-position: left;
@@ -332,7 +335,7 @@
                         </div>
 
                         <!-- CONTENIDO CENTRAL -->
-                        <div class="col-md-8 col-sm-12" style="padding: 0px; background-color: #27295B; min-height:50vh; position: relative; z-index: 3; box-shadow: -8px 0 15px rgba(0, 0, 0, 0.5), 8px 0 15px rgba(0, 0, 0, 0.5);">
+                        <div class="col-md-8 col-sm-12" style="padding: 0px; background-color: #27295B; min-height:50vh; position: relative; z-index: 3;">
                             @yield('content')
                         </div>
 
@@ -345,13 +348,13 @@
                             <div style="
                                 position: absolute;
                                 inset: 0;
-                                background: linear-gradient(to right, rgba(30, 61, 132, 0.8), rgba(17, 230, 198, 0.5));
+                                background: linear-gradient(to left, rgba(51, 51, 153, 1), rgba(0, 255, 204, 0.5));
                                 z-index: 1;
                             "></div>
                             <div style="
                                 position: absolute;
                                 inset: 0;
-                                background-image: url('/../images/webTile2.png');
+                                background-image: url('/../images/s2tile_3.png');
                                 background-repeat: repeat;
                                 background-size: auto;
                                 background-position: right;
