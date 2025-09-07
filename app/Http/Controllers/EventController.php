@@ -145,20 +145,24 @@ class EventController extends Controller
         }*/
 
         // Si el usuario sube una imagen
-        if($request->imagen == 'copalloros')  {
-            $ruta_imagen = 'upload-events/copalloros.png';
-        }   elseif($request->imagen == 'copaligera')  {
-            $ruta_imagen = 'upload-events/copaligeraweb.png';
-        }   elseif($request['region_id'] == 1) {
-            $ruta_imagen = 'upload-events/CartelAndalucia.webp';
+        if($request['region_id'] == 1) {
+            $ruta_imagen = 'upload-events/andalucias2.webp';
         }   elseif($request['region_id'] == 2)  {
-            $ruta_imagen = 'upload-events/CartelMadrid.webp';
+            $ruta_imagen = 'upload-events/madrids2.webp';
         }   elseif($request['region_id'] == 4)  {
-            $ruta_imagen = 'upload-events/ValenciaCartel.webp';
+            $ruta_imagen = 'upload-events/valencias2.webp';
         }   elseif($request['region_id'] == 8)  {
-            $ruta_imagen = 'upload-events/CanariasBase.png';
-        }   else {
-            $ruta_imagen = 'upload-events/rankingx.jpg';
+            $ruta_imagen = 'upload-events/canariass2.png';
+        }   elseif($request['region_id'] == 11)  {
+            $ruta_imagen = 'upload-events/aragons2.png';
+        }    elseif($request['region_id'] == 5)  {
+            $ruta_imagen = 'upload-events/galicias2.png';
+        }    elseif($request['region_id'] == 14)  {
+            $ruta_imagen = 'upload-events/asturiass2.png';
+        }    elseif($request['beys'] == 'ranking' || $request['beys'] == 'rankingplus')  {
+            $ruta_imagen = 'upload-events/rankingx.png';
+        } else {
+            $ruta_imagen = 'upload-events/quedada.jpg';
         }
 
 
@@ -337,14 +341,20 @@ class EventController extends Controller
 
         // Si el usuario sube una imagen
         if($request['region_id'] == 1) {
-            $ruta_imagen = 'upload-events/CartelAndalucia.webp';
+            $ruta_imagen = 'upload-events/andalucias2.webp';
         }   elseif($request['region_id'] == 2)  {
-            $ruta_imagen = 'upload-events/CartelMadrid.webp';
+            $ruta_imagen = 'upload-events/madrids2.webp';
         }   elseif($request['region_id'] == 4)  {
-            $ruta_imagen = 'upload-events/ValenciaCartel.webp';
+            $ruta_imagen = 'upload-events/valencias2.webp';
         }   elseif($request['region_id'] == 8)  {
-            $ruta_imagen = 'upload-events/CanariasBase.png';
-        }elseif($request['beys'] == 'ranking' || $request['beys'] == 'rankingplus')  {
+            $ruta_imagen = 'upload-events/canariass2.png';
+        }   elseif($request['region_id'] == 11)  {
+            $ruta_imagen = 'upload-events/aragons2.png';
+        }    elseif($request['region_id'] == 5)  {
+            $ruta_imagen = 'upload-events/galicias2.png';
+        }    elseif($request['region_id'] == 14)  {
+            $ruta_imagen = 'upload-events/asturiass2.png';
+        }    elseif($request['beys'] == 'ranking' || $request['beys'] == 'rankingplus')  {
             $ruta_imagen = 'upload-events/rankingx.png';
         } else {
             $ruta_imagen = 'upload-events/quedada.jpg';
@@ -451,7 +461,7 @@ class EventController extends Controller
             $event->save();
         }
         // Actualizar status (asumo que este método existe y funciona)
-        self::actualizarStatus($id, 'PENDING');
+        //self::actualizarStatus($id, 'PENDING');
 
         // Validar participantes - que exista array y que cada elemento tenga id y puesto válidos
         $rules = [
