@@ -368,7 +368,7 @@
             </div>
 
             <!-- Botón flotante para suscripciones -->
-            <div class="subscription-button" id="subscriptionButton" onclick="window.location.href='{{ route('subscriptions') }}'">
+            <div class="subscription-button" id="subscriptionButton" onclick="window.location.href='{{ route('planes.index') }}'">
                 <i class="fas fa-credit-card"></i>
                 <span class="d-none d-md-inline font-weight-bold" style="color: #27295B">SUSCRIPCIONES</span>
                 <div class="subscription-tooltip">

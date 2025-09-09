@@ -7,6 +7,7 @@ use App\Http\Controllers\EventController;
 use App\Http\Controllers\InicioController;
 use App\Http\Controllers\TeamController;
 use App\Http\Controllers\InvitationController;
+use App\Http\Controllers\PayPalController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\TeamsVersusController;
 use App\Http\Controllers\TiendaController;

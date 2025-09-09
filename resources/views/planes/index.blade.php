@@ -34,6 +34,14 @@
                    data-plan-id="{{ $plan->paypal_plan_monthly_id }}"
                    data-plan-slug="{{ $plan->slug }}"
                    data-period="monthly"></div>
+                   <form action="{{ route('paypal.confirm') }}" method="POST">
+                        @csrf
+                        <input type="hidden" name="subscription_id" value="P-1X657411GU0088618NC77KEI">
+                        <input type="hidden" name="plan_slug" value="bronce"> {{-- o plata/oro, que exista en tu DB --}}
+                        <input type="hidden" name="period" value="monthly">
+                        <button type="submit" class="btn btn-primary">Probar registro manual</button>
+                    </form>
+
             </div>
 
             <div class="mb-3 p-2 rounded" style="background-color: #2a2a2a;">
@@ -57,7 +65,7 @@
 @endsection
 
 @section('scripts')
-<script src="https://www.paypal.com/sdk/js?client-id={{ env('PAYPAL_SANDBOX_CLIENT_ID') }}&vault=true&intent=subscription"></script>
+<script src="https://www.paypal.com/sdk/js?client-id={{ env('PAYPAL_LIVE_CLIENT_ID') }}&vault=true&intent=subscription"></script>
 
 <script>
 document.addEventListener('DOMContentLoaded', function () {
