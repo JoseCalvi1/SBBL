@@ -232,3 +232,14 @@ Route::put('/collection/{id}', [BeybladeCollectionController::class, 'update'])-
 Route::delete('/collection/{id}', [BeybladeCollectionController::class, 'destroy'])->name('collection.destroy');
 
 
+// mostrar planes
+Route::get('/planes', [App\Http\Controllers\PlanController::class,'index'])->name('planes.index');
+
+// confirmar after PayPal approval (ajax)
+Route::post('/paypal/subscription/confirm', [PayPalController::class,'confirm'])->name('paypal.confirm')->middleware('auth');
+
+// webhook endpoint (sin auth, accesible para PayPal)
+Route::post('/paypal/webhook', [PayPalController::class,'handle']);
+
+
+

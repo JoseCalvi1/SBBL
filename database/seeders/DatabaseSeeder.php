@@ -17,5 +17,6 @@ class DatabaseSeeder extends Seeder
         $this->call(RegionSeed::class);
         $this->call(UserSeed::class);
         $this->call(BeybladeSeeder::class);
+        $this->call(PlansTableSeeder::class);
     }
 }

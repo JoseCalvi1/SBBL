@@ -30,7 +30,7 @@ private static $installed = array (
     'aliases' => 
     array (
     ),
-    'reference' => '728532041c53ea3bcd6c9e2ca1095bc1d87fd12a',
+    'reference' => '6864c2ed2fbb9fcc5d574408ba66221f771c34c7',
     'name' => 'laravel/laravel',
   ),
   'versions' => 
@@ -478,7 +478,7 @@ private static $installed = array (
       'aliases' => 
       array (
       ),
-      'reference' => '728532041c53ea3bcd6c9e2ca1095bc1d87fd12a',
+      'reference' => '6864c2ed2fbb9fcc5d574408ba66221f771c34c7',
     ),
     'laravel/sail' => 
     array (
@@ -1053,6 +1053,15 @@ private static $installed = array (
       array (
       ),
       'reference' => 'c6c1022351a901512170118436c764e473f6de8c',
+    ),
+    'srmklive/paypal' => 
+    array (
+      'pretty_version' => '3.0.40',
+      'version' => '3.0.40.0',
+      'aliases' => 
+      array (
+      ),
+      'reference' => '1ddc49fd836a4785933ab953452152f3fedbac63',
     ),
     'swiftmailer/swiftmailer' => 
     array (
