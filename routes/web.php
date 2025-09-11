@@ -8,6 +8,7 @@ use App\Http\Controllers\InicioController;
 use App\Http\Controllers\TeamController;
 use App\Http\Controllers\InvitationController;
 use App\Http\Controllers\PayPalController;
+use App\Http\Controllers\PayPalWebhookController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\TeamsVersusController;
 use App\Http\Controllers\TiendaController;
@@ -240,7 +241,7 @@ Route::get('/planes', [App\Http\Controllers\PlanController::class,'index'])->nam
 Route::post('/paypal/subscription/confirm', [PayPalController::class,'confirm'])->name('paypal.confirm')->middleware('auth');
 
 // webhook endpoint (sin auth, accesible para PayPal)
-Route::post('/paypal/webhook', [PayPalController::class,'handle']);
+Route::post('/paypal/webhook', [PayPalWebhookController::class,'handle']);
 
 
 

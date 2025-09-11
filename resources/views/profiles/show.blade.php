@@ -127,6 +127,16 @@
             </div>
         -->
         </div>
+        {{-- profile.blade.php --}}
+
+        <div class="container">
+            @if($subscription)
+                <div class="alert alert-success">
+                    Tienes una suscripción {{ $subscription->period }} de nivel {{ $subscription->plan->name }}!
+                </div>
+            @endif
+        </div>
+
     </div>
 
     <div class="container mt-3">

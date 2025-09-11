@@ -191,7 +191,11 @@ class ProfileController extends Controller
             ->orderBy('events.date', 'DESC')
             ->get(['events.*']); // Seleccionamos todas las columnas de la tabla `events`
 
-        return view('profiles.show', compact('profile', 'versus', 'eventos', 'invitacionesPendientes', 'currentMonth', 'currentYear'));
+        $user = Auth::user();
+
+        $subscription = $user->activeSubscription;
+
+        return view('profiles.show', compact('profile', 'versus', 'eventos', 'invitacionesPendientes', 'currentMonth', 'currentYear', 'subscription'));
     }
 
 

@@ -92,5 +92,12 @@ class User extends Authenticatable
                     ->withPivot('count'); // Incluye la columna count
     }
 
+    public function activeSubscription()
+    {
+        return $this->hasOne(Subscription::class)
+                    ->where('status', 'active')
+                    ->where('ended_at', '>=', now()); // solo activas
+    }
+
 
 }
