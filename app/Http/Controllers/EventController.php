@@ -152,13 +152,13 @@ class EventController extends Controller
         }   elseif($request['region_id'] == 4)  {
             $ruta_imagen = 'upload-events/valencias2.webp';
         }   elseif($request['region_id'] == 8)  {
-            $ruta_imagen = 'upload-events/canariass2.png';
+            $ruta_imagen = 'upload-events/canariass2.webp';
         }   elseif($request['region_id'] == 11)  {
-            $ruta_imagen = 'upload-events/aragons2.png';
+            $ruta_imagen = 'upload-events/aragons2.webp';
         }    elseif($request['region_id'] == 5)  {
-            $ruta_imagen = 'upload-events/galicias2.png';
+            $ruta_imagen = 'upload-events/galicias2.webp';
         }    elseif($request['region_id'] == 14)  {
-            $ruta_imagen = 'upload-events/asturiass2.png';
+            $ruta_imagen = 'upload-events/asturiass2.webp';
         }    elseif($request['beys'] == 'ranking' || $request['beys'] == 'rankingplus')  {
             $ruta_imagen = 'upload-events/rankingx.png';
         } else {
@@ -186,7 +186,7 @@ class EventController extends Controller
         ]);
 
         // TODO Comentar para probar en local
-        Self::notification(Event::find($eventId));
+        //Self::notification(Event::find($eventId));
 
         $events = Event::with('region')->get();
         $createEvent = Event::where('created_by', Auth::user()->id)->where('date', '>', Carbon::now())->get();
@@ -347,13 +347,13 @@ class EventController extends Controller
         }   elseif($request['region_id'] == 4)  {
             $ruta_imagen = 'upload-events/valencias2.webp';
         }   elseif($request['region_id'] == 8)  {
-            $ruta_imagen = 'upload-events/canariass2.png';
+            $ruta_imagen = 'upload-events/canariass2.webp';
         }   elseif($request['region_id'] == 11)  {
-            $ruta_imagen = 'upload-events/aragons2.png';
+            $ruta_imagen = 'upload-events/aragons2.webp';
         }    elseif($request['region_id'] == 5)  {
-            $ruta_imagen = 'upload-events/galicias2.png';
+            $ruta_imagen = 'upload-events/galicias2.webp';
         }    elseif($request['region_id'] == 14)  {
-            $ruta_imagen = 'upload-events/asturiass2.png';
+            $ruta_imagen = 'upload-events/asturiass2.webp';
         }    elseif($request['beys'] == 'ranking' || $request['beys'] == 'rankingplus')  {
             $ruta_imagen = 'upload-events/rankingx.png';
         } else {

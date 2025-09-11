@@ -55,24 +55,30 @@
                             </span>
                         @endif
 
-                        <form method="POST" action="{{ route('events.assist', ['event' => $event->id]) }}" enctype="multipart/form-data" novalidate style="text-align: center;">
-                            @csrf
-                            <div class="form-group py-2">
-                                <input
-                                    type="submit"
-                                    class="btn btn-primary text-uppercase font-weight-bold m-1 flex-right"
-                                    value="Inscribirse"
-                                    @if(in_array($event->beys, ['ranking', 'rankingplus']) && $rankingTournamentsLeft == 0)
-                                        disabled
+                        @if($event->beys === "grancopa")
+                            <div id="paypal-button-container" style="text-align: center;"></div>
+
+                        @else
+                            <form method="POST" action="{{ route('events.assist', ['event' => $event->id]) }}" enctype="multipart/form-data" novalidate style="text-align: center;">
+                                @csrf
+                                <div class="form-group py-2">
+                                    <input
+                                        type="submit"
+                                        class="btn btn-primary text-uppercase font-weight-bold m-1 flex-right"
+                                        value="Inscribirse"
+                                        @if(in_array($event->beys, ['ranking', 'rankingplus']) && $rankingTournamentsLeft == 0)
+                                            disabled
+                                        @endif
+                                    >
+                                    @if(in_array($event->beys, ['ranking', 'rankingplus']))
+                                        <span class="badge badge-warning ml-2" title="Torneos de ranking restantes este mes" style="font-size: 1rem;">
+                                            🎟️ {{ $rankingTournamentsLeft }}
+                                        </span>
                                     @endif
-                                >
-                                @if(in_array($event->beys, ['ranking', 'rankingplus']))
-                                    <span class="badge badge-warning ml-2" title="Torneos de ranking restantes este mes" style="font-size: 1rem;">
-                                        🎟️ {{ $rankingTournamentsLeft }}
-                                    </span>
-                                @endif
-                            </div>
-                        </form>
+                                </div>
+                            </form>
+                        @endif
+
                     @php
                         $user = \App\Models\User::findOrFail($event->created_by);
                     @endphp
@@ -431,13 +437,56 @@
 @endsection
 
 @section('scripts')
-<!-- jQuery y Select2 -->
-        <script>
-        jQuery(document).ready(function () {
+    @php
+        $paypalClientId = config('paypal.mode') === 'sandbox'
+            ? config('paypal.sandbox.client_id')
+            : config('paypal.live.client_id');
+    @endphp
 
+    <script src="https://www.paypal.com/sdk/js?client-id={{ $paypalClientId }}&currency=EUR"></script>
+
+    <script>
+        jQuery(document).ready(function () {
             const isReferee = @json(Auth::user()->is_jury);
 
-            // Copiar nombres al portapapeles
+            // 👉 Botón PayPal solo si es GranCopa
+            @if($event->beys === "grancopa")
+                paypal.Buttons({
+                    createOrder: function(data, actions) {
+                        return actions.order.create({
+                            purchase_units: [{
+                                description: "Inscripción Gran Copa",
+                                amount: {
+                                    value: "5.00"
+                                }
+                            }]
+                        });
+                    },
+                    onApprove: function(data, actions) {
+                        return actions.order.capture().then(function(details) {
+                            fetch("{{ route('events.assist', ['event' => $event->id]) }}", {
+                                method: "POST",
+                                headers: {
+                                    "Content-Type": "application/json",
+                                    "X-CSRF-TOKEN": "{{ csrf_token() }}"
+                                },
+                                body: JSON.stringify({
+                                    paypal_order_id: data.orderID,
+                                    payer: details.payer
+                                })
+                            }).then(res => {
+                                if (res.ok) {
+                                    window.location.reload();
+                                } else {
+                                    alert("⚠️ Hubo un problema al inscribirte. Intenta de nuevo.");
+                                }
+                            });
+                        });
+                    }
+                }).render("#paypal-button-container");
+            @endif
+
+            // 👉 Copiar nombres al portapapeles
             const copyBtn = jQuery('#copyButton');
             if (copyBtn.length) {
                 copyBtn.on('click', () => {
@@ -446,7 +495,7 @@
 
                     if (navigator.clipboard) {
                         navigator.clipboard.writeText(names)
-                            .then(() => alert('Nombres copiados al portapapeles'))
+                            .then(() => alert('✅ Nombres copiados al portapapeles'))
                             .catch(() => fallbackCopy(names));
                     } else {
                         fallbackCopy(names);
@@ -459,12 +508,12 @@
                         tempTextArea.select();
                         document.execCommand('copy');
                         document.body.removeChild(tempTextArea);
-                        alert('Nombres copiados al portapapeles');
+                        alert('✅ Nombres copiados al portapapeles');
                     }
                 });
             }
 
-            // Validación de formulario si no es referee
+            // 👉 Validación de formulario si no es referee
             if (!isReferee) {
                 jQuery("input[type='submit'][value='Enviar resultados']").on('click', function(event) {
                     const iframeInput = jQuery("input[name='iframe']");
@@ -476,14 +525,14 @@
                 });
             }
 
-            // Re-inicializar Select2 al mostrar el modal (por si cambia el DOM)
+            // 👉 Re-inicializar Select2 al mostrar el modal
             jQuery('#formModal').on('shown.bs.modal', function () {
                 jQuery('.select2').select2({
                     dropdownParent: $('#formModal')
                 });
             });
 
-            // Inicializar tooltips
+            // 👉 Inicializar tooltips
             jQuery('[data-toggle="tooltip"]').tooltip();
         });
     </script>

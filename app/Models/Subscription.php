@@ -19,6 +19,11 @@ class Subscription extends Model
         'ended_at',
     ];
 
+    protected $casts = [
+        'started_at' => 'datetime',
+        'ended_at' => 'datetime',
+    ];
+
     public function plan()
     {
         return $this->belongsTo(Plan::class);

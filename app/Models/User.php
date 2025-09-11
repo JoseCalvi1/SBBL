@@ -99,5 +99,9 @@ class User extends Authenticatable
                     ->where('ended_at', '>=', now()); // solo activas
     }
 
+    public function hasPlan($slug)
+    {
+        return $this->activeSubscription && $this->activeSubscription->plan->slug === $slug;
+    }
 
 }
