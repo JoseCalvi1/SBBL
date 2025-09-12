@@ -68,6 +68,44 @@
     .mode {
         font-size: 18px;
     }
+    .suscripcion-card {
+        background-color: #1e1e2f !important; /* Fondo oscuro elegante */
+        border-radius: 12px;
+        padding: 1rem;
+    }
+
+    /* Colores de los niveles */
+    .suscripcion-nivel-3 {
+        color: gold;
+        font-weight: bold;
+    }
+
+    .suscripcion-nivel-2 {
+        color: #c0e5fb;
+        font-weight: bold;
+    }
+
+    .suscripcion-nivel-1 {
+        color: #CD7F32;
+        font-weight: bold;
+    }
+
+    /* Badge con fondo transparente y borde */
+    .badge.suscripcion-nivel-3 {
+        background: rgba(255, 215, 0, 0.1);
+        border: 1px solid gold;
+    }
+
+    .badge.suscripcion-nivel-2 {
+        background: rgba(192, 229, 251, 0.1);
+        border: 1px solid #c0e5fb;
+    }
+
+    .badge.suscripcion-nivel-1 {
+        background: rgba(205, 127, 50, 0.1);
+        border: 1px solid #CD7F32;
+    }
+
 </style>
 @endsection
 
@@ -129,13 +167,63 @@
         </div>
         {{-- profile.blade.php --}}
 
-        <div class="container">
-            @if($subscription)
-                <div class="alert alert-success">
-                    Tienes una suscripción {{ $subscription->period }} de nivel {{ $subscription->plan->name }}!
+    <div class="container my-4">
+        @if($subscription)
+            @php
+                $planName = strtolower($subscription->plan->slug);
+
+                switch ($planName) {
+                    case 'oro':
+                        $badgeClass = 'suscripcion-nivel-3';
+                        break;
+                    case 'plata':
+                        $badgeClass = 'suscripcion-nivel-2';
+                        break;
+                    case 'bronce':
+                        $badgeClass = 'suscripcion-nivel-1';
+                        break;
+                    default:
+                        $badgeClass = 'bg-dark';
+                        break;
+                }
+            @endphp
+
+
+            <div class="card suscripcion-card text-light shadow-sm border-0">
+                <div class="card-body">
+                    <h5 class="card-title mb-3">
+                        <span class="badge {{ $badgeClass }}">
+                            {{ ucfirst($planName) }}
+                        </span>
+                        <span class="ms-2">
+                            Suscripción {{ $subscription->period === 'monthly' ? 'Mensual' : 'Anual' }}
+                        </span>
+                    </h5>
+
+                    <p class="card-text">
+                        ✅ Activa desde <strong>{{ $subscription->started_at->format('d/m/Y') }}</strong><br>
+                        📅 Expira el <strong>{{ $subscription->ended_at->format('d/m/Y') }}</strong>
+                    </p>
+
+                    @if($planName === 'oro')
+                        <p class="fw-bold suscripcion-nivel-3">
+                            ¡Gracias por apoyar al máximo nivel! 🎉
+                        </p>
+                    @elseif($planName === 'plata')
+                        <p class="fw-bold suscripcion-nivel-2">
+                            Disfruta de tus beneficios Plata ⚡
+                        </p>
+                    @elseif($planName === 'bronce')
+                        <p class="fw-bold suscripcion-nivel-1">
+                            Estás en el plan Bronce 🪙
+                        </p>
+                    @endif
                 </div>
-            @endif
-        </div>
+            </div>
+        @endif
+    </div>
+
+
 
     </div>
 
