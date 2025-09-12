@@ -31,17 +31,8 @@ class ProfileController extends Controller
         $regionId = $request->input('region');
         $isFreeAgent = $request->input('free_agent');
 
-        $bladers = Profile::select('profiles.*')
-            ->leftJoin('profilestrophies', 'profiles.id', '=', 'profilestrophies.profiles_id')
-            ->leftJoin('trophies', 'profilestrophies.trophies_id', '=', 'trophies.id')
-            ->addSelect([
-                'trophies_count' => DB::table('assist_user_event')
-                    ->selectRaw('COUNT(*)')
-                    ->whereColumn('assist_user_event.user_id', 'profiles.user_id')
-                    ->where('assist_user_event.puesto', 'primero')
-                    ->where('assist_user_event.event_id', '>=', 190)
-            ])
-            ->with(['user', 'region', 'trophies']) // para mostrar info adicional en la vista
+        // Traer perfiles con relaciones necesarias
+        $bladersQuery = Profile::with(['user.activeSubscription.plan', 'region', 'trophies'])
             ->withCount('trophies')
             ->when($regionId, fn($query) => $query->where('profiles.region_id', $regionId))
             ->when(isset($isFreeAgent) && $isFreeAgent !== '', function($query) use ($isFreeAgent) {
@@ -52,33 +43,60 @@ class ProfileController extends Controller
                 $query->where('profiles.points_x2', '<>', 0)
                     ->orWhere('profiles.points_s3', '<>', 0)
                     ->orWhereNotNull('profiles.imagen');
+            });
+
+        // Prioridad: suscripciones activas (plan 3 > 2 > 1)
+        $bladersQuery->leftJoin('subscriptions', function($join) {
+                $join->on('subscriptions.user_id', '=', 'profiles.user_id')
+                    ->where('subscriptions.status', 'active')
+                    ->where('subscriptions.ended_at', '>=', now());
             })
+            ->leftJoin('plans', 'subscriptions.plan_id', '=', 'plans.id')
             ->orderByRaw("
                 CASE
-                    WHEN trophies.name = 'SUSCRIPCIÓN NIVEL 3' THEN 1
-                    WHEN trophies.name = 'SUSCRIPCIÓN NIVEL 2' THEN 2
-                    WHEN trophies.name = 'SUSCRIPCIÓN NIVEL 1' THEN 3
+                    WHEN plans.slug = '3' THEN 1
+                    WHEN plans.slug = '2' THEN 2
+                    WHEN plans.slug = '1' THEN 3
                     ELSE 4
                 END, profiles.id ASC
-            ")
-            ->get();
+            ");
 
-        // Asignar clase CSS según la suscripción
+        // Paginar 100 por página
+        $bladers = $bladersQuery->paginate(100);
+
+        // Asignar clase CSS según suscripción activa o trofeo
         foreach ($bladers as $blader) {
-            $firstTrophyName = $blader->trophies->first()->name ?? '';
-            switch ($firstTrophyName) {
-                case 'SUSCRIPCIÓN NIVEL 3':
-                    $blader->subscription_class = 'suscripcion-nivel-3';
-                    break;
-                case 'SUSCRIPCIÓN NIVEL 2':
-                    $blader->subscription_class = 'suscripcion-nivel-2';
-                    break;
-                case 'SUSCRIPCIÓN NIVEL 1':
-                    $blader->subscription_class = 'suscripcion-nivel-1';
-                    break;
-                default:
-                    $blader->subscription_class = '';
-                    break;
+            $blader->subscription_class = ''; // default
+
+            // 1️⃣ Prioridad: suscripción activa
+            if ($blader->user->activeSubscription) {
+                $level = $blader->user->activeSubscription->plan->slug;
+                switch ($level) {
+                    case '3':
+                        $blader->subscription_class = 'suscripcion-nivel-3';
+                        break;
+                    case '2':
+                        $blader->subscription_class = 'suscripcion-nivel-2';
+                        break;
+                    case '1':
+                        $blader->subscription_class = 'suscripcion-nivel-1';
+                        break;
+                }
+            } else {
+                // 2️⃣ Si no hay suscripción activa, usar trofeo de suscripción
+                $subscriptionTrophy = $blader->trophies->first(function ($trophy) {
+                    return stripos($trophy->name, 'SUSCRIPCIÓN') !== false;
+                });
+
+                if ($subscriptionTrophy) {
+                    if (stripos($subscriptionTrophy->name, 'NIVEL 3') !== false) {
+                        $blader->subscription_class = 'suscripcion-nivel-3';
+                    } elseif (stripos($subscriptionTrophy->name, 'NIVEL 2') !== false) {
+                        $blader->subscription_class = 'suscripcion-nivel-2';
+                    } elseif (stripos($subscriptionTrophy->name, 'NIVEL 1') !== false) {
+                        $blader->subscription_class = 'suscripcion-nivel-1';
+                    }
+                }
             }
         }
 
@@ -87,6 +105,7 @@ class ProfileController extends Controller
 
         return view('profiles.index', compact('bladers', 'regiones', 'equipo'));
     }
+
 
 
 
@@ -460,6 +479,20 @@ class ProfileController extends Controller
 
         // Verificar el nivel de suscripción del usuario
         $subscriptionLevel = optional(Auth::user()->profile->trophies->first())->name;
+
+        // Prioridad: suscripción activa del usuario
+        $subscriptionLevel = '';
+        if (Auth::user()->activeSubscription) {
+            $subscriptionLevel = 'SUSCRIPCIÓN '.strtoupper(Auth::user()->activeSubscription->plan->name); // '1', '2', '3'
+        } else {
+            // Fallback: trofeo de suscripción
+            $subscriptionTrophy = Auth::user()->profile->trophies->first(function ($trophy) {
+                return stripos($trophy->name, 'SUSCRIPCIÓN') !== false;
+            });
+            if ($subscriptionTrophy) {
+                $subscriptionLevel = $subscriptionTrophy->name;
+            }
+        }
 
         return view('profiles.edit', compact('profile', 'regions', 'regionT', 'avatarOptions', 'marcoOptions', 'fondoOptions', 'subscriptionLevel', 'bronzeAvatars', 'silverAvatars', 'goldAvatars', 'marcoBronce', 'marcoPlata', 'marcoOro', 'copaLloros', 'copaLlorosAvatar'));
     }

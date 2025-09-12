@@ -35,24 +35,69 @@
                 </div>
             </form>
 
-            @foreach ($bladers as $blader)
+            @if ($bladers->lastPage() > 1)
+                <nav class="d-flex justify-content-center my-3">
+                    <ul class="pagination pagination-sm">
+                        {{-- Previous --}}
+                        <li class="page-item {{ $bladers->onFirstPage() ? 'disabled' : '' }}">
+                            <a class="page-link" href="{{ $bladers->previousPageUrl() }}" aria-label="Anterior">&laquo;</a>
+                        </li>
+
+                        {{-- Páginas --}}
+                        @for ($i = 1; $i <= $bladers->lastPage(); $i++)
+                            <li class="page-item {{ $bladers->currentPage() == $i ? 'active' : '' }}">
+                                <a class="page-link" href="{{ $bladers->url($i) }}">{{ $i }}</a>
+                            </li>
+                        @endfor
+
+                        {{-- Next --}}
+                        <li class="page-item {{ $bladers->hasMorePages() ? '' : 'disabled' }}">
+                            <a class="page-link" href="{{ $bladers->nextPageUrl() }}" aria-label="Siguiente">&raquo;</a>
+                        </li>
+                    </ul>
+                </nav>
+            @endif
+
+
+            @foreach ($bladers->unique('id') as $blader)
                 @php
-                    // Determinar la clase CSS según el nivel de suscripción
-                    $firstTrophyName = $blader->trophies->first()->name ?? '';
-                    switch ($firstTrophyName) {
-                        case 'SUSCRIPCIÓN NIVEL 3':
-                            $subscriptionClass = 'suscripcion-nivel-3';
-                            break;
-                        case 'SUSCRIPCIÓN NIVEL 2':
-                            $subscriptionClass = 'suscripcion-nivel-2';
-                            break;
-                        case 'SUSCRIPCIÓN NIVEL 1':
-                            $subscriptionClass = 'suscripcion-nivel-1';
-                            break;
-                        default:
-                            $subscriptionClass = '';
-                            break;
+                    // 1️⃣ Prioridad: suscripción activa
+                    $subscriptionClass = '';
+                    if ($blader->user->activeSubscription) {
+                        $level = $blader->user->activeSubscription->plan->slug; // asumiendo que los slugs son '1', '2', '3'
+                        switch ($level) {
+                            case 'oro':
+                                $subscriptionClass = 'suscripcion-nivel-3';
+                                break;
+                            case 'plata':
+                                $subscriptionClass = 'suscripcion-nivel-2';
+                                break;
+                            case 'bronce':
+                                $subscriptionClass = 'suscripcion-nivel-1';
+                                break;
+                        }
                     }
+
+                    // 2️⃣ Si no hay suscripción activa, recurrir al trofeo de suscripción (lógica antigua)
+                    if (!$subscriptionClass) {
+                        $subscriptionTrophy = $blader->trophies->first(function ($trophy) {
+                            return stripos($trophy->name, 'SUSCRIPCIÓN') !== false;
+                        });
+
+                        if ($subscriptionTrophy) {
+                            if (stripos($subscriptionTrophy->name, 'NIVEL 3') !== false) {
+                                $subscriptionClass = 'suscripcion-nivel-3';
+                            } elseif (stripos($subscriptionTrophy->name, 'NIVEL 2') !== false) {
+                                $subscriptionClass = 'suscripcion-nivel-2';
+                            } elseif (stripos($subscriptionTrophy->name, 'NIVEL 1') !== false) {
+                                $subscriptionClass = 'suscripcion-nivel-1';
+                            }
+                        }
+                    }
+
+                    // Copas especiales
+                    $hasGranCopaHalloween = $blader->trophies->contains('name', 'Gran Copa Let It R.I.P.');
+                    $hasGranCopaSantaKlaw = $blader->trophies->contains('name', 'Gran Copa Santa Klaw'); // Ejemplo
                 @endphp
 
                 <div class="tarjeta box-{{ $subscriptionClass }} {{ $blader->free_agent ? 'box-free-agent' : '' }}"
@@ -99,8 +144,44 @@
                             @endif
                         </div>
                     </div>
+                    {{-- 🏆 Iconos de copas especiales abajo a la derecha --}}
+                    <div style="position: absolute; bottom: 5px; right: 15px; font-size: 20px;">
+                        @if ($hasGranCopaHalloween)
+                            <i class="fas fa-ghost" style="color: orange; margin-left: 4px;"
+                            title="Gran Copa Let It R.I.P."></i>
+                        @endif
+
+                        @if ($hasGranCopaSantaKlaw)
+                            <i class="fas fa-snowflake" style="color: lightblue; margin-left: 4px;"
+                            title="Gran Copa Santa Klaw"></i>
+                        @endif
+                    </div>
                 </div>
             @endforeach
+
+            @if ($bladers->lastPage() > 1)
+                <nav class="d-flex justify-content-center my-3">
+                    <ul class="pagination pagination-sm">
+                        {{-- Previous --}}
+                        <li class="page-item {{ $bladers->onFirstPage() ? 'disabled' : '' }}">
+                            <a class="page-link" href="{{ $bladers->previousPageUrl() }}" aria-label="Anterior">&laquo;</a>
+                        </li>
+
+                        {{-- Páginas --}}
+                        @for ($i = 1; $i <= $bladers->lastPage(); $i++)
+                            <li class="page-item {{ $bladers->currentPage() == $i ? 'active' : '' }}">
+                                <a class="page-link" href="{{ $bladers->url($i) }}">{{ $i }}</a>
+                            </li>
+                        @endfor
+
+                        {{-- Next --}}
+                        <li class="page-item {{ $bladers->hasMorePages() ? '' : 'disabled' }}">
+                            <a class="page-link" href="{{ $bladers->nextPageUrl() }}" aria-label="Siguiente">&raquo;</a>
+                        </li>
+                    </ul>
+                </nav>
+            @endif
+
         </div>
     </div>
 </div>

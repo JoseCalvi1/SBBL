@@ -92,73 +92,94 @@ h4 {
             </div>
 
                 @php
-                    // Determinar la clase CSS según el nivel de suscripción
-                    $firstTrophyName = $profile->trophies->first()->name ?? '';
-                    switch ($firstTrophyName) {
-                        case 'SUSCRIPCIÓN NIVEL 3':
-                            $subscriptionClass = 'suscripcion-nivel-3';
-                            break;
-                        case 'SUSCRIPCIÓN NIVEL 2':
-                        case 'SUSCRIPCIÓN NIVEL 1':
-                            $subscriptionClass = 'suscripcion';
-                            break;
-                        default:
-                            $subscriptionClass = '';
-                            break;
+                    $subscriptionClass = '';
+
+                    // 1️⃣ Prioridad: suscripción activa del usuario
+                    if ($profile->user->activeSubscription) {
+                        $level = $profile->user->activeSubscription->plan->slug; // '1', '2', '3'
+                        switch ($level) {
+                            case 'oro':
+                                $subscriptionClass = 'suscripcion-nivel-3';
+                                break;
+                            case 'plata':
+                            case 'bronce':
+                                $subscriptionClass = 'suscripcion';
+                                break;
+                        }
                     }
 
+                    // 2️⃣ Si no hay suscripción activa, buscar entre los trofeos
+                    if (!$subscriptionClass) {
+                        // Buscar cualquier trofeo que contenga 'SUSCRIPCIÓN'
+                        $subscriptionTrophy = $profile->trophies->first(function ($trophy) {
+                            return stripos($trophy->name, 'SUSCRIPCIÓN') !== false;
+                        });
+
+                        if ($subscriptionTrophy) {
+                            if (stripos($subscriptionTrophy->name, 'NIVEL 3') !== false) {
+                                $subscriptionClass = 'suscripcion-nivel-3';
+                            } elseif (stripos($subscriptionTrophy->name, 'NIVEL 2') !== false ||
+                                    stripos($subscriptionTrophy->name, 'NIVEL 1') !== false) {
+                                $subscriptionClass = 'suscripcion';
+                            }
+                        }
+                    }
                 @endphp
 
+
                     @if ($subscriptionClass == "suscripcion")
-                    <div class="form-group mt-2">
-                        <label for="subtitulo">Opción personalizada</label>
-                        <select name="subtitulo" id="subtitulo" class="form-control @error('subtitulo') is-invalid @enderror">
-                            <option value="" selected>- Selecciona una opción -</option>
+                        <div class="form-group mt-2">
+                            <label for="subtitulo">Opción personalizada</label>
+                            <select name="subtitulo" id="subtitulo" class="form-control @error('subtitulo') is-invalid @enderror">
+                                <option value="" selected>- Selecciona una opción -</option>
 
-                            @php
-                                $subtitulos = [
-                                    "Burst Timidín", "Custom fanboy", "Maestro del Beyblade", "Lloriquín",
-                                    "Wizard Rod Destroyer", "SBBL Fraud", "Liga de Coña de Beyblade",
-                                    "SlipGrip fangirl", "Trabajando…", "Beytakl Enjoyer", "Blader solitari@",
-                                    "It is what it is", "Otro día más en la oficina", "Tocho", "Blader senil",
-                                    "WizardLloros", "Beynito Villamarín", "Ratchet Pizjuan",
-                                    "Dinosaurios Chad", "Supersonic Acrobatic Rocket-Powered Battle Beys",
-                                    "Colormaxxing", "Brainrot"
-                                ];
-                                $limit = $subscriptionLevel == 'SUSCRIPCIÓN NIVEL 1' ? 10 : count($subtitulos);
-                            @endphp
+                                @php
+                                    $subtitulos = [
+                                        "Burst Timidín", "Custom fanboy", "Maestro del Beyblade", "Lloriquín",
+                                        "Wizard Rod Destroyer", "SBBL Fraud", "Liga de Coña de Beyblade",
+                                        "SlipGrip fangirl", "Trabajando…", "Beytakl Enjoyer", "Blader solitari@",
+                                        "It is what it is", "Otro día más en la oficina", "Tocho", "Blader senil",
+                                        "WizardLloros", "Beynito Villamarín", "Ratchet Pizjuan",
+                                        "Dinosaurios Chad", "Supersonic Acrobatic Rocket-Powered Battle Beys",
+                                        "Colormaxxing", "Brainrot"
+                                    ];
 
-                            @foreach (array_slice($subtitulos, 0, $limit) as $subtitulo)
-                                <option value="{{ $subtitulo }}" @if ($profile->subtitulo == $subtitulo) selected @endif>
-                                    {{ $subtitulo }}
-                                </option>
-                            @endforeach
+                                    // Limitar si es nivel 1 (opción antigua) o mostrar todas
+                                    $limit = in_array($subscriptionClass, ['suscripcion']) ? 10 : count($subtitulos);
+                                @endphp
 
-                        </select>
-                        @error('subtitulo')
-                            <span class="invalid-feedback d-block" role="alert">
-                                <strong>{{ $message }}</strong>
-                            </span>
-                        @enderror
-                    </div>
+                                @foreach (array_slice($subtitulos, 0, $limit) as $subtitulo)
+                                    <option value="{{ $subtitulo }}" @if ($profile->subtitulo == $subtitulo) selected @endif>
+                                        {{ $subtitulo }}
+                                    </option>
+                                @endforeach
+                            </select>
+
+                            @error('subtitulo')
+                                <span class="invalid-feedback d-block" role="alert">
+                                    <strong>{{ $message }}</strong>
+                                </span>
+                            @enderror
+                        </div>
 
                     @elseif ($subscriptionClass == "suscripcion-nivel-3")
-                    <div class="form-group mt-2">
-                        <label for="subtitulo">Subtítulo</label>
-                        <input type="text"
-                            name="subtitulo"
-                            class="form-control @error('subtitulo') is-invalid @enderror"
-                            id="subtitulo"
-                            placeholder="Subtítulo"
-                            value="{{ $profile->subtitulo }}"
-                        />
-                        @error('subtitulo')
-                            <span class="invalid-feedback d-block" role="alert">
-                                <strong>{{$message}}</strong>
-                            </span>
-                        @enderror
-                    </div>
+                        <div class="form-group mt-2">
+                            <label for="subtitulo">Subtítulo</label>
+                            <input type="text"
+                                name="subtitulo"
+                                class="form-control @error('subtitulo') is-invalid @enderror"
+                                id="subtitulo"
+                                placeholder="Subtítulo"
+                                value="{{ $profile->subtitulo }}"
+                            />
+                            @error('subtitulo')
+                                <span class="invalid-feedback d-block" role="alert">
+                                    <strong>{{ $message }}</strong>
+                                </span>
+                            @enderror
+                        </div>
                     @endif
+
 
             <div class="form-group mt-2">
                 <label for="region_id">Región</label>

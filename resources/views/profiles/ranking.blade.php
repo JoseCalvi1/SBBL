@@ -60,19 +60,38 @@
                     </div>
                     @foreach (${'bladers_' . $key} ?? [] as $index => $blader)
                         @php
-                            $firstTrophyName = $blader->trophies->first()->name ?? '';
-                            switch ($firstTrophyName) {
-                                case 'SUSCRIPCIÓN NIVEL 3':
-                                    $subscriptionClass = 'suscripcion-nivel-3';
-                                    break;
-                                case 'SUSCRIPCIÓN NIVEL 2':
-                                    $subscriptionClass = 'suscripcion-nivel-2';
-                                    break;
-                                case 'SUSCRIPCIÓN NIVEL 1':
-                                    $subscriptionClass = 'suscripcion-nivel-1';
-                                    break;
-                                default:
-                                    $subscriptionClass = '';
+                            // 1️⃣ Prioridad: suscripción activa
+                            $subscriptionClass = '';
+                            if ($blader->user->activeSubscription) {
+                                $level = $blader->user->activeSubscription->plan->slug; // asumiendo que los slugs son '1', '2', '3'
+                                switch ($level) {
+                                    case 'oro':
+                                        $subscriptionClass = 'suscripcion-nivel-3';
+                                        break;
+                                    case 'plata':
+                                        $subscriptionClass = 'suscripcion-nivel-2';
+                                        break;
+                                    case 'bronce':
+                                        $subscriptionClass = 'suscripcion-nivel-1';
+                                        break;
+                                }
+                            }
+
+                            // 2️⃣ Si no hay suscripción activa, recurrir al trofeo de suscripción (lógica antigua)
+                            if (!$subscriptionClass) {
+                                $subscriptionTrophy = $blader->trophies->first(function ($trophy) {
+                                    return stripos($trophy->name, 'SUSCRIPCIÓN') !== false;
+                                });
+
+                                if ($subscriptionTrophy) {
+                                    if (stripos($subscriptionTrophy->name, 'NIVEL 3') !== false) {
+                                        $subscriptionClass = 'suscripcion-nivel-3';
+                                    } elseif (stripos($subscriptionTrophy->name, 'NIVEL 2') !== false) {
+                                        $subscriptionClass = 'suscripcion-nivel-2';
+                                    } elseif (stripos($subscriptionTrophy->name, 'NIVEL 1') !== false) {
+                                        $subscriptionClass = 'suscripcion-nivel-1';
+                                    }
+                                }
                             }
                         @endphp
                         <div class="item {{ $index < 4 ? 'resaltado' : '' }}">
