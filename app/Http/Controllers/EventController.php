@@ -449,7 +449,7 @@ class EventController extends Controller
 
 
         // Validar iframe y challonge (requiere URL)
-        if (!Auth::user()->is_jury) {
+        //if (!Auth::user()->is_jury) {
             $request->validate([
                 'iframe' => 'required',
                 'challonge' => 'required',
@@ -459,9 +459,9 @@ class EventController extends Controller
             $event->iframe = $request->input('iframe');
             $event->challonge = $request->input('challonge');
             $event->save();
-        }
+        //}
         // Actualizar status (asumo que este método existe y funciona)
-        //self::actualizarStatus($id, 'PENDING');
+        self::actualizarStatus($event->id, 'PENDING');
 
         // Validar participantes - que exista array y que cada elemento tenga id y puesto válidos
         $rules = [
@@ -536,6 +536,7 @@ class EventController extends Controller
 
         $totalParticipantes = DB::table('assist_user_event')
             ->where('event_id', $id)
+            ->where('puesto', '!=', 'nopresentado')
             ->count();
 
         // Limitar máximo a 32

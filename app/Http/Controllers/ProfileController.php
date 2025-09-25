@@ -54,9 +54,9 @@ class ProfileController extends Controller
             ->leftJoin('plans', 'subscriptions.plan_id', '=', 'plans.id')
             ->orderByRaw("
                 CASE
-                    WHEN plans.slug = '3' THEN 1
-                    WHEN plans.slug = '2' THEN 2
-                    WHEN plans.slug = '1' THEN 3
+                    WHEN plans.slug = 'oro' THEN 1
+                    WHEN plans.slug = 'plata' THEN 2
+                    WHEN plans.slug = 'bronce' THEN 3
                     ELSE 4
                 END, profiles.id ASC
             ");
@@ -72,13 +72,13 @@ class ProfileController extends Controller
             if ($blader->user->activeSubscription) {
                 $level = $blader->user->activeSubscription->plan->slug;
                 switch ($level) {
-                    case '3':
+                    case 'oro':
                         $blader->subscription_class = 'suscripcion-nivel-3';
                         break;
-                    case '2':
+                    case 'plata':
                         $blader->subscription_class = 'suscripcion-nivel-2';
                         break;
-                    case '1':
+                    case 'bronce':
                         $blader->subscription_class = 'suscripcion-nivel-1';
                         break;
                 }
@@ -298,6 +298,28 @@ class ProfileController extends Controller
             'Base/TriceraPress.webp' => 'upload-profiles/Base/TriceraPress.webp',
         ];
 
+        $avatarOptionsS2 = [
+            'Base/AntlerStag.webp' => 'upload-profiles/Base/AntlerStag.webp',
+            'Base/CerberusFlame.webp' => 'upload-profiles/Base/CerberusFlame.webp',
+            'Base/ClockMirage.webp' => 'upload-profiles/Base/ClockMirage.webp',
+            'Base/FortHornet.webp' => 'upload-profiles/Base/FortHornet.webp',
+            'Base/GillShark.webp' => 'upload-profiles/Base/GillShark.webp',
+            'Base/GoatTackle.webp' => 'upload-profiles/Base/GoatTackle.webp',
+            'Base/HoverWyvern.webp' => 'upload-profiles/Base/HoverWyvern.webp',
+            'Base/PegasusBlast.webp' => 'upload-profiles/Base/PegasusBlast.webp',
+            'Base/SamuraiCalibur.webp' => 'upload-profiles/Base/SamuraiCalibur.webp',
+            'Base/SamuraiSteel.webp' => 'upload-profiles/Base/SamuraiSteel.webp',
+            'Base/SharkScale.webp' => 'upload-profiles/Base/SharkScale.webp',
+            'Base/ShinobiKnife.webp' => 'upload-profiles/Base/ShinobiKnife.webp',
+            'Base/SolEclipse.webp' => 'upload-profiles/Base/SolEclipse.webp',
+            'Base/WhaleFlame.webp' => 'upload-profiles/Base/WhaleFlame.webp',
+            'Base/WriggleKraken.webp' => 'upload-profiles/Base/WriggleKraken.webp',
+        ];
+
+        if (Auth::user()->activeSubscription) {
+            $avatarOptions = array_merge($avatarOptions, $avatarOptionsS2);
+        }
+
         $bronzeAvatars = [
             'BRONCE/BearScratch.webp' => 'upload-profiles/BRONCE/BearScratch.webp',
             'BRONCE/BlackKnightLance.webp' => 'upload-profiles/BRONCE/BlackKnightLance.webp',
@@ -357,6 +379,23 @@ class ProfileController extends Controller
             'BRONCE/YellowWhaleWave.webp' => 'upload-profiles/BRONCE/YellowWhaleWave.webp',
         ];
 
+        $bronzeAvatarsS2 = [
+            'BRONCE/BlackShellPink.webp' => 'upload-profiles/BRONCE/BlackShellPink.webp',
+            'BRONCE/CerberusFlameBlue.webp' => 'upload-profiles/BRONCE/CerberusFlameBlue.webp',
+            'BRONCE/ClockMirageGrey.webp' => 'upload-profiles/BRONCE/ClockMirageGrey.webp',
+            'BRONCE/ClockMiragePink.webp' => 'upload-profiles/BRONCE/ClockMiragePink.webp',
+            'BRONCE/CobaltDragoonYellow.webp' => 'upload-profiles/BRONCE/CobaltDragoonYellow.webp',
+            'BRONCE/CobaltDrakeRed.webp' => 'upload-profiles/BRONCE/CobaltDrakeRed.webp',
+            'BRONCE/DranBusterGrey.webp' => 'upload-profiles/BRONCE/DranBusterGrey.webp',
+            'BRONCE/GoatTacklePurple.webp' => 'upload-profiles/BRONCE/GoatTacklePurple.webp',
+            'BRONCE/HellsReaperGreen.webp' => 'upload-profiles/BRONCE/HellsReaperGreen.webp',
+            'BRONCE/RoarTyrannoRed.webp' => 'upload-profiles/BRONCE/RoarTyrannoRed.webp',
+        ];
+
+        if (Auth::user()->activeSubscription) {
+            $bronzeAvatars = array_merge($bronzeAvatars, $bronzeAvatarsS2);
+        }
+
         $silverAvatars = [
             'PLATA/AeroPegasus_2.webp' => 'upload-profiles/PLATA/AeroPegasus_2.webp',
             'PLATA/BlackDragoon.webp' => 'upload-profiles/PLATA/BlackDragoon.webp',
@@ -379,6 +418,31 @@ class ProfileController extends Controller
             'PLATA/LeonFang.webp' => 'upload-profiles/PLATA/LeonFang.webp',
         ];
 
+        $silverAvatarsS2 = [
+            'PLATA/AeroPegasusRed.webp' => 'upload-profiles/PLATA/AeroPegasusRed.webp',
+            'PLATA/BiteCrocGreen.webp' => 'upload-profiles/PLATA/BiteCrocGreen.webp',
+            'PLATA/DranBraveHolo.webp' => 'upload-profiles/PLATA/DranBraveHolo.webp',
+            'PLATA/DranBusterLightBlue.webp' => 'upload-profiles/PLATA/DranBusterLightBlue.webp',
+            'PLATA/DranBusterNeon.webp' => 'upload-profiles/PLATA/DranBusterNeon.webp',
+            'PLATA/DranBusterPurple.webp' => 'upload-profiles/PLATA/DranBusterPurple.webp',
+            'PLATA/HoverWyvernPurple.webp' => 'upload-profiles/PLATA/HoverWyvernPurple.webp',
+            'PLATA/HoverWyvernWhite.webp' => 'upload-profiles/PLATA/HoverWyvernWhite.webp',
+            'PLATA/KnightMaleNavy.webp' => 'upload-profiles/PLATA/KnightMaleNavy.webp',
+            'PLATA/PegasusBlastRed.webp' => 'upload-profiles/PLATA/PegasusBlastRed.webp',
+            'PLATA/SamuraiSaberOrange.webp' => 'upload-profiles/PLATA/SamuraiSaberOrange.webp',
+            'PLATA/SamuraiSteelGreen.webp' => 'upload-profiles/PLATA/SamuraiSteelGreen.webp',
+            'PLATA/ShinobiKnifeGrey.webp' => 'upload-profiles/PLATA/ShinobiKnifeGrey.webp',
+            'PLATA/TeamPersona.webp' => 'upload-profiles/PLATA/TeamPersona.webp',
+            'PLATA/ValkyrieVolt.webp' => 'upload-profiles/PLATA/ValkyrieVolt.webp',
+            'PLATA/WizardArc_1.webp' => 'upload-profiles/PLATA/WizardArc_1.webp',
+
+        ];
+
+        if (Auth::user()->activeSubscription) {
+            $silverAvatars = array_merge($silverAvatars, $silverAvatarsS2);
+        }
+
+
         $goldAvatars = [
             'ORO/GoldDranSword.webp' => 'upload-profiles/ORO/GoldDranSword.webp',
             'ORO/BronceTest120.gif' => 'upload-profiles/ORO/BronceTest120.gif',
@@ -392,11 +456,35 @@ class ProfileController extends Controller
             'ORO/Erubita.webp' => 'upload-profiles/ORO/Erubita.webp',
             'ORO/Hyuga.webp' => 'upload-profiles/ORO/Hyuga.webp',
             'ORO/Ritsu.webp' => 'upload-profiles/ORO/Ritsu.webp',
+            'ORO/PhazeON.webp' => 'upload-profiles/ORO/PhazeON.webp',
+            'ORO/Shirk.webp' => 'upload-profiles/ORO/Shirk.webp',
+            'ORO/ThuBerni_1.webp' => 'upload-profiles/ORO/ThuBerni_1.webp',
+            'ORO/Ursh.webp' => 'upload-profiles/ORO/Ursh.webp',
+            'ORO/Fujen.webp' => 'upload-profiles/ORO/Fujen.webp',
+            'ORO/KaosCore.webp' => 'upload-profiles/ORO/KaosCore.webp',
+            'ORO/KaW.webp' => 'upload-profiles/ORO/KaW.webp',
+            'ORO/Androide.webp' => 'upload-profiles/ORO/Androide.webp',
+            'ORO/Andymdfk_1.webp' => 'upload-profiles/ORO/Andymdfk_1.webp',
             /*'ORO/Leon.gif' => 'upload-profiles/ORO/Leon.gif',
             'ORO/dragoon.gif' => 'upload-profiles/ORO/dragoon.gif',
             'ORO/beyblade-tyson.gif' => 'upload-profiles/ORO/beyblade-tyson.gif',
             'ORO/aiga.gif' => 'upload-profiles/ORO/aiga.gif',*/
         ];
+
+        $goldAvatarsS2 = [
+            'ORO/BlackDranzer.webp' => 'upload-profiles/ORO/BlackDranzer.webp',
+            'ORO/CobaltDragoonTyson.webp' => 'upload-profiles/ORO/CobaltDragoonTyson.webp',
+            'ORO/DracielShield.webp' => 'upload-profiles/ORO/DracielShield.webp',
+            'ORO/DragoonStorm.webp' => 'upload-profiles/ORO/DragoonStorm.webp',
+            'ORO/DranzerS_1.webp' => 'upload-profiles/ORO/DranzerS_1.webp',
+            'ORO/PegasusBlastHagane.webp' => 'upload-profiles/ORO/PegasusBlastHagane.webp',
+            'ORO/ValkyrieVoltAoi.webp' => 'upload-profiles/ORO/ValkyrieVoltAoi.webp',
+            'ORO/WolfborgS.webp' => 'upload-profiles/ORO/WolfborgS.webp',
+        ];
+
+        if (Auth::user()->activeSubscription) {
+            $goldAvatars = array_merge($goldAvatars, $goldAvatarsS2);
+        }
 
         $copaLloros = DB::table('assist_user_event')
             ->join('events', 'assist_user_event.event_id', '=', 'events.id')
@@ -476,6 +564,16 @@ class ProfileController extends Controller
             'FondoSTA.png' => 'upload-profiles/Fondos/FondoSTA.png',
             // Add more options as needed
         ];
+        $fondoOptionsS2 = [
+            'S2_atk.webp' => 'upload-profiles/Fondos/S2_atk.webp',
+            'S2_bal.webp' => 'upload-profiles/Fondos/S2_bal.webp',
+            'S2_def.webp' => 'upload-profiles/Fondos/S2_def.webp',
+            'S2_sta.webp' => 'upload-profiles/Fondos/S2_sta.webp',
+        ];
+
+        if (Auth::user()->activeSubscription) {
+            $fondoOptions = array_merge($fondoOptions, $fondoOptionsS2);
+        }
 
         // Verificar el nivel de suscripción del usuario
         $subscriptionLevel = optional(Auth::user()->profile->trophies->first())->name;

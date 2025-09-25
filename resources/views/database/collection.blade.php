@@ -3,7 +3,6 @@
 @section('title', 'Colección Beyblade X')
 
 @section('styles')
-    @include('database.partials.mainmenu-styles')
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
     <style>
@@ -13,14 +12,18 @@
         }
         .card-header {
             background-color: #2c2c2c;
-            color: #fff;
+            color: #fff !important;
+        }
+        .card-body {
+            background-color: #2c2c2c !important;
+            color: #fff !important;
         }
         .table {
             color: #e0e0e0 !important;
         }
         .table thead {
-            background-color: #2a2a2a;
-            color: #fff;
+            background-color: #2a2a2a !important;
+            color: #fff !important;
         }
         .select2 {
             width: 100% !important;
@@ -54,7 +57,7 @@
 @endphp
 
 @if(Auth::user() && ($isLevel2or3 || Auth::user()->is_admin ))
-<div class="container-fluid py-4">
+<div class="container-fluid" style="padding: 0px !important;">
     <h1 class="mb-5 text-center text-white">Gestión de piezas de Beyblade X</h1>
 
     <div class="row">
@@ -69,7 +72,7 @@
                         <i class="fas fa-plus"></i> Añadir Blade
                     </button>
                 </div>
-                <div class="card-body p-0">
+                <div class="card-body p-0" style="background-color: #2c2c2c !important; color: white !important;">
                     <table class="table mb-0">
                         <thead>
                             <tr>
@@ -129,7 +132,7 @@
                         <i class="fas fa-plus"></i> Añadir Ratchet
                     </button>
                 </div>
-                <div class="card-body p-0">
+                <div class="card-body p-0" style="background-color: #2c2c2c !important; color: white !important;">
                     <table class="table mb-0">
                         <thead>
                             <tr>
@@ -188,7 +191,7 @@
                         <i class="fas fa-plus"></i> Añadir Bit
                     </button>
                 </div>
-                <div class="card-body p-0">
+                <div class="card-body p-0" style="background-color: #2c2c2c !important; color: white !important;">
                     <table class="table mb-0">
                         <thead>
                             <tr>
@@ -247,7 +250,7 @@
                         <i class="fas fa-plus"></i> Añadir Assist Blade
                     </button>
                 </div>
-                <div class="card-body p-0">
+                <div class="card-body p-0" style="background-color: #2c2c2c !important; color: white !important;">
                     <table class="table mb-0">
                         <thead>
                             <tr>
@@ -345,11 +348,6 @@
 
 @section('scripts')
 <!-- Carga jQuery antes de cualquier otro script que lo use -->
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
-
-<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
 
 <script>
 jQuery(document).ready(function() {

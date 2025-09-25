@@ -299,37 +299,37 @@
 
 
 <div class="col-md-12 p-4 text-center">
-        <h3 class="titulo-categoria text-uppercase mb-4 mt-4" style="color:white">Próximos eventos</h3>
-        <div class="row m-0">
-        @foreach ($nuevos as $evento)
-            <div class="col-md-4 pb-2">
-                <div class="card" style="background-color: #283b63; color: white; border: 2px solid #ffffff;">
-                    @if ($evento->image_mod)
-                    <span style="width: 100%; min-height: 200px; background: url('data:image/png;base64,{{ $evento->image_mod }}') bottom center no-repeat; background-size: cover;"></span>
-                    @else
-                    <span style="width: 100%; min-height: 200px; background: url('/storage/{{ $evento->imagen }}') bottom center no-repeat; background-size: cover;"></span>
-                    @endif
-                    <div class="card-body">
-                        <h3 style="font-weight: bold;">{{ $evento->name }}</h3>
-                        <h3>{{ $evento->region->name }}</h3>
-                        <p><event-date fecha="{{ $evento->date }}"></event-date></p>
+    <h3 class="titulo-categoria text-uppercase mb-4 mt-4" style="color:white">Próximos eventos</h3>
+    <div class="row g-3">
+        @forelse ($nuevos as $evento)
+            <div class="col-md-4">
+                <div class="card h-100 shadow-lg border-0 rounded-3 overflow-hidden">
+                    <div class="ratio ratio-16x9">
+                        @if ($evento->image_mod)
+                            <img src="data:image/png;base64,{{ $evento->image_mod }}" class="card-img-top object-fit-cover" alt="{{ $evento->name }}">
+                        @else
+                            <img src="/storage/{{ $evento->imagen }}" class="card-img-top object-fit-cover" alt="{{ $evento->name }}">
+                        @endif
                     </div>
-                    <a href="{{ route('events.show', ['event' => $evento->id]) }}" class="d-block font-weight-bold text-uppercase pt-2 pb-2" style="text-decoration: none; color: white; width: 100%; background-color: #1e2a47; border-color: #ffffff;">Ver evento</a>
-                </div>
-            </div>
-        @endforeach
-
-        @if ($nuevos->isEmpty())
-            <div class="col-md-4 pb-2">
-                <div class="card">
-                    <div class="card-body">
-                        <h3 class="border-bottom pt-4 pb-5">Prepárate para los nuevos eventos</h3>
-                        <h3 class="pt-5">Próximamente</h3>
+                    <div class="card-body d-flex flex-column bg-dark text-white">
+                        <h5 class="card-title fw-bold mb-1">{{ $evento->name }}</h5>
+                        <p class="mb-1 text-info">{{ $evento->region->name }}</p>
+                        <p class="mb-3"><event-date fecha="{{ $evento->date }}"></event-date></p>
+                        <a href="{{ route('events.show', ['event' => $evento->id]) }}"
+                        class="btn btn-outline-info mt-auto w-100 text-uppercase fw-bold">
+                            Ver evento
+                        </a>
                     </div>
                 </div>
             </div>
-        @endif
+        @empty
+            <div class="col-12 text-center py-5">
+                <h4 class="fw-bold">Prepárate para los nuevos eventos</h4>
+                <p class="text-muted">Próximamente</p>
+            </div>
+        @endforelse
     </div>
+
 
     <div class="container">
         <div class="row">

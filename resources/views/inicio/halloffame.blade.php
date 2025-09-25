@@ -155,7 +155,7 @@
                 $podio = [
                     1 => $nacionalusers2025->where('id', 142)->first(), // Primer puesto
                     2 => $nacionalusers2025->where('id', 766)->first(),   // Segundo puesto
-                    3 => $nacionalusers2025->where('id', 304)->first(),  // Tercer puesto
+                    3 => $nacionalusers2025->where('id', 579)->first(),  // Tercer puesto
                 ];
             @endphp
 

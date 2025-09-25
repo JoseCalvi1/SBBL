@@ -94,8 +94,18 @@
         <!-- ENLACES OPCIONALES -->
         <div class="mb-1 d-flex gap-2 flex-wrap">
           @if ($event->iframe)
-            <a href="{{ $event->iframe }}" target="_blank" class="btn btn-sm btn-info">Ver Video</a>
-          @endif
+            @foreach (explode(';', $event->iframe) as $index => $link)
+                @php
+                    $link = trim($link);
+                @endphp
+                @if (!empty($link))
+                    <a href="{{ $link }}" target="_blank" class="btn btn-sm btn-info me-1">
+                        Ver Video {{ $loop->count > 1 ? $index + 1 : '' }}
+                    </a>
+                @endif
+            @endforeach
+        @endif
+
           @if ($event->challonge)
             <a href="{{ $event->challonge }}" target="_blank" class="btn btn-sm btn-info">Ver Challonge</a>
           @endif

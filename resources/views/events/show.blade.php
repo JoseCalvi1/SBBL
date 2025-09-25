@@ -220,11 +220,9 @@
                         <ul class="mb-0 ps-3" style="max-height: 150px; overflow-y: auto;">
                             <li class="mb-1">
                                 <strong>
-                                @if(auth()->user()->is_admin || Auth::user()->name == $event->judgeReview->referee->name)
-                                    {{ $event->judgeReview->referee->name ?? 'Juez' }}
-                                @else
+
                                     Juez
-                                @endif
+
                                 </strong>:
                                 <span class="badge
                                 @if($event->judgeReview->final_status == 'approved') bg-success

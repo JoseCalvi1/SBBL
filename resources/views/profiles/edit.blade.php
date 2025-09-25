@@ -234,7 +234,7 @@ h4 {
 
                         <!-- Resaltar la sección de avatares exclusivos -->
                         @if ($subscriptionLevel == 'SUSCRIPCIÓN NIVEL 1' || $subscriptionLevel == 'SUSCRIPCIÓN NIVEL 2' || $subscriptionLevel == 'SUSCRIPCIÓN NIVEL 3')
-                            <div class="exclusive-section-bronze">
+                            <div class="exclusive-section-bronze mt-5 mb-5">
                             <h4>AVATARES EXCLUSIVOS NIVEL 1</h4>
                                 <div class="row">
                                     @foreach ($bronzeAvatars as $key => $avatar)
@@ -249,7 +249,7 @@ h4 {
                             </div>
                         @endif
                         @if ($subscriptionLevel == 'SUSCRIPCIÓN NIVEL 2' || $subscriptionLevel == 'SUSCRIPCIÓN NIVEL 3')
-                            <div class="exclusive-section-silver">
+                            <div class="exclusive-section-silver mt-5 mb-5">
                             <h4>AVATARES EXCLUSIVOS NIVEL 2</h4>
                                 <div class="row">
                                     @foreach ($silverAvatars as $key => $avatar)
@@ -264,7 +264,7 @@ h4 {
                             </div>
                         @endif
                         @if ($subscriptionLevel == 'SUSCRIPCIÓN NIVEL 3')
-                            <div class="exclusive-section-gold">
+                            <div class="exclusive-section-gold mt-5 mb-5">
                             <h4>AVATARES EXCLUSIVOS NIVEL 3</h4>
                                 <div class="row">
                                     @foreach ($goldAvatars as $key => $avatar)

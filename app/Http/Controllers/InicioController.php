@@ -31,10 +31,10 @@ class InicioController extends Controller
             ->orderBy('date', 'desc')
             ->limit(5)
             ->get();
-        $nuevos = Event::where('date', '>=', now()->subDay())
+        $nuevos = Event::whereBetween('date', [now()->startOfWeek(), now()->endOfWeek()])
             ->orderBy('date', 'asc')
-            ->limit(3)
             ->get();
+
 
         // Obtener el user_id con la media más alta de puntos_ganados / puntos_perdidos
         // Obtener el user_id con la media más alta del mes anterior
@@ -262,7 +262,7 @@ class InicioController extends Controller
 
         $xusers = User::where('id', 215)->get();
 
-        $nacionalusers2025 = User::whereIn('id', [142, 766, 304])->get();
+        $nacionalusers2025 = User::whereIn('id', [142, 766, 579])->get();
 
         // Usuario con más asistencias
         $topAttenderData = DB::table('assist_user_event')

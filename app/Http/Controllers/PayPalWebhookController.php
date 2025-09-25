@@ -2,11 +2,9 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
 use App\Models\Subscription;
-use Carbon\Carbon;
 use Illuminate\Support\Facades\Log;
 
 class PayPalWebhookController extends Controller
@@ -14,7 +12,9 @@ class PayPalWebhookController extends Controller
     public function handle(Request $request)
     {
         try {
-            // 1️⃣ Obtener Access Token de PayPal
+            // 1️⃣ Log del webhook completo
+            Log::info('Webhook PayPal recibido', $request->all());
+
             $mode = config('paypal.mode');
             $clientId = $mode === 'sandbox'
                 ? config('paypal.sandbox.client_id')
@@ -28,65 +28,60 @@ class PayPalWebhookController extends Controller
                 ? 'https://api-m.sandbox.paypal.com'
                 : 'https://api-m.paypal.com';
 
-                Log::info('PayPal credentials', [
-                    'client_id' => $clientId,
-                    'secret' => $secret,
-                ]);
-
+            // Obtener Access Token
             $tokenResp = Http::withBasicAuth($clientId, $secret)
                 ->asForm()
                 ->post($base . '/v1/oauth2/token', [
                     'grant_type' => 'client_credentials'
                 ]);
 
-            if (!$tokenResp->ok()) {
-                Log::error('No se pudo obtener token de PayPal para webhook', ['resp' => $tokenResp->body()]);
-                return response()->json(['ok' => false], 500);
+            $accessToken = $tokenResp->json()['access_token'] ?? null;
+
+            // 2️⃣ Verificar firma solo si está definido el webhook_id
+            if ($webhookId = env('PAYPAL_WEBHOOK_ID')) {
+                $headers = $request->headers;
+                $verifyBody = [
+                    'transmission_id' => $headers->get('paypal-transmission-id'),
+                    'transmission_time' => $headers->get('paypal-transmission-time'),
+                    'cert_url' => $headers->get('paypal-cert-url'),
+                    'auth_algo' => $headers->get('paypal-auth-algo'),
+                    'transmission_sig' => $headers->get('paypal-transmission-sig'),
+                    'webhook_id' => $webhookId,
+                    'webhook_event' => $request->all()
+                ];
+
+                $verifyResp = Http::withToken($accessToken)
+                    ->post("$base/v1/notifications/verify-webhook-signature", $verifyBody);
+
+                if (!$verifyResp->ok() || $verifyResp->json()['verification_status'] !== 'SUCCESS') {
+                    Log::warning('Webhook PayPal no verificado', ['resp' => $verifyResp->body()]);
+                    // No devolvemos 400 para que PayPal no lo reintente infinitamente
+                    return response()->json(['ok' => true, 'verified' => false]);
+                }
             }
 
-            $accessToken = $tokenResp->json()['access_token'];
-
-            // 2️⃣ Verificar firma del webhook
-            $headers = $request->headers;
-            $verifyBody = [
-                'transmission_id' => $headers->get('paypal-transmission-id'),
-                'transmission_time' => $headers->get('paypal-transmission-time'),
-                'cert_url' => $headers->get('paypal-cert-url'),
-                'auth_algo' => $headers->get('paypal-auth-algo'),
-                'transmission_sig' => $headers->get('paypal-transmission-sig'),
-                'webhook_id' => env('PAYPAL_WEBHOOK_ID'),
-                'webhook_event' => $request->all()
-            ];
-
-            $verifyResp = Http::withToken($accessToken)
-                ->post("$base/v1/notifications/verify-webhook-signature", $verifyBody);
-
-            if (!$verifyResp->ok() || $verifyResp->json()['verification_status'] !== 'SUCCESS') {
-                Log::warning('Verificación de webhook PayPal fallida', ['resp' => $verifyResp->body()]);
-                return response()->json(['ok'=>false], 400);
-            }
-
-            // 3️⃣ Manejar el evento
+            // 3️⃣ Procesar el evento
             $event = $request->input('event_type');
             $resource = $request->input('resource');
             $subId = $resource['id'] ?? ($resource['subscription_id'] ?? null);
 
             if (!$subId) {
-                return response()->json(['ok' => false, 'message' => 'Sin subscription_id'], 400);
+                Log::warning('Webhook recibido sin subscription_id', $request->all());
+                return response()->json(['ok' => true, 'message' => 'Evento sin subscription_id']);
             }
 
             $sub = Subscription::where('paypal_subscription_id', $subId)->first();
 
-            // Si no existe, crear registro nuevo
+            // Crear registro si no existe (aunque sea APPROVAL_PENDING)
             if (!$sub) {
                 $sub = Subscription::create([
-                    'user_id' => null, // puedes mapear por email si quieres
-                    'plan_id' => null, // opcional: mapear plan_id desde $resource['plan_id']
-                    'period' => 'monthly', // o 'annual', según tu lógica
+                    'user_id' => null, // mapear con tu lógica si quieres
+                    'plan_id' => $resource['plan_id'] ?? null,
+                    'period' => 'monthly', // ajustar según tu lógica
                     'paypal_subscription_id' => $subId,
-                    'status' => 'active',
+                    'status' => $event === 'BILLING.SUBSCRIPTION.CREATED' ? 'pending' : 'active',
                     'started_at' => now(),
-                    'ended_at' => now()->addMonth(), // ajustar según tu plan
+                    'ended_at' => now()->addMonth(),
                 ]);
             }
 
@@ -106,7 +101,6 @@ class PayPalWebhookController extends Controller
 
                 case 'PAYMENT.SALE.COMPLETED':
                 case 'PAYMENT.CAPTURE.COMPLETED':
-                    // Extender ended_at según periodo
                     if ($sub->period === 'monthly') {
                         $sub->ended_at = $sub->ended_at ? $sub->ended_at->addMonth() : now()->addMonth();
                     } else {
