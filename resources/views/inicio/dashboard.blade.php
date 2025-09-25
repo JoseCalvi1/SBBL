@@ -100,8 +100,8 @@
             <div class="card text-center bg-dark text-white h-100 shadow-lg">
                 <div class="card-body d-flex flex-column">
                     <i class="fas fa-user-shield fa-3x mb-3" style="color: #e74a3b;"></i>
-                    <h5 class="card-title">Gestión de roles</h5>
-                    <p class="card-text">Gestiona los roles de los usuarios.</p>
+                    <h5 class="card-title">Gestión de usuarios</h5>
+                    <p class="card-text">Gestiona los roles y suscripciones.</p>
                     <div class="mt-auto">
                         <a href="{{ route('profiles.indexAdmin') }}" class="btn btn-outline-danger w-100">Acceder</a>
                     </div>

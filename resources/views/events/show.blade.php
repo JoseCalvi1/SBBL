@@ -283,7 +283,7 @@
                                                 ->whereMonth('events.date', \Carbon\Carbon::parse($event->date)->month)
                                                 ->whereYear('events.date', \Carbon\Carbon::parse($event->date)->year)
                                                 ->whereIn('events.beys', ['ranking', 'rankingplus']) // Añadir filtro de beys
-                                                ->where('assist_user_event.puesto', '<>', 'No presentado') // Filtro por puesto
+                                                ->where('assist_user_event.puesto', '<>', 'nopresentado') // Filtro por puesto
                                                 ->count();
 
                                                 }}

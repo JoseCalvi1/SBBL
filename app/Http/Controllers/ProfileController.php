@@ -9,6 +9,7 @@ use App\Models\Profile;
 use App\Models\Region;
 use App\Models\Versus;
 use App\Models\Invitation;
+use App\Models\Subscription;
 use App\Models\Team;
 use App\Models\User;
 use Illuminate\Http\Request;
@@ -127,8 +128,14 @@ class ProfileController extends Controller
 
         $allUsers = User::orderBy('name')->get();
 
-        return view('profiles.indexAdmin', compact('profiles', 'allUsers'));
+        $subscriptions = Subscription::with('user', 'plan')
+            ->where('status', 'active')
+            ->orderBy('plan_id', 'desc')
+            ->get();
+
+        return view('profiles.indexAdmin', compact('profiles', 'allUsers', 'subscriptions'));
     }
+
 
     // Actualizar roles
     public function updateRoles(Request $request, $userId)

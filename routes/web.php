@@ -182,7 +182,7 @@ Route::get('/dashboard/teams', [TeamController::class, 'indexAdmin'])->name('equ
 Route::get('/dashboard/beyblade-parts', [BeybladeDatabaseController::class, 'indexPartes'])->name('database.indexPartes');
 Route::get('/dashboard/beyblades', [BeybladeDatabaseController::class, 'indexBeys'])->name('database.indexBeys');
 Route::group(['middleware' => 'admin'], function () {
-   Route::get('/dashboard/profiles-burst', [App\Http\Controllers\ProfileController::class, 'indexAdmin'])->name('profiles.indexAdmin');
+   Route::get('/dashboard/profiles', [App\Http\Controllers\ProfileController::class, 'indexAdmin'])->name('profiles.indexAdmin');
    Route::get('/dashboard/profiles-x', [App\Http\Controllers\ProfileController::class, 'indexAdminX'])->name('profiles.indexAdminX');
    Route::resource('/dashboard/trophies', TrophyController::class); // Para los métodos index, create, store, etc.
 
