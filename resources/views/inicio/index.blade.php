@@ -446,8 +446,8 @@
             </div>
         </div>
         @endforeach
-    </div>
 
+    </div>
 
 <div class="container text-white my-4 rounded shadow bg-blader-month">
     <div class="row align-items-center py-4 px-2">
@@ -492,7 +492,30 @@
     </div>
 </div>
 
-
+<div class="container">
+        <div class="py-4">
+            <h2 class="text-center mb-4 text-white">Últimos Artículos</h2>
+            <div class="row">
+                @forelse ($articles as $article)
+                    <div class="col-md-6 col-lg-4 mb-4">
+                        <div class="card h-100 shadow-sm">
+                            @if ($article->image)
+                                <div class="text-center">
+                                    <img src="data:image/png;base64,{{ $article->image }}" alt="Imagen del artículo" class="img-fluid rounded mb-4" style="height: 120px">
+                                </div>
+                            @endif
+                            <div class="card-body d-flex flex-column">
+                                <h5 class="card-title">{{ $article->title }}</h5>
+                                <a href="{{ route('blog.show', $article->custom_url) }}" class="btn btn-primary mt-auto">Leer más</a>
+                            </div>
+                        </div>
+                    </div>
+                @empty
+                    <p class="text-center text-white">No hay artículos publicados todavía.</p>
+                @endforelse
+            </div>
+        </div>
+    </div>
 
     <!-- Quiénes somos -->
     <div class="container my-5">

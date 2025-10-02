@@ -33,13 +33,18 @@ class EventController extends Controller
         $beys = $request->input('beys'); // Filtro por tipo de evento (ranking o rankingplus)
 
         // Consulta base con los eventos a partir de una fecha específica
-        $query = Event::where('date', '>=', '2025-06-23')
+        $query = Event::where('date', '>=', '2025-09-01')
                     ->orderBy('date', 'DESC');
 
         // Aplicar filtro por estado si se selecciona uno
         if ($estado) {
-            $query->where('status', $estado);
+            if ($estado === 'PENDING_REVIEW') {
+                $query->whereIn('status', ['PENDING', 'REVIEW']);
+            } else {
+                $query->where('status', $estado);
+            }
         }
+
 
         // Aplicar filtro por beys si se selecciona uno
         if ($beys == 'ranking') {
@@ -186,7 +191,7 @@ class EventController extends Controller
         ]);
 
         // TODO Comentar para probar en local
-        //Self::notification(Event::find($eventId));
+        Self::notification(Event::find($eventId));
 
         $events = Event::with('region')->get();
         $createEvent = Event::where('created_by', Auth::user()->id)->where('date', '>', Carbon::now())->get();
@@ -252,17 +257,18 @@ class EventController extends Controller
             ->exists();
 
 
-        $currentDateTicket = Carbon::now();
-        $startOfMonth = $currentDateTicket->startOfMonth()->format('Y-m-d');
-        $endOfMonth = $currentDateTicket->endOfMonth()->format('Y-m-d');
+        // Supongamos que tienes el evento en una variable $event
+        $eventDate = \Carbon\Carbon::parse($event->date);
 
-        $userId = Auth::user()->id;
+        // Determinar mes y año del evento
+        $startOfEventMonth = $eventDate->copy()->startOfMonth();
+        $endOfEventMonth   = $eventDate->copy()->endOfMonth();
 
-        // Contar eventos tipo ranking o rankingplus en los que está inscrito este mes
+        // Contar eventos tipo ranking o rankingplus en los que está inscrito
         $rankingTournamentsParticipated = DB::table('assist_user_event')
             ->join('events', 'assist_user_event.event_id', '=', 'events.id')
-            ->where('assist_user_event.user_id', $userId)
-            ->whereBetween('events.date', [$startOfMonth, $endOfMonth])
+            ->where('assist_user_event.user_id', Auth::user()->id)
+            ->whereBetween('events.date', [$startOfEventMonth, $endOfEventMonth])
             ->whereIn('events.beys', ['ranking', 'rankingplus'])
             ->where('assist_user_event.puesto', '!=', 'No presentado')
             ->count();
@@ -270,8 +276,9 @@ class EventController extends Controller
         // Límite de torneos de ranking al mes
         $maxRankingTournaments = 2;
 
-        // Calcular cuántos le quedan
+        // Calcular cuántos le quedan para el mes de ese torneo
         $rankingTournamentsLeft = max(0, $maxRankingTournaments - $rankingTournamentsParticipated);
+
 
         return view('events.show', compact('event', 'videos', 'assists', 'suscribe', 'hoy', 'bladeOptions', 'assistBladeOptions', 'ratchetOptions', 'bitOptions', 'results', 'extraLines', 'resultsByParticipant', 'isRegistered' , 'rankingTournamentsLeft'));
     }

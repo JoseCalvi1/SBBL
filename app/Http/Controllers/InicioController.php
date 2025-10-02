@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Article;
 use App\Models\Event;
 use App\Models\Profile;
 use App\Models\Team;
@@ -130,10 +131,16 @@ class InicioController extends Controller
              ->take(3)
              ->get();
 
+        // Últimos 5 artículos (excepto borradores)
+        $articles = Article::where('article_type', '!=', 'Borrador')
+            ->orderBy('created_at', 'desc')
+            ->take(3)
+            ->get();
+
 
     return view('inicio.index', compact(
         'usuarios', 'bladers', 'stamina', 'nuevos', 'antiguos', 'bestUserProfile',
-        'bestUserRecord', 'bestUser', 'lastMonthName', 'teams'
+        'bestUserRecord', 'bestUser', 'lastMonthName', 'teams', 'articles'
     ));
     }
 

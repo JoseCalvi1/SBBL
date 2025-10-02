@@ -18,8 +18,7 @@
                     <select name="estado" id="estado" class="form-control">
                         <option value="">Todos</option>
                         <option value="OPEN" {{ request('estado') == 'OPEN' ? 'selected' : '' }}>Abierto</option>
-                        <option value="PENDING" {{ request('estado') == 'PENDING' ? 'selected' : '' }}>Pendiente</option>
-                        <option value="REVIEW" {{ request('estado') == 'REVIEW' ? 'selected' : '' }}>En revisión</option>
+                        <option value="PENDING_REVIEW" {{ request('estado') == 'PENDING_REVIEW' ? 'selected' : '' }}>Pendiente / En revisión</option>
                         <option value="INVALID" {{ request('estado') == 'INVALID' ? 'selected' : '' }}>Inválido</option>
                         <option value="CLOSE" {{ request('estado') == 'CLOSE' ? 'selected' : '' }}>Cerrado</option>
                     </select>
