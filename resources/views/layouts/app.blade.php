@@ -376,6 +376,16 @@
                     <p>Obtén acceso a beneficios adicionales y contenido exclusivo con nuestras suscripciones de nivel 1, 2 y 3.</p>
                 </div>
             </div>
+            <!-- Carrito flotante -->
+            @if ($cantidadCarrito != 0)
+                <a href="{{ route('carrito.show') }}" style="position: fixed;bottom: 100px;right: 20px;background: #28a745;color: white;padding: 12px 16px;border-radius: 50%;text-align: center;box-shadow: 0 4px 6px rgba(0,0,0,0.2);z-index: 1000;font-size: 18px;text-decoration: none;">
+                🛒
+                <span style="position: absolute;top: -5px;right: -5px;background: red;color: white;border-radius: 50%;width: 20px;height: 20px;font-size: 12px;line-height: 20px;">
+                    {{ $cantidadCarrito ?? 0 }}
+                </span>
+            </a>
+            @endif
+
         </main>
 
         <!-- Footer -->

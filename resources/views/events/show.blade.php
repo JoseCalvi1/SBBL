@@ -56,6 +56,9 @@
                         @endif
 
                         @if($event->beys === "grancopa")
+                        <div style="text-align: center; margin-bottom: 10px;">
+                            <strong>💶 Inscripción: 5€</strong>
+                        </div>
                             <div id="paypal-button-container" style="text-align: center;"></div>
 
                         @else
@@ -260,6 +263,14 @@
                     </div>
                     <div class="col-md-6">
                         <h4 style="font-weight: bold">Listado de participantes ({{ $assists->count() }})</h4>
+                        <div class="text-center">
+                            <div class="bg-dark rounded-pill px-3 py-2 shadow-sm d-inline-block">
+                                <span class="fw-bold text-warning">
+                                    Bote acumulado: <i class="fas fa-coins me-1"></i> {{ number_format($assists->count() * 200) }}
+                                </span>
+                            </div>
+                        </div>
+
                         <!-- Botón para copiar nombres -->
                         <button id="copyButton" class="btn btn-outline-primary mt-3 mb-3 w-100">Copiar nombres</button>
                         @if($assists->count() < 4 && $event->status == "OPEN")
@@ -450,6 +461,13 @@
             // 👉 Botón PayPal solo si es GranCopa
             @if($event->beys === "grancopa")
                 paypal.Buttons({
+                    style: {
+                        layout: 'vertical',   // o 'horizontal'
+                        size: 'responsive',        // 'small' | 'medium' | 'large' | 'responsive'
+                        shape: 'rect',        // 'rect' | 'pill'
+                        color: 'gold',        // 'gold' | 'blue' | 'silver' | 'black'
+                        label: 'pay'          // 'paypal' | 'checkout' | 'buynow' | 'pay'
+                    },
                     createOrder: function(data, actions) {
                         return actions.order.create({
                             purchase_units: [{

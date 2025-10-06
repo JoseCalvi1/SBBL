@@ -51,6 +51,7 @@
                     <option value="hasbro">Hasbro</option>
                     <option value="copalloros">Copa Lloros</option>
                     <option value="copaligera">Copa Ligera</option>
+                    <option value="copapaypal">Copa Paypal</option>
                 </select>
             </div>
         </div>
@@ -258,13 +259,23 @@ document.addEventListener('DOMContentLoaded', () => {
     function updateNoteField() {
         if (imagenSelect.value === "copalloros") {
             noteInput.value = "Blades Baneados: Silver Wolf, Wizard Rod. Bits Baneados: Ball, Free Ball, Orb, Elevate";
-            noteInput.disabled = true;
+            noteInput.readOnly = true;
         } else if (imagenSelect.value === "copaligera") {
             noteInput.value = "Blades permitidos : Wizard Arrow • Star Scream • Knight Shield • Optimus Prime • Iron Man • Luke Skywalker • Knight Lance • Thanos • Darth Vader • Leon Claw • The Mandalorian • Rhino Horn • Wyvern Gale • Sphinx Cowl • Black Shell • Shinobi Shadow • Ghost Circle • Tusk Mammoth • Savage Bear • Steel Samurai • Yell Kong • Knife Shinobi • Shelter Drake • Dranzer • Drigger • Draciel";
-            noteInput.disabled = true;
+            noteInput.readOnly  = true;
+        } else if (imagenSelect.value === "copapaypal") {
+            noteInput.value = `
+        📢 <strong>Copa organizada y gestionada por la comunidad</strong><br><br>
+        💰 <strong>Entrada:</strong> 2€<br>
+        🏆 <strong>Bote:</strong> 200 <i class="fas fa-coins text-warning"></i> SBBL Coins por cada participante.<br><br>
+        🎁 Estos coins se podrán utilizar para <strong>reclamar recompensas en la tienda de la SBBL</strong>.<br><br>
+        ⚖️ <strong>Arbitraje:</strong> será gestionado por el organizador del evento, por lo que cualquier queja deberá dirigirse a esta persona.<br><br>
+        🚫 La SBBL no se hace responsable del arbitraje ni de la gestión del evento.
+            `.trim();
+            noteInput.readOnly  = true;
         } else {
             noteInput.value = "";
-            noteInput.disabled = false;
+            noteInput.readOnly  = false;
         }
     }
 

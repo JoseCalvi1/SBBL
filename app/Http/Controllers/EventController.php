@@ -170,7 +170,6 @@ class EventController extends Controller
             $ruta_imagen = 'upload-events/quedada.jpg';
         }
 
-
         // Almacenar datos en la BD (sin modelos)
         $eventId = DB::table('events')->insertGetId([
             'name' => $data['name'],
@@ -498,6 +497,66 @@ class EventController extends Controller
                 return redirect()->back()->with('error', "No se pudo actualizar el puesto para el participante ID {$participante['id']}.");
             }
         }
+
+        if ($event->beys === 'copapaypal' || $event->beys === 'grancopa') {
+
+            // Obtener el ID del trofeo "SBBL Coin"
+            $trophyId = DB::table('trophies')->where('name', 'SBBL Coin')->value('id');
+
+            if ($trophyId) {
+
+                // Contar participantes que se presentaron
+                $totalParticipantes = DB::table('assist_user_event')
+                    ->where('event_id', $id)
+                    ->where('puesto', '!=', 'nopresentado')
+                    ->count();
+
+                // Coins base: 200/500 * total participantes
+                $coinsBase = 0;
+                if ($event->beys === 'copapaypal') {
+                    $coinsBase = 200 * $totalParticipantes;
+                } elseif($event->beys === 'grancopa') {
+                    $coinsBase = 500 * $totalParticipantes;
+                }
+
+                // Porcentajes por puesto
+                $porcentajes = [
+                    'primero' => 0.5,
+                    'segundo' => 0.3,
+                    'tercero' => 0.2,
+                ];
+
+                foreach ($request->input('participantes') as $participante) {
+                    $puestoTexto = strtolower($participante['puesto']); // aseguramos minúsculas
+
+                    if (isset($porcentajes[$puestoTexto])) {
+                        $coins = intval($coinsBase * $porcentajes[$puestoTexto]);
+
+                        $registro = DB::table('profilestrophies')
+                            ->where('profiles_id', $participante['id'])
+                            ->where('trophies_id', $trophyId)
+                            ->first();
+
+                        if ($registro) {
+                            DB::table('profilestrophies')
+                                ->where('id', $registro->id)
+                                ->update(['count' => $registro->count + $coins]);
+                        } else {
+                            DB::table('profilestrophies')->insert([
+                                'profiles_id' => $participante['id'],
+                                'trophies_id' => $trophyId,
+                                'count' => $coins,
+                                'created_at' => now(),
+                                'updated_at' => now(),
+                            ]);
+                        }
+                    }
+                }
+                self::actualizarStatus($event->id, 'CLOSED');
+
+            }
+        }
+
 
         return redirect()->back()->with('success', 'Resultados actualizados correctamente.');
     }

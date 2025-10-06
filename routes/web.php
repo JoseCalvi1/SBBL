@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\BeybladeCollectionController;
 use App\Http\Controllers\BeybladeDatabaseController;
+use App\Http\Controllers\CarritoController;
 use App\Http\Controllers\ChatController;
 use App\Http\Controllers\EventController;
 use App\Http\Controllers\InicioController;
@@ -9,9 +10,9 @@ use App\Http\Controllers\TeamController;
 use App\Http\Controllers\InvitationController;
 use App\Http\Controllers\PayPalController;
 use App\Http\Controllers\PayPalWebhookController;
+use App\Http\Controllers\ProductoController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\TeamsVersusController;
-use App\Http\Controllers\TiendaController;
 use App\Http\Controllers\TournamentResultController;
 use App\Http\Controllers\TrophyController;
 use App\Http\Controllers\VersusController;
@@ -160,16 +161,6 @@ Route::delete('/trophies/removeAssignment/{assignmentId}', [TrophyController::cl
 Route::put('/trophies/{userId}/updateCount/{trophyId}', [TrophyController::class, 'updateCount'])->name('trophies.updateCount');
 Route::delete('/trophies/{userId}/remove/{trophyId}', [TrophyController::class, 'remove'])->name('trophies.remove');
 
-Route::get('/tienda', [TiendaController::class, 'index'])->name('tienda.index');
-Route::get('/tienda/create', [TiendaController::class, 'create'])->name('tienda.create');
-Route::post('/tienda', [TiendaController::class, 'store'])->name('tienda.store');
-Route::get('/tienda/{tienda}', [TiendaController::class, 'show'])->name('tienda.show');
-Route::get('/tienda/{tienda}/edit', [TiendaController::class, 'edit'])->name('tienda.edit');
-Route::put('/tienda/{tienda}', [TiendaController::class, 'update'])->name('tienda.update');
-Route::patch('/tienda/{tienda}', [TiendaController::class, 'update']);
-Route::delete('/tienda/{tienda}', [TiendaController::class, 'destroy'])->name('tienda.destroy');
-
-
 Route::get('/eventos', [InicioController::class, 'events'])->name('events.index');
 Route::post('/eventos/fetch', [InicioController::class, 'fetchEvents'])->name('events.fetch');
 Route::get('/subscriptions', [InicioController::class, 'suscriptions'])->name('subscriptions');
@@ -185,7 +176,7 @@ Route::group(['middleware' => 'admin'], function () {
    Route::get('/dashboard/profiles', [App\Http\Controllers\ProfileController::class, 'indexAdmin'])->name('profiles.indexAdmin');
    Route::get('/dashboard/profiles-x', [App\Http\Controllers\ProfileController::class, 'indexAdminX'])->name('profiles.indexAdminX');
    Route::resource('/dashboard/trophies', TrophyController::class); // Para los métodos index, create, store, etc.
-
+   Route::resource('productos', ProductoController::class);
 });
 
 Route::get('/beyblade-database', [BeybladeDatabaseController::class, 'index'])->name('database.index');
@@ -232,6 +223,14 @@ Route::get('/beyblade-database/collection', [BeybladeCollectionController::class
 Route::post('/beyblade-database/collection/store', [BeybladeCollectionController::class, 'store'])->name('collection.store');
 Route::put('/collection/{id}', [BeybladeCollectionController::class, 'update'])->name('collection.update');
 Route::delete('/collection/{id}', [BeybladeCollectionController::class, 'destroy'])->name('collection.destroy');
+
+// Tienda
+Route::get('/tienda', [CarritoController::class, 'index'])->name('carrito.index');
+Route::get('/carrito', [CarritoController::class, 'show'])->name('carrito.show');
+Route::post('/carrito/add/{producto}', [CarritoController::class, 'add'])->name('carrito.add');
+Route::post('/carrito/checkout', [CarritoController::class, 'checkout'])->name('carrito.checkout');
+Route::post('/carrito/update/{producto}', [CarritoController::class, 'update'])->name('carrito.update');
+Route::delete('/carrito/remove/{producto}', [CarritoController::class, 'remove'])->name('carrito.remove');
 
 
 // mostrar planes
