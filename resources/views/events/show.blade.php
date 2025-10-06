@@ -263,13 +263,15 @@
                     </div>
                     <div class="col-md-6">
                         <h4 style="font-weight: bold">Listado de participantes ({{ $assists->count() }})</h4>
+                        @if ($event->beys == 'copapaypal' || $event->beys == 'grancopa')
                         <div class="text-center">
                             <div class="bg-dark rounded-pill px-3 py-2 shadow-sm d-inline-block">
                                 <span class="fw-bold text-warning">
-                                    Bote acumulado: <i class="fas fa-coins me-1"></i> {{ number_format($assists->count() * 200) }}
+                                    Bote acumulado: <i class="fas fa-coins me-1"></i> {{ number_format($assists->count() * (($event->beys == 'copapaypal') ? 200 : 500)) }}
                                 </span>
                             </div>
                         </div>
+                        @endif
 
                         <!-- Botón para copiar nombres -->
                         <button id="copyButton" class="btn btn-outline-primary mt-3 mb-3 w-100">Copiar nombres</button>
