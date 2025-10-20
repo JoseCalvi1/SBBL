@@ -31,6 +31,49 @@
                         <img src="/storage/{{ $event->imagen }}" class="w-100 h-25" style="border-radius: 5px;">
                     @endif
                 </div>
+
+                @if ($event->beys == 'ranking' || $event->beys == 'rankingplus')
+                    <div class="container my-2">
+                        <div class="card border-0 shadow-lg rounded-4" style="background: linear-gradient(135deg, #1a1a1a, #2b2b2b);">
+                            <div class="card-body text-center text-white p-3">
+                                <p class="text-uppercase mb-3" style="color: #ffc107; text-shadow: 1px 1px 4px rgba(0,0,0,0.5);">
+                                    💛 Iniciativa: ¡Apoya a tu Árbitro!
+                                </p>
+
+                                <div class="d-flex justify-content-center">
+                                    <a href="https://www.paypal.com/donate?business=info%40sbbl.es&item_name={{ urlencode(Auth::user()->name . ' apoya a su árbitro de ' . $event->city . ' (' . $event->region->name . ')') }}&currency_code=EUR"
+                                    target="_blank"
+                                    class="btn btn-warning fw-bold px-4 py-2 rounded-pill shadow-lg"
+                                    style="font-size: 1.1rem;">
+                                        <i class="fab fa-paypal me-2"></i> Apoyar a {{ $event->region->name }}
+                                    </a>
+                                </div>
+
+                                <p class="mt-4" style="font-size: 0.95rem; color: #aaa;">
+                                    Estas aportaciones se destinan a apoyar la labor de nuestros árbitros y
+                                    <strong>la compra del material comunitario</strong>.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                @else
+                    <div class="text-center my-4">
+                        <div class="p-4 rounded-4 shadow-lg" style="background: linear-gradient(90deg, #1a1a1a, #3d2c00); color: #fff;">
+                            <h5 class="fw-bold mb-3">
+                                💛 ¡Apoya a la Comunidad SBBL!
+                            </h5>
+                            <p class="mb-4" style="font-size: 1.05rem;">
+                                Tu aportación nos ayuda a mantener viva la liga, organizar torneos y seguir mejorando la experiencia de todos los bladers.
+                            </p>
+                            <a href="https://www.paypal.com/donate?business=info%40sbbl.es" target="_blank"
+                            class="btn btn-warning fw-bold px-4 py-2 rounded-pill shadow-lg"
+                            style="font-size: 1.1rem;">
+                                <i class="fab fa-paypal me-2"></i> Contribuir vía PayPal
+                            </a>
+                        </div>
+                    </div>
+                @endif
+
                 <div id="app" class="mt-2">
                     <chat-component :event-id="{{$event->id}}" />
                 </div>
@@ -47,59 +90,6 @@
                         </div>
                     @endif
 
-                @if($event->status == "OPEN" && Auth::user() && $event->date > $hoy)
-                    @if (!$suscribe)
-                        @if($isRegistered && ($event->beys == "ranking" || $event->beys == "rankingplus"))
-                            <span class="alert alert-warning d-block mt-3 p-2 text-center font-weight-bold">
-                                ⚠️ Ya te has apuntado a otro torneo esta semana. Recuerda que está prohibido participar en dos torneos la misma semana salvo excepción aprobada por los admins o ser un torneo especial.
-                            </span>
-                        @endif
-
-                        @if($event->beys === "grancopa")
-                        <div style="text-align: center; margin-bottom: 10px;">
-                            <strong>💶 Inscripción: 5€</strong>
-                        </div>
-                            <div id="paypal-button-container" style="text-align: center;"></div>
-
-                        @else
-                            <form method="POST" action="{{ route('events.assist', ['event' => $event->id]) }}" enctype="multipart/form-data" novalidate style="text-align: center;">
-                                @csrf
-                                <div class="form-group py-2">
-                                    <input
-                                        type="submit"
-                                        class="btn btn-primary text-uppercase font-weight-bold m-1 flex-right"
-                                        value="Inscribirse"
-                                        @if(in_array($event->beys, ['ranking', 'rankingplus']) && $rankingTournamentsLeft == 0)
-                                            disabled
-                                        @endif
-                                    >
-                                    @if(in_array($event->beys, ['ranking', 'rankingplus']))
-                                        <span class="badge badge-warning ml-2" title="Torneos de ranking restantes este mes" style="font-size: 1rem;">
-                                            🎟️ {{ $rankingTournamentsLeft }}
-                                        </span>
-                                    @endif
-                                </div>
-                            </form>
-                        @endif
-
-                    @php
-                        $user = \App\Models\User::findOrFail($event->created_by);
-                    @endphp
-
-                    @if ($user && !($user->is_jury || $user->is_referee))
-                        <span class="alert alert-warning d-block mt-3 p-2 text-center font-weight-bold">
-                            ⚠️ Este evento <bold>NO HA SIDO CREADO POR UN ÁRBITRO</bold>, el material tiene que ser proporcionado por los participantes.
-                        </span>
-                    @endif
-
-                    @else
-                        <form method="POST" action="{{ route('events.noassist', ['event' => $event->id]) }}" style="display: contents; text-align: center;">
-                            @method('DELETE')
-                            @csrf
-                            <button type="submit" class="btn btn-danger mr-2 text-uppercase font-weight-bold m-1 flex-right">No asistiré</button>
-                        </form>
-                    @endif
-                @endif
 
                 <div class="row">
                     <div class="col-md-6">
@@ -262,12 +252,69 @@
 
                     </div>
                     <div class="col-md-6">
+                        @if($event->status == "OPEN" && Auth::user() && $event->date > $hoy)
+                    @if (!$suscribe)
+                        @if($isRegistered && ($event->beys == "ranking" || $event->beys == "rankingplus"))
+                            <span class="alert alert-warning d-block mt-3 p-2 text-center font-weight-bold">
+                                ⚠️ Ya te has apuntado a otro torneo esta semana. Recuerda que está prohibido participar en dos torneos la misma semana salvo excepción aprobada por los admins o ser un torneo especial.
+                            </span>
+                        @endif
+
+                        @if($event->beys === "grancopa")
+                            <div style="text-align: center; margin-bottom: 10px;">
+                                <strong>💶 Inscripción: 5€</strong> (Añadir <span class="me-1">🦎</span></i>500 al bote)
+                            </div>
+                                <div id="paypal-button-container" style="text-align: center;"></div>
+                        @elseif ($event->beys === "copapaypal")
+                            <div style="text-align: center; margin-bottom: 10px;">
+                                <strong>💶 Inscripción: 2€</strong> (Añadir <span class="me-1">🦎</span></i>200 al bote)
+                            </div>
+                                <div id="paypal-button-container" style="text-align: center;"></div>
+                        @else
+                            <form method="POST" action="{{ route('events.assist', ['event' => $event->id]) }}" enctype="multipart/form-data" novalidate style="text-align: center;">
+                                @csrf
+                                <div class="form-group py-2">
+                                    <input
+                                        type="submit"
+                                        class="btn btn-primary text-uppercase font-weight-bold m-1 flex-right"
+                                        value="Inscribirse"
+                                        @if(in_array($event->beys, ['ranking', 'rankingplus']) && $rankingTournamentsLeft == 0)
+                                            disabled
+                                        @endif
+                                    >
+                                    @if(in_array($event->beys, ['ranking', 'rankingplus']))
+                                        <span class="badge badge-warning ml-2" title="Torneos de ranking restantes este mes" style="font-size: 1rem;">
+                                            🎟️ {{ $rankingTournamentsLeft }}
+                                        </span>
+                                    @endif
+                                </div>
+                            </form>
+                        @endif
+
+                    @php
+                        $user = \App\Models\User::findOrFail($event->created_by);
+                    @endphp
+
+                    @if ($user && !($user->is_jury || $user->is_referee))
+                        <span class="alert alert-warning d-block mt-3 p-2 text-center font-weight-bold">
+                            ⚠️ Este evento <bold>NO HA SIDO CREADO POR UN ÁRBITRO</bold>, el material tiene que ser proporcionado por los participantes.
+                        </span>
+                    @endif
+
+                    @else
+                        <form method="POST" action="{{ route('events.noassist', ['event' => $event->id]) }}" style="display: contents; text-align: center;">
+                            @method('DELETE')
+                            @csrf
+                            <button type="submit" class="btn btn-danger mr-2 text-uppercase font-weight-bold m-1 flex-right">No asistiré</button>
+                        </form>
+                    @endif
+                @endif
                         <h4 style="font-weight: bold">Listado de participantes ({{ $assists->count() }})</h4>
                         @if ($event->beys == 'copapaypal' || $event->beys == 'grancopa')
                         <div class="text-center">
                             <div class="bg-dark rounded-pill px-3 py-2 shadow-sm d-inline-block">
                                 <span class="fw-bold text-warning">
-                                    Bote acumulado: <i class="fas fa-coins me-1"></i> {{ number_format($assists->count() * (($event->beys == 'copapaypal') ? 200 : 500)) }}
+                                    Bote acumulado: <span class="me-1">🦎</span> {{ number_format($assists->count() * (($event->beys == 'copapaypal') ? 200 : 500)) }}
                                 </span>
                             </div>
                         </div>
@@ -275,6 +322,22 @@
 
                         <!-- Botón para copiar nombres -->
                         <button id="copyButton" class="btn btn-outline-primary mt-3 mb-3 w-100">Copiar nombres</button>
+                        @if (Auth::user() && Auth::user()->is_jury)
+                            <form method="POST" action="{{ route('events.addAssist', ['event' => $event->id]) }}" enctype="multipart/form-data" novalidate class="d-flex justify-content-center align-items-center gap-2 my-4">
+                                @csrf
+                                <select name="participante_id" id="participante" class="form-select select2" style="width: 300px;">
+                                    <option value="">-- Busca o selecciona un participante --</option>
+                                    @foreach($participantes as $p)
+                                        <option value="{{ $p->id }}">{{ $p->name }}</option>
+                                    @endforeach
+                                </select>
+
+                                <button type="submit" class="btn btn-success fw-bold" title="Añadir participante" style="width: 40px; height: 40px; font-size: 20px;">
+                                    +
+                                </button>
+                            </form>
+
+                        @endif
                         @if($assists->count() < 4 && $event->status == "OPEN")
                             <div class="alert alert-danger">
                                 Importante: Si el número de participantes es menor a 4 el torneo no se realizará.
@@ -504,6 +567,50 @@
                 }).render("#paypal-button-container");
             @endif
 
+            // 👉 Botón PayPal solo si es GranCopa
+            @if($event->beys === "copapaypal")
+                paypal.Buttons({
+                    style: {
+                        layout: 'vertical',   // o 'horizontal'
+                        size: 'responsive',        // 'small' | 'medium' | 'large' | 'responsive'
+                        shape: 'rect',        // 'rect' | 'pill'
+                        color: 'gold',        // 'gold' | 'blue' | 'silver' | 'black'
+                        label: 'pay'          // 'paypal' | 'checkout' | 'buynow' | 'pay'
+                    },
+                    createOrder: function(data, actions) {
+                        return actions.order.create({
+                            purchase_units: [{
+                                description: "Inscripción Copa Paypal",
+                                amount: {
+                                    value: "2.00"
+                                }
+                            }]
+                        });
+                    },
+                    onApprove: function(data, actions) {
+                        return actions.order.capture().then(function(details) {
+                            fetch("{{ route('events.assist', ['event' => $event->id]) }}", {
+                                method: "POST",
+                                headers: {
+                                    "Content-Type": "application/json",
+                                    "X-CSRF-TOKEN": "{{ csrf_token() }}"
+                                },
+                                body: JSON.stringify({
+                                    paypal_order_id: data.orderID,
+                                    payer: details.payer
+                                })
+                            }).then(res => {
+                                if (res.ok) {
+                                    window.location.reload();
+                                } else {
+                                    alert("⚠️ Hubo un problema al inscribirte. Intenta de nuevo.");
+                                }
+                            });
+                        });
+                    }
+                }).render("#paypal-button-container");
+            @endif
+
             // 👉 Copiar nombres al portapapeles
             const copyBtn = jQuery('#copyButton');
             if (copyBtn.length) {
@@ -546,13 +653,20 @@
             // 👉 Re-inicializar Select2 al mostrar el modal
             jQuery('#formModal').on('shown.bs.modal', function () {
                 jQuery('.select2').select2({
-                    dropdownParent: $('#formModal')
+                    dropdownParent: jQuery('#formModal')
                 });
             });
+        jQuery(document).ready(function() {
+                jQuery('.select2').select2({
+                    width: '100%',
+                    placeholder: "Añadir participante",
+            });
+        });
 
             // 👉 Inicializar tooltips
             jQuery('[data-toggle="tooltip"]').tooltip();
         });
+
     </script>
 
 <!-- Modal para introducir decks - Versión Bootstrap 5 -->

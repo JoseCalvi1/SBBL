@@ -67,6 +67,7 @@ Route::delete('/events/{event}/reviews/{user}', [EventController::class, 'destro
 
 
 Route::post('/events/{event}', [App\Http\Controllers\EventController::class, 'assist'])->name('events.assist');
+Route::post('/events-add/{event}', [App\Http\Controllers\EventController::class, 'addAssist'])->name('events.addAssist');
 Route::delete('/assist/{event}', [App\Http\Controllers\EventController::class, 'noassist'])->name('events.noassist');
 Route::put('/events/{event}/actualizar-status', [App\Http\Controllers\EventController::class, 'actualizarStatus'])->name('events.status');
 Route::put('/events/{event}/updatePuestos', [App\Http\Controllers\EventController::class, 'updatePuestos'])->name('events.updatePuestos');
@@ -177,6 +178,12 @@ Route::group(['middleware' => 'admin'], function () {
    Route::get('/dashboard/profiles-x', [App\Http\Controllers\ProfileController::class, 'indexAdminX'])->name('profiles.indexAdminX');
    Route::resource('/dashboard/trophies', TrophyController::class); // Para los métodos index, create, store, etc.
    Route::resource('productos', ProductoController::class);
+   Route::get('/admin/announcements', [InicioController::class, 'anuncios'])->name('index.anuncios');
+   Route::post('/admin/announcements/send', [InicioController::class, 'sendAnuncio'])->name('index.announcements.send');
+    Route::get('/pedidos', [\App\Http\Controllers\Admin\PedidoController::class, 'index'])->name('admin.pedidos.index');
+    Route::get('/pedidos/{pedido}', [\App\Http\Controllers\Admin\PedidoController::class, 'show'])->name('admin.pedidos.show');
+    Route::put('/pedidos/{pedido}', [\App\Http\Controllers\Admin\PedidoController::class, 'update'])->name('admin.pedidos.update');
+    Route::delete('/pedidos/{pedido}', [\App\Http\Controllers\Admin\PedidoController::class, 'destroy'])->name('admin.pedidos.destroy');
 });
 
 Route::get('/beyblade-database', [BeybladeDatabaseController::class, 'index'])->name('database.index');
@@ -228,10 +235,11 @@ Route::delete('/collection/{id}', [BeybladeCollectionController::class, 'destroy
 Route::get('/tienda', [CarritoController::class, 'index'])->name('carrito.index');
 Route::get('/carrito', [CarritoController::class, 'show'])->name('carrito.show');
 Route::post('/carrito/add/{producto}', [CarritoController::class, 'add'])->name('carrito.add');
-Route::post('/carrito/checkout', [CarritoController::class, 'checkout'])->name('carrito.checkout');
 Route::post('/carrito/update/{producto}', [CarritoController::class, 'update'])->name('carrito.update');
 Route::delete('/carrito/remove/{producto}', [CarritoController::class, 'remove'])->name('carrito.remove');
-
+Route::post('/carrito/checkout', [CarritoController::class, 'checkout'])->name('carrito.checkout');
+Route::get('/paypal/success', [CarritoController::class, 'paypalSuccess'])->name('paypal.success');
+Route::get('/paypal/cancel', [CarritoController::class, 'paypalCancel'])->name('paypal.cancel');
 
 // mostrar planes
 Route::get('/planes', [App\Http\Controllers\PlanController::class,'index'])->name('planes.index');

@@ -105,6 +105,8 @@ class EventController extends Controller
                 $textoImagen = 'Copa Lloros';
             } elseif ($request->imagen == 'copaligera') {
                 $textoImagen = 'Copa Ligera';
+            } elseif ($request->imagen == 'copapaypal') {
+                $textoImagen = 'Copa Paypal';
             } else {
                 $textoImagen = 'Copa'; // Si no coincide con ninguno de los valores
             }
@@ -278,8 +280,9 @@ class EventController extends Controller
         // Calcular cuántos le quedan para el mes de ese torneo
         $rankingTournamentsLeft = max(0, $maxRankingTournaments - $rankingTournamentsParticipated);
 
+        $participantes = User::all();
 
-        return view('events.show', compact('event', 'videos', 'assists', 'suscribe', 'hoy', 'bladeOptions', 'assistBladeOptions', 'ratchetOptions', 'bitOptions', 'results', 'extraLines', 'resultsByParticipant', 'isRegistered' , 'rankingTournamentsLeft'));
+        return view('events.show', compact('event', 'videos', 'assists', 'suscribe', 'hoy', 'bladeOptions', 'assistBladeOptions', 'ratchetOptions', 'bitOptions', 'results', 'extraLines', 'resultsByParticipant', 'isRegistered' , 'rankingTournamentsLeft', 'participantes'));
     }
 
 
@@ -383,6 +386,8 @@ class EventController extends Controller
         $event->note = $request['note'];
 
         $event->save();
+        // TODO: Comentar en local
+        $this->notificationEdited($event);
 
         // Redireccionar
         return redirect()->action('App\Http\Controllers\EventController@show', ['event' => $event->id])->with('event', $event);
@@ -404,6 +409,27 @@ class EventController extends Controller
     public function assist(Request $request, Event $event)
     {
         $userId = Auth::id();
+        $eventId = $event->id;
+
+        // Verificar si la asistencia ya existe
+        $exists = DB::table('assist_user_event')
+            ->where('user_id', $userId)
+            ->where('event_id', $eventId)
+            ->exists();
+
+        if (!$exists) {
+            DB::table('assist_user_event')->insert([
+                'user_id' => $userId,
+                'event_id' => $eventId,
+            ]);
+        }
+
+        return redirect()->back();
+    }
+
+    public function addAssist(Request $request, Event $event)
+    {
+        $userId = $request->participante_id;
         $eventId = $event->id;
 
         // Verificar si la asistencia ya existe
@@ -728,7 +754,7 @@ class EventController extends Controller
         $rolId = $rolesPorComunidad[$regionName] ?? '';
 
         // Construyes el mensaje mencionando la región específica
-        $message = "¡Hay un nuevo torneo disponible para $regionName!";
+        $message = "¡Hay un nuevo torneo disponible para " . $eventId->city . "(" . $regionName . ")!";
 
         // Añades la mención del rol de Discord de la región al mensaje
         $message .= "\n<@&$rolId>";
@@ -745,6 +771,58 @@ class EventController extends Controller
             ],
         ]);
     }
+
+    public function notificationEdited($event)
+    {
+        $regionName = $event->region->name;
+        $fecha = \Carbon\Carbon::parse($event->date);
+        $fechaFormateada = $fecha->translatedFormat('d \d\e F \d\e\l Y');
+
+        // Array con los roles de Discord por comunidad autónoma
+        $rolesPorComunidad = [
+            'Andalucía' => '1206704489990459452',
+            'Aragón' => '1209155125654978663',
+            'Asturias' => '1209155336033017876',
+            'Baleares' => '1209155169917476874',
+            'Canarias' => '1209154917449859143',
+            'Cantabria' => '1209155399920386109',
+            'Castilla La Mancha' => '1209154971229093978',
+            'Castilla y León' => '1209154789003239504',
+            'Catalunya' => '1209154633227046983',
+            'Extremadura' => '1209155220450582618',
+            'Galicia' => '1209154737220354048',
+            'Rioja' => '1209155480342106132',
+            'Madrid' => '1209154530890219520',
+            'Murcia' => '1209155058562895944',
+            'Navarra' => '1209155367578370059',
+            'País Vasco' => '1209154853872345138',
+            'Valencia' => '1209154705327132712',
+            'Melilla' => '1209155513967845438',
+            'Ceuta' => '1209155549468434432',
+        ];
+
+        // ID del rol correspondiente
+        $rolId = $rolesPorComunidad[$regionName] ?? '';
+
+        // Mensaje principal
+        $message = "⚠️ ¡El torneo de **" . $event->city . "** (" . $regionName . ") ha sido **modificado**!";
+
+        // Añadimos la mención del rol
+        $message .= "\n<@&$rolId>";
+
+        // Embed con la info actualizada
+        return \Illuminate\Support\Facades\Http::post(env('DISCORD_WEBHOOK_URL'), [
+            'content' => $message,
+            'embeds' => [
+                [
+                    'title' => $event->name . " (" . $event->mode . ")",
+                    'description' => "📅 Nueva fecha: **" . $fechaFormateada . "** a las **" . $event->time . "**.\n📍 Ubicación: " . $event->location . "\n🔗 Más info: https://sbbl.es/events/" . $event->id,
+                    'color' => 16753920, // Naranja para avisos
+                ]
+            ],
+        ]);
+    }
+
 
     public function getParticipantResults(Request $request, Event $event)
     {
