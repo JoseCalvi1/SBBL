@@ -35,7 +35,7 @@
                 </div>
             </form>
 
-            @if ($bladers->lastPage() > 1)
+            @if (method_exists($bladers, 'lastPage') && $bladers->lastPage() > 1)
                 <nav class="d-flex justify-content-center my-3">
                     <ul class="pagination pagination-sm">
                         {{-- Previous --}}
@@ -159,7 +159,7 @@
                 </div>
             @endforeach
 
-            @if ($bladers->lastPage() > 1)
+            @if (method_exists($bladers, 'lastPage') && $bladers->lastPage() > 1)
                 <nav class="d-flex justify-content-center my-3">
                     <ul class="pagination pagination-sm">
                         {{-- Previous --}}
@@ -211,8 +211,14 @@
         left: 0;
         width: 100%;
         height: 100%;
-        background: rgba(0, 0, 0, 0.2);
+        background: rgba(0, 0, 0, 0.4);
         z-index: 0;
+    }
+
+    /* Para que el contenido quede por encima */
+    .tarjeta > * {
+        position: relative;
+        z-index: 1;
     }
 
     .tarjeta .info,

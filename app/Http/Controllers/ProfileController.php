@@ -28,84 +28,49 @@ class ProfileController extends Controller
      * @return \Illuminate\Http\Response
      */
     public function index(Request $request)
-    {
-        $regionId = $request->input('region');
-        $isFreeAgent = $request->input('free_agent');
+{
+    $regionId = $request->input('region');
+    $isFreeAgent = $request->input('free_agent');
 
-        // Traer perfiles con relaciones necesarias
-        $bladersQuery = Profile::with(['user.activeSubscription.plan', 'region', 'trophies'])
-            ->withCount('trophies')
-            ->when($regionId, fn($query) => $query->where('profiles.region_id', $regionId))
-            ->when(isset($isFreeAgent) && $isFreeAgent !== '', function($query) use ($isFreeAgent) {
-                $value = $isFreeAgent == '1' ? true : false;
-                $query->where('profiles.free_agent', $value);
-            })
-            ->where(function ($query) {
-                $query->where('profiles.points_x2', '<>', 0)
-                    ->orWhere('profiles.points_s3', '<>', 0)
-                    ->orWhereNotNull('profiles.imagen');
-            });
+    $bladersQuery = Profile::with(['user.activeSubscription.plan', 'region', 'trophies'])
+        ->withCount('trophies')
+        ->when($regionId, fn($query) => $query->where('profiles.region_id', $regionId))
+        ->when(isset($isFreeAgent) && $isFreeAgent !== '', function($query) use ($isFreeAgent) {
+            $value = $isFreeAgent == '1' ? true : false;
+            $query->where('profiles.free_agent', $value);
+        })
+        ->where(function ($query) {
+            $query->where('profiles.points_x2', '<>', 0)
+                  ->orWhere('profiles.points_s3', '<>', 0)
+                  ->orWhereNotNull('profiles.imagen');
+        })
+        ->leftJoin('subscriptions', function($join) {
+            $join->on('subscriptions.user_id', '=', 'profiles.user_id')
+                 ->where('subscriptions.status', 'active')
+                 ->where('subscriptions.ended_at', '>=', now());
+        })
+        ->leftJoin('plans', 'subscriptions.plan_id', '=', 'plans.id')
+        ->orderByRaw("
+            CASE
+                WHEN plans.slug = 'oro' THEN 1
+                WHEN plans.slug = 'plata' THEN 2
+                WHEN plans.slug = 'bronce' THEN 3
+                ELSE 4
+            END, profiles.id ASC
+        ");
 
-        // Prioridad: suscripciones activas (plan 3 > 2 > 1)
-        $bladersQuery->leftJoin('subscriptions', function($join) {
-                $join->on('subscriptions.user_id', '=', 'profiles.user_id')
-                    ->where('subscriptions.status', 'active')
-                    ->where('subscriptions.ended_at', '>=', now());
-            })
-            ->leftJoin('plans', 'subscriptions.plan_id', '=', 'plans.id')
-            ->orderByRaw("
-                CASE
-                    WHEN plans.slug = 'oro' THEN 1
-                    WHEN plans.slug = 'plata' THEN 2
-                    WHEN plans.slug = 'bronce' THEN 3
-                    ELSE 4
-                END, profiles.id ASC
-            ");
+    // ❌ Detectamos si hay filtros
+    $hasFilter = $regionId || $isFreeAgent !== null;
 
-        // Paginar 100 por página
-        $bladers = $bladersQuery->paginate(100);
+    // Si hay filtros, traemos todos sin paginar
+    $bladers = $hasFilter ? $bladersQuery->get() : $bladersQuery->paginate(100);
 
-        // Asignar clase CSS según suscripción activa o trofeo
-        foreach ($bladers as $blader) {
-            $blader->subscription_class = ''; // default
+    $regiones = Region::all();
+    $equipo = Team::where('captain_id', Auth::user()->id)->first();
 
-            // 1️⃣ Prioridad: suscripción activa
-            if ($blader->user->activeSubscription) {
-                $level = $blader->user->activeSubscription->plan->slug;
-                switch ($level) {
-                    case 'oro':
-                        $blader->subscription_class = 'suscripcion-nivel-3';
-                        break;
-                    case 'plata':
-                        $blader->subscription_class = 'suscripcion-nivel-2';
-                        break;
-                    case 'bronce':
-                        $blader->subscription_class = 'suscripcion-nivel-1';
-                        break;
-                }
-            } else {
-                // 2️⃣ Si no hay suscripción activa, usar trofeo de suscripción
-                $subscriptionTrophy = $blader->trophies->first(function ($trophy) {
-                    return stripos($trophy->name, 'SUSCRIPCIÓN') !== false;
-                });
+    return view('profiles.index', compact('bladers', 'regiones', 'equipo'));
+}
 
-                if ($subscriptionTrophy) {
-                    if (stripos($subscriptionTrophy->name, 'NIVEL 3') !== false) {
-                        $blader->subscription_class = 'suscripcion-nivel-3';
-                    } elseif (stripos($subscriptionTrophy->name, 'NIVEL 2') !== false) {
-                        $blader->subscription_class = 'suscripcion-nivel-2';
-                    } elseif (stripos($subscriptionTrophy->name, 'NIVEL 1') !== false) {
-                        $blader->subscription_class = 'suscripcion-nivel-1';
-                    }
-                }
-            }
-        }
-
-        $regiones = Region::all();
-        $equipo = Team::where('captain_id', Auth::user()->id)->first();
-
-        return view('profiles.index', compact('bladers', 'regiones', 'equipo'));
-    }
 
 
 
