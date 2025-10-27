@@ -13,6 +13,8 @@ use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 
 class InicioController extends Controller
@@ -447,6 +449,55 @@ class InicioController extends Controller
         return view('inicio.resumen_semanal', compact('eventos', 'participantes', 'duelos', 'duelosEquipo'));
     }
 
+
+    public function anuncios()
+    {
+        return view('inicio.anuncios');
+    }
+
+    public function sendAnuncio(Request $request)
+    {
+        $request->validate([
+            'message' => 'required|string|max:2000',
+            'mention' => 'nullable|string',
+        ]);
+
+        $mention = $request->mention;
+        $mentionText = '';
+
+        // Si el valor del select no es "none", añadimos la mención
+        if ($mention !== 'none') {
+            // Para @everyone usamos directamente la mención estándar
+            if ($mention === '875324662010228746') {
+                $mentionText = '@everyone ';
+            } else {
+                // En caso de que más adelante añadas roles específicos
+                $mentionText = "<@&{$mention}> ";
+            }
+        }
+
+        try {
+            Http::post(config('services.discord.announcements'), [
+                'content' => $mentionText, // 👈 aquí va la mención
+                'embeds' => [[
+                    'title' => '📢 Nuevo anuncio de SBBL',
+                    'description' => $request->message,
+                    'color' => hexdec('ffcc00'),
+                    'timestamp' => now()->toIso8601String(),
+                ]],
+                'allowed_mentions' => [
+                    // Si se selecciona none, no se permite ninguna mención
+                    'parse' => $mention === 'none' ? [] : ['everyone', 'roles'],
+                    'roles' => $mention !== 'none' && $mention !== '875324662010228746' ? [$mention] : [],
+                ],
+            ]);
+
+            return back()->with('success', 'Anuncio enviado a Discord correctamente ✅');
+        } catch (\Exception $e) {
+            Log::error('Error al enviar anuncio a Discord: ' . $e->getMessage());
+            return back()->with('error', 'No se pudo enviar el anuncio a Discord ❌');
+        }
+    }
 
 
 }

@@ -67,7 +67,7 @@
 @endif
 {{-- Solo para admin --}}
         @if (Auth::user()->is_admin)
-        <!-- Duelos -->
+        <!-- Duelos
         <div class="col-md-4 pb-2">
             <div class="card text-center bg-dark text-white h-100 shadow-lg">
                 <div class="card-body d-flex flex-column">
@@ -76,6 +76,21 @@
                     <p class="card-text">Controla los enfrentamientos entre jugadores.</p>
                     <div class="mt-auto">
                         <a href="{{ route('versus.index') }}" class="btn btn-outline-primary w-100">Acceder</a>
+                    </div>
+                </div>
+            </div>
+        </div> -->
+
+        <div class="col-md-4 pb-2">
+            <div class="card text-center bg-dark text-white h-100 shadow-lg">
+                <div class="card-body d-flex flex-column">
+                    <i class="fas fa-shopping-bag fa-3x mb-3 text-warning"></i>
+                    <h5 class="card-title">Productos</h5>
+                    <p class="card-text">Gestiona los productos de la tienda.</p>
+                    <div class="mt-auto">
+                        <a href="{{ route('productos.index') }}" class="btn btn-outline-warning w-100">
+                            Acceder
+                        </a>
                     </div>
                 </div>
             </div>
@@ -132,6 +147,20 @@
                     <p class="card-text">Asigna trofeos y recompensas.</p>
                     <div class="mt-auto">
                         <a href="{{ route('trophies.index') }}" class="btn btn-outline-warning w-100">Acceder</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Asignaciones -->
+        <div class="col-md-4 pb-2">
+            <div class="card text-center bg-dark text-white h-100 shadow-lg">
+                <div class="card-body d-flex flex-column">
+                    <i class="fas fa-award fa-3x mb-3" style="color: #f4b400;"></i>
+                    <h5 class="card-title">Anuncios</h5>
+                    <p class="card-text">Enviar anuncios a discord.</p>
+                    <div class="mt-auto">
+                        <a href="{{ route('index.anuncios') }}" class="btn btn-outline-warning w-100">Acceder</a>
                     </div>
                 </div>
             </div>
