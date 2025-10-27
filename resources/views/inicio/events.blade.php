@@ -163,6 +163,10 @@
             <span>Gran Copa</span>
         </div>
         <div style="display: flex; align-items: center; gap: 5px;">
+            <span style="width: 16px; height: 16px; background-color: whitesmoke; border: 1px solid #ccc; display: inline-block;"></span>
+            <span>Copa Paypal</span>
+        </div>
+        <div style="display: flex; align-items: center; gap: 5px;">
             <span style="width: 16px; height: 16px; background-color: lightgreen; border: 1px solid #ccc; display: inline-block;"></span>
             <span>Quedada</span>
         </div>
@@ -274,11 +278,13 @@
                         backgroundColor = 'background-color: lightblue;';
                     } else if (event.beys === 'quedada') {
                         backgroundColor = 'background-color: lightgreen;';
+                    } else if (event.beys === 'copapaypal') {
+                        backgroundColor = 'background-color: whitesmoke;';
                     }
 
                     return `
                         <a class="event" href="/events/${event.id}" target="_blank" style="${backgroundColor}">
-                            ${event.city ? event.city : event.region.name} (${event.mode === 'beybladex' ? 'X' : 'Burst'})
+                            ${event.beys === 'copapaypal' ? '<i class="fab fa-paypal me-2"></i>' : ''} ${event.city ? event.city : event.region.name} (${event.mode === 'beybladex' ? 'X' : 'Burst'})
                         </a>
                     `;
                 }).join('');

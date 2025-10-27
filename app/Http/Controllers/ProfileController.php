@@ -268,9 +268,6 @@ class ProfileController extends Controller
             'Base/RhinoReaper.webp' => 'upload-profiles/Base/RhinoReaper.webp',
             'Base/ScorpioSpear.webp' => 'upload-profiles/Base/ScorpioSpear.webp',
             'Base/TriceraPress.webp' => 'upload-profiles/Base/TriceraPress.webp',
-        ];
-
-        $avatarOptionsS2 = [
             'Base/AntlerStag.webp' => 'upload-profiles/Base/AntlerStag.webp',
             'Base/CerberusFlame.webp' => 'upload-profiles/Base/CerberusFlame.webp',
             'Base/ClockMirage.webp' => 'upload-profiles/Base/ClockMirage.webp',
@@ -288,9 +285,6 @@ class ProfileController extends Controller
             'Base/WriggleKraken.webp' => 'upload-profiles/Base/WriggleKraken.webp',
         ];
 
-        if (Auth::user()->activeSubscription) {
-            $avatarOptions = array_merge($avatarOptions, $avatarOptionsS2);
-        }
 
         $bronzeAvatars = [
             'BRONCE/BearScratch.webp' => 'upload-profiles/BRONCE/BearScratch.webp',
@@ -795,7 +789,7 @@ class ProfileController extends Controller
         $splits = [
             'Pretemporada' => ['2025-06-22', '2025-08-31'],
             'Split inicial' => ['2025-09-01', '2025-09-30'],
-            'Split 1' => ['2025-10-01', '2025-11-30'],
+            'Split Let It R.I.P.' => ['2025-10-01', '2025-11-30'],
             'Split 2' => ['2025-12-01', '2026-01-31'],
             'Split 3' => ['2026-02-01', '2026-03-31'],
             'Split 4' => ['2026-04-01', '2026-05-31'],

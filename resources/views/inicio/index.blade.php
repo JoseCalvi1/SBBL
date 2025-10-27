@@ -519,14 +519,50 @@
 
     <!-- Quiénes somos -->
     <div class="container my-5">
-        <h3 class="text-center text-uppercase mb-4" style="color: #fff; text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.6);">¿Quiénes Somos?</h3>
-        <div class="row justify-content-center">
-            <p class="text-center text-white mb-5" style="font-size: 1.1rem; color: #ccc; line-height: 1.8;">
-                La SBBL (Spanish BeyBattle League) es una plataforma web no remunerada creada por un grupo de entusiastas de la comunidad de Beyblade España.
-                Nuestra misión es hacer más fácil para los bladers encontrar otros jugadores cerca de su zona de residencia y participar en un ranking nacional donde puedan poner a prueba sus habilidades.
-                Todo esto en un ambiente colaborativo, sin fines de lucro, enfocado en fortalecer la comunidad Beyblade en nuestro país.
+
+        <div class="container my-5">
+        <div class="card shadow-lg border-0 rounded-4" style="background: linear-gradient(135deg, #111, #222); color: #fff;">
+            <div class="card-body text-center px-4 py-5">
+
+            <h3 class="text-uppercase mb-4 fw-bold" style="color: #ffcc00; text-shadow: 0 0 10px rgba(255, 204, 0, 0.4);">
+                ¿Quiénes Somos?
+            </h3>
+
+            <p class="mb-4" style="font-size: 1.1rem; line-height: 1.8;">
+                La <strong>SBBL (Spanish BeyBattle League)</strong> es una <strong>asociación sin ánimo de lucro</strong> fundada por y para los fans de Beyblade en España.
+                Nuestro objetivo es <strong>fortalecer la comunidad</strong> mediante la organización de torneos, ligas y actividades que fomenten el compañerismo, la deportividad y la diversión.
             </p>
-            @foreach ($usuarios as $usuario)
+
+            <p class="mb-4" style="font-size: 1.1rem; line-height: 1.8;">
+                A través de esta plataforma gestionamos <strong>eventos, rankings nacionales, estadísticas y colecciones</strong> para que cada jugador pueda seguir su progreso
+                y compartir su pasión con otros. Todo el trabajo detrás de la SBBL —desarrollo web, organización de torneos, diseño y mantenimiento— es realizado por voluntarios de la comunidad.
+            </p>
+
+            <p class="mb-5" style="font-size: 1.1rem; line-height: 1.8;">
+                Gracias a las <strong>aportaciones y suscripciones</strong> de nuestros miembros y colaboradores, podemos mantener viva esta iniciativa, cubrir gastos de dominio, premios y eventos presenciales en todo el país.
+            </p>
+
+            <div class="p-4 rounded-4 mx-auto" style="max-width: 700px; background: linear-gradient(90deg, #2a2a2a, #3d2c00); border: 1px solid rgba(255,255,255,0.1);">
+                <h5 class="fw-bold mb-2 text-warning">
+                💛 ¿Quieres apoyar más a la comunidad?
+                </h5>
+                <p class="mb-3" style="font-size: 1rem;">
+                Si deseas realizar una contribución mayor para ayudarnos a seguir organizando torneos y mantener viva la SBBL,
+                puedes hacerlo desde el siguiente enlace:
+                </p>
+                <a href="https://paypal.me/AsocSBBL" target="_blank" class="btn btn-warning fw-bold px-4 rounded-pill shadow">
+                <i class="fab fa-paypal me-2"></i> Contribuir vía PayPal
+                </a>
+            </div>
+
+            </div>
+        </div>
+        </div>
+
+
+    <!-- Equipo -->
+    <div class="row justify-content-center mt-5">
+        @foreach ($usuarios as $usuario)
             <div class="col-md-4 text-center p-2">
                 <div class="position-relative d-flex flex-column align-items-center user-card" style="background: #333; border-radius: 10px; padding: 20px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3); transition: transform 0.3s ease;">
                     <div class="position-relative">
@@ -541,14 +577,18 @@
                             <img src="/storage/upload-profiles/Base/DranDagger.webp" class="rounded-circle" width="100" height="100" style="position: absolute; top: 0; left: 0; z-index: 1;">
                         @endif
                     </div>
-                    <h3 class="user-name" style="color: white; margin-top: 10px; font-size: 1.5rem; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.5);">{{ $usuario->name }}</h3>
-                    <!-- Subtítulo personalizado -->
-                    <p class="user-title" style="color: #ccc; font-size: 1rem; margin-top: 5px; font-style: italic;">{{ $usuario->titulo ?? 'Jugador de élite' }}</p>
+                    <h3 class="user-name" style="color: white; margin-top: 10px; font-size: 1.5rem; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.5);">
+                        {{ $usuario->name }}
+                    </h3>
+                    <p class="user-title" style="color: #ccc; font-size: 1rem; margin-top: 5px; font-style: italic;">
+                        {{ $usuario->titulo ?? 'Miembro del equipo SBBL' }}
+                    </p>
                 </div>
             </div>
-            @endforeach
-        </div>
+        @endforeach
     </div>
+</div>
+
 
     <div class="container mt-2">
 

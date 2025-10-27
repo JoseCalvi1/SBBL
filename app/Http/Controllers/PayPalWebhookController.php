@@ -38,37 +38,50 @@ class PayPalWebhookController extends Controller
             $accessToken = $tokenResp->json()['access_token'] ?? null;
 
             // 2️⃣ Verificar firma solo si está definido el webhook_id
+            $verifyResp = null;
             if ($webhookId = env('PAYPAL_WEBHOOK_ID')) {
-                $headers = $request->headers;
                 $verifyBody = [
-                    'transmission_id' => $headers->get('paypal-transmission-id'),
-                    'transmission_time' => $headers->get('paypal-transmission-time'),
-                    'cert_url' => $headers->get('paypal-cert-url'),
-                    'auth_algo' => $headers->get('paypal-auth-algo'),
-                    'transmission_sig' => $headers->get('paypal-transmission-sig'),
+                    'transmission_id' => $request->header('PAYPAL-TRANSMISSION-ID'),
+                    'transmission_time' => $request->header('PAYPAL-TRANSMISSION-TIME'),
+                    'cert_url' => $request->header('PAYPAL-CERT-URL'),
+                    'auth_algo' => $request->header('PAYPAL-AUTH-ALGO'),
+                    'transmission_sig' => $request->header('PAYPAL-TRANSMISSION-SIG'),
                     'webhook_id' => $webhookId,
-                    'webhook_event' => $request->all()
+                    'webhook_event' => json_decode($request->getContent(), true),
                 ];
 
                 $verifyResp = Http::withToken($accessToken)
                     ->post("$base/v1/notifications/verify-webhook-signature", $verifyBody);
 
-                if (!$verifyResp->ok() || $verifyResp->json()['verification_status'] !== 'SUCCESS') {
-                    Log::warning('Webhook PayPal no verificado', ['resp' => $verifyResp->body()]);
-                    // No devolvemos 400 para que PayPal no lo reintente infinitamente
-                    return response()->json(['ok' => true, 'verified' => false]);
+                Log::info('Respuesta verificación PayPal', $verifyResp->json());
+
+                if ($verifyResp->json()['verification_status'] !== 'SUCCESS') {
+                    Log::error('⚠️ Webhook PayPal no verificado en producción', $verifyResp->json());
+                    return response()->json(['ok' => false, 'verified' => false], 400);
                 }
             }
+
 
             // 3️⃣ Procesar el evento
             $event = $request->input('event_type');
             $resource = $request->input('resource');
-            $subId = $resource['id'] ?? ($resource['subscription_id'] ?? null);
+
+            // 🔍 Extraer el ID de suscripción de forma más robusta
+            if (in_array($event, ['PAYMENT.SALE.COMPLETED', 'PAYMENT.CAPTURE.COMPLETED'])) {
+                $subId = $resource['billing_agreement_id']
+                    ?? ($resource['supplementary_data']['related_ids']['billing_agreement_id'] ?? null);
+            } else {
+                $subId = $resource['id']
+                    ?? $resource['subscription_id']
+                    ?? ($resource['supplementary_data']['related_ids']['billing_agreement_id'] ?? null);
+            }
 
             if (!$subId) {
                 Log::warning('Webhook recibido sin subscription_id', $request->all());
                 return response()->json(['ok' => true, 'message' => 'Evento sin subscription_id']);
             }
+
+            Log::info("Procesando evento {$event} para suscripción {$subId}");
 
             $sub = Subscription::where('paypal_subscription_id', $subId)->first();
 
@@ -83,20 +96,23 @@ class PayPalWebhookController extends Controller
                     'started_at' => now(),
                     'ended_at' => now()->addMonth(),
                 ]);
+                Log::info("Nueva suscripción creada para {$subId}");
             }
 
-            // Actualizar según evento
+            // 4️⃣ Actualizar según evento
             switch ($event) {
                 case 'BILLING.SUBSCRIPTION.CANCELLED':
                 case 'BILLING.SUBSCRIPTION.SUSPENDED':
                 case 'BILLING.SUBSCRIPTION.EXPIRED':
                     $sub->status = 'canceled';
                     $sub->save();
+                    Log::info("Suscripción {$subId} cancelada/suspendida/expirada");
                     break;
 
                 case 'BILLING.SUBSCRIPTION.ACTIVATED':
                     $sub->status = 'active';
                     $sub->save();
+                    Log::info("Suscripción {$subId} activada");
                     break;
 
                 case 'PAYMENT.SALE.COMPLETED':
@@ -108,19 +124,27 @@ class PayPalWebhookController extends Controller
                     }
                     $sub->status = 'active';
                     $sub->save();
+                    Log::info("Pago completado para {$subId}. Nueva fecha de finalización: {$sub->ended_at}");
                     break;
 
                 case 'BILLING.SUBSCRIPTION.PAYMENT.FAILED':
                     $sub->status = 'pending';
                     $sub->save();
-                    // Aquí podrías notificar al usuario
+                    Log::info("Pago fallido para {$subId}, suscripción marcada como pendiente");
+                    break;
+
+                default:
+                    Log::info("Evento no manejado: {$event}");
                     break;
             }
 
             return response()->json(['ok' => true]);
 
         } catch (\Exception $e) {
-            Log::error('Error en webhook PayPal: ' . $e->getMessage(), ['request' => $request->all()]);
+            Log::error('Error en webhook PayPal: ' . $e->getMessage(), [
+                'request' => $request->all(),
+                'trace' => $e->getTraceAsString(),
+            ]);
             return response()->json(['ok' => false, 'message' => 'Error procesando webhook'], 500);
         }
     }
