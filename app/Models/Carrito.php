@@ -7,7 +7,13 @@ use Illuminate\Database\Eloquent\Model;
 
 class Carrito extends Model
 {
-    protected $fillable = ['session_id','nombre','email','direccion','enviado'];
+    protected $fillable = ['session_id','nombre','email','direccion','enviado','referencia',
+    'metodo_pago',
+    'estado_pago',
+    'estado_envio',
+    'total',
+    'total_lagartos',
+    'solicitado',];
 
     public function productos()
     {
@@ -15,4 +21,5 @@ class Carrito extends Model
                     ->withPivot('cantidad', 'precio_unitario', 'atributos', 'hash')
                     ->withTimestamps();
     }
+
 }

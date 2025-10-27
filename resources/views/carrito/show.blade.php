@@ -16,8 +16,8 @@
             <th>Producto</th>
             <th>Atributos</th>
             <th>Cantidad</th>
-            <th>Precio unitario</th>
-            <th>Subtotal</th>
+            <th>Precio unitario (Coins)</th>
+            <th>Subtotal (Coins)</th>
             <th>Acciones</th>
         </tr>
     </thead>
@@ -59,8 +59,8 @@ $talla = $atributos['talla'] ?? null;
             <button type="submit" class="btn btn-sm btn-primary">Actualizar</button>
         </form>
     </td>
-    <td>{{ $producto->pivot->precio_unitario }} €</td>
-    <td>{{ $producto->pivot->cantidad * $producto->pivot->precio_unitario }} €</td>
+    <td>{{ $producto->pivot->precio_unitario }}€ ({{ $producto->pivot->precio_unitario *150 }}<span>🦎</span>)</td>
+    <td>{{ $producto->pivot->cantidad * $producto->pivot->precio_unitario }}€ ({{ $producto->pivot->cantidad * $producto->pivot->precio_unitario *150 }}<span>🦎</span>)</td>
     <td>
         <form action="{{ route('carrito.remove', $producto->id) }}" method="POST">
             @csrf
@@ -76,7 +76,7 @@ $talla = $atributos['talla'] ?? null;
 
     </tbody>
 </table>
-<h4>Total: {{ $carrito->productos->sum(fn($p) => $p->pivot->cantidad * $p->pivot->precio_unitario) }} €</h4>
+<h4>Total: {{ $carrito->productos->sum(fn($p) => $p->pivot->cantidad * $p->pivot->precio_unitario) }} € / {{ $carrito->productos->sum(fn($p) => $p->pivot->cantidad * $p->pivot->precio_unitario *150) }}<span>🦎</span></h4>
 <h3>Finalizar pedido</h3>
         <form action="{{ route('carrito.checkout') }}" method="POST">
             @csrf
@@ -92,7 +92,18 @@ $talla = $atributos['talla'] ?? null;
                 <label>Dirección postal</label>
                 <textarea name="direccion" class="form-control" required>{{ old('direccion', $carrito->direccion) }}</textarea>
             </div>
+
+            <div class="mb-3">
+                <label>Método de pago</label>
+                <select name="metodo_pago" class="form-control" required>
+                    <option value="paypal">💶 Pago con dinero real (50% aquí + 50% en Vinted)</option>
+                    @auth
+                        <option value="coins">🪙 Pago con Lagartos <span>🦎</span>(solo usuarios registrados)</option>
+                    @endauth
+                </select>
+            </div>
             <button type="submit" class="btn btn-primary">Enviar pedido</button>
+
         </form>
 @endif
 

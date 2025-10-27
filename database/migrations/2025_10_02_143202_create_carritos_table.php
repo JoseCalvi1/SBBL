@@ -20,6 +20,13 @@ class CreateCarritosTable extends Migration
             $table->string('email')->nullable();
             $table->string('direccion')->nullable();
             $table->boolean('enviado')->default(false);
+            $table->string('referencia')->nullable(); // identificador único del pedido
+            $table->enum('metodo_pago', ['paypal', 'coins'])->nullable();
+            $table->enum('estado_pago', ['pendiente', 'pagado', 'cancelado'])->default('pendiente');
+            $table->enum('estado_envio', ['pendiente', 'preparando', 'enviado', 'entregado'])->default('pendiente');
+            $table->decimal('total', 10, 2)->default(0); // total en €
+            $table->integer('total_lagartos')->default(0); // total en 🦎
+            $table->boolean('solicitado')->default(false);
             $table->timestamps();
         });
     }
