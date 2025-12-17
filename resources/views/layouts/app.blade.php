@@ -10,6 +10,52 @@
 
     <title>@yield('title', config('app.name', 'Laravel'))</title>
 
+    <!--<meta http-equiv="Content-Security-Policy"
+  content="
+    default-src 'self';
+    base-uri 'self';
+    object-src 'none';
+    frame-ancestors 'self';
+    img-src 'self' data: https:;
+    font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://use.fontawesome.com;
+    style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdn.jsdelivr.net https://cdnjs.cloudflare.com;
+    script-src 'self' 'unsafe-inline' 'unsafe-eval'
+      https://code.jquery.com
+      https://cdn.jsdelivr.net
+      https://cdnjs.cloudflare.com
+      https://www.googletagmanager.com
+      https://www.google-analytics.com
+      https://pagead2.googlesyndication.com
+      https://www.paypal.com
+      https://*.paypal.com
+      https://*.paypalobjects.com;
+    script-src-elem 'self' 'unsafe-inline' 'unsafe-eval'
+      https://code.jquery.com
+      https://cdn.jsdelivr.net
+      https://cdnjs.cloudflare.com
+      https://www.googletagmanager.com
+      https://pagead2.googlesyndication.com
+      https://www.paypal.com
+      https://*.paypal.com
+      https://*.paypalobjects.com;
+    connect-src 'self'
+      https://api-m.paypal.com
+      https://api-m.sandbox.paypal.com
+      https://www.paypal.com
+      https://*.paypal.com
+      https://www.google-analytics.com
+      https://stats.g.doubleclick.net
+      https://pagead2.googlesyndication.com
+      https://cdn.jsdelivr.net
+      https://cdnjs.cloudflare.com;
+    frame-src https://www.paypal.com https://*.paypal.com;
+    child-src https://www.paypal.com https://*.paypal.com;
+  ">-->
+
+
+
+
+
     <link rel="shortcut icon" type="image/png" href="{{ asset('/images/sbbl.png') }}">
 
     @yield('styles')
@@ -120,6 +166,34 @@
         }
 
     </style>
+    <style>
+        body, html { margin:0; padding:0; height:100%; font-family: HelveticaNeue, sans-serif; }
+
+        /* Estilos específicos para la sección de Dashboard (con Sidebar) */
+        .dashboard-wrapper { display:flex; height: calc(100vh - 70px); overflow:hidden; }
+
+        /* SIDEBAR LATERAL */
+        .sidebar {
+            width:260px; background-color:#283b63; padding:20px; overflow-y:auto; flex-shrink:0;
+        }
+        .sidebar-title { font-size:20px; font-weight:bold; text-align:center; color:#a8c0ff; margin-bottom:20px; }
+        .sidebar-link { display:flex; align-items:center; gap:10px; padding:10px; border-radius:8px; margin-bottom:6px; cursor:pointer; background:#1f335f; color:#fff; text-decoration:none; transition:0.2s; }
+        .sidebar-link:hover { background:#3b4f8c; transform:translateX(4px); }
+
+        /* CONTENIDO PRINCIPAL */
+        .content-area { flex:1; padding:20px; overflow-y:auto; background-color:#1e2a47; }
+
+        /* NAVBAR SUPERIOR */
+        nav.navbar { background-color: #1e2a47; height: 70px; }
+
+        .navbar-nav .nav-link { color:white !important; }
+        .navbar-nav .nav-link:hover { color: gold !important; }
+
+        @media (max-width:991.98px) {
+            .sidebar { position:fixed; left:-260px; top:70px; height: calc(100vh - 70px); z-index:1050; transition: left 0.3s ease; }
+            .sidebar.open { left:0; }
+        }
+    </style>
 
     <!-- Styles -->
     <link href="{{ asset('css/app.css') }}" rel="stylesheet">
@@ -225,13 +299,16 @@
                             <a class="dropdown-item menu-item-2" style="color: white; font-weight: bold; font-size:1.2em;" href="{{ route('inicio.stats') }}">
                                 <i class="fas fa-chart-bar me-2"></i> {{ 'Estadísticas' }}
                             </a>
+                            <a class="dropdown-item menu-item-2" style="color: white; font-weight: bold; font-size:1.2em;" href="{{ route('combates') }}">
+                                <i class="fas fa-bullseye me-2"></i> {{ 'Combates' }}
+                            </a>
                         </div>
                     </li>
 
                     @auth
                         @if (Auth::user()->is_referee || Auth::user()->is_admin)
                             <li class="nav-item">
-                                <a id="navbarAdmin" style="color: white;" class="nav-link" href="{{ route('admin.dashboard') }}">
+                                <a id="navbarAdmin" style="color: white;" class="nav-link" href="{{ route('admin.dashboard') }}" target="_blank">
                                     {{ 'ADMIN' }}
                                 </a>
                             </li>
@@ -309,6 +386,42 @@
                             @yield('content')
                         </div>
                     </div>
+                @elseif (Request::is('dashboard*'))
+
+                <div class="row">
+                    <div class="col-12 p-0">
+                            {{-- DASHBOARD: SIDEBAR + CONTENIDO (ACTIVADO SOLO EN RUTAS 'dashboard*') --}}
+                        <div class="dashboard-wrapper">
+                            {{-- SIDEBAR LATERAL --}}
+                            <nav class="sidebar text-white" id="sidebar">
+                                <h2 class="sidebar-title">Panel</h2>
+                                <h4>ÁRBITROS</h4>
+                                <a href="{{ route('events.indexAdmin') }}" class="sidebar-link"><i class="fas fa-calendar-alt"></i> Eventos</a>
+                                @if(Auth::user()->is_jury || Auth::user()->is_admin)
+                                <h4>JUECES</h4>
+                                    <a href="{{ route('teams_versus.index') }}" class="sidebar-link"><i class="fas fa-users-cog"></i> Equipos Duelos</a>
+                                    <a href="{{ route('equipos.indexAdmin') }}" class="sidebar-link"><i class="fas fa-users"></i> Equipos</a>
+                                    <a href="{{ route('database.indexPartes') }}" class="sidebar-link"><i class="fas fa-cogs"></i> Partes Beyblades</a>
+                                    <a href="{{ route('database.indexBeys') }}" class="sidebar-link"><i class="fas fa-cube"></i> Crear Beyblades</a>
+                                @endif
+                                @if(Auth::user()->is_admin)
+                                <h4>ADMIN</h4>
+                                    <a href="{{ route('productos.index') }}" class="sidebar-link"><i class="fas fa-shopping-bag"></i> Productos</a>
+                                    <a href="{{ route('profiles.indexAdmin') }}" class="sidebar-link"><i class="fas fa-user-shield"></i> Gestión Usuarios</a>
+                                    <a href="{{ route('profiles.indexAdminX') }}" class="sidebar-link"><i class="fas fa-user-cog"></i> Usuarios X</a>
+                                    <a href="{{ route('trophies.index') }}" class="sidebar-link"><i class="fas fa-award"></i> Asignaciones</a>
+                                    <a href="{{ route('index.anuncios') }}" class="sidebar-link"><i class="fas fa-bullhorn"></i> Anuncios</a>
+                                @endif
+                            </nav>
+
+                            {{-- CONTENIDO PRINCIPAL A LA DERECHA --}}
+                            <main class="content-area">
+                                @yield('content')
+                            </main>
+                        </div>
+                        </div>
+                </div>
+
                 @else
                     <!-- Vista con columnas laterales -->
                     <div class="row">
