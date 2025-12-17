@@ -111,67 +111,79 @@
         </div>
 
 @php
-    $maxReviews = 3;
-    $userId = auth()->id();
+    $user = auth()->user();
+    $userId = $user->id;
+
+    $isReferee = $user->is_referee;
+    $isJury = $user->is_jury;
+
+    // ¿El evento ya tiene una revisión de jurado?
+    $hasJuryReview = $event->reviews->contains(function ($review) {
+        return optional($review->referee)->is_jury;
+    });
+
+    // Máximo de revisiones del evento
+    $maxReviews = $hasJuryReview ? 1 : 3;
+
     $reviewsCount = $event->reviews->count();
     $userReview = $event->reviews->firstWhere('referee_id', $userId);
-    $canReview = $reviewsCount < $maxReviews && !$userReview;
+
+    $canReview = false;
+
+    if ($hasJuryReview) {
+        // Si hay jurado, solo él puede tener revisión
+        $canReview = $isJury && !$userReview && $reviewsCount === 0;
+    } else {
+        // Sin jurado: solo árbitros, hasta 3
+        $canReview = $isReferee && !$userReview && $reviewsCount < 3;
+    }
 @endphp
 
-@if(!in_array($event->status, ['INVALID', 'CLOSE', 'OPEN']) && in_array($event->beys, ['ranking', 'rankingplus']))
-<div class="d-flex flex-wrap gap-2 mb-2" id="review-buttons-{{ $event->id }}">
 
-    {{-- Mostrar contador de revisiones --}}
-    <span class="badge bg-info text-black">Revisiones: {{ $reviewsCount }}/{{ $maxReviews }}</span>
+<?php if (
+    !in_array($event->status, ['INVALID', 'CLOSE', 'OPEN']) &&
+    in_array($event->beys, ['ranking', 'rankingplus'])
+): ?>
 
-    @if($canReview)
-        {{-- Usuario aún no ha empezado revisión y hay sitio --}}
-        <form action="{{ route('event.review.start', $event) }}" method="POST" class="d-inline">
+<div class="d-flex flex-wrap gap-2 mb-2" id="review-buttons-<?= $event->id ?>">
+
+    <span class="badge bg-info text-black">
+        Revisiones: <?= $reviewsCount ?>/<?= $maxReviews ?>
+    </span>
+
+    <?php if ($canReview): ?>
+        <form action="<?= route('event.review.start', $event) ?>" method="POST" class="d-inline">
             @csrf
-            <button type="submit" class="btn btn-sm btn-info me-1 review-button">
+            <button type="submit" class="btn btn-sm btn-info me-1">
                 Revisar
             </button>
         </form>
+    <?php endif; ?>
 
-    @elseif($userReview && $userReview->status === 'pending')
-        {{-- Usuario está revisando en estado 'pending' --}}
-        <button type="button" class="btn btn-primary btn-sm"
-                data-bs-toggle="modal" data-bs-target="#reviewModal{{ $event->id }}"
-                id="revisar-evento-btn-{{ $event->id }}">
+    <?php if ($userReview && $userReview->status === 'pending'): ?>
+        <button type="button"
+                class="btn btn-primary btn-sm"
+                data-bs-toggle="modal"
+                data-bs-target="#reviewModal<?= $event->id ?>">
             Revisar Evento
         </button>
-        {{-- Botón para eliminar la revisión --}}
-        <form action="{{ route('event.destroyReview', ['event' => $event->id, 'user' => Auth::id()]) }}"
-            method="POST" class="d-inline"
-            onsubmit="return confirm('¿Seguro que deseas eliminar tu revisión?');">
+
+        <form action="<?= route('event.destroyReview', ['event' => $event->id, 'user' => $userId]) ?>"
+              method="POST"
+              class="d-inline"
+              onsubmit="return confirm('¿Seguro que deseas eliminar tu revisión?');">
             @csrf
             @method('DELETE')
             <button type="submit" class="btn btn-danger btn-sm">
                 Dejar Revisión
             </button>
         </form>
-    @endif
-
-    @auth
-    @if((auth()->user()->is_jury || auth()->user()->is_admin) && in_array($event->beys, ['ranking', 'rankingplus']))
-        {{-- Botón invalidar visible para árbitros --}}
-        <div style="display: flex; gap: 10px; align-items: center;">
-            <button type="button" class="btn btn-success btn-sm"
-                data-bs-toggle="modal" data-bs-target="#validarModal{{ $event->id }}">
-                Validar
-            </button>
-
-            <!-- Botón Invalidar en la tabla o card del evento -->
-            <button type="button" class="btn btn-warning btn-sm" data-bs-toggle="modal" data-bs-target="#invalidarModal{{ $event->id }}">
-                Invalidar
-            </button>
-
-        </div>
-    @endif
-@endauth
+    <?php endif; ?>
 
 </div>
-@endif
+
+<?php endif; ?>
+
 
 
 

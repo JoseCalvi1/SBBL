@@ -60,6 +60,183 @@
 
     @yield('styles')
     <style>
+        /* =====================================================
+        VARIABLES DE Z-INDEX (ORDEN GLOBAL)
+        ===================================================== */
+        :root {
+            --z-navbar: 1100;
+            --z-dropdown: 1110;
+            --z-sidebar: 1090;
+            --z-floating: 1080;
+            --z-cookie: 1070;
+            --z-modal: 1200;
+        }
+
+        /* =====================================================
+        RESET BÁSICO
+        ===================================================== */
+        html, body {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            font-family: HelveticaNeue, sans-serif;
+        }
+
+        /* =====================================================
+        NAVBAR SUPERIOR
+        ===================================================== */
+        nav.navbar {
+            background-color: #1e2a47;
+            height: 70px;
+            position: relative;
+            z-index: var(--z-navbar);
+        }
+
+        .navbar-nav .nav-link {
+            color: white !important;
+        }
+
+        .navbar-nav .nav-link:hover {
+            color: gold !important;
+        }
+
+        /* Dropdown */
+        .navbar .dropdown-menu {
+            background-color: #283b63;
+            z-index: var(--z-dropdown);
+        }
+
+        .navbar .dropdown-menu a {
+            color: white;
+        }
+
+        .navbar .dropdown-menu a:hover {
+            color: #283b63 !important;
+        }
+
+        /* =====================================================
+        COLLAPSE NAVBAR (MÓVIL)
+        ===================================================== */
+        @media (max-width: 767.98px) {
+
+            .navbar-collapse {
+                position: absolute;
+                top: 100%;
+                left: 0;
+                right: 0;
+                background-color: #1e2a47;
+                z-index: var(--z-navbar);
+                padding: 10px 0;
+            }
+
+            .navbar .dropdown-menu {
+                position: static;
+                float: none;
+                margin: 0.25rem 1rem;
+                border-radius: 8px;
+            }
+        }
+
+        /* =====================================================
+        SIDEBAR (DASHBOARD)
+        ===================================================== */
+        .dashboard-wrapper {
+            display: flex;
+            height: calc(100vh - 70px);
+            overflow: hidden;
+        }
+
+        .sidebar {
+            width: 260px;
+            background-color: #283b63;
+            padding: 20px;
+            overflow-y: auto;
+            flex-shrink: 0;
+            z-index: var(--z-sidebar);
+        }
+
+        .sidebar-title {
+            font-size: 20px;
+            font-weight: bold;
+            text-align: center;
+            color: #a8c0ff;
+            margin-bottom: 20px;
+        }
+
+        .sidebar-link {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px;
+            border-radius: 8px;
+            margin-bottom: 6px;
+            cursor: pointer;
+            background: #1f335f;
+            color: #fff;
+            text-decoration: none;
+            transition: 0.2s;
+        }
+
+        .sidebar-link:hover {
+            background: #3b4f8c;
+            transform: translateX(4px);
+        }
+
+        /* Sidebar móvil */
+        @media (max-width: 991.98px) {
+            .sidebar {
+                position: fixed;
+                left: -260px;
+                top: 70px;
+                height: calc(100vh - 70px);
+                transition: left 0.3s ease;
+            }
+
+            .sidebar.open {
+                left: 0;
+            }
+        }
+
+        /* =====================================================
+        BOTÓN TOGGLE SIDEBAR (MÓVIL)
+        ===================================================== */
+        .sidebar-toggle {
+            position: fixed;
+            top: 85px; /* debajo de la navbar */
+            left: 15px;
+            width: 48px;
+            height: 48px;
+            background-color: #ffc107;
+            color: #27295B;
+            border: none;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 22px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+            cursor: pointer;
+            z-index: var(--z-navbar);
+        }
+
+        .sidebar-toggle:hover {
+            background-color: #e0a800;
+        }
+
+
+        /* =====================================================
+        CONTENIDO PRINCIPAL
+        ===================================================== */
+        .content-area {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            background-color: #1e2a47;
+        }
+
+        /* =====================================================
+        BOTÓN DE SUSCRIPCIÓN (FLOATING)
+        ===================================================== */
         .subscription-button {
             position: fixed;
             bottom: 20px;
@@ -76,7 +253,7 @@
             cursor: pointer;
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
             transition: background 0.3s ease;
-            z-index: 1000;
+            z-index: var(--z-floating);
         }
 
         .subscription-button:hover {
@@ -98,14 +275,20 @@
             border-radius: 8px;
             width: 250px;
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-            z-index: 1001;
+            z-index: calc(var(--z-floating) + 1);
         }
 
         .subscription-button:hover .subscription-tooltip {
             display: block;
         }
 
-        .hidden { display: none !important; }
+        /* =====================================================
+        COOKIES
+        ===================================================== */
+        .hidden {
+            display: none !important;
+        }
+
         .cookie-banner {
             position: fixed;
             bottom: 0;
@@ -117,8 +300,9 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            z-index: 1000;
+            z-index: var(--z-cookie);
         }
+
         .cookie-buttons button {
             margin-left: 0.5em;
             background: #0af;
@@ -127,6 +311,7 @@
             cursor: pointer;
             color: white;
         }
+
         .cookie-modal {
             position: fixed;
             top: 0;
@@ -137,8 +322,9 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            z-index: 1001;
+            z-index: var(--z-modal);
         }
+
         .cookie-modal-content {
             background: white;
             padding: 2em;
@@ -148,50 +334,19 @@
             max-height: 90%;
             overflow-y: auto;
         }
+
         .cookie-category {
             margin: 15px 0;
             padding: 10px;
             background: #f5f5f5;
             border-radius: 5px;
         }
+
         .cookie-category small {
             display: block;
             color: #666;
             font-size: 0.8em;
             margin-top: 5px;
-        }
-        /* Selecciona todos los enlaces dentro del dropdown */
-        .navbar-nav .dropdown-menu a:hover {
-            color: #283b63 !important;
-        }
-
-    </style>
-    <style>
-        body, html { margin:0; padding:0; height:100%; font-family: HelveticaNeue, sans-serif; }
-
-        /* Estilos específicos para la sección de Dashboard (con Sidebar) */
-        .dashboard-wrapper { display:flex; height: calc(100vh - 70px); overflow:hidden; }
-
-        /* SIDEBAR LATERAL */
-        .sidebar {
-            width:260px; background-color:#283b63; padding:20px; overflow-y:auto; flex-shrink:0;
-        }
-        .sidebar-title { font-size:20px; font-weight:bold; text-align:center; color:#a8c0ff; margin-bottom:20px; }
-        .sidebar-link { display:flex; align-items:center; gap:10px; padding:10px; border-radius:8px; margin-bottom:6px; cursor:pointer; background:#1f335f; color:#fff; text-decoration:none; transition:0.2s; }
-        .sidebar-link:hover { background:#3b4f8c; transform:translateX(4px); }
-
-        /* CONTENIDO PRINCIPAL */
-        .content-area { flex:1; padding:20px; overflow-y:auto; background-color:#1e2a47; }
-
-        /* NAVBAR SUPERIOR */
-        nav.navbar { background-color: #1e2a47; height: 70px; }
-
-        .navbar-nav .nav-link { color:white !important; }
-        .navbar-nav .nav-link:hover { color: gold !important; }
-
-        @media (max-width:991.98px) {
-            .sidebar { position:fixed; left:-260px; top:70px; height: calc(100vh - 70px); z-index:1050; transition: left 0.3s ease; }
-            .sidebar.open { left:0; }
         }
     </style>
 
@@ -245,7 +400,7 @@
             <ul class="navbar-nav me-auto"></ul>
 
             <!-- Right Side Of Navbar -->
-            <ul class="navbar-nav ms-auto" style="color: white;">
+            <ul class="navbar-nav ms-auto px-2" style="color: white;">
                 <!-- Authentication Links -->
                 @guest
                     @if (Route::has('login'))
@@ -267,15 +422,24 @@
                     </li>
 
                     <li class="nav-item">
-                        <a class="nav-link" href="{{ route('blog.index') }}" style="color: white;">
-                            {{ 'BLOG' }}
+                        <a class="nav-link" href="{{ route('inicio.events') }}" style="color: white;">
+                            {{ 'EVENTOS' }}
                         </a>
                     </li>
 
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ route('profiles.index') }}" style="color: white;">
-                            {{ 'BLADERS' }}
+                    <li class="nav-item dropdown">
+                        <a id="navbarDropdownCommunity" style="color: white;" class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false" v-pre>
+                            {{ 'COMUNIDAD' }}
                         </a>
+
+                        <div class="dropdown-menu dropdown-menu-end" style="background-color: #283b63" aria-labelledby="navbarDropdownCommunity">
+                            <a class="dropdown-item menu-item-2" style="color: white; font-size:1.2em;" href="{{ route('profiles.index') }}">
+                                <i class="fas fa-user-ninja me-2"></i> {{ 'Bladers' }}
+                            </a>
+                            <a class="dropdown-item menu-item-2" style="color: white; font-size:1.2em;" href="{{ route('blog.index') }}">
+                                <i class="fas fa-newspaper me-2"></i> {{ 'Blog' }}
+                            </a>
+                        </div>
                     </li>
 
                     <li class="nav-item dropdown">
@@ -284,22 +448,19 @@
                         </a>
 
                         <div class="dropdown-menu dropdown-menu-end" style="background-color: #283b63" aria-labelledby="navbarDropdown">
-                            <a class="dropdown-item menu-item-2" style="color: white; font-weight: bold; font-size:1.2em;" href="{{ route('inicio.events') }}">
-                                <i class="fas fa-calendar-alt me-2"></i> {{ 'Eventos' }}
-                            </a>
-                            <a class="dropdown-item menu-item-2" style="color: white; font-weight: bold; font-size:1.2em;" href="{{ route('profiles.ranking') }}">
+                            <a class="dropdown-item menu-item-2" style="color: white; font-size:1.2em;" href="{{ route('profiles.ranking') }}">
                                 <i class="fas fa-trophy me-2"></i> {{ 'Rankings' }}
                             </a>
-                            <a class="dropdown-item menu-item-2" style="color: white; font-weight: bold; font-size:1.2em;" href="{{ route('profiles.splits') }}">
+                            <a class="dropdown-item menu-item-2" style="color: white; font-size:1.2em;" href="{{ route('profiles.splits') }}">
                                 <i class="fas fa-code-branch me-2"></i> {{ 'Splits' }}
                             </a>
-                            <a class="dropdown-item menu-item-2" style="color: white; font-weight: bold; font-size:1.2em;" href="{{ route('inicio.rules') }}">
+                            <a class="dropdown-item menu-item-2" style="color: white; font-size:1.2em;" href="{{ route('inicio.rules') }}">
                                 <i class="fas fa-gavel me-2"></i> {{ 'Reglamento' }}
                             </a>
-                            <a class="dropdown-item menu-item-2" style="color: white; font-weight: bold; font-size:1.2em;" href="{{ route('inicio.stats') }}">
+                            <a class="dropdown-item menu-item-2" style="color: white; font-size:1.2em;" href="{{ route('inicio.stats') }}">
                                 <i class="fas fa-chart-bar me-2"></i> {{ 'Estadísticas' }}
                             </a>
-                            <a class="dropdown-item menu-item-2" style="color: white; font-weight: bold; font-size:1.2em;" href="{{ route('combates') }}">
+                            <a class="dropdown-item menu-item-2" style="color: white; font-size:1.2em;" href="{{ route('combates') }}">
                                 <i class="fas fa-bullseye me-2"></i> {{ 'Combates' }}
                             </a>
                         </div>
@@ -316,11 +477,11 @@
                     @endauth
 
                     <li class="nav-item dropdown">
-                        <a id="navbarDropdown" style="color: white;" class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false" v-pre>
+                        <a id="navbarDropdownProfile" style="color: white;" class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false" v-pre>
                             {{ strtoupper(Auth::user()->name) }}
                         </a>
 
-                        <div class="dropdown-menu dropdown-menu-end" style="background-color: #283b63" aria-labelledby="navbarDropdown">
+                        <div class="dropdown-menu dropdown-menu-end" style="background-color: #283b63" aria-labelledby="navbarDropdownProfile">
                             <a class="dropdown-item" style="color: white;" href="{{ route('profiles.show', ['profile' => Auth::user()->id]) }}">
                                 {{ 'Ver perfil' }}
                             </a>
@@ -387,6 +548,10 @@
                         </div>
                     </div>
                 @elseif (Request::is('dashboard*'))
+
+                <button id="sidebarToggle" class="sidebar-toggle d-lg-none" aria-label="Abrir panel">
+                    <i class="fas fa-cog"></i>
+                </button>
 
                 <div class="row">
                     <div class="col-12 p-0">
@@ -801,6 +966,18 @@
             });
         }
     }
+</script>
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const toggle = document.getElementById('sidebarToggle');
+        const sidebar = document.getElementById('sidebar');
+
+        if (toggle && sidebar) {
+            toggle.addEventListener('click', function () {
+                sidebar.classList.toggle('open');
+            });
+        }
+    });
 </script>
 
     @yield('scripts')
