@@ -299,12 +299,30 @@
 
 
 <div class="col-md-12 p-4 text-center">
-    <h3 class="titulo-categoria text-uppercase mb-4 mt-4" style="color:white">Próximos eventos</h3>
-    <div class="row g-3">
+    <div class="events-box-container bg-dark p-4 p-md-5 rounded-3 shadow-2xl">
+    <!-- Título de la sección -->
+    <h3 class="titulo-categoria text-uppercase mb-4 text-white">Próximos eventos</h3>
+
+    {{-- Inicialización de variables para la lógica de visualización --}}
+    @php
+        $totalEventos = $nuevos->count();
+    @endphp
+
+    {{-- Contenedor de la cuadrícula de eventos --}}
+    <div class="row g-3" id="event-cards-grid">
+
         @forelse ($nuevos as $evento)
-            <div class="col-md-4">
-                <div class="card h-100 shadow-lg border-0 rounded-3 overflow-hidden">
+            @php
+                // Determina si el evento debe estar oculto inicialmente (si no es uno de los 3 primeros)
+                $isHidden = $loop->iteration > 3;
+            @endphp
+
+            {{-- Añadimos la clase 'more-event-item' para identificarlos con JS
+                 y la clase 'd-none' de Bootstrap si debe estar oculto inicialmente --}}
+            <div class="col-md-4 more-event-item @if($isHidden) d-none @endif" data-index="{{ $loop->iteration }}">
+                <div class="card h-100 shadow-lg border-1 rounded-3 overflow-hidden">
                     <div class="ratio ratio-16x9">
+                        {{-- Lógica para mostrar imagen codificada o desde storage --}}
                         @if ($evento->image_mod)
                             <img src="data:image/png;base64,{{ $evento->image_mod }}" class="card-img-top object-fit-cover" alt="{{ $evento->name }}">
                         @else
@@ -314,6 +332,7 @@
                     <div class="card-body d-flex flex-column bg-dark text-white">
                         <h5 class="card-title fw-bold mb-1">{{ $evento->name }}</h5>
                         <p class="mb-1 text-info">{{ $evento->region->name }}</p>
+                        {{-- Componente para la fecha del evento --}}
                         <p class="mb-3"><event-date fecha="{{ $evento->date }}"></event-date></p>
                         <a href="{{ route('events.show', ['event' => $evento->id]) }}"
                         class="btn btn-outline-info mt-auto w-100 text-uppercase fw-bold">
@@ -323,12 +342,27 @@
                 </div>
             </div>
         @empty
+            {{-- Mensaje si no hay eventos próximos --}}
             <div class="col-12 text-center py-5">
-                <h4 class="fw-bold">Prepárate para los nuevos eventos</h4>
+                <h4 class="fw-bold text-white">Prepárate para los nuevos eventos</h4>
                 <p class="text-muted">Próximamente</p>
             </div>
         @endforelse
     </div>
+
+    {{-- Botón "Mostrar más" integrado en la parte inferior del contenedor.
+         Solo se muestra si hay más de 3 eventos. --}}
+    @if ($totalEventos > 3)
+        <div class="text-center mt-4 pt-4 border-top border-secondary">
+            <button id="show-more-events"
+                    class="btn btn-info btn-lg w-100 fw-bold text-uppercase"
+                    onclick="toggleMoreEvents()"
+                    data-showing="false">
+                Mostrar más ({{ $totalEventos - 3 }} restantes)
+            </button>
+        </div>
+    @endif
+</div>
 
 
     <div class="container">
@@ -622,6 +656,38 @@
 @endsection
 
 @section('scripts')
+<script>
+    function toggleMoreEvents() {
+        const button = document.getElementById('show-more-events');
+        const hiddenEvents = document.querySelectorAll('.more-event-item.d-none');
+        // Lee el estado actual del botón
+        const isShowing = button.dataset.showing === 'true';
+
+        // El número de eventos ocultos inicialmente (para el texto del botón al cerrar)
+        const totalHiddenCount = parseInt({{ $totalEventos }} - 3);
+
+        if (!isShowing) {
+            // Caso 1: Mostrar eventos
+            hiddenEvents.forEach(item => {
+                item.classList.remove('d-none');
+            });
+            button.textContent = 'Mostrar menos';
+            button.dataset.showing = 'true';
+        } else {
+            // Caso 2: Ocultar eventos
+            document.querySelectorAll('.more-event-item').forEach(item => {
+                const index = parseInt(item.getAttribute('data-index'));
+                // Ocultar todos los que no son los primeros 3
+                if (index > 3) {
+                    item.classList.add('d-none');
+                }
+            });
+            // Restaurar el texto original con el contador
+            button.textContent = `Mostrar más (${totalHiddenCount} restantes)`;
+            button.dataset.showing = 'false';
+        }
+    }
+</script>
 <script>
     document.addEventListener("DOMContentLoaded", function () {
 

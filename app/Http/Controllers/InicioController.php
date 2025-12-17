@@ -34,9 +34,14 @@ class InicioController extends Controller
             ->orderBy('date', 'desc')
             ->limit(5)
             ->get();
-        $nuevos = Event::whereBetween('date', [now()->startOfWeek(), now()->endOfWeek()])
-            ->orderBy('date', 'asc')
-            ->get();
+        $startOfWindow = Carbon::now()->startOfDay();
+        $endOfWindow = Carbon::now()->addDays(7)->endOfDay();
+
+
+        $nuevos = Event::where('date', '>=', $startOfWindow)
+                    ->where('date', '<=', $endOfWindow)
+                    ->orderBy('date', 'asc')
+                    ->get();
 
 
         // Obtener el user_id con la media más alta de puntos_ganados / puntos_perdidos
@@ -262,7 +267,7 @@ class InicioController extends Controller
 
     public function dashboard()
     {
-        return view('inicio.dashboard');
+        return view('admin.dashboard.index');
     }
 
     public function halloffame()
@@ -499,5 +504,8 @@ class InicioController extends Controller
         }
     }
 
+    public function eventstats() {
+        return view('inicio.event-stats');
+    }
 
 }

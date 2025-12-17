@@ -10,7 +10,8 @@
     <h3 class="mt-4">🌀 SOBRE LOS BEYBLADES</h3>
     <ul>
         <li>Solo podrán usarse Beys de la generación <strong>Beyblade X</strong> (Hasbro o Takara Tomy).</li>
-        <li>Los Beys están compuestos por: <strong>Blade</strong>, <strong>Ratchet</strong> y <strong>Bit</strong>. No pueden ser modificados, pintados ni alterados salvo en zonas permitidas (solo marcas con lápiz, bolígrafo o rotulador).</li>
+        <li>Los Beys están compuestos por: <strong>Lock chip (en el sistema CX)</strong>, <strong>Blade</strong>, <strong>Assist blade (en el sistema CX)</strong>, <strong>Ratchet</strong> y <strong>Bit</strong>. No pueden ser modificados, pintados ni alterados salvo en zonas permitidas (solo marcas con lápiz, bolígrafo o rotulador).</li>
+        <li>En el caso de los Lock Chip Valkyrie y Emperor, únicamente se permite incluir uno de ellos por deck.</li>
         <li>No se permiten pegatinas no oficiales ni superpuestas.</li>
         <li>Los lanzadores deben ser oficiales y sin modificar.</li>
         <li>El juez podrá determinar si se ha infringido alguna norma.</li>
@@ -85,12 +86,14 @@
         <li>Todos deben estar inscritos desde la web del evento.</li>
         <li>El torneo se gestiona en <a href="https://challonge.com" target="_blank">challonge.com</a>.</li>
         <li>Se admiten los formatos de eliminación simple y doble para los torneos de ranking.</li>
+        <li>En el Challonge la máxima puntuación es 4</li>
         <li>Añadir participantes a Challonge al iniciar (Se puede utilizar la opción "Copiar nombres" que aparece justo encima del listado de jugadores en la página del evento).</li>
         <li>Compartir el link del challonge del torneo por el <a href="https://discord.com/channels/875324662010228746/1095649139162877972" target="_blank">canal del servidor dedicado a ello</a></li>
         <li>Introducir resultados en vivo en Challonge.</li>
         <li>Finalizar el torneo en la plataforma para mostrar ganadores.</li>
         <li>Grabar todo el torneo sin cortes.</li>
         <li>Si hay varios estadios, se grabarán cada uno de ellos.</li>
+        <li>Los estadios permitidos para torneos de ranking son el standard de Hasbro, el standard de Takara Tomy Xtreme Stadium y el Infinity Stadium (BX-46)</li>
         <li>Una vez finalizado el torneo, se introducirán los puestos en el listado de participantes en la web y se adjuntarán el vídeo del torneo (link de youtube, drive o similares) y el link de challonge. <strong>Si esto no se hace no se procederá a la revisión del torneo</strong></li>
         <li>Antes de cada combate el árbitro podrá revisar los decks de los participantes y se deberán mostrar a cámara para que se vean bien los combos de ambos jugadores.</li>
         <li>Al inscribirte a un torneo de ranking se considerará que se ha comprendido la normativa.</li>
@@ -154,6 +157,7 @@
         <li>El equipo con más puntuación al acabar todos los combates ganará un punto en el ranking de equipos y deberá introducir el resultado en la web y enviar el video del duelo completo sin cortes.</li>
         <li>En caso de que haya un empate a puntos, los dos capitanes se enfrentarán con su combo seleccionado para el duelo.</li>
         <li>En caso de no estar presente algún capitán, lo hará el jugador seleccionado como 1º en el duelo.</li>
+        <li>El duelo ha de ser grabado de principio a fin y se mandará a revisiones@sbbl.es para su revisión.</li>
     </ol>
 </div>
 
