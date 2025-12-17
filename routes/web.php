@@ -13,6 +13,7 @@ use App\Http\Controllers\PayPalWebhookController;
 use App\Http\Controllers\ProductoController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\TeamsVersusController;
+use App\Http\Controllers\TicketController;
 use App\Http\Controllers\TournamentResultController;
 use App\Http\Controllers\TrophyController;
 use App\Http\Controllers\VersusController;
@@ -50,6 +51,7 @@ Route::get('/politica-cookies', function () {
 })->name('politica.cookies');
 Route::get('/salon-de-la-fama-beyblade', [App\Http\Controllers\InicioController::class, 'halloffame'])->name('inicio.halloffame');
 Route::get('/resumen-semanal', [App\Http\Controllers\InicioController::class, 'resumen_semanal'])->name('inicio.resumen_semanal');
+Route::get('/combates', [App\Http\Controllers\InicioController::class, 'eventstats'])->name('combates');
 
 
 
@@ -95,7 +97,7 @@ Route::put('/update-admin-x/update-all', [App\Http\Controllers\ProfileController
 Route::get('/wrapped/{profile}', [App\Http\Controllers\ProfileController::class, 'wrapped'])->name('profiles.wrapped');
 Route::put('/profiles/update-roles/{user}', [ProfileController::class, 'updateRoles'])->name('profiles.updateRoles');
 Route::get('/ranking-splits', [ProfileController::class, 'rankingPorSplits'])->name('profiles.splits');
-
+Route::get('/bladers/{id}/details', [ProfileController::class, 'getDetails'])->name('blader.details');
 Route::get('/rankings', [App\Http\Controllers\ProfileController::class, 'ranking'])->name('profiles.ranking');
 
 Route::get('/challenges', [App\Http\Controllers\ChallengeController::class, 'index'])->name('challenges.index');
@@ -176,10 +178,11 @@ Route::get('/dashboard/beyblades', [BeybladeDatabaseController::class, 'indexBey
 Route::group(['middleware' => 'admin'], function () {
    Route::get('/dashboard/profiles', [App\Http\Controllers\ProfileController::class, 'indexAdmin'])->name('profiles.indexAdmin');
    Route::get('/dashboard/profiles-x', [App\Http\Controllers\ProfileController::class, 'indexAdminX'])->name('profiles.indexAdminX');
+   Route::get('/dashboard/teams', [TeamController::class, 'indexAdmin'])->name('equipos.indexAdmin');
    Route::resource('/dashboard/trophies', TrophyController::class); // Para los métodos index, create, store, etc.
-   Route::resource('productos', ProductoController::class);
-   Route::get('/admin/announcements', [InicioController::class, 'anuncios'])->name('index.anuncios');
-   Route::post('/admin/announcements/send', [InicioController::class, 'sendAnuncio'])->name('index.announcements.send');
+   Route::resource('/dashboard/productos', ProductoController::class);
+   Route::get('/dashboard/admin/announcements', [InicioController::class, 'anuncios'])->name('index.anuncios');
+   Route::post('/dashboard/admin/announcements/send', [InicioController::class, 'sendAnuncio'])->name('index.announcements.send');
     Route::get('/pedidos', [\App\Http\Controllers\Admin\PedidoController::class, 'index'])->name('admin.pedidos.index');
     Route::get('/pedidos/{pedido}', [\App\Http\Controllers\Admin\PedidoController::class, 'show'])->name('admin.pedidos.show');
     Route::put('/pedidos/{pedido}', [\App\Http\Controllers\Admin\PedidoController::class, 'update'])->name('admin.pedidos.update');
@@ -250,5 +253,10 @@ Route::post('/paypal/subscription/confirm', [PayPalController::class,'confirm'])
 // webhook endpoint (sin auth, accesible para PayPal)
 Route::post('/paypal/webhook', [PayPalWebhookController::class,'handle']);
 
-
+Route::middleware(['auth'])->group(function () {
+    Route::get('/tickets/buy', [TicketController::class, 'showBuyForm'])->name('tickets.buy');
+    Route::post('/paypal/order', [TicketController::class, 'createOrder'])->name('paypal.order');
+    Route::post('/paypal/capture', [TicketController::class, 'captureOrder'])->name('paypal.capture');
+    Route::get('/tickets/my', [TicketController::class, 'myTickets'])->name('tickets.mine');
+});
 

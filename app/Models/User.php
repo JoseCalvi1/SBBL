@@ -104,4 +104,8 @@ class User extends Authenticatable
         return $this->activeSubscription && $this->activeSubscription->plan->slug === $slug;
     }
 
+    public function tickets()
+    {
+        return $this->hasMany(Ticket::class);
+    }
 }
