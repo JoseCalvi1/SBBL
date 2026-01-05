@@ -5,6 +5,7 @@ use App\Http\Controllers\BeybladeDatabaseController;
 use App\Http\Controllers\CarritoController;
 use App\Http\Controllers\ChatController;
 use App\Http\Controllers\EventController;
+use App\Http\Controllers\Game\ConquestController;
 use App\Http\Controllers\InicioController;
 use App\Http\Controllers\TeamController;
 use App\Http\Controllers\InvitationController;
@@ -22,13 +23,25 @@ use Illuminate\Support\Facades\Route;
 
 /*
 |--------------------------------------------------------------------------
-| Web Routes
+| RUTAS DEL JUEGO DE CONQUISTA (Subdominio)
 |--------------------------------------------------------------------------
-|
-| Here is where you can register web routes for your application. These
-| routes are loaded by the RouteServiceProvider within a group which
-| contains the "web" middleware group. Now create something great!
-|
+*/
+Route::domain('conquista.' . env('APP_DOMAIN', 'sbbl.es'))->group(function () {
+    Route::get('/', [ConquestController::class, 'welcome'])->name('conquest.index');
+    Route::get('/home', [ConquestController::class, 'welcome'])->name('conquest.index');
+    Route::get('/mapa', [ConquestController::class, 'map'])->middleware('auth')->name('conquest.map');
+    Route::post('/votar', [ConquestController::class, 'vote'])->name('conquest.vote');
+    Route::get('/chat/fetch', [ConquestController::class, 'getChatMessages'])->name('chat.fetch');
+    Route::post('/chat/send', [ConquestController::class, 'sendChatMessage'])->name('chat.send');
+    Route::get('/noticias', [ConquestController::class, 'news'])->name('conquest.news');
+    Route::get('/generar-noticias', [ConquestController::class, 'generateTestNews']); // Ruta de prueba
+});
+
+
+/*
+|--------------------------------------------------------------------------
+| RUTAS DE LA WEB PRINCIPAL (sbbl.es)
+|--------------------------------------------------------------------------
 */
 
 Route::get('/', [App\Http\Controllers\InicioController::class, 'index'])->name('inicio.index');
@@ -175,10 +188,10 @@ Route::get('/dashboard/teams-versus', [TeamsVersusController::class, 'index'])->
 Route::get('/dashboard/teams', [TeamController::class, 'indexAdmin'])->name('equipos.indexAdmin');
 Route::get('/dashboard/beyblade-parts', [BeybladeDatabaseController::class, 'indexPartes'])->name('database.indexPartes');
 Route::get('/dashboard/beyblades', [BeybladeDatabaseController::class, 'indexBeys'])->name('database.indexBeys');
+Route::get('/dashboard/teams', [TeamController::class, 'indexAdmin'])->name('equipos.indexAdmin');
 Route::group(['middleware' => 'admin'], function () {
    Route::get('/dashboard/profiles', [App\Http\Controllers\ProfileController::class, 'indexAdmin'])->name('profiles.indexAdmin');
    Route::get('/dashboard/profiles-x', [App\Http\Controllers\ProfileController::class, 'indexAdminX'])->name('profiles.indexAdminX');
-   Route::get('/dashboard/teams', [TeamController::class, 'indexAdmin'])->name('equipos.indexAdmin');
    Route::resource('/dashboard/trophies', TrophyController::class); // Para los métodos index, create, store, etc.
    Route::resource('/dashboard/productos', ProductoController::class);
    Route::get('/dashboard/admin/announcements', [InicioController::class, 'anuncios'])->name('index.anuncios');
@@ -258,5 +271,9 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/paypal/order', [TicketController::class, 'createOrder'])->name('paypal.order');
     Route::post('/paypal/capture', [TicketController::class, 'captureOrder'])->name('paypal.capture');
     Route::get('/tickets/my', [TicketController::class, 'myTickets'])->name('tickets.mine');
+    Route::get('/sorteo', [TicketController::class, 'index'])->name('tickets.sorteo');
+    Route::post('/sorteo/ganadores', [TicketController::class, 'draw'])->name('tickets.sorteo.draw');
+    Route::delete('/sorteo', [TicketController::class, 'reset'])->name('tickets.sorteo.reset');
+    Route::get('/dashboard/reviews', [EventController::class, 'reviews_seguimiento'])->name('admin.dashboard.reviews');
 });
 

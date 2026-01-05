@@ -86,6 +86,15 @@ class User extends Authenticatable
         return $this->belongsToMany(Team::class, 'team_user')->withPivot('is_captain')->withTimestamps();
     }
 
+    // HELPER ÚTIL PARA EL JUEGO:
+    // Como un usuario suele competir solo por UN equipo principal a la vez,
+    // creamos este "acceso directo" para no volvernos locos en la vista.
+    public function getActiveTeamAttribute()
+    {
+        // Devuelve el primer equipo al que pertenece (o null si no tiene)
+        return $this->teams->first();
+    }
+
     public function trophies()
     {
         return $this->belongsToMany(Trophy::class, 'profilestrophies', 'profiles_id', 'trophies_id')

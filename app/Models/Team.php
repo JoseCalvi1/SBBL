@@ -17,6 +17,12 @@ class Team extends Model
         return $this->hasMany(User::class);
     }
 
+    public function zones()
+    {
+        // Un equipo puede dominar muchas zonas
+        return $this->hasMany(Zone::class);
+    }
+
     public function members()
     {
         return $this->belongsToMany(User::class, 'team_user')->withPivot('is_captain')->withPivot('user_id')->withTimestamps();

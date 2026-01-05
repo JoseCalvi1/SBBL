@@ -21,6 +21,7 @@ class CreateTeamsTable extends Migration
             $table->integer('points_x2')->default(0);
             $table->longText('image')->nullable();
             $table->longText('logo')->nullable();
+            $table->string('color', 7)->default('#333333');
             $table->foreignId('captain_id')->references('id')->on('users');
             $table->enum('status', ['pending', 'accepted', 'updated'])->default('pending');
             $table->timestamps();
