@@ -303,6 +303,31 @@ class ConquestController extends Controller
         return redirect()->route('conquest.news');
     }
 
+    public function updatePinnedMessage(Request $request)
+    {
+        $user = Auth::user();
+
+        /* Seguridad: Solo capitanes
+        if (!$user->is_captain) {
+            return response()->json(['error' => 'Solo el Capitán puede dar órdenes.'], 403);
+        }*/
+
+        $request->validate(['message' => 'required|max:100']);
+
+        $team = $user->activeTeam;
+        $team->pinned_message = $request->message;
+        $team->pinned_message_updated_at = now();
+        $team->save();
+
+        // Opcional: Mandar un mensaje automático al chat avisando del cambio
+        $team->messages()->create([
+            'user_id' => $user->id,
+            'message' => "🚨 NUEVA ORDEN PRIORITARIA: " . $request->message
+        ]);
+
+        return response()->json(['success' => true]);
+    }
+
     // ==========================================
     //  FUNCIONES PRIVADAS (COPIAR AL FINAL DE LA CLASE)
     // ==========================================

@@ -23,6 +23,8 @@ class CreateTeamsTable extends Migration
             $table->longText('logo')->nullable();
             $table->string('color', 7)->default('#333333');
             $table->foreignId('captain_id')->references('id')->on('users');
+            $table->text('pinned_message')->nullable(); // El mensaje fijado
+            $table->timestamp('pinned_message_updated_at')->nullable();
             $table->enum('status', ['pending', 'accepted', 'updated'])->default('pending');
             $table->timestamps();
         });

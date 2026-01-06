@@ -185,18 +185,14 @@
 </div>
 
 @section('scripts')
-{{-- TU JAVASCRIPT SE QUEDA IGUAL (Es correcto) --}}
+{{-- Existing JS Logic --}}
 <script>
-    // ... tu código JS anterior ...
-    // Solo recuerda mantener el código JS que ya tenías y funcionaba.
-    // El cambio de colores SVG que hicimos antes sigue siendo válido.
-
     // --- VARIABLES GLOBALES ---
     const zonesData = @json($zones);
     const teamStats = @json($teamAttackStats ?? []);
     const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
 
-    // ID de mi equipo actual (si soy mercenario es null)
+    // ID de mi equipo actual
     const myTeamId = {{ Auth::user()->activeTeam ? Auth::user()->activeTeam->id : 'null' }};
     const myAttackPower = {{ $myPower ?? 0 }};
     const isVotingEnabled = @json($votingEnabled);
@@ -205,8 +201,6 @@
     let chatInterval = null;
     const tooltip = document.getElementById('map-tooltip');
 
-
-    // 👇 AÑADE ESTA LÍNEA 👇
     const closingTime = new Date("{{ $nextClose->toIso8601String() }}").getTime();
 
     // --- FUNCIÓN DEL CONTADOR ---
@@ -215,8 +209,11 @@
         const distance = closingTime - now;
 
         if (distance < 0) {
-            document.getElementById("countdown").innerHTML = "RESOLVIENDO...";
-            document.getElementById("countdown").classList.add("text-red-500");
+            const countdownEl = document.getElementById("countdown");
+            if(countdownEl) {
+                countdownEl.innerHTML = "RESOLVIENDO...";
+                countdownEl.classList.add("text-red-500");
+            }
             return;
         }
 
@@ -225,7 +222,6 @@
         const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
         const seconds = Math.floor((distance % (1000 * 60)) / 1000);
 
-        // Formato bonito: 2d 04h 15m 30s
         let text = "";
         if(days > 0) text += days + "d ";
         text += (hours < 10 ? "0"+hours : hours) + "h ";
@@ -236,51 +232,41 @@
         if(el) el.innerHTML = text;
     }
 
-    // Iniciar el intervalo
     setInterval(updateCountdown, 1000);
-    updateCountdown(); // Ejecutar una vez al inicio
+    updateCountdown();
 
     document.addEventListener("DOMContentLoaded", () => {
-
-        // --- A. CONFIGURACIÓN DEL MAPA ---
+        // --- CONFIGURACIÓN DEL MAPA ---
         zonesData.forEach(zone => {
             const mapElement = document.getElementById(zone.slug);
-
             if (mapElement) {
-                // Configuración Base
                 mapElement.classList.add('zone-path');
                 mapElement.style.cursor = 'pointer';
                 mapElement.style.transition = 'all 0.3s';
 
-                // 1. LÓGICA DE COLORES
-                // Usamos colores HEX para asegurar compatibilidad total
-                let fillColor = '#2d3748'; // Gris oscuro (Neutral)
-                let strokeColor = '#4a5568'; // Borde gris
+                let fillColor = '#2d3748';
+                let strokeColor = '#4a5568';
                 let strokeWidth = "0.5px";
                 let fillOpacity = "1";
-
                 let isEnemy = false;
                 let isMine = false;
 
                 if (zone.team) {
                     if (myTeamId && zone.team.id === myTeamId) {
-                        // --- MI TERRITORIO ---
                         isMine = true;
                         fillColor = zone.team.color;
-                        fillOpacity = "0.5"; // Efecto holograma
+                        fillOpacity = "0.5";
                         strokeColor = '#ffffff';
                         strokeWidth = "1.5px";
                     } else {
-                        // --- ENEMIGO ---
                         isEnemy = true;
-                        fillColor = '#7f1d1d'; // Rojo sangre visible
+                        fillColor = '#7f1d1d';
                         fillOpacity = "0.9";
                         strokeColor = zone.team.color;
                         strokeWidth = "1.0px";
                     }
                 }
 
-                // 2. APLICAR COLOR DE FONDO (LA SOLUCIÓN NUCLEAR) 🛠️
                 mapElement.style.setProperty('fill', fillColor, 'important');
                 mapElement.style.setProperty('fill-opacity', fillOpacity, 'important');
                 mapElement.style.setProperty('stroke', strokeColor, 'important');
@@ -296,12 +282,11 @@
                     });
                 }
 
-                // 3. CONTROL DE TEXTOS
+                // Text Labels
                 const textLabels = mapElement.querySelectorAll('text, tspan');
                 textLabels.forEach(label => {
                     label.style.pointerEvents = 'none';
-                    label.style.setProperty('stroke', 'none', 'important'); // Quitar borde al texto
-
+                    label.style.setProperty('stroke', 'none', 'important');
                     if (isEnemy) {
                         label.style.fill = '#ffe5e5';
                         label.style.textShadow = '0 0 3px #ff0000';
@@ -311,14 +296,13 @@
                         label.style.textShadow = '0 0 5px ' + zone.team.color;
                         label.style.opacity = '1';
                     } else {
-                        // Neutral
                         label.style.fill = '#aaaaaa';
                         label.style.opacity = '0.7';
                         label.style.textShadow = '0 0 2px #000';
                     }
                 });
 
-                // 4. RADAR DE ATAQUE
+                // Radar
                 if(teamStats[zone.id] && teamStats[zone.id].votes > 0) {
                     mapElement.classList.add("animate-pulse");
                     const target = children.length > 0 ? children : [mapElement];
@@ -328,12 +312,10 @@
                     });
                 }
 
-                // --- B. EVENTOS DEL RATÓN ---
-                // Entrar: Mostrar Tooltip
+                // Eventos Mouse
                 mapElement.addEventListener('mouseenter', function() {
                     tooltip.style.opacity = '1';
                     tooltip.innerText = zone.name.toUpperCase();
-
                     if (isEnemy) {
                         tooltip.className = "fixed pointer-events-none bg-red-900/95 border border-red-500 text-white text-xs font-bold px-3 py-1.5 rounded z-50 shadow-lg uppercase tracking-widest backdrop-blur-sm";
                         tooltip.innerHTML += ` <span class="text-[9px] block text-red-300 mt-1">OCUPADO POR ${zone.team.name}</span>`;
@@ -346,18 +328,15 @@
                     }
                 });
 
-                // Mover: Seguir ratón
                 mapElement.addEventListener('mousemove', function(e) {
                     tooltip.style.top = (e.clientY - 50) + 'px';
                     tooltip.style.left = (e.clientX + 15) + 'px';
                 });
 
-                // Salir: Ocultar
                 mapElement.addEventListener('mouseleave', function() {
                     tooltip.style.opacity = '0';
                 });
 
-                // Clic: Abrir Panel
                 mapElement.addEventListener('click', function(e) {
                     e.stopPropagation();
                     abrirPanel(zone.slug);
@@ -365,7 +344,7 @@
             }
         });
 
-        // --- C. LISTENERS GLOBALES ---
+        // Listeners Globales
         const btnAttack = document.getElementById('btn-attack');
         if(btnAttack) {
             btnAttack.addEventListener('click', function() {
@@ -374,15 +353,15 @@
             });
         }
 
-        // Chat
         const chatInput = document.getElementById('chat-input');
         if(chatInput){
             chatInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') enviarMensaje(); });
-            cargarChat(); // Carga inicial
-            chatInterval = setInterval(cargarChat, 4000); // Polling cada 4s
+            cargarChat();
+            chatInterval = setInterval(cargarChat, 4000);
         }
     });
 
+    // --- FUNCIONES DE INTERFAZ ---
     function abrirPanel(slug) {
         currentSelectedSlug = slug;
         const zoneInfo = zonesData.find(z => z.slug === slug);
@@ -424,11 +403,9 @@
         resetButton();
 
         const zoneBattleData = teamStats[zoneInfo.id];
-
         if (zoneBattleData && zoneBattleData.teams && zoneBattleData.teams.length > 0) {
             statsContainer.classList.remove('hidden');
             zoneBattleData.teams.sort((a, b) => b.votes - a.votes);
-
             zoneBattleData.teams.forEach(t => {
                 let percent = (t.votes / zoneBattleData.total_votes) * 100;
                 const barHTML = `
@@ -438,12 +415,9 @@
                             <span class="text-gray-400">${t.votes} DAÑO</span>
                         </div>
                         <div class="w-full h-1.5 bg-gray-900 rounded-full overflow-hidden border border-white/5">
-                            <div class="h-full shadow-[0_0_10px_currentColor]"
-                                 style="width: ${percent}%; background-color: ${t.color}; box-shadow: 0 0 5px ${t.color}; transition: width 1s ease-out;">
-                            </div>
+                            <div class="h-full shadow-[0_0_10px_currentColor]" style="width: ${percent}%; background-color: ${t.color}; box-shadow: 0 0 5px ${t.color}; transition: width 1s ease-out;"></div>
                         </div>
-                    </div>
-                `;
+                    </div>`;
                 barsContainer.innerHTML += barHTML;
             });
         } else {
@@ -465,7 +439,6 @@
         } else {
             const myAttack = zoneBattleData?.teams?.find(t => t.id === myTeamId);
             btn.className = "btn-cyber w-full md:w-auto px-6 py-3 font-bold text-sm md:text-lg flex justify-center items-center gap-2 group border border-cyan-500 hover:bg-cyan-900/30 transition-colors text-cyan-300";
-
             if(myAttack) {
                  btn.classList.add('border-yellow-500', 'text-yellow-400');
                  btn.classList.remove('border-cyan-500', 'text-cyan-300');
@@ -478,31 +451,28 @@
     function resetButton() {
         const btn = document.getElementById('btn-attack');
         const msg = document.getElementById('attack-message');
-        btn.disabled = false;
-        msg.classList.add('hidden');
-        btn.classList.remove('opacity-50', 'cursor-not-allowed', 'bg-green-900/10', 'border-green-500/30', 'text-green-500/50');
+        if(btn) {
+            btn.disabled = false;
+            btn.classList.remove('opacity-50', 'cursor-not-allowed', 'bg-green-900/10', 'border-green-500/30', 'text-green-500/50');
+        }
+        if(msg) msg.classList.add('hidden');
     }
 
     function enviarVoto(btn) {
         const msg = document.getElementById('attack-message');
         const btnText = document.getElementById('btn-text');
-
         btn.disabled = true;
         btn.classList.add('opacity-50', 'cursor-not-allowed');
         btnText.innerText = "ENVIANDO...";
 
         fetch("{{ route('conquest.vote') }}", {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRF-TOKEN': csrfToken
-            },
+            headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrfToken },
             body: JSON.stringify({ zone_slug: currentSelectedSlug })
         })
         .then(response => response.json())
         .then(data => {
             msg.classList.remove('hidden');
-
             if(data.success) {
                 msg.className = "mt-2 text-xs font-bold text-center text-green-400 animate-pulse";
                 msg.innerText = "ORDEN RECIBIDA. ACTUALIZANDO SATÉLITE...";
@@ -522,36 +492,30 @@
         });
     }
 
-    // Funciones del Chat
+    // --- FUNCIONES DEL CHAT ---
     function toggleChat() {
-        // 1. Mover el chat (lo que ya tenías)
         const chat = document.getElementById('team-chat');
-        chat.classList.toggle('translate-y-[calc(100%-40px)]');
-
-        // 2. Girar la flecha (NUEVO)
+        if(chat) chat.classList.toggle('translate-y-[calc(100%-40px)]');
         const arrow = document.getElementById('chat-arrow');
-        // Al añadir rotate-180, la flecha ▲ apuntará hacia abajo ▼
-        arrow.classList.toggle('rotate-180');
+        if(arrow) arrow.classList.toggle('rotate-180');
     }
 
     function cargarChat() {
-        fetch("{{ route('chat.fetch') }}").then(r=>r.json()).then(data=>{
+        fetch("{{ route('chat.fetch') }}")
+        .then(r => r.json())
+        .then(data => {
              const chatBox = document.getElementById('chat-messages');
              if(!chatBox) return;
-
              chatBox.innerHTML = '';
-
              if(data.length === 0) {
                  chatBox.innerHTML = '<p class="text-gray-600 text-center italic mt-4">Canal silencioso...</p>';
                  return;
              }
-
              data.forEach(msg => {
                  const isMe = msg.user.name === "{{ Auth::user()->name }}";
                  const color = isMe ? 'text-cyan-400' : 'text-yellow-500';
                  const align = isMe ? 'text-right' : 'text-left';
                  const bg = isMe ? 'bg-cyan-900/20' : 'bg-transparent';
-
                  chatBox.innerHTML += `
                     <div class="mb-1 p-1 rounded ${align} ${bg}">
                         <span class="font-bold ${color} text-[10px] uppercase block">${msg.user.name}</span>
@@ -559,26 +523,53 @@
                     </div>`;
              });
              chatBox.scrollTop = chatBox.scrollHeight;
-        });
+        })
+        .catch(console.error);
     }
 
     function enviarMensaje() {
         const input = document.getElementById('chat-input');
         const txt = input.value.trim();
         if(!txt) return;
-
         fetch("{{ route('chat.send') }}", {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRF-TOKEN': csrfToken
-            },
+            headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrfToken },
             body: JSON.stringify({ message: txt })
         }).then(() => {
             input.value = '';
             cargarChat();
         });
     }
+
+    // --- FUNCIONES MOTD (Capitán) ---
+    // Make these functions global so `onclick` in HTML works
+    window.toggleMotdEdit = function() {
+        const display = document.getElementById('pinned-display');
+        const edit = document.getElementById('pinned-edit');
+        if(display && edit) {
+            display.classList.toggle('hidden');
+            edit.classList.toggle('hidden');
+        }
+    };
+
+    window.saveMotd = function() {
+        const input = document.getElementById('motd-input');
+        const msg = input.value;
+        fetch("{{ route('chat.update_motd') }}", {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrfToken },
+            body: JSON.stringify({ message: msg })
+        })
+        .then(r => r.json())
+        .then(data => {
+            if(data.success) {
+                document.getElementById('motd-text').innerText = msg;
+                toggleMotdEdit();
+            } else {
+                alert(data.error || 'Error');
+            }
+        });
+    };
 </script>
 @endsection
 

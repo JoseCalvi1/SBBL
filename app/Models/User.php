@@ -95,6 +95,12 @@ class User extends Authenticatable
         return $this->teams->first();
     }
 
+    public function activeTeam()
+    {
+        // Cambia 'active_team_id' por 'team_id' si así se llama tu columna en la base de datos
+        return $this->belongsTo(Team::class, 'team_id');
+    }
+
     public function trophies()
     {
         return $this->belongsToMany(Trophy::class, 'profilestrophies', 'profiles_id', 'trophies_id')

@@ -34,7 +34,8 @@ Route::domain('conquista.' . env('APP_DOMAIN', 'sbbl.es'))->group(function () {
     Route::get('/chat/fetch', [ConquestController::class, 'getChatMessages'])->name('chat.fetch');
     Route::post('/chat/send', [ConquestController::class, 'sendChatMessage'])->name('chat.send');
     Route::get('/noticias', [ConquestController::class, 'news'])->name('conquest.news');
-    Route::get('/generar-noticias', [ConquestController::class, 'generateTestNews']); // Ruta de prueba
+    Route::get('/generar-noticias', [ConquestController::class, 'generateTestNews']); // Noticias de prueba
+    Route::post('/chat/motd', [ConquestController::class, 'updatePinnedMessage'])->name('chat.update_motd');
 });
 
 

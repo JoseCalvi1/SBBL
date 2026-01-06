@@ -10,7 +10,7 @@ class Team extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['name', 'description', 'captain_id', 'image', 'logo', 'status'];
+    protected $fillable = ['name', 'description', 'captain_id', 'image', 'logo', 'status', 'pinned_message', 'pinned_message_updated_at'];
 
     public function miembros()
     {
@@ -46,6 +46,13 @@ class Team extends Model
     public function versus_2()
     {
         return $this->belongsToMany(TeamsVersus::class, 'team_id_2');
+    }
+    // RELACIÓN: Un equipo tiene muchos mensajes de chat
+    public function messages()
+    {
+        // Asumiendo que tu modelo de mensajes se llama TeamChatMessage
+        // Si no tienes modelo, créalo o ajusta el nombre
+        return $this->hasMany(TeamChatMessage::class);
     }
 
 }

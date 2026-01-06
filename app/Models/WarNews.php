@@ -14,33 +14,37 @@ class WarNews extends Model
     // 1. Color del Texto (Título)
     public function getColorClassAttribute()
     {
-        return match($this->type) {
-            'attack' => 'text-red-400',
+        $colors = [
+            'attack'   => 'text-red-400',
             'conquest' => 'text-green-400',
-            'defense' => 'text-blue-400',
-            default => 'text-gray-400',
-        };
+            'defense'  => 'text-blue-400',
+        ];
+
+        // Devuelve el color si existe, si no devuelve el gris por defecto
+        return $colors[$this->type] ?? 'text-gray-400';
     }
 
-    // 2. Clase del Borde (El borde lateral izquierdo)
+    // 2. Clase del Borde
     public function getBorderClassAttribute()
     {
-        return match($this->type) {
-            'attack' => 'border-red-500/50',
+        $borders = [
+            'attack'   => 'border-red-500/50',
             'conquest' => 'border-green-500/50',
-            'defense' => 'border-blue-500/50',
-            default => 'border-gray-700',
-        };
+            'defense'  => 'border-blue-500/50',
+        ];
+
+        return $borders[$this->type] ?? 'border-gray-700';
     }
 
     // 3. Icono
     public function getIconAttribute()
     {
-        return match($this->type) {
-            'attack' => '⚠️',
+        $icons = [
+            'attack'   => '⚠️',
             'conquest' => '🚩',
-            'defense' => '🛡️',
-            default => '📡',
-        };
+            'defense'  => '🛡️',
+        ];
+
+        return $icons[$this->type] ?? '📡';
     }
 }
