@@ -36,47 +36,58 @@ class ConquestController extends Controller
     {
         $user = Auth::user();
 
+        // --- LÓGICA DE TIEMPO QUINCENAL ---
+        $now = Carbon::now();
+        $isResolutionWeek = ($now->weekOfYear % 2 === 0); // Semanas pares cierran
+
+        if ($isResolutionWeek) {
+            // Estamos en la semana final del turno.
+            // El inicio fue la semana pasada.
+            $startDate = $now->copy()->subWeek()->startOfWeek();
+            // El cierre es ESTE domingo.
+            $nextClose = $now->copy()->endOfWeek()->setTime(23, 59, 59);
+        } else {
+            // Estamos en la semana de apertura del turno.
+            // El inicio es esta semana.
+            $startDate = $now->copy()->startOfWeek();
+            // El cierre es el DOMINGO DE LA SEMANA QUE VIENE.
+            $nextClose = $now->copy()->addWeek()->endOfWeek()->setTime(23, 59, 59);
+        }
+
+        // Ajuste visual si ya es domingo noche
+        if ($now->dayOfWeek == Carbon::SUNDAY && $now->hour >= 23) {
+             $nextClose = $now->copy()->setTime(23, 59, 59);
+        }
+
         // 1. Cargar Zonas
         $zones = Zone::with('team')->get();
 
-        // 2. RADAR DE ATAQUE: Calcular poder de batalla en cada zona
+        // 2. RADAR DE ATAQUE
         $teamAttackStats = [];
-
-        // Obtenemos todos los votos de la semana actual
-        $votes = DB::table('conquest_votes')
-            ->where('created_at', '>=', Carbon::now()->startOfWeek())
-            ->get();
-
-        // Cacheamos los equipos
         $teamsCache = Team::all()->keyBy('id');
+        $this->eventParticipantsCache = []; // Reset cache
 
-        // Limpiamos cache de eventos al iniciar la petición
-        $this->eventParticipantsCache = [];
+        // Obtenemos votos DESDE EL INICIO DEL TURNO (puede ser hace 10 días)
+        $votes = DB::table('conquest_votes')
+            ->where('created_at', '>=', $startDate)
+            ->get();
 
         foreach($votes as $vote) {
             $zid = $vote->zone_id;
             $tid = $vote->team_id;
             $uid = $vote->user_id;
 
-            // Inicializar array de la zona si no existe
             if(!isset($teamAttackStats[$zid])) {
                 $teamAttackStats[$zid] = ['total_power' => 0, 'teams' => []];
             }
 
-            // --- CÁLCULO DE DAÑO DEL VOTO ---
+            // Pasamos $startDate a la función para que calcule torneos desde esa fecha
+            $userTurnPoints = $this->calculateUserTournamentPoints($uid, $startDate);
 
-            // A. Puntos semanales (CAMBIO AQUÍ: Usamos la nueva función)
-            $userWeeklyPoints = $this->calculateUserTournamentPoints($uid);
-
-            // B. Multiplicador de su Equipo
             $teamPoints = $teamsCache[$tid]->points_x2 ?? 0;
             $multiplier = 1 + ($teamPoints / 2000);
+            $damage = round((10 + $userTurnPoints) * $multiplier);
 
-            // C. Daño Total
-            $damage = (10 + $userWeeklyPoints) * $multiplier;
-            $damage = round($damage);
-
-            // --- AGREGAR A ESTADÍSTICAS ---
             if(!isset($teamAttackStats[$zid]['teams'][$tid])) {
                 $teamAttackStats[$zid]['teams'][$tid] = [
                     'id' => $tid,
@@ -85,41 +96,31 @@ class ConquestController extends Controller
                     'votes' => 0
                 ];
             }
-
             $teamAttackStats[$zid]['teams'][$tid]['votes'] += $damage;
             $teamAttackStats[$zid]['total_power'] += $damage;
         }
 
-        // Re-formatear arrays para JS
+        // Re-formatear para JS
         foreach($teamAttackStats as &$zoneStat) {
             $zoneStat['teams'] = array_values($zoneStat['teams']);
             $zoneStat['total_votes'] = $zoneStat['total_power'];
         }
         unset($zoneStat);
 
-        // 3. CALCULAR MI PODER ACTUAL
+        // 3. MI PODER
         $myPower = 0;
         if ($user && $user->active_team) {
-            // A. Mis puntos semanales (CAMBIO AQUÍ TAMBIÉN)
-            $myWeeklyPoints = $this->calculateUserTournamentPoints($user->id);
+            $myPoints = $this->calculateUserTournamentPoints($user->id, $startDate);
 
-            // B. Mi multiplicador
-            $myTeamPoints = $user->active_team->points_x2 ?? 0; // Asegúrate que la relación exista o carga el equipo
-            // Si $user->active_team es una relación, quizás necesites $user->activeTeam (depende de tu modelo)
-            // Ojo: Si active_team es solo el ID, necesitas buscar el equipo en $teamsCache
-
-            // Corrección segura usando el cache que ya tenemos:
-            $teamId = $user->active_team->id ?? $user->active_team; // Ajusta según tu modelo
+            $teamId = $user->active_team->id ?? $user->active_team;
             $teamData = $teamsCache[$teamId] ?? null;
             $teamPointsVal = $teamData ? $teamData->points_x2 : 0;
-
             $myMultiplier = 1 + ($teamPointsVal / 2000);
 
-            // C. Mi Daño
-            $myPower = round((10 + $myWeeklyPoints) * $myMultiplier);
+            $myPower = round((10 + $myPoints) * $myMultiplier);
         }
 
-        // 4. RANKING GLOBAL
+        // 4. RANKING y LOGS
         $globalLeaderboard = Zone::select('team_id', DB::raw('count(*) as total'))
             ->whereNotNull('team_id')
             ->groupBy('team_id')
@@ -127,42 +128,46 @@ class ConquestController extends Controller
             ->orderByDesc('total')
             ->get();
 
-        // 5. FECHA DE CIERRE
-        $now = Carbon::now();
-        $nextClose = $now->copy()->next(Carbon::SUNDAY)->setTime(23, 59, 59);
-
-        if ($now->isSunday() && $now->hour < 23) {
-            $nextClose = $now->copy()->setTime(23, 59, 59);
-        }
-
-        // 6. ACTIVIDAD RECIENTE
         $teamActivity = collect();
         if ($user && $user->active_team) {
-             // Ajuste seguro del ID del equipo
              $myTeamId = $user->active_team->id ?? $user->active_team;
-
-            $teamActivity = DB::table('conquest_votes')
+             $teamActivity = DB::table('conquest_votes')
                 ->join('users', 'users.id', '=', 'conquest_votes.user_id')
                 ->join('zones', 'zones.id', '=', 'conquest_votes.zone_id')
                 ->where('conquest_votes.team_id', $myTeamId)
-                ->where('conquest_votes.created_at', '>=', Carbon::now()->startOfWeek())
+                ->where('conquest_votes.created_at', '>=', $startDate) // Desde inicio de turno
                 ->select('users.name as user_name', 'zones.name as zone_name', 'conquest_votes.created_at')
                 ->orderByDesc('conquest_votes.created_at')
                 ->limit(15)
                 ->get();
         }
 
-        // DATOS EXTRA
-        $currentRound = Carbon::now()->weekOfYear;
-        $nextRound = $currentRound + 1;
-        $isWeekend = Carbon::now()->isWeekend();
-        $phaseName = $isWeekend ? "FASE DE CONQUISTA" : "FASE DE VOTACIÓN";
-        $phaseColor = $isWeekend ? "text-red-500" : "text-green-500";
-        $votingEnabled = !$isWeekend;
+        // Variables de vista
+        $currentRound = $now->weekOfYear;
+        $nextRound = $currentRound + 2; // Salto de 2 semanas
 
-        // Variables para el dashboard
-        $zonesCount = $zones->where('team_id', '!=', null)->count(); // O el criterio que quieras
-        $bladersCount = \App\Models\User::count(); // O usuarios activos
+        // Fase visual: Solo es "conquista" (rojo) si estamos en finde Y es semana par
+        $isWeekend = $now->isWeekend();
+        // Solo es fase de conquista si es finde Y semana par (resolución)
+        $isConquestPhase = ($isResolutionWeek && $isWeekend);
+
+        if ($isConquestPhase) {
+            $phaseName = "FASE DE CONQUISTA (RESOLUCIÓN)";
+            $phaseColor = "text-red-500";
+        } elseif (!$isResolutionWeek) {
+            // Semana 1 (Impar)
+            $phaseName = "FASE DE DESGASTE (SEMANA 1/2)";
+            $phaseColor = "text-yellow-500"; // Amarillo para indicar proceso
+        } else {
+            // Semana 2 (Par) entre lunes y viernes
+            $phaseName = "FASE FINAL (SEMANA 2/2)";
+            $phaseColor = "text-green-500";
+        }
+
+        $votingEnabled = !$isConquestPhase;
+
+        $zonesCount = $zones->where('team_id', '!=', null)->count();
+        $bladersCount = \App\Models\User::count();
 
         return view('game.map', compact(
             'zones', 'teamAttackStats', 'myPower', 'globalLeaderboard',
@@ -302,18 +307,15 @@ class ConquestController extends Controller
     //  FUNCIONES PRIVADAS (COPIAR AL FINAL DE LA CLASE)
     // ==========================================
 
-    /**
-     * Calcula los puntos de torneo de un usuario para la semana actual.
-     */
-    private function calculateUserTournamentPoints($userId)
+    private function calculateUserTournamentPoints($userId, $startDate)
     {
-        $startOfWeek = Carbon::now()->startOfWeek()->format('Y-m-d');
-        $endOfWeek   = Carbon::now()->endOfWeek()->format('Y-m-d');
+        // El fin siempre es "hoy" (o el futuro cercano)
+        $endDate = Carbon::now()->endOfWeek();
 
         $participations = DB::table('assist_user_event')
             ->join('events', 'assist_user_event.event_id', '=', 'events.id')
             ->where('assist_user_event.user_id', $userId)
-            ->whereBetween('events.date', [$startOfWeek, $endOfWeek])
+            ->whereBetween('events.date', [$startDate->format('Y-m-d'), $endDate->format('Y-m-d')])
             ->whereNotNull('assist_user_event.puesto')
             ->select('assist_user_event.puesto', 'events.id as event_id')
             ->get();
@@ -324,7 +326,6 @@ class ConquestController extends Controller
             $eventId = $part->event_id;
             $puesto = (int) $part->puesto;
 
-            // Cacheamos el conteo de participantes para no saturar la DB
             if (!isset($this->eventParticipantsCache[$eventId])) {
                 $this->eventParticipantsCache[$eventId] = DB::table('assist_user_event')
                     ->where('event_id', $eventId)
@@ -333,17 +334,14 @@ class ConquestController extends Controller
 
             $totalParticipants = $this->eventParticipantsCache[$eventId];
             $pointsTable = $this->getPointsTable($totalParticipants);
-
-            // Index 0 es Puesto 1
             $index = $puesto - 1;
 
             if (isset($pointsTable[$index])) {
                 $points += $pointsTable[$index];
             } else {
-                $points += 1; // Puntos por participación si queda fuera de top
+                $points += 1;
             }
         }
-
         return $points;
     }
 

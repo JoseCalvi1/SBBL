@@ -7,7 +7,7 @@
                     CANAL: {{ Str::limit(Auth::user()->activeTeam->name, 15) }}
                 </span>
             </div>
-            <span class="text-yellow-500 text-xs">▲</span>
+            <span id="chat-arrow" class="text-yellow-500 text-xs transition-transform duration-300 transform">▲</span>
         </div>
 
         <div id="chat-messages" class="flex-1 overflow-y-auto p-3 space-y-2 text-xs font-mono bg-black/50">

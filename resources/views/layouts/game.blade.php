@@ -7,6 +7,7 @@
 
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
+    <link rel="shortcut icon" type="image/png" href="{{ asset('/images/sbbl.png') }}">
 
     <style>
         body {
@@ -55,12 +56,11 @@
     </style>
     @yield('styles')
 </head>
-<body class="h-screen w-full flex flex-col items-center justify-center relative">
+<body class="min-h-screen w-full flex flex-col items-center justify-center relative bg-[#050505] text-white font-['Orbitron'] overflow-x-hidden">
 
-    <div class="cyber-grid"></div>
-    <div class="absolute inset-0 bg-gradient-to-t from-black via-transparent to-black pointer-events-none"></div>
+    <div class="cyber-grid fixed"></div> <div class="fixed inset-0 bg-gradient-to-t from-black via-transparent to-black pointer-events-none"></div>
 
-    <main class="z-10 w-full max-w-[98%] px-4 text-center flex flex-col h-full justify-center">
+    <main class="z-10 w-full max-w-[98%] px-4 py-8 text-center flex flex-col items-center justify-center flex-grow">
         @yield('content')
     </main>
 

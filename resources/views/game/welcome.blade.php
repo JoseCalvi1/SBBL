@@ -126,11 +126,11 @@
                     <div class="flex gap-4">
                         <div class="text-3xl">⏱️</div>
                         <div>
-                            <h4 class="text-white font-bold text-sm uppercase mb-1">4. Horarios de Guerra</h4>
+                            <h4 class="text-white font-bold text-sm uppercase mb-1">4. Ciclo de Guerra (Quincenal)</h4>
                             <p class="text-gray-400 text-xs leading-relaxed">
-                                <strong class="text-green-400">LUNES - VIERNES:</strong> Fase de Votación (Ataca).<br>
-                                <strong class="text-red-400">SÁBADO - DOMINGO:</strong> Fase de Conquista (Resolución).<br>
-                                El mapa se resuelve automáticamente el Domingo a las 23:59.
+                                La guerra es de larga duración. Los turnos duran <strong class="text-cyan-400">2 SEMANAS</strong>.<br>
+                                <strong class="text-green-400">DÍAS 1-13:</strong> Fase de Desgaste (Acumula daño).<br>
+                                <strong class="text-red-400">DOMINGO FINAL:</strong> El mapa se resuelve cada <strong>2 Domingos</strong> (Semanas Pares) a las 23:59.
                             </p>
                         </div>
                     </div>
