@@ -60,4 +60,9 @@ class Team extends Model
         return $this->hasMany(\App\Models\TeamInventory::class);
     }
 
+    public function activeBuffs()
+    {
+        return $this->hasMany(TeamActiveBuff::class);
+    }
+
 }

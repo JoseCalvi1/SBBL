@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;   // <--- ¡IMPORTANTE! Sin esto, falla.
 use App\Models\Item;
+use App\Models\TeamActiveBuff;
 use App\Models\TeamInventory;        // <--- ¡IMPORTANTE!
 use App\Models\Zone;
 use Carbon\Carbon;
@@ -194,5 +195,63 @@ class MarketController extends Controller
                 'file' => $e->getFile()
             ], 500);
         }
+    }
+
+    public function activate(Request $request)
+    {
+        $user = Auth::user();
+        $team = $user->activeTeam;
+
+        // 1. Verificar Capitán
+        if (!$team || $team->captain_id != $user->id) {
+            return back()->with('error', '⛔ Solo el Comandante puede activar protocolos de guerra.');
+        }
+
+        // 2. Buscar Item en Inventario
+        $inventoryItem = \App\Models\TeamInventory::where('id', $request->inventory_id)
+            ->where('team_id', $team->id)
+            ->first();
+
+        if (!$inventoryItem || $inventoryItem->quantity < 1) {
+            return back()->with('error', 'No hay stock de este suministro.');
+        }
+
+        $code = $inventoryItem->item->code;
+
+        // 3. Verificar si es un BUFF (por el código)
+        if (!str_starts_with($code, 'buff_')) {
+            return back()->with('error', 'Este objeto no se puede activar aquí (¿Es pasivo o instantáneo?).');
+        }
+
+        // 4. Evitar duplicados (Si ya tienen ataque activo, no dejar poner otro igual)
+        $exists = TeamActiveBuff::where('team_id', $team->id)
+            ->where('item_code', $code)
+            ->exists();
+
+        if ($exists) {
+            return back()->with('error', '⚠️ Este sistema YA está en línea. Espera al próximo ciclo.');
+        }
+
+        // 5. Extraer el multiplicador del código (ej: buff_attack_1.2 -> 1.2)
+        $multiplier = 1.0;
+        if (preg_match('/_([\d\.]+)$/', $code, $matches)) {
+            $multiplier = (float)$matches[1];
+        }
+
+        // 6. EJECUTAR ACTIVACIÓN
+        DB::transaction(function () use ($team, $code, $multiplier, $inventoryItem) {
+            // Crear el Buff Activo
+            TeamActiveBuff::create([
+                'team_id' => $team->id,
+                'item_code' => $code,
+                'multiplier' => $multiplier,
+                'expires_at' => now()->next('Sunday')->endOfDay() // Dura hasta el domingo noche
+            ]);
+
+            // Restar del inventario
+            $inventoryItem->decrement('quantity');
+        });
+
+        return back()->with('success', "SISTEMA ACTIVADO: Potencia aumentada (x{$multiplier}) hasta el fin del ciclo.");
     }
 }

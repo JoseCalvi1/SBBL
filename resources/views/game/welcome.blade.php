@@ -4,7 +4,56 @@
 
 @section('content')
 
-    <div class="mb-8 animate-pulse">
+{{-- ============================================================== --}}
+    {{-- 🎬 INTRODUCCIÓN CINEMÁTICA (CORREGIDO SCROLL MÓVIL) --}}
+    {{-- ============================================================== --}}
+    {{-- CAMBIO 1: Añadido 'overflow-y-auto' y quitado 'justify-center items-center' del contenedor padre --}}
+    <div id="agent-intro-overlay" class="fixed inset-0 z-[9999] bg-black font-mono select-none hidden overflow-y-auto">
+
+        {{-- CAMBIO 2: Wrapper flexible que permite scroll si el contenido es alto --}}
+        <div class="min-h-screen w-full flex flex-col items-center justify-center py-12 relative">
+
+            {{-- Fondo con Scanlines --}}
+            <div class="absolute inset-0 pointer-events-none z-0 opacity-20" style="background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06)); background-size: 100% 2px, 3px 100%;"></div>
+
+            {{-- Círculo de Carga ISAC --}}
+            {{-- CAMBIO 3: Reducido tamaño en móvil (w-24) vs escritorio (md:w-32) --}}
+            <div class="relative w-24 h-24 md:w-32 md:h-32 mb-6 md:mb-8 z-10 shrink-0">
+                <div class="absolute inset-0 border-4 border-orange-900/40 rounded-full"></div>
+                <div class="absolute inset-0 border-t-4 border-orange-500 rounded-full animate-spin"></div>
+                <div class="absolute inset-0 flex items-center justify-center">
+                    <span class="text-orange-500 text-3xl md:text-4xl font-black animate-pulse">⚠️</span>
+                </div>
+            </div>
+
+            {{-- Contenedor de Texto Narrativo --}}
+            <div class="max-w-xl w-full px-6 md:px-8 z-10 relative">
+                {{-- Caja de texto --}}
+                {{-- CAMBIO 4: Altura mínima ajustada para móvil (180px) --}}
+                <div id="intro-terminal-text" class="text-orange-500 text-sm md:text-lg leading-relaxed font-mono font-bold tracking-widest min-h-[180px] md:min-h-[200px] drop-shadow-[0_0_5px_rgba(249,115,22,0.8)] border-l-2 border-orange-500/50 pl-4 md:pl-6 flex flex-col justify-center">
+                    </div>
+
+                {{-- Barra de Estado --}}
+                <div id="intro-status-bar" class="mt-4 border-t border-orange-900/50 pt-2 flex justify-between text-[10px] md:text-xs text-orange-700 uppercase tracking-widest hidden">
+                    <span>RED SBBL: <span class="text-orange-500 animate-pulse">REINICIANDO...</span></span>
+                    <span class="truncate max-w-[100px] md:max-w-none">AGENTE: {{ Auth::user()->name ?? 'UNKNOWN' }}</span>
+                    <span>ESTADO: ACTIVADO</span>
+                </div>
+            </div>
+
+            {{-- Botón Acceder --}}
+            {{-- CAMBIO 5: Margen inferior extra para que no se pegue al borde en móviles --}}
+            <button id="btn-enter-system" onclick="closeIntro()" class="z-10 mt-8 md:mt-12 mb-8 px-8 md:px-10 py-3 border border-orange-500 text-orange-500 hover:bg-orange-500 hover:text-black uppercase font-bold tracking-[0.2em] md:tracking-[0.3em] transition-all hidden animate-pulse shadow-[0_0_20px_rgba(249,115,22,0.4)] text-sm md:text-base">
+                ACCEDER AL SISTEMA
+            </button>
+        </div>
+    </div>
+    {{-- ============================================================== --}}
+    {{-- ============================================================== --}}
+
+
+    {{-- UI PRINCIPAL DEL JUEGO --}}
+    <div class="mb-8 mt-10 animate-pulse">
         @if(now()->isWeekend())
             <span class="bg-red-900/50 text-red-300 border border-red-500 px-6 py-2 rounded-full text-xs md:text-sm tracking-[0.2em] uppercase backdrop-blur-sm">
                 ⛔ FASE DE CONQUISTA (VOTACIÓN CERRADA)
@@ -16,7 +65,7 @@
         @endif
     </div>
 
-    {{-- MODIFICACIÓN AQUÍ: Título y Badge alineado --}}
+    {{-- Título y Badge --}}
     <div class="relative inline-block mb-4">
         <h1 class="text-5xl md:text-8xl font-black tracking-tighter neon-text relative z-10">
             CONQUEST
@@ -26,7 +75,6 @@
             BETA v1.0
         </span>
     </div>
-    {{-- FIN MODIFICACIÓN --}}
 
     <h2 class="text-lg md:text-2xl text-gray-400 tracking-[0.6em] mb-12 uppercase">
         SPANISH BEYBATTLE LEAGUE
@@ -35,7 +83,7 @@
     <div class="flex flex-col items-center gap-4">
         @auth
             <div class="text-cyan-300 mb-2 text-sm tracking-widest">
-                BIENVENIDO, BLADER <span class="font-bold text-white">{{ strtoupper(Auth::user()->name) }}</span>
+                BIENVENIDO, AGENTE <span class="font-bold text-white">{{ strtoupper(Auth::user()->name) }}</span>
             </div>
 
             <a href="{{ route('conquest.map') }}" class="btn-cyber px-12 py-5 text-xl font-bold uppercase tracking-widest border border-cyan-500 hover:bg-cyan-900/50 transition-all shadow-[0_0_15px_rgba(0,255,255,0.3)]">
@@ -48,9 +96,16 @@
             </a>
         @endauth
 
-        <button onclick="toggleTutorial()" class="mt-4 text-xs text-gray-500 hover:text-cyan-400 tracking-widest uppercase border-b border-transparent hover:border-cyan-400 transition-all">
-            [ ? ] LEER MANUAL DE COMBATE
-        </button>
+        <div class="flex gap-6 mt-4">
+            <button onclick="toggleTutorial()" class="text-xs text-gray-500 hover:text-cyan-400 tracking-widest uppercase border-b border-transparent hover:border-cyan-400 transition-all">
+                [ ? ] MANUAL DE COMBATE
+            </button>
+
+            {{-- BOTÓN PARA REPETIR LA HISTORIA --}}
+            <button onclick="playIntro(true)" class="text-xs text-orange-700 hover:text-orange-500 tracking-widest uppercase border-b border-transparent hover:border-orange-500 transition-all">
+                [ ⚠️ ] REPRODUCIR PROTOCOLO
+            </button>
+        </div>
     </div>
 
     <div class="mt-20 grid grid-cols-3 gap-8 text-cyan-500/60 text-xs md:text-sm border-t border-cyan-500/20 pt-8 max-w-2xl mx-auto">
@@ -58,22 +113,23 @@
             <p class="text-2xl font-bold text-white mb-1 group-hover:text-cyan-400 transition-colors">
                 {{ $zonesCount }}
             </p>
-            <p class="uppercase tracking-widest">Zonas Activas</p>
+            <p class="uppercase tracking-widest">Nodos Activos</p>
         </div>
         <div class="group cursor-default">
             <p class="text-2xl font-bold text-white mb-1 group-hover:text-cyan-400 transition-colors">
                 {{ $bladersCount }}
             </p>
-            <p class="uppercase tracking-widest">Bladers</p>
+            <p class="uppercase tracking-widest">Agentes</p>
         </div>
         <div class="group cursor-default">
             <p class="text-2xl font-bold text-white mb-1 group-hover:text-red-400 transition-colors">
                 DOM <span class="text-xs opacity-50">{{ $nextClose }}</span>
             </p>
-            <p class="uppercase tracking-widest">Próx. Cierre</p>
+            <p class="uppercase tracking-widest">Reinicio Red</p>
         </div>
     </div>
 
+    {{-- MODAL TUTORIAL --}}
     <div id="tutorial-modal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/90 backdrop-blur-sm hidden opacity-0 transition-opacity duration-300">
         <div class="relative w-full max-w-3xl bg-gray-900 border border-cyan-500/50 shadow-[0_0_50px_rgba(34,211,238,0.2)] p-1 m-4">
 
@@ -150,26 +206,121 @@
 
 @section('scripts')
     <script>
-        // Lógica del Tutorial Popup
+        // ==========================================
+        // 🎞️ SCRIPT DE LA HISTORIA (LORE)
+        // ==========================================
+        document.addEventListener("DOMContentLoaded", function() {
+            // Comprobamos si el usuario ya ha visto la intro
+            const hasSeenIntro = localStorage.getItem('intro_seen_v1');
+
+            // Si NO la ha visto, la ejecutamos automáticamente
+            if (!hasSeenIntro) {
+                playIntro(false);
+            }
+        });
+
+        function playIntro(force = false) {
+            const overlay = document.getElementById('agent-intro-overlay');
+            const textContainer = document.getElementById('intro-terminal-text');
+            const statusLine = document.getElementById('intro-status-bar');
+            const btn = document.getElementById('btn-enter-system');
+
+            overlay.classList.remove('hidden');
+
+            // Limpiar estado
+            textContainer.innerHTML = "";
+            statusLine.classList.add('hidden');
+            btn.classList.add('hidden');
+
+            // --- EL GUIÓN DE LA HISTORIA ---
+            const lines = [
+                // Línea 1
+                "<span class='text-gray-500'>[REPORTE: DÍA 180 TRAS EL COLAPSO]</span>",
+
+                // Línea 2
+                "LA RED CENTRAL HA SIDO <span class='text-red-500'>DESTRUIDA</span>.",
+
+                // Línea 3
+                "LA SOCIEDAD SE HA FRACTURADO EN FACCIONES.",
+                "SOLO LA FUERZA BRUTA DICTA LA LEY AHORA.",
+
+                // Línea 4
+                "<span class='animate-pulse'>DETECTANDO SEÑAL DEL AGENTE...</span>",
+
+                // Línea 5
+                "IDENTIDAD CONFIRMADA. ACCESO AL <span class='text-yellow-400'>MERCADO NEGRO</span> AUTORIZADO.",
+
+                // Línea 6
+                "MISIÓN: RECUPERAR EL CONTROL DE LOS NODOS."
+            ];
+
+            let lineIndex = 0;
+            let currentHTML = "";
+
+            function printLine() {
+                if (lineIndex < lines.length) {
+                    const fullLine = lines[lineIndex];
+
+                    // Añadimos la línea + cursor parpadeante
+                    textContainer.innerHTML = currentHTML + fullLine + '<span class="animate-pulse">_</span>';
+
+                    // Guardamos la línea en el histórico para no perderla en la siguiente vuelta
+                    currentHTML += fullLine + "<br><br>"; // Doble salto para espacio
+
+                    lineIndex++;
+
+                    // Tiempo de lectura variable para hacerlo natural
+                    let readingTime = 1500;
+                    if(lineIndex === 1) readingTime = 800;
+                    if(lineIndex === 4) readingTime = 2000; // Suspenso en "Detectando..."
+
+                    setTimeout(printLine, readingTime);
+
+                } else {
+                    // FIN: Mostrar "Sistema en línea"
+                    textContainer.innerHTML = currentHTML + '<span class="text-green-500 text-xl tracking-[0.5em] animate-pulse">SISTEMA EN LÍNEA</span>';
+
+                    setTimeout(() => {
+                        statusLine.classList.remove('hidden');
+                        btn.classList.remove('hidden');
+                    }, 500);
+                }
+            }
+
+            // Iniciar secuencia con pequeña espera
+            setTimeout(printLine, 1000);
+        }
+
+        function closeIntro() {
+            const overlay = document.getElementById('agent-intro-overlay');
+            overlay.style.transition = "opacity 0.8s ease-out";
+            overlay.style.opacity = "0";
+
+            setTimeout(() => {
+                overlay.classList.add('hidden');
+                overlay.style.opacity = "1";
+            }, 800);
+
+            // Guardar que ya lo vio
+            localStorage.setItem('intro_seen_v1', 'true');
+        }
+
+        // ==========================================
+        // 🛠️ TUS SCRIPTS ORIGINALES
+        // ==========================================
         function toggleTutorial() {
             const modal = document.getElementById('tutorial-modal');
-
             if (modal.classList.contains('hidden')) {
-                // Abrir
                 modal.classList.remove('hidden');
-                // Pequeño delay para permitir que la transición CSS funcione
                 setTimeout(() => modal.classList.remove('opacity-0'), 10);
             } else {
-                // Cerrar
                 modal.classList.add('opacity-0');
                 setTimeout(() => modal.classList.add('hidden'), 300);
             }
         }
 
-        // Script de partículas (Ambiente War Zone)
         document.addEventListener("DOMContentLoaded", () => {
             const body = document.querySelector('main') || document.body;
-
             const style = document.createElement('style');
             style.innerHTML = `
                 .particle { position: absolute; background: white; border-radius: 50%; opacity: 0; pointer-events: none; animation: float 10s infinite; z-index: 0; }

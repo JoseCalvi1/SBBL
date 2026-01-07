@@ -3,6 +3,19 @@
 @section('title', 'Mapa Táctico')
 
 @section('content')
+
+    @php
+        $activeVote = \Illuminate\Support\Facades\DB::table('conquest_votes')
+            ->join('zones', 'conquest_votes.zone_id', '=', 'zones.id')
+            ->where('conquest_votes.user_id', Auth::id())
+            ->orderByDesc('conquest_votes.created_at') // Cogemos el último voto por si acaso
+            ->select('zones.slug')
+            ->first();
+
+        // Si tiene voto, guardamos el slug (ej: 'madrid'), si no, null
+        $currentVoteSlug = $activeVote ? $activeVote->slug : null;
+    @endphp
+
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
     {{-- Header: Ajustado padding y flex para móviles --}}
@@ -203,7 +216,6 @@
 </div>
 
 @section('scripts')
-{{-- Existing JS Logic --}}
 <script>
     // --- VARIABLES GLOBALES ---
     const zonesData = @json($zones);
@@ -212,8 +224,10 @@
 
     // ID de mi equipo actual
     const myTeamId = {{ Auth::user()->activeTeam ? Auth::user()->activeTeam->id : 'null' }};
-    const myAttackPower = {{ $myPower ?? 0 }};
     const isVotingEnabled = @json($votingEnabled);
+
+    // AQUÍ ESTÁ EL CAMBIO: Recogemos el voto actual del usuario desde PHP
+    const myCurrentVoteSlug = @json($currentVoteSlug);
 
     let currentSelectedSlug = null;
     let chatInterval = null;
@@ -300,34 +314,10 @@
                     });
                 }
 
-                // Text Labels
-                const textLabels = mapElement.querySelectorAll('text, tspan');
-                textLabels.forEach(label => {
-                    label.style.pointerEvents = 'none';
-                    label.style.setProperty('stroke', 'none', 'important');
-                    if (isEnemy) {
-                        label.style.fill = '#ffe5e5';
-                        label.style.textShadow = '0 0 3px #ff0000';
-                        label.style.opacity = '1';
-                    } else if (isMine) {
-                        label.style.fill = '#ffffff';
-                        label.style.textShadow = '0 0 5px ' + zone.team.color;
-                        label.style.opacity = '1';
-                    } else {
-                        label.style.fill = '#aaaaaa';
-                        label.style.opacity = '0.7';
-                        label.style.textShadow = '0 0 2px #000';
-                    }
-                });
-
-                // Radar
+                // Radar Effect (Si hay actividad)
                 if(teamStats[zone.id] && teamStats[zone.id].votes > 0) {
-                    mapElement.classList.add("animate-pulse");
-                    const target = children.length > 0 ? children : [mapElement];
-                    target.forEach(el => {
-                        el.style.setProperty('stroke', '#FFD700', 'important');
-                        el.style.setProperty('stroke-width', '2px', 'important');
-                    });
+                    // Solo animamos si NO hay niebla de guerra o si tengo radar (lógica futura)
+                    // Por ahora lo dejamos sutil
                 }
 
                 // Eventos Mouse
@@ -379,7 +369,7 @@
         }
     });
 
-    // --- FUNCIONES DE INTERFAZ ---
+    // --- FUNCIONES DE INTERFAZ (MODIFICADAS) ---
     function abrirPanel(slug) {
         currentSelectedSlug = slug;
         const zoneInfo = zonesData.find(z => z.slug === slug);
@@ -390,15 +380,14 @@
         const barsContainer = document.getElementById('battle-bars');
 
         barsContainer.innerHTML = '';
-        statsContainer.classList.add('hidden');
 
         const titleEl = document.getElementById('panel-title');
         const ownerEl = document.getElementById('panel-owner');
         const btn = document.getElementById('btn-attack');
         const btnText = document.getElementById('btn-text');
 
+        // 1. Títulos y Colores
         titleEl.innerText = zoneInfo.name.toUpperCase();
-
         let ownerName = "TERRITORIO NEUTRAL";
         let ownerColor = "#ffffff";
         let titleClass = "text-white";
@@ -420,17 +409,42 @@
 
         resetButton();
 
+        // 2. Lógica de Estadísticas (Niebla vs Resolución)
         const zoneBattleData = teamStats[zoneInfo.id];
-        if (zoneBattleData && zoneBattleData.teams && zoneBattleData.teams.length > 0) {
-            statsContainer.classList.remove('hidden');
+        statsContainer.classList.remove('hidden');
+
+        // PRIORIDAD 1: ¿Es la zona que YA estoy atacando? -> BLOQUEAR 🎯
+        // Comparamos el slug de esta zona con el que sacamos de la base de datos
+        if (myCurrentVoteSlug === slug) {
+            btn.disabled = true;
+            btnText.innerText = "🎯 OBJETIVO FIJADO ";
+            // Estilo azul táctico para indicar que es tu objetivo actual
+            btn.className = "w-full py-3 pr-2 font-bold text-sm md:text-lg flex justify-center items-center gap-2 border border-blue-500 text-blue-300 cursor-not-allowed bg-blue-900/40 rounded shadow-[0_0_15px_rgba(59,130,246,0.4)] animate-pulse";
+            return; // IMPORTANTE: Return para que no siga ejecutando código
+        }
+
+        // CASO A: Votación ACTIVA -> Niebla de Guerra (Oculto total)
+        if (isVotingEnabled) {
+            barsContainer.innerHTML = `
+                <div class="text-center py-3 border border-dashed border-gray-700 rounded bg-gray-900/50">
+                    <p class="text-gray-500 text-[10px] font-mono mb-1 tracking-widest animate-pulse">📡 SEÑAL ENCRIPTADA</p>
+                    <p class="text-[9px] text-gray-600">Información clasificada hasta el cierre de votaciones.</p>
+                </div>
+            `;
+        }
+        // CASO B: Votación CERRADA -> Mostrar Barras SIN números
+        else if (zoneBattleData && zoneBattleData.teams && zoneBattleData.teams.length > 0) {
             zoneBattleData.teams.sort((a, b) => b.votes - a.votes);
+
             zoneBattleData.teams.forEach(t => {
                 let percent = (t.votes / zoneBattleData.total_votes) * 100;
+
+                // NOTA: Solo mostramos nombre y barra. Nada de números.
                 const barHTML = `
                     <div class="group">
                         <div class="flex justify-between text-[10px] uppercase font-bold mb-1">
                             <span style="color:${t.color}">${t.name}</span>
-                            <span class="text-gray-400">${t.votes} DAÑO</span>
+                            {{-- Aquí hemos quitado el texto de daño/porcentaje --}}
                         </div>
                         <div class="w-full h-1.5 bg-gray-900 rounded-full overflow-hidden border border-white/5">
                             <div class="h-full shadow-[0_0_10px_currentColor]" style="width: ${percent}%; background-color: ${t.color}; box-shadow: 0 0 5px ${t.color}; transition: width 1s ease-out;"></div>
@@ -438,11 +452,22 @@
                     </div>`;
                 barsContainer.innerHTML += barHTML;
             });
-        } else {
-             statsContainer.classList.remove('hidden');
-             barsContainer.innerHTML = '<p class="text-gray-600 text-[10px] italic text-center">Zona en calma. Sin actividad hostil reciente.</p>';
+        }
+        else {
+             barsContainer.innerHTML = '<p class="text-gray-600 text-[10px] italic text-center">Zona en calma.</p>';
         }
 
+        // 3. ESTADO DEL BOTÓN DE ATAQUE
+
+        // PRIORIDAD 1: Si es el territorio que YA he votado -> BLOQUEAR
+        if (myCurrentVoteSlug === slug) {
+            btn.disabled = true;
+            btnText.innerText = "🎯 OBJETIVO FIJADO";
+            btn.className = "w-full py-3 font-bold text-sm md:text-lg flex justify-center items-center gap-2 border border-blue-500/50 text-blue-300 cursor-not-allowed bg-blue-900/20 rounded shadow-[0_0_10px_rgba(59,130,246,0.2)]";
+            return; // Salimos, no se puede hacer nada más
+        }
+
+        // PRIORIDAD 2: Si la votación está cerrada (fase resolución) -> BLOQUEAR
         if (!isVotingEnabled) {
             btn.disabled = true;
             btnText.innerText = "⛔ FASE CONQUISTA (CERRADO)";
@@ -450,13 +475,19 @@
             return;
         }
 
+        // PRIORIDAD 3: Si es mi propio territorio -> BLOQUEAR (Ya asegurado)
         if (myTeamId && zoneInfo.team_id === myTeamId) {
             btn.disabled = true;
             btnText.innerText = "🛡️ TERRITORIO ASEGURADO";
             btn.className = "w-full py-3 font-bold text-sm md:text-lg flex justify-center items-center gap-2 border border-green-500/30 text-green-500/50 cursor-not-allowed bg-green-900/10 rounded";
-        } else {
+        }
+        // PRIORIDAD 4: Botón Normal (Atacar/Cambiar Voto)
+        else {
             const myAttack = zoneBattleData?.teams?.find(t => t.id === myTeamId);
             btn.className = "btn-cyber w-full md:w-auto px-6 py-3 font-bold text-sm md:text-lg flex justify-center items-center gap-2 group border border-cyan-500 hover:bg-cyan-900/30 transition-colors text-cyan-300";
+            btnText.innerText = "ORDENAR ATAQUE";
+
+            // Si mi equipo ataca aquí, lo ponemos amarillo
             if(myAttack) {
                  btn.classList.add('border-yellow-500', 'text-yellow-400');
                  btn.classList.remove('border-cyan-500', 'text-cyan-300');
@@ -559,8 +590,7 @@
         });
     }
 
-    // --- FUNCIONES MOTD (Capitán) ---
-    // Make these functions global so `onclick` in HTML works
+    // --- FUNCIONES MOTD ---
     window.toggleMotdEdit = function() {
         const display = document.getElementById('pinned-display');
         const edit = document.getElementById('pinned-edit');
