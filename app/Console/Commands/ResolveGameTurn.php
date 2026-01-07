@@ -12,34 +12,41 @@ use Carbon\Carbon;
 class ResolveGameTurn extends Command
 {
     protected $signature = 'game:resolve';
-    protected $description = 'Resuelve los votos calculando puntos (Ciclo Quincenal)';
+    protected $description = 'Resuelve los votos calculando puntos y aplicando potenciadores (Ciclo Quincenal)';
 
     private $eventParticipantsCache = [];
 
     public function handle()
     {
         // 1. CONTROL DE CICLO QUINCENAL
-        // Usamos el número de semana del año.
-        // Si es IMPAR (1, 3, 5...), NO se resuelve (estamos a mitad de turno).
-        // Si es PAR (2, 4, 6...), SÍ se resuelve.
+        // Si es semana IMPAR, no se resuelve.
         if (Carbon::now()->weekOfYear % 2 != 0) {
             $this->info("📅 Semana IMPAR (Mantenimiento). El turno continúa hasta la semana que viene.");
             return;
         }
 
-        $this->info('⚔️  CALCULANDO PODER DE COMBATE (CICLO DE 2 SEMANAS)...');
+        $this->info('⚔️  CALCULANDO PODER DE COMBATE (CON BUFFS DE MERCADO)...');
 
         $zones = Zone::all();
         $changesCount = 0;
         $teamsCache = Team::all()->keyBy('id');
 
-        // 2. RANGO DE FECHAS (14 DÍAS)
-        // Como estamos en domingo de semana par, el inicio fue el Lunes de la semana PASADA.
+        // 2. CARGAR BUFFS ACTIVOS (Optimización)
+        // Cargamos todos los buffs activos en memoria agrupados por equipo
+        // para no consultar la BD en cada voto.
+        $activeBuffs = DB::table('team_active_buffs')
+            ->where('expires_at', '>', now())
+            ->get()
+            ->groupBy('team_id');
+
+        $this->info("   > Buffs activos cargados en memoria.");
+
+        // 3. RANGO DE FECHAS (14 DÍAS)
         $startOfPeriod = Carbon::now()->subWeek()->startOfWeek()->format('Y-m-d');
         $endOfPeriod   = Carbon::now()->endOfWeek()->format('Y-m-d');
 
         foreach ($zones as $zone) {
-            // Buscamos votos desde el inicio del periodo (hace 2 semanas)
+            // Buscamos votos
             $rawVotes = DB::table('conquest_votes')
                 ->where('zone_id', $zone->id)
                 ->get();
@@ -51,11 +58,11 @@ class ResolveGameTurn extends Command
             $battlePower = [];
 
             foreach($rawVotes as $vote) {
-                // Buscamos torneos en el rango de 2 semanas
+                // A. CALCULO DE PUNTOS DE TORNEO (Tu lógica original)
                 $participations = DB::table('assist_user_event')
                     ->join('events', 'assist_user_event.event_id', '=', 'events.id')
                     ->where('assist_user_event.user_id', $vote->user_id)
-                    ->whereBetween('events.date', [$startOfPeriod, $endOfPeriod]) // <-- CAMBIO AQUÍ
+                    ->whereBetween('events.date', [$startOfPeriod, $endOfPeriod])
                     ->whereNotNull('assist_user_event.puesto')
                     ->select('assist_user_event.puesto', 'events.id as event_id')
                     ->get();
@@ -82,15 +89,39 @@ class ResolveGameTurn extends Command
                     }
                 }
 
-                // Cálculo Final
+                // B. DAÑO BASE (10 + Puntos Torneo * Ranking Global)
                 $teamPoints = $teamsCache[$vote->team_id]->points_x2 ?? 0;
-                $multiplier = 1 + ($teamPoints / 2000);
-                $damage = (10 + $userPoints) * $multiplier;
+                $rankMultiplier = 1 + ($teamPoints / 2000);
+                $baseDamage = (10 + $userPoints) * $rankMultiplier;
+
+                // C. APLICAR BUFFS DE MERCADO (NUEVO) 🚀
+                $marketMultiplier = 1.0;
+
+                // Verificamos si este equipo tiene buffs activos
+                if (isset($activeBuffs[$vote->team_id])) {
+                    foreach ($activeBuffs[$vote->team_id] as $buff) {
+
+                        // 1. Buff de ATAQUE (Aplica siempre)
+                        // Buscamos códigos como 'buff_attack_1.2'
+                        if (str_starts_with($buff->item_code, 'buff_attack')) {
+                            $marketMultiplier *= $buff->multiplier;
+                        }
+
+                        // 2. Buff de DEFENSA (Aplica solo si son dueños de la zona)
+                        // Buscamos códigos como 'buff_defense_1.5'
+                        if ($zone->team_id == $vote->team_id && str_starts_with($buff->item_code, 'buff_defense')) {
+                            $marketMultiplier *= $buff->multiplier;
+                        }
+                    }
+                }
+
+                // Cálculo Final con Buffs
+                $finalDamage = $baseDamage * $marketMultiplier;
 
                 if (!isset($battlePower[$vote->team_id])) {
                     $battlePower[$vote->team_id] = 0;
                 }
-                $battlePower[$vote->team_id] += $damage;
+                $battlePower[$vote->team_id] += $finalDamage;
             }
 
             // --- DETERMINAR GANADOR ---
@@ -102,7 +133,7 @@ class ResolveGameTurn extends Command
             $winnerTeamName = $teamsCache[$winnerTeamId]->name;
 
             if ($zone->team_id == $winnerTeamId) {
-                $this->line("🛡️  {$zone->name}: Defendida por {$winnerTeamName}");
+                $this->line("🛡️  {$zone->name}: Defendida por {$winnerTeamName} (Poder: {$winnerDamage})");
             } else {
                 $oldOwner = $zone->team ? $zone->team->name : 'Nadie';
                 $zone->team_id = $winnerTeamId;
@@ -110,7 +141,7 @@ class ResolveGameTurn extends Command
 
                 WarNews::create([
                     'title' => "VICTORIA EN " . strtoupper($zone->name),
-                    'content' => "Tras dos semanas de combates (Poder: {$winnerDamage}), el equipo {$winnerTeamName} ha tomado la región de manos de {$oldOwner}.",
+                    'content' => "Tras dos semanas de combates (Poder Total: {$winnerDamage}), el equipo {$winnerTeamName} ha tomado la región de manos de {$oldOwner}.",
                     'type' => 'conquest'
                 ]);
 
@@ -119,9 +150,12 @@ class ResolveGameTurn extends Command
             }
         }
 
-        // Limpieza de votos y chat
-        DB::table('conquest_votes')->truncate();
-        DB::table('team_chat_messages')->truncate();
+        // 4. LIMPIEZA DE DATOS (RESET DEL CICLO)
+        $this->info("🧹 Limpiando base de datos para el nuevo ciclo...");
+
+        DB::table('conquest_votes')->truncate();       // Borrar votos
+        DB::table('team_chat_messages')->truncate();   // Borrar chat antiguo
+        DB::table('team_active_buffs')->truncate();    // Borrar buffs (Deben comprarse de nuevo)
 
         $this->newLine();
         $this->info("✅ TURNO QUINCENAL RESUELTO. Zonas cambiadas: $changesCount");
