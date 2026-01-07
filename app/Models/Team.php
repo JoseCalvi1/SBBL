@@ -55,4 +55,9 @@ class Team extends Model
         return $this->hasMany(TeamChatMessage::class);
     }
 
+    public function inventory()
+    {
+        return $this->hasMany(\App\Models\TeamInventory::class);
+    }
+
 }

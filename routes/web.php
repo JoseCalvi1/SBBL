@@ -6,6 +6,7 @@ use App\Http\Controllers\CarritoController;
 use App\Http\Controllers\ChatController;
 use App\Http\Controllers\EventController;
 use App\Http\Controllers\Game\ConquestController;
+use App\Http\Controllers\Game\MarketController;
 use App\Http\Controllers\InicioController;
 use App\Http\Controllers\TeamController;
 use App\Http\Controllers\InvitationController;
@@ -36,6 +37,16 @@ Route::domain('conquista.' . env('APP_DOMAIN', 'sbbl.es'))->group(function () {
     Route::get('/noticias', [ConquestController::class, 'news'])->name('conquest.news');
     Route::get('/generar-noticias', [ConquestController::class, 'generateTestNews']); // Noticias de prueba
     Route::post('/chat/motd', [ConquestController::class, 'updatePinnedMessage'])->name('chat.update_motd');
+    // --- MERCADO NEGRO Y ECONOMÍA ---
+    Route::get('/market', [MarketController::class, 'index'])->name('market.index');
+    Route::post('/market/buy', [MarketController::class, 'buy'])->name('market.buy');
+
+    // Si decidiste mover la ruleta al MarketController (Recomendado):
+    Route::post('/roulette/spin', [MarketController::class, 'spinRoulette'])->name('market.spin');
+
+    // Usar items
+    Route::post('/market/use-radar', [MarketController::class, 'useRadar'])->name('market.use_radar');
+    Route::post('/market/activate', [MarketController::class, 'useRadar'])->name('market.activate');
 });
 
 

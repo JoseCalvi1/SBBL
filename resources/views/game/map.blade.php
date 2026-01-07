@@ -14,6 +14,17 @@
                 <a href="{{ route('conquest.news') }}" class="flex items-center gap-1 text-[10px] bg-red-900/30 text-red-400 px-2 py-1 border border-red-500/30 hover:bg-red-900/60 transition-colors animate-pulse">
                     <span>📰</span> REPORTES
                 </a>
+                {{-- NUEVO: BOTÓN MERCADO NEGRO --}}
+                <a href="{{ route('market.index') }}"
+                class="flex items-center gap-2 text-[10px] bg-purple-900/30 text-purple-300 px-3 py-1 border border-purple-500/50 hover:bg-purple-800/60 hover:text-white transition-all shadow-[0_0_10px_rgba(168,85,247,0.3)] group">
+                    <span class="text-lg group-hover:rotate-12 transition-transform">🛒</span>
+                    <div class="flex flex-col leading-none text-left">
+                        <span class="font-bold tracking-widest">MERCADO</span>
+                        <span class="text-[8px] text-purple-400 group-hover:text-purple-200">
+                            {{ Auth::user()->coins }} COINS
+                        </span>
+                    </div>
+                </a>
             </div>
         </div>
 
@@ -176,7 +187,14 @@
     @if(Auth::user()->activeTeam)
         @include('game.partials.chat')
     @endif
-
+<a href="{{ route('market.index') }}"
+   class="fixed bottom-4 left-4 z-40 bg-gray-900/90 border border-purple-500 text-purple-300 p-3 rounded-full shadow-[0_0_15px_rgba(168,85,247,0.5)] hover:scale-110 transition-transform group flex items-center gap-2 pr-5">
+    <span class="text-2xl group-hover:animate-bounce">🎒</span>
+    <div class="flex flex-col">
+        <span class="text-[10px] font-bold text-white">TIENDA</span>
+        <span class="text-[9px] text-yellow-400 font-mono">{{ Auth::user()->coins }} $</span>
+    </div>
+</a>
 @endsection
 
 {{-- TOOLTIP (Fuera del flujo) --}}

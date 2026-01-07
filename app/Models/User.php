@@ -123,4 +123,47 @@ class User extends Authenticatable
     {
         return $this->hasMany(Ticket::class);
     }
+
+    public function getCoinsAttribute()
+    {
+        // Asumiendo que tienes relación user->profile
+        // Buscamos el trofeo por nombre. Lo ideal sería usar ID fijo, pero usamos nombre como dijiste.
+        $trophy = $this->profile->trophies()->where('name', 'SBBL Coin')->first();
+        return $trophy ? intval($trophy->pivot->count) : 0;
+    }
+
+    public function addCoins($amount)
+    {
+        $coinTrophy = \App\Models\Trophy::where('name', 'SBBL Coin')->first();
+
+        if (!$coinTrophy) return false;
+
+        // attach o updateExistingPivot
+        $exists = $this->profile->trophies()->where('trophies_id', $coinTrophy->id)->exists();
+
+        if ($exists) {
+            // Incrementamos
+            $current = $this->getCoinsAttribute();
+            $this->profile->trophies()->updateExistingPivot($coinTrophy->id, [
+                'count' => $current + $amount
+            ]);
+        } else {
+            // Si no tiene monedas aún, se las creamos
+            $this->profile->trophies()->attach($coinTrophy->id, ['count' => $amount]);
+        }
+    }
+
+    public function payCoins($amount)
+    {
+        $current = $this->coins;
+        if ($current < $amount) return false; // No tiene dinero
+
+        $coinTrophy = \App\Models\Trophy::where('name', 'SBBL Coin')->first();
+
+        $this->profile->trophies()->updateExistingPivot($coinTrophy->id, [
+            'count' => $current - $amount
+        ]);
+
+        return true;
+    }
 }
