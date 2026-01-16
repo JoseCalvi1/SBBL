@@ -1,12 +1,20 @@
 <?php
-// Script para ejecutar el comando de Laravel desde el Cron de OVH
-// Ajustamos la ruta base por si acaso
-chdir(__DIR__);
+// ejecutar_turno.php
 
-// Ejecutamos el comando artisan
-// Usamos la ruta completa a PHP 7.4 (o la que use tu server) y al artisan
-$output = shell_exec('/usr/local/php7.4/bin/php artisan game:resolve 2>&1');
+// 1. Carga las librerías de Laravel
+require __DIR__ . '/vendor/autoload.php';
 
-// Imprimimos el resultado para que salga en el log de OVH si lo activas
-echo "<pre>$output</pre>";
+// 2. Inicia la aplicación
+$app = require_once __DIR__ . '/bootstrap/app.php';
+
+// 3. Carga el Kernel de la consola
+$kernel = $app->make(\Illuminate\Contracts\Console\Kernel::class);
+
+// 4. EJECUTA TU COMANDO
+// El output se guarda en el buffer, así que capturamos la salida
+$status = $kernel->call('game:resolve');
+
+// 5. Mostrar resultado (para el log de OVH)
+echo "<h1>Resultado de la Tarea:</h1>";
+echo "<pre>" . $kernel->output() . "</pre>";
 ?>

@@ -10,6 +10,7 @@ use App\Models\Zone;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Auth;
 
 // use App\Models\Zone; // Lo descomentaremos cuando tengamos el modelo
@@ -271,8 +272,25 @@ class ConquestController extends Controller
 
     public function news()
     {
-        // Cargar noticias ordenadas por la más reciente
-        $news = WarNews::latest()->take(20)->get();
+        // 1. Buscamos la fecha de la ÚLTIMA noticia registrada (el último cierre de turno)
+        // Usamos 'latest()->first()' para obtener el objeto completo y su fecha
+        $lastNewsItem = WarNews::latest()->first();
+
+        if (!$lastNewsItem) {
+            // Si no hay noticias en la BD, pasamos una colección vacía
+            $news = collect();
+        } else {
+            // 2. Definimos el "momento" del lote.
+            // Como el script tarda unos segundos en crear todo, damos un margen de 10 minutos hacia atrás
+            // desde la última noticia creada. Así cogemos el bloque entero.
+            $batchTime = $lastNewsItem->created_at->subMinutes(10);
+
+            // 3. Traemos TODAS las noticias de ese lote (sin paginate)
+            $news = WarNews::where('created_at', '>=', $batchTime)
+                        ->latest() // Ordenar para que salgan las últimas primero (o por título si prefieres)
+                        ->get();
+        }
+
         return view('game.news', compact('news'));
     }
 
@@ -381,5 +399,29 @@ class ConquestController extends Controller
         if ($count >= 9)  return [4, 3, 2, 1, 1, 1, 1];
         if ($count >= 6)  return [3, 2, 1, 1, 1, 1, 1];
         return [2, 1, 1, 1, 1, 1, 1];
+    }
+
+    public function forceResolve()
+    {
+        // 1. SEGURIDAD: Solo el Admin (ID 1) puede tocar este botón
+        // Cambia el '1' por tu ID de usuario real si es otro.
+        if (Auth::id() != 1) {
+            return back()->with('error', '⛔ ACCESO DENEGADO: No tienes rango de Comandante Supremo.');
+        }
+
+        try {
+            // 2. Ejecutar el comando igual que lo haría el Cron
+            // 'game:resolve' es la firma que pusimos en el archivo del comando
+            Artisan::call('game:resolve');
+
+            // 3. Capturar la salida (lo que escribe el comando en consola)
+            $output = Artisan::output();
+
+            // 4. Devolver éxito con el mensaje del comando
+            return back()->with('success', "TURNO EJECUTADO MANUALMENTE. Log: \n" . $output);
+
+        } catch (\Exception $e) {
+            return back()->with('error', 'Error al ejecutar: ' . $e->getMessage());
+        }
     }
 }

@@ -5,52 +5,46 @@
 @section('content')
 
 {{-- ============================================================== --}}
-    {{-- 🎬 INTRODUCCIÓN CINEMÁTICA (CORREGIDO SCROLL MÓVIL) --}}
-    {{-- ============================================================== --}}
-    {{-- CAMBIO 1: Añadido 'overflow-y-auto' y quitado 'justify-center items-center' del contenedor padre --}}
-    <div id="agent-intro-overlay" class="fixed inset-0 z-[9999] bg-black font-mono select-none hidden overflow-y-auto">
+{{-- 🎬 INTRODUCCIÓN CINEMÁTICA --}}
+{{-- ============================================================== --}}
+<div id="agent-intro-overlay" class="fixed inset-0 z-[9999] bg-black font-mono select-none hidden overflow-y-auto">
+    <div class="min-h-screen w-full flex flex-col items-center justify-center py-12 relative">
+        <div class="absolute inset-0 pointer-events-none z-0 opacity-20" style="background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06)); background-size: 100% 2px, 3px 100%;"></div>
 
-        {{-- CAMBIO 2: Wrapper flexible que permite scroll si el contenido es alto --}}
-        <div class="min-h-screen w-full flex flex-col items-center justify-center py-12 relative">
-
-            {{-- Fondo con Scanlines --}}
-            <div class="absolute inset-0 pointer-events-none z-0 opacity-20" style="background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06)); background-size: 100% 2px, 3px 100%;"></div>
-
-            {{-- Círculo de Carga ISAC --}}
-            {{-- CAMBIO 3: Reducido tamaño en móvil (w-24) vs escritorio (md:w-32) --}}
-            <div class="relative w-24 h-24 md:w-32 md:h-32 mb-6 md:mb-8 z-10 shrink-0">
-                <div class="absolute inset-0 border-4 border-orange-900/40 rounded-full"></div>
-                <div class="absolute inset-0 border-t-4 border-orange-500 rounded-full animate-spin"></div>
-                <div class="absolute inset-0 flex items-center justify-center">
-                    <span class="text-orange-500 text-3xl md:text-4xl font-black animate-pulse">⚠️</span>
-                </div>
+        <div class="relative w-24 h-24 md:w-32 md:h-32 mb-6 md:mb-8 z-10 shrink-0">
+            <div class="absolute inset-0 border-4 border-orange-900/40 rounded-full"></div>
+            <div class="absolute inset-0 border-t-4 border-orange-500 rounded-full animate-spin"></div>
+            <div class="absolute inset-0 flex items-center justify-center">
+                <span class="text-orange-500 text-3xl md:text-4xl font-black animate-pulse">⚠️</span>
             </div>
-
-            {{-- Contenedor de Texto Narrativo --}}
-            <div class="max-w-xl w-full px-6 md:px-8 z-10 relative">
-                {{-- Caja de texto --}}
-                {{-- CAMBIO 4: Altura mínima ajustada para móvil (180px) --}}
-                <div id="intro-terminal-text" class="text-orange-500 text-sm md:text-lg leading-relaxed font-mono font-bold tracking-widest min-h-[180px] md:min-h-[200px] drop-shadow-[0_0_5px_rgba(249,115,22,0.8)] border-l-2 border-orange-500/50 pl-4 md:pl-6 flex flex-col justify-center">
-                    </div>
-
-                {{-- Barra de Estado --}}
-                <div id="intro-status-bar" class="mt-4 border-t border-orange-900/50 pt-2 flex justify-between text-[10px] md:text-xs text-orange-700 uppercase tracking-widest hidden">
-                    <span>RED SBBL: <span class="text-orange-500 animate-pulse">REINICIANDO...</span></span>
-                    <span class="truncate max-w-[100px] md:max-w-none">AGENTE: {{ Auth::user()->name ?? 'UNKNOWN' }}</span>
-                    <span>ESTADO: ACTIVADO</span>
-                </div>
-            </div>
-
-            {{-- Botón Acceder --}}
-            {{-- CAMBIO 5: Margen inferior extra para que no se pegue al borde en móviles --}}
-            <button id="btn-enter-system" onclick="closeIntro()" class="z-10 mt-8 md:mt-12 mb-8 px-8 md:px-10 py-3 border border-orange-500 text-orange-500 hover:bg-orange-500 hover:text-black uppercase font-bold tracking-[0.2em] md:tracking-[0.3em] transition-all hidden animate-pulse shadow-[0_0_20px_rgba(249,115,22,0.4)] text-sm md:text-base">
-                ACCEDER AL SISTEMA
-            </button>
         </div>
-    </div>
-    {{-- ============================================================== --}}
-    {{-- ============================================================== --}}
 
+        <div class="max-w-xl w-full px-6 md:px-8 z-10 relative">
+            <div id="intro-terminal-text" class="text-orange-500 text-sm md:text-lg leading-relaxed font-mono font-bold tracking-widest min-h-[180px] md:min-h-[200px] drop-shadow-[0_0_5px_rgba(249,115,22,0.8)] border-l-2 border-orange-500/50 pl-4 md:pl-6 flex flex-col justify-center"></div>
+            <div id="intro-status-bar" class="mt-4 border-t border-orange-900/50 pt-2 flex justify-between text-[10px] md:text-xs text-orange-700 uppercase tracking-widest hidden">
+                <span>RED SBBL: <span class="text-orange-500 animate-pulse">REINICIANDO...</span></span>
+                <span class="truncate max-w-[100px] md:max-w-none">AGENTE: {{ Auth::user()->name ?? 'UNKNOWN' }}</span>
+                <span>ESTADO: ACTIVADO</span>
+            </div>
+        </div>
+
+        <button id="btn-enter-system" onclick="closeIntro()" class="z-10 mt-8 md:mt-12 mb-8 px-8 md:px-10 py-3 border border-orange-500 text-orange-500 hover:bg-orange-500 hover:text-black uppercase font-bold tracking-[0.2em] md:tracking-[0.3em] transition-all hidden animate-pulse shadow-[0_0_20px_rgba(249,115,22,0.4)] text-sm md:text-base">
+            ACCEDER AL SISTEMA
+        </button>
+    </div>
+</div>
+{{-- ============================================================== --}}
+
+@if(Auth::id() == 1) {{-- Solo visible para el Admin --}}
+    <div class="fixed bottom-4 right-4 z-50">
+        <form action="{{ route('admin.force_resolve') }}" method="POST" onsubmit="return confirm('⚠️ ¿ESTÁS SEGURO?\n\nEsto resolverá el turno, cambiará las zonas y gastará los buffs.\n\n¿Proceder?');">
+            @csrf
+            <button type="submit" class="bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-4 rounded-full shadow-[0_0_20px_red] border-2 border-red-400 animate-pulse flex items-center gap-2">
+                ☢️ FORZAR TURNO
+            </button>
+        </form>
+    </div>
+@endif
 
     {{-- UI PRINCIPAL DEL JUEGO --}}
     <div class="mb-8 mt-10 animate-pulse">
@@ -70,7 +64,6 @@
         <h1 class="text-5xl md:text-8xl font-black tracking-tighter neon-text relative z-10">
             CONQUEST
         </h1>
-
         <span class="absolute -top-5 right-50 md:-top-5 md:right-50 bg-yellow-500/10 border border-yellow-500 text-yellow-400 text-[10px] md:text-xs px-2 py-0.5 rounded font-mono font-bold tracking-widest transform -rotate-6 backdrop-blur-sm shadow-[0_0_10px_rgba(234,179,8,0.3)] animate-pulse whitespace-nowrap pointer-events-none">
             BETA v1.0
         </span>
@@ -101,7 +94,6 @@
                 [ ? ] MANUAL DE COMBATE
             </button>
 
-            {{-- BOTÓN PARA REPETIR LA HISTORIA --}}
             <button onclick="playIntro(true)" class="text-xs text-orange-700 hover:text-orange-500 tracking-widest uppercase border-b border-transparent hover:border-orange-500 transition-all">
                 [ ⚠️ ] REPRODUCIR PROTOCOLO
             </button>
@@ -129,71 +121,120 @@
         </div>
     </div>
 
-    {{-- MODAL TUTORIAL --}}
-    <div id="tutorial-modal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/90 backdrop-blur-sm hidden opacity-0 transition-opacity duration-300">
-        <div class="relative w-full max-w-3xl bg-gray-900 border border-cyan-500/50 shadow-[0_0_50px_rgba(34,211,238,0.2)] p-1 m-4">
+    {{-- ============================================================== --}}
+    {{-- 📘 NUEVO MANUAL DE COMBATE --}}
+    {{-- ============================================================== --}}
+    <div id="tutorial-modal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/90 backdrop-blur-sm hidden opacity-0 transition-opacity duration-300 overflow-y-auto py-8">
 
+        <div class="relative w-full max-w-4xl bg-gray-900 border border-cyan-500/50 shadow-[0_0_50px_rgba(34,211,238,0.2)] p-1 m-4">
+
+            {{-- Decoración Cyberpunk (Esquinas) --}}
             <div class="absolute top-0 left-0 w-4 h-4 border-t-2 border-l-2 border-cyan-500"></div>
             <div class="absolute top-0 right-0 w-4 h-4 border-t-2 border-r-2 border-cyan-500"></div>
             <div class="absolute bottom-0 left-0 w-4 h-4 border-b-2 border-l-2 border-cyan-500"></div>
             <div class="absolute bottom-0 right-0 w-4 h-4 border-b-2 border-r-2 border-cyan-500"></div>
 
-            <div class="bg-black/80 p-6 md:p-10 text-left">
+            <div class="bg-black/90 p-6 md:p-8 text-left max-h-[85vh] overflow-y-auto custom-scrollbar">
 
-                <div class="flex justify-between items-start mb-8 border-b border-gray-800 pb-4">
+                {{-- CABECERA MODAL --}}
+                <div class="flex justify-between items-start mb-6 border-b border-gray-800 pb-4">
                     <div>
-                        <h3 class="text-2xl font-black text-white italic">PROTOCOLO DE GUERRA</h3>
-                        <p class="text-xs text-cyan-500 tracking-widest uppercase">Instrucciones para nuevos reclutas</p>
+                        <h1 class="text-3xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-red-600 uppercase tracking-widest">
+                            MANUAL DE GUERRA
+                        </h1>
+                        <p class="mt-1 text-xs text-cyan-500 tracking-[0.2em] uppercase">Protocolo de conquista v2.0</p>
                     </div>
-                    <button onclick="toggleTutorial()" class="text-gray-500 hover:text-white text-2xl font-bold">&times;</button>
+                    <button onclick="toggleTutorial()" class="text-gray-500 hover:text-white text-3xl font-bold transition-colors">&times;</button>
                 </div>
 
-                <div class="grid md:grid-cols-2 gap-8">
-                    <div class="flex gap-4">
-                        <div class="text-3xl">🗺️</div>
-                        <div>
-                            <h4 class="text-cyan-400 font-bold text-sm uppercase mb-1">1. Elige tu Objetivo</h4>
-                            <p class="text-gray-400 text-xs leading-relaxed">
-                                Selecciona una provincia en el mapa. Si es gris, es neutral. Si es roja, pertenece al enemigo.
-                            </p>
-                        </div>
-                    </div>
+                {{-- CONTENIDO DEL MANUAL --}}
+                <div class="space-y-6">
 
-                    <div class="flex gap-4">
-                        <div class="text-3xl">⚔️</div>
-                        <div>
-                            <h4 class="text-yellow-400 font-bold text-sm uppercase mb-1">2. Ordena el Ataque</h4>
-                            <p class="text-gray-400 text-xs leading-relaxed">
-                                Usa el botón "ORDENAR ATAQUE". Tu voto se suma al de tus compañeros de equipo en esa zona.
-                            </p>
-                        </div>
-                    </div>
+                    <section class="bg-gray-800/50 p-5 rounded border-l-4 border-blue-500">
+                        <h2 class="text-lg font-bold text-white mb-2 flex items-center uppercase tracking-wide">
+                            <span class="text-2xl mr-2">🗳️</span> ¿Cómo participo?
+                        </h2>
+                        <p class="text-gray-300 text-sm leading-relaxed">
+                            Cada ciclo (2 semanas), tienes <strong>un voto militar</strong>. Debes entrar al mapa y elegir qué territorio enemigo quieres <strong>ATACAR</strong>.
+                        </p>
+                        <ul class="mt-2 list-disc list-inside text-gray-400 text-xs space-y-1">
+                            <li>Solo puedes atacar una zona por turno.</li>
+                            <li><strong>La resolución es automática:</strong> El domingo de cierre a las 23:59h.</li>
+                        </ul>
+                    </section>
 
-                    <div class="flex gap-4">
-                        <div class="text-3xl">💪</div>
-                        <div>
-                            <h4 class="text-red-400 font-bold text-sm uppercase mb-1">3. Tu Daño = Tus Puntos</h4>
-                            <p class="text-gray-400 text-xs leading-relaxed">
-                                Aquí no vale solo con votar. <strong>Cuantos más puntos ganes en torneos semanales y más puntos tenga tu equipo, más fuerte será tu golpe.</strong>
-                            </p>
-                        </div>
-                    </div>
+                    <section class="bg-gray-800/50 p-5 rounded border-l-4 border-green-500">
+                        <h2 class="text-lg font-bold text-white mb-2 flex items-center uppercase tracking-wide">
+                            <span class="text-2xl mr-2">💪</span> Cálculo de Fuerza
+                        </h2>
+                        <p class="text-gray-300 text-sm mb-3">
+                            Tu poder no es fijo. Depende de tu habilidad y de tu equipo.
+                        </p>
 
-                    <div class="flex gap-4">
-                        <div class="text-3xl">⏱️</div>
-                        <div>
-                            <h4 class="text-white font-bold text-sm uppercase mb-1">4. Ciclo de Guerra (Quincenal)</h4>
+                        <div class="bg-black p-3 rounded border border-gray-700 font-mono text-xs md:text-sm text-yellow-300 text-center mb-3">
+                            PODER = (10 Base + Puntos Torneo) x (1 + Ranking/100)
+                        </div>
+
+                        <div class="grid md:grid-cols-2 gap-4 text-xs">
+                            <div>
+                                <strong class="text-white block mb-1">1. Puntos de Torneo:</strong>
+                                <span class="text-gray-400">Puntos por tu posición en torneos de las últimas 2 semanas (+7 al 1º, +1 por participar).</span>
+                            </div>
+                            <div>
+                                <strong class="text-white block mb-1">2. Bonus de Rango:</strong>
+                                <span class="text-gray-400">El prestigio de tu equipo multiplica tu daño. <br><em>Ej: 50 Puntos de Ranking = +50% de Daño (x1.5).</em></span>
+                            </div>
+                        </div>
+                    </section>
+
+                    <section class="grid md:grid-cols-2 gap-4">
+                        <div class="bg-red-900/20 p-4 rounded border border-red-900/50">
+                            <h3 class="text-base font-bold text-red-400 mb-2 uppercase">⚔️ El Ataque</h3>
                             <p class="text-gray-400 text-xs leading-relaxed">
-                                La guerra es de larga duración. Los turnos duran <strong class="text-cyan-400">2 SEMANAS</strong>.<br>
-                                <strong class="text-green-400">DÍAS 1-13:</strong> Fase de Desgaste (Acumula daño).<br>
-                                <strong class="text-red-400">DOMINGO FINAL:</strong> El mapa se resuelve cada <strong>2 Domingos</strong> (Semanas Pares) a las 23:59.
+                                Tu poder se suma a la zona que votaste. Si tu equipo se divide atacando zonas distintas, vuestra fuerza se dividirá. ¡La coordinación es clave!
                             </p>
                         </div>
-                    </div>
+
+                        <div class="bg-blue-900/20 p-4 rounded border border-blue-900/50">
+                            <h3 class="text-base font-bold text-blue-400 mb-2 uppercase">🛡️ Defensa Global</h3>
+                            <p class="text-gray-400 text-xs leading-relaxed">
+                                <strong>No necesitas votar para defender.</strong><br>
+                                La "Vida" de vuestras zonas es la suma del poder de <strong>TODOS</strong> los miembros activos.<br>
+                                <em class="text-blue-300 block mt-1">¡Si atacas, también estás defendiendo tu casa!</em>
+                            </p>
+                        </div>
+                    </section>
+
+                    <section class="bg-gradient-to-r from-purple-900/40 to-indigo-900/40 p-5 rounded border border-purple-500/30">
+                        <h2 class="text-lg font-bold text-white mb-3 uppercase tracking-wide">✨ Factores Críticos</h2>
+
+                        <div class="grid md:grid-cols-2 gap-4 text-xs">
+                            <div class="flex items-start">
+                                <span class="text-xl mr-2">🍀</span>
+                                <div>
+                                    <strong class="text-yellow-400 block mb-1">MVP Defensivo (x2)</strong>
+                                    <p class="text-gray-400">
+                                        Cada turno, un miembro aleatorio de cada equipo recibe un bonus <strong>x2 SOLO EN DEFENSA</strong>. ¡Un solo soldado puede salvar la base!
+                                    </p>
+                                </div>
+                            </div>
+
+                            <div class="flex items-start">
+                                <span class="text-xl mr-2">🛒</span>
+                                <div>
+                                    <strong class="text-green-400 block mb-1">Mercado Negro</strong>
+                                    <p class="text-gray-400">
+                                        Comprad <strong>Buffs de Ataque/Defensa</strong> con oro del equipo para multiplicar vuestras estadísticas este turno.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
                 </div>
 
-                <div class="mt-8 text-center">
-                    <button onclick="toggleTutorial()" class="bg-cyan-900/30 border border-cyan-500 text-cyan-300 px-8 py-2 text-xs font-bold uppercase hover:bg-cyan-500 hover:text-black transition-colors">
+                {{-- PIE DE PÁGINA MODAL --}}
+                <div class="mt-8 text-center pt-4 border-t border-gray-800">
+                    <button onclick="toggleTutorial()" class="bg-cyan-900/30 border border-cyan-500 text-cyan-300 px-10 py-3 text-sm font-bold uppercase hover:bg-cyan-500 hover:text-black transition-all tracking-widest shadow-[0_0_15px_rgba(6,182,212,0.2)]">
                         ENTENDIDO, COMANDANTE
                     </button>
                 </div>
@@ -210,10 +251,7 @@
         // 🎞️ SCRIPT DE LA HISTORIA (LORE)
         // ==========================================
         document.addEventListener("DOMContentLoaded", function() {
-            // Comprobamos si el usuario ya ha visto la intro
             const hasSeenIntro = localStorage.getItem('intro_seen_v1');
-
-            // Si NO la ha visto, la ejecutamos automáticamente
             if (!hasSeenIntro) {
                 playIntro(false);
             }
@@ -226,31 +264,17 @@
             const btn = document.getElementById('btn-enter-system');
 
             overlay.classList.remove('hidden');
-
-            // Limpiar estado
             textContainer.innerHTML = "";
             statusLine.classList.add('hidden');
             btn.classList.add('hidden');
 
-            // --- EL GUIÓN DE LA HISTORIA ---
             const lines = [
-                // Línea 1
                 "<span class='text-gray-500'>[REPORTE: DÍA 180 TRAS EL COLAPSO]</span>",
-
-                // Línea 2
                 "LA RED CENTRAL HA SIDO <span class='text-red-500'>DESTRUIDA</span>.",
-
-                // Línea 3
                 "LA SOCIEDAD SE HA FRACTURADO EN FACCIONES.",
                 "SOLO LA FUERZA BRUTA DICTA LA LEY AHORA.",
-
-                // Línea 4
                 "<span class='animate-pulse'>DETECTANDO SEÑAL DEL AGENTE...</span>",
-
-                // Línea 5
                 "IDENTIDAD CONFIRMADA. ACCESO AL <span class='text-yellow-400'>MERCADO NEGRO</span> AUTORIZADO.",
-
-                // Línea 6
                 "MISIÓN: RECUPERAR EL CONTROL DE LOS NODOS."
             ];
 
@@ -260,34 +284,21 @@
             function printLine() {
                 if (lineIndex < lines.length) {
                     const fullLine = lines[lineIndex];
-
-                    // Añadimos la línea + cursor parpadeante
                     textContainer.innerHTML = currentHTML + fullLine + '<span class="animate-pulse">_</span>';
-
-                    // Guardamos la línea en el histórico para no perderla en la siguiente vuelta
-                    currentHTML += fullLine + "<br><br>"; // Doble salto para espacio
-
+                    currentHTML += fullLine + "<br><br>";
                     lineIndex++;
-
-                    // Tiempo de lectura variable para hacerlo natural
                     let readingTime = 1500;
                     if(lineIndex === 1) readingTime = 800;
-                    if(lineIndex === 4) readingTime = 2000; // Suspenso en "Detectando..."
-
+                    if(lineIndex === 4) readingTime = 2000;
                     setTimeout(printLine, readingTime);
-
                 } else {
-                    // FIN: Mostrar "Sistema en línea"
                     textContainer.innerHTML = currentHTML + '<span class="text-green-500 text-xl tracking-[0.5em] animate-pulse">SISTEMA EN LÍNEA</span>';
-
                     setTimeout(() => {
                         statusLine.classList.remove('hidden');
                         btn.classList.remove('hidden');
                     }, 500);
                 }
             }
-
-            // Iniciar secuencia con pequeña espera
             setTimeout(printLine, 1000);
         }
 
@@ -295,18 +306,15 @@
             const overlay = document.getElementById('agent-intro-overlay');
             overlay.style.transition = "opacity 0.8s ease-out";
             overlay.style.opacity = "0";
-
             setTimeout(() => {
                 overlay.classList.add('hidden');
                 overlay.style.opacity = "1";
             }, 800);
-
-            // Guardar que ya lo vio
             localStorage.setItem('intro_seen_v1', 'true');
         }
 
         // ==========================================
-        // 🛠️ TUS SCRIPTS ORIGINALES
+        // 🛠️ SCRIPTS UI
         // ==========================================
         function toggleTutorial() {
             const modal = document.getElementById('tutorial-modal');
@@ -329,6 +337,11 @@
                     20% { opacity: 0.3; }
                     100% { transform: translateY(-100vh) translateX(20px); opacity: 0; }
                 }
+                /* Scrollbar personalizada para el manual */
+                .custom-scrollbar::-webkit-scrollbar { width: 8px; }
+                .custom-scrollbar::-webkit-scrollbar-track { background: #111827; }
+                .custom-scrollbar::-webkit-scrollbar-thumb { background: #0e7490; border-radius: 4px; }
+                .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #22d3ee; }
             `;
             document.head.appendChild(style);
 

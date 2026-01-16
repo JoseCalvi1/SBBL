@@ -16,42 +16,71 @@ class MarketController extends Controller
 {
     public function index()
     {
-        $items = Item::where('is_active', true)->get();
-        // Comprobar si ya tiró la ruleta hoy (más de 24h)
-        $canSpin = false;
-        if (!Auth::user()->last_daily_reward_at || Carbon::parse(Auth::user()->last_daily_reward_at)->diffInHours(now()) >= 24) {
-            $canSpin = true;
-        }
-        $zones = \App\Models\Zone::all();
+        $user = Auth::user();
+        $team = $user->activeTeam;
 
-        return view('game.market', compact('items', 'canSpin', 'zones'));
+        // 1. Obtener items activos
+        $items = Item::where('is_active', true)->get();
+
+        // 2. Comprobar Ruleta (Lógica compacta)
+        $canSpin = (!$user->last_daily_reward_at || \Carbon\Carbon::parse($user->last_daily_reward_at)->diffInHours(now()) >= 24);
+
+        // 3. Obtener zonas
+        $zones = \App\Models\Zone::orderBy('name')->get();
+
+        // 4. Frases del Intendente (Lore sobre la inflación)
+        $quotes = [
+            "Cuanto más compras, más sube la demanda... y el precio.",
+            "He notado que tu equipo acapara suministros. Eso te costará extra.",
+            "El mercado fluctúa, Agente. Aprovecha cuando está bajo.",
+            "Tengo lo que necesitas, pero la inflación no perdona.",
+        ];
+        $intendantQuote = $quotes[array_rand($quotes)];
+
+        // 5. CÁLCULO DE PRECIOS PARA LA VISTA
+        // Recorremos cada item para calcular cuánto le cuesta a ESTE equipo
+        foreach ($items as $item) {
+            // Usamos tu función existente
+            $dynamicData = $this->calculateDynamicCost($item, $team);
+
+            // Inyectamos los datos en el objeto para usarlos en el Blade
+            $item->current_cost = $dynamicData['cost'];           // Precio inflado
+            $item->inflation_percent = $dynamicData['inflation']; // % de subida
+            $item->stock_owned = $dynamicData['stock'];           // Cuántos tienen ya
+        }
+
+        return view('game.market', compact('items', 'canSpin', 'zones', 'intendantQuote'));
     }
 
     public function buy(Request $request)
     {
         $user = Auth::user();
-        $item = Item::findOrFail($request->item_id);
         $team = $user->activeTeam;
+        $item = Item::findOrFail($request->item_id);
 
         if (!$team) {
-            return back()->with('error', '❌ ERROR: No perteneces a ningún equipo activo.');
+            return back()->with('error', 'Necesitas equipo para operar en el Mercado Negro.');
         }
 
-        try {
-            DB::transaction(function () use ($user, $item, $team) {
-                // 1. Intentar pagar (el método payCoins devuelve true/false)
-                if ($user->payCoins($item->cost)) {
+        // 1. CALCULAR PRECIO REAL (DINÁMICO)
+        // Importante: Recalculamos aquí para evitar trampas si modifican el HTML
+        $dynamicData = $this->calculateDynamicCost($item, $team);
+        $realCost = $dynamicData['cost'];
 
-                    // 2. Añadir al inventario
+        try {
+            DB::transaction(function () use ($user, $item, $team, $realCost) {
+
+                // 2. Intentar pagar el PRECIO REAL (Inflado)
+                if ($user->payCoins($realCost)) {
+
+                    // 3. Lógica de inventario
                     $inventory = DB::table('team_inventory')
                         ->where('team_id', $team->id)
                         ->where('item_id', $item->id)
                         ->first();
 
                     if ($inventory) {
-                        DB::table('team_inventory')
-                            ->where('id', $inventory->id)
-                            ->increment('quantity');
+                        DB::table('team_inventory')->where('id', $inventory->id)->increment('quantity');
                     } else {
                         DB::table('team_inventory')->insert([
                             'team_id' => $team->id,
@@ -60,17 +89,15 @@ class MarketController extends Controller
                             'created_at' => now(), 'updated_at' => now()
                         ]);
                     }
-
                 } else {
-                    // Si payCoins devuelve false, lanzamos excepción para que la capture el catch
-                    throw new \Exception("FONDOS INSUFICIENTES. Tienes {$user->coins} y necesitas {$item->cost}.");
+                    // Si falla el pago, lanzamos excepción con el precio actual
+                    throw new \Exception("FONDOS INSUFICIENTES. Debido a la inflación, el precio actual es {$realCost} Lagartos.");
                 }
             });
 
-            return back()->with('success', "Has adquirido {$item->name}. Guardado en el arsenal del equipo.");
+            return back()->with('success', "Has adquirido {$item->name} por {$realCost} Lagartos.");
 
         } catch (\Exception $e) {
-            // Aquí capturamos el error de fondos o cualquier otro
             return back()->with('error', '⛔ ' . $e->getMessage());
         }
     }
@@ -253,5 +280,35 @@ class MarketController extends Controller
         });
 
         return back()->with('success', "SISTEMA ACTIVADO: Potencia aumentada (x{$multiplier}) hasta el fin del ciclo.");
+    }
+
+    // --- FUNCIÓN PRIVADA PARA CALCULAR LA INFLACIÓN ---
+    private function calculateDynamicCost($item, $team)
+    {
+        if (!$team) {
+            return ['cost' => $item->cost, 'inflation' => 0, 'stock' => 0];
+        }
+
+        // 1. Miramos cuántos tienen ya en el inventario
+        $stock = DB::table('team_inventory')
+            ->where('team_id', $team->id)
+            ->where('item_id', $item->id)
+            ->value('quantity') ?? 0;
+
+        // 2. DEFINIR TASA DE INFLACIÓN
+        // Cada item en stock aumenta el precio un 10% (0.10)
+        // Puedes cambiar esto a 0.20 para ser más agresivo
+        $inflationRate = 0.10;
+
+        // 3. Fórmula: Precio Base * (1 + (Stock * Tasa))
+        // Ejemplo: Base 100. Stock 3. Precio = 100 * (1 + 0.3) = 130.
+        $multiplier = 1 + ($stock * $inflationRate);
+        $newCost = round($item->cost * $multiplier);
+
+        return [
+            'cost' => (int) $newCost,
+            'inflation' => ($stock * $inflationRate) * 100, // Para mostrar porcentaje (ej: 30%)
+            'stock' => $stock
+        ];
     }
 }

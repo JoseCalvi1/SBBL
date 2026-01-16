@@ -22,12 +22,22 @@
     <div class="mb-6 mt-5 flex flex-col md:flex-row justify-between items-end border-b border-cyan-500/30 pb-4 w-full">
         <div class="text-left w-full md:w-auto">
             <h2 class="text-3xl font-bold neon-text text-white">MAPA TÁCTICO</h2>
-            <div class="flex gap-4 items-center">
-                <p class="text-cyan-400 text-sm tracking-widest">SISTEMA ACTIVO</p>
+            <div class="flex gap-4 items-center flex-wrap"> {{-- Añadido flex-wrap por si hay muchos botones en móvil --}}
+
+                <p class="text-cyan-400 text-sm tracking-widest mr-2">SISTEMA ACTIVO</p>
+
+                {{-- ✅ NUEVO BOTÓN: VOLVER AL INICIO --}}
+                <a href="{{ route('conquest.index') }}"
+                   class="flex items-center gap-1 text-[10px] bg-gray-800/40 text-gray-400 px-2 py-1 border border-gray-600/30 hover:bg-gray-700 hover:text-white transition-colors">
+                    <span>↩️</span> INICIO
+                </a>
+
+                {{-- BOTÓN REPORTES --}}
                 <a href="{{ route('conquest.news') }}" class="flex items-center gap-1 text-[10px] bg-red-900/30 text-red-400 px-2 py-1 border border-red-500/30 hover:bg-red-900/60 transition-colors animate-pulse">
                     <span>📰</span> REPORTES
                 </a>
-                {{-- NUEVO: BOTÓN MERCADO NEGRO --}}
+
+                {{-- BOTÓN MERCADO NEGRO --}}
                 <a href="{{ route('market.index') }}"
                 class="flex items-center gap-2 text-[10px] bg-purple-900/30 text-purple-300 px-3 py-1 border border-purple-500/50 hover:bg-purple-800/60 hover:text-white transition-all shadow-[0_0_10px_rgba(168,85,247,0.3)] group">
                     <span class="text-lg group-hover:rotate-12 transition-transform">🛒</span>

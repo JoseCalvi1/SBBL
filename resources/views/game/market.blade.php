@@ -48,7 +48,7 @@
         MERCADO NEGRO
     </h2>
 
-    {{-- NUEVO: SECCIÓN DEL INTENDENTE L.G.R.T. --}}
+    {{-- SECCIÓN DEL INTENDENTE L.G.R.T. --}}
     <div class="max-w-4xl mx-auto mb-12 bg-gray-900/80 border-l-4 border-yellow-500 p-6 rounded-r shadow-[0_0_20px_rgba(234,179,8,0.1)] flex items-start gap-5 relative overflow-hidden">
         {{-- Fondo decorativo sutil --}}
         <div class="absolute right-0 top-0 opacity-10 text-9xl transform rotate-12 pointer-events-none grayscale">🦎</div>
@@ -103,16 +103,17 @@
         </div>
     @endif
 
-    {{-- LISTA DE ITEMS --}}
+    {{-- LISTA DE ITEMS (CON PRECIOS DINÁMICOS) --}}
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         @foreach($items as $item)
             <div class="bg-gray-900/80 border border-gray-700 p-5 rounded-lg relative overflow-hidden group hover:border-red-500 transition-colors shadow-lg flex flex-col">
                 <div class="absolute inset-0 bg-red-500/5 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none"></div>
 
+                {{-- Cabecera Item --}}
                 <div class="flex justify-between items-start mb-4">
                     <h3 class="text-xl font-bold text-white group-hover:text-red-400 transition-colors">{{ $item->name }}</h3>
 
-                    {{-- CAMBIO: ICONOS EN LUGAR DE IMÁGENES --}}
+                    {{-- ICONOS --}}
                     <div class="w-12 h-12 flex items-center justify-center bg-black/40 rounded-full border border-gray-600 shadow-inner text-2xl group-hover:scale-110 transition-transform">
                         @if(Str::contains($item->code, 'radar'))
                             📡
@@ -128,17 +129,50 @@
 
                 <p class="text-gray-400 text-xs flex-grow leading-relaxed mb-4">{{ $item->description }}</p>
 
-                <div class="flex justify-between items-end mt-4 border-t border-gray-800 pt-4">
-                    <div class="text-yellow-400 font-mono text-xl font-bold">
-                        {{ $item->cost }} <span class="text-[10px] text-gray-500">LAGARTOS</span>
+                {{-- SECCIÓN DE PRECIO Y COMPRA --}}
+                <div class="flex flex-col justify-end mt-2 border-t border-gray-800 pt-4">
+
+                    {{-- Precio e Información de Inflación --}}
+                    <div class="flex justify-between items-end mb-3">
+                        <div>
+                            {{-- Precio Grande (Dinámico) --}}
+                            <div class="text-yellow-400 font-mono text-xl font-bold leading-none">
+                                {{ $item->current_cost }} <span class="text-[10px] text-gray-500">LAGARTOS</span>
+                            </div>
+
+                            {{-- Aviso de Inflación (Solo si es > 0) --}}
+                            @if($item->inflation_percent > 0)
+                                <div class="text-[9px] text-red-400 font-bold flex items-center gap-1 mt-1 animate-pulse">
+                                    <span>📈</span> INFLACIÓN: +{{ $item->inflation_percent }}%
+                                </div>
+                            @else
+                                <div class="text-[9px] text-green-500 font-bold mt-1">
+                                    PRECIO ESTÁNDAR
+                                </div>
+                            @endif
+                        </div>
+
+                        {{-- Stock Actual (Pequeño badge) --}}
+                        <div class="text-right">
+                            <span class="text-[9px] text-gray-500 block">EN ALMACÉN</span>
+                            <span class="text-white font-mono font-bold">{{ $item->stock_owned }}</span>
+                        </div>
                     </div>
 
-                    <form action="{{ route('market.buy') }}" method="POST">
+                    {{-- BOTÓN COMPRAR --}}
+                    <form action="{{ route('market.buy') }}" method="POST" class="w-full">
                         @csrf
                         <input type="hidden" name="item_id" value="{{ $item->id }}">
-                        <button type="submit" class="bg-gray-800 hover:bg-white hover:text-black text-gray-300 font-bold py-2 px-4 rounded text-xs uppercase tracking-widest border border-gray-600 transition-all">
-                            ADQUIRIR
-                        </button>
+
+                        @if(Auth::user()->coins >= $item->current_cost)
+                            <button type="submit" class="w-full bg-gray-800 hover:bg-white hover:text-black text-gray-300 font-bold py-2 px-4 rounded text-xs uppercase tracking-widest border border-gray-600 transition-all shadow-lg hover:border-white">
+                                ADQUIRIR
+                            </button>
+                        @else
+                            <button type="button" disabled class="w-full bg-red-900/20 text-red-500/50 font-bold py-2 px-4 rounded text-xs uppercase tracking-widest border border-red-900/30 cursor-not-allowed">
+                                FONDOS INSUFICIENTES
+                            </button>
+                        @endif
                     </form>
                 </div>
             </div>
@@ -295,18 +329,60 @@
 {{-- SCRIPT: FRASES DEL INTENDENTE L.G.R.T. --}}
 <script>
     document.addEventListener("DOMContentLoaded", function() {
+
         const quotes = [
+            // --- GENÉRICAS ---
             "Nada es gratis en el Distrito, camarada. Vuelve con crédito.",
             "Tengo suministros frescos. No preguntes de qué camión 'cayeron'.",
             "La información es poder, pero el poder cuesta Lagartos.",
             "¿Ese equipo es reglamentario? No me importa, mientras pagues.",
-            "Mis precios son altos, pero tu supervivencia vale más.",
-            "Los satélites no se mantienen solos. Alguien tiene que pagar la factura.",
             "He visto imperios caer por falta de munición. No seas el siguiente.",
-            "¿Ruleta o estrategia? Tú decides cómo gastar tu fortuna.",
-            "Si eres catalán no creo que te interesen estos precios."
-        ];
+            "Si vienes a regatear, te has equivocado de ventanilla.",
+            "¿Kaw? No he oído ese nombre en varios siglos.",
 
+            // --- MADRID ---
+            "Dicen que en Madrid no hay playa, pero con este arsenal te monto una costa.",
+            "Aquí el agua del grifo es la mejor, pero mi munición sabe a gloria.",
+            "Tengo más tráfico en mis servidores que la M-30 en hora punta.",
+
+            // --- CATALUÑA (Barcelona) ---
+            "Si vienes de Barna, tranquilo: aquí la 'pela' es pela, pero se invierte bien.",
+            "No acepto pagos a plazos ni 'seny'. Solo Lagartos al contado.",
+            "Cobro por respirar, como en la zona turística, pero al menos te doy protección.",
+
+            // --- ANDALUCÍA (Sevilla/Málaga) ---
+            "Tengo explosivos con más peligro que un sevillano a 45 grados a la sombra.",
+            "Ni una Cruzcampo helada entra tan bien como este escudo táctico.",
+            "No me cuentes chistes, mi arma, que aquí venimos a la guerra.",
+            "Illo pisha, si no compras na fuera de aquí.",
+
+            // --- VALENCIA ---
+            "Esto pega más fuerte que una mascletà final. Pólvora de la buena.",
+            "Aquí no hay paella con cosas, solo destrucción pura y dura.",
+            "¿La Ruta del Bakalao? Eso era un juego de niños comparado con este mercado.",
+
+            // --- GALICIA ---
+            "Material fresco de las Rías. No preguntes si vino en lancha o en camión.",
+            "¿Va a subir o a bajar el precio? Depende... de si me caes bien.",
+            "Tengo cosas que te harán ver meigas donde no las hay.",
+
+            // --- PAÍS VASCO (Bilbao) ---
+            "Para los de Bilbao no tengo armas normales, tengo artillería pesada. Lo otro se os rompe.",
+            "Aquí se levantan piedras y se levantan imperios. Tú solo pagas.",
+            "Esto corta mejor que el viento en la Concha un día de tormenta.",
+
+            // --- MURCIA ---
+            "¿Murcia? Creía que era una leyenda urbana... pero tu dinero parece real.",
+            "Acho, pijo, cómprame algo o lárgate, que tengo prisa.",
+            "Tengo limones y granadas de mano. Ambas cosas escuecen.",
+
+            // --- OTRAS REGIONES ---
+            "Tengo cuchillos más afilados que el cierzo de Zaragoza.",
+            "Si eres de Canarias, lo siento: aquí no aplicamos el descuento de residente.",
+            "Más duro que una cabeza de extremeño. Garantizado.",
+            "Esta zona está desértica, aunque no tanto como Castilla La Mancha antes del colapso.",
+            "Esto te dejará más doblado que la cuesta de enero."
+        ];
         // Seleccionar frase aleatoria
         const randomQuote = quotes[Math.floor(Math.random() * quotes.length)];
 

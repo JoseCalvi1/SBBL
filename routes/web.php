@@ -19,6 +19,7 @@ use App\Http\Controllers\TicketController;
 use App\Http\Controllers\TournamentResultController;
 use App\Http\Controllers\TrophyController;
 use App\Http\Controllers\VersusController;
+use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 
@@ -27,6 +28,17 @@ use Illuminate\Support\Facades\Route;
 | RUTAS DEL JUEGO DE CONQUISTA (Subdominio)
 |--------------------------------------------------------------------------
 */
+Route::get('/cron/ejecutar-turno/conquista-modo-manual-SBBLS2', function () {
+    // 1. Evitar que se corte si tarda mucho (Time out)
+    set_time_limit(0);
+    try {
+        // 2. Ejecutar el comando
+        Artisan::call('game:resolve');
+        return '✅ TURNO EJECUTADO CORRECTAMENTE. Log: <br><pre>' . Artisan::output() . '</pre>';
+    } catch (\Exception $e) {
+        return '❌ ERROR: ' . $e->getMessage();
+    }
+});
 Route::domain('conquista.' . env('APP_DOMAIN', 'sbbl.es'))->group(function () {
     Route::get('/', [ConquestController::class, 'welcome'])->name('conquest.index');
     Route::get('/home', [ConquestController::class, 'welcome'])->name('conquest.index');
@@ -46,7 +58,12 @@ Route::domain('conquista.' . env('APP_DOMAIN', 'sbbl.es'))->group(function () {
 
     // Usar items
     Route::post('/market/use-radar', [MarketController::class, 'useRadar'])->name('market.use_radar');
-    Route::post('/market/activate', [MarketController::class, 'useRadar'])->name('market.activate');
+    Route::post('/market/activate', [MarketController::class, 'activate'])->name('market.activate');
+
+    // Forzar turno
+    Route::post('/admin/force-turn', [ConquestController::class, 'forceResolve'])
+    ->name('admin.force_resolve')
+    ->middleware('auth');
 });
 
 
