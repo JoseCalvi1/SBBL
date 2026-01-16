@@ -119,12 +119,12 @@
                             </li>
                             <li class="py-2 border-bottom border-secondary border-opacity-25">
                                 <span class="d-block mb-1"><i class="fas fa-map-pin me-2"></i>Ubicación</span>
-                                <span class="d-block text-white bg-dark p-2 rounded small">{{ $event->location }}</span>
+                                <span class="d-block text-white bg-dark p-2 rounded small">{!! $event->location !!}</span>
                             </li>
                             @if($event->note)
                             <li class="py-3">
                                 <span class="text-warning d-block mb-1"><i class="fas fa-sticky-note me-2"></i>Notas</span>
-                                <div class="small text-muted fst-italic">{!! $event->note !!}</div>
+                                <div class="small text-white fst-italic">{!! $event->note !!}</div>
                             </li>
                             @endif
                         </ul>
