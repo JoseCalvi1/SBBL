@@ -113,6 +113,38 @@
                     @enderror
             </div>
 
+            {{-- NUEVOS CAMPOS: ESTADIOS Y LÍMITE --}}
+            <div class="row my-3 p-3 rounded" style="background-color: rgba(255,255,255,0.05); border: 1px solid #444;">
+                <div class="col-md-6">
+                    <div class="form-group mb-0">
+                        <label for="stadiums" class="fw-bold text-info">🏟️ Número de Estadios</label>
+                        <input type="number"
+                               name="stadiums"
+                               id="stadiums"
+                               class="form-control bg-dark text-white @error('stadiums') is-invalid @enderror"
+                               value="{{ old('stadiums', $event->stadiums ?? 1) }}"
+                               min="1"
+                               required>
+                        @error('stadiums')
+                            <span class="invalid-feedback d-block">{{ $message }}</span>
+                        @enderror
+                    </div>
+                </div>
+                <div class="col-md-6 d-flex align-items-center">
+                    <div class="custom-control custom-switch mt-4">
+                        <input type="checkbox" class="custom-control-input" id="has_stadium_limit" name="has_stadium_limit" value="1"
+                            {{ old('has_stadium_limit', $event->has_stadium_limit ?? false) ? 'checked' : '' }}>
+                        <label class="custom-control-label text-white" for="has_stadium_limit">
+                            🚨 Activar Límite Automático
+                        </label>
+                        <p class="form-text text-white">
+                            Si se activa: 1 estadio = 19 jug. | 2 estadios = 29 jug.
+                        </p>
+                    </div>
+                </div>
+            </div>
+            {{-- FIN NUEVOS CAMPOS --}}
+
             <div class="form-group">
                 <label for="region_id">Región</label>
                 <select name="region_id" id="region_id" class="form-control bg-dark text-white @error('region_id') is-invalid @enderror">
@@ -191,7 +223,7 @@
                     name="event_date"
                     class="form-control bg-dark text-white @error('event_date') is-invalid @enderror"
                     id="event_date"
-                    value="{{ old('event_date', $event->date) }}"
+                    value="{{ old('event_date', $event->date ? $event->date->format('Y-m-d') : '') }}"
                     />
 
                     @error('event_date')
@@ -217,7 +249,6 @@
                     @enderror
             </div>
 
-        <!-- Advertencia para no admins y árbitros -->
         @if(!Auth::user()->is_admin && !Auth::user()->is_referee)
             <div class="alert alert-warning text-center text-dark" role="alert">
                 Al editar este evento, afirmo que he leído y comprendido <a href="sbbl.es/rules" target="_blank">las normas</a> para el desarrollo del torneo y que soy el encargado de que haya material suficiente para ello (Estadio y material de grabación como trípode y móvil/cámara).

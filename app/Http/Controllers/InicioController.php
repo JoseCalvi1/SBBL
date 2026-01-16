@@ -166,30 +166,40 @@ class InicioController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function events()
-    {
-        if(Auth::user()) {
-            $createEvent = Event::where('created_by', Auth::user()->id)->where('date', '>', now())->get();
-            $countEvents = count($createEvent);
-        } else {
-            $countEvents = 2;
+        public function events()
+        {
+            $countEvents = 0;
+            if(Auth::check()) {
+                $countEvents = Event::where('created_by', Auth::id())
+                    ->where('date', '>', now())
+                    ->count();
+            } else {
+                $countEvents = 2; // Valor por defecto si no hay usuario
+            }
+
+            return view('inicio.events', compact('countEvents'));
         }
 
-        return view('inicio.events', compact('countEvents'));
-    }
+        public function fetchEvents(Request $request)
+        {
+            $year = $request->input('year');
+            $month = $request->input('month');
 
-    public function fetchEvents(Request $request)
-    {
-        $year = $request->input('year');
-        $month = $request->input('month');
-        $events = Event::select('id', 'date', 'city', 'region_id', 'mode', 'beys')
-            ->with(['region:id,name']) // Solo traer el id y name de la región
-            ->whereYear('date', $year)
-            ->whereMonth('date', $month)
-            ->get();
+            // Validar entradas básicas
+            if (!$year || !$month) {
+                return response()->json([], 400);
+            }
 
-        return response()->json($events);
-    }
+            $events = Event::select('id', 'date', 'city', 'region_id', 'mode', 'beys')
+                ->with(['region:id,name'])
+                ->whereYear('date', $year)
+                ->whereMonth('date', $month)
+                ->where('status', '!=', 'INVALID') // Opcional: Filtrar inválidos
+                ->orderBy('date', 'asc')
+                ->get();
+
+            return response()->json($events);
+        }
 
 
     /**

@@ -1,877 +1,471 @@
-@extends('layouts.app')
+    @extends('layouts.app')
 
-@section('title', 'Página del evento')
+    @section('title', $event->name)
 
-@section('content')
+    @section('styles')
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+    <link href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css" rel="stylesheet" />
 
-<article class="contenido-event bg-white p-5 shadow" style="color:white !important;background-color: transparent !important;">
-        <div class="row">
-            <div class="col-md-12">
-            <h1 class="text-center mb-4 w-100">{{ $event->name }}
-                @if ($event->status == "OPEN")
-                    <span class="btn btn-success">ABIERTO</span>
-                @elseif ($event->status == "INSCRIPCION")
-                    <span class="btn btn-light">INSCRIPCIÓN CERRADA</span>
-                @elseif ($event->status == "PENDING")
-                    <span class="btn btn-warning">PENDIENTE CALIFICAR</span>
-                @elseif ($event->status == "REVIEW")
-                    <span class="btn btn-info">EN REVISIÓN</span>
-                @elseif ($event->status == "INVALID")
-                <span class="btn btn-dark">INVÁLIDO</span>
-            @else
-                    <span class="btn btn-danger">CERRADO</span>
-                @endif
-            </h1>
-        </div>
-            <div class="col-md-5">
-                <div class="imagen-event">
-                    @if ($event->image_mod)
-                        <img src="data:image/png;base64,{{ $event->image_mod }}" class="w-100 h-25" style="border-radius: 5px;">
-                    @else
-                        <img src="/storage/{{ $event->imagen }}" class="w-100 h-25" style="border-radius: 5px;">
-                    @endif
-                </div>
+    <style>
+        /* --- TEMA AZUL OSCURO (Midnight Blue) --- */
+        :root {
+            --bg-body: #0f172a; --bg-card: #1e293b; --text-main: #f1f5f9;
+            --text-muted: #94a3b8; --border-color: #334155; --accent: #38bdf8;
+            --bg-input: #020617;
+        }
 
-                @if ($event->beys == 'ranking' || $event->beys == 'rankingplus')
-                    <div class="container my-2">
-                        <div class="card border-0 shadow-lg rounded-4" style="background: linear-gradient(135deg, #1a1a1a, #2b2b2b);">
-                            <div class="card-body text-center text-white p-3">
-                                <p class="text-uppercase mb-3" style="color: #ffc107; text-shadow: 1px 1px 4px rgba(0,0,0,0.5);">
-                                    💛 Iniciativa: ¡Apoya a tu Árbitro!
-                                </p>
+        body { background-color: var(--bg-body) !important; color: var(--text-main) !important; font-family: 'Inter', sans-serif; }
 
-                                <div class="d-flex justify-content-center">
-                                    <a href="https://www.paypal.com/donate?business=info%40sbbl.es&item_name={{ urlencode(Auth::user()->name . ' apoya a su árbitro de ' . $event->city . ' (' . $event->region->name . ')') }}&currency_code=EUR"
-                                    target="_blank"
-                                    class="btn btn-warning fw-bold px-4 py-2 rounded-pill shadow-lg"
-                                    style="font-size: 1.1rem;">
-                                        <i class="fab fa-paypal me-2"></i> Apoyar a {{ $event->region->name }}
-                                    </a>
-                                </div>
+        /* Textos y colores */
+        h1, h2, h3, h4, h5, h6, strong, b, label { color: #fff !important; }
+        .text-muted, small { color: #cbd5e1 !important; }
 
-                                <p class="mt-4" style="font-size: 0.95rem; color: #aaa;">
-                                    Estas aportaciones se destinan a apoyar la labor de nuestros árbitros y
-                                    <strong>la compra del material comunitario</strong>.
-                                </p>
-                            </div>
-                        </div>
-                    </div>
-                @else
-                    <div class="text-center my-4">
-                        <div class="p-4 rounded-4 shadow-lg" style="background: linear-gradient(90deg, #1a1a1a, #3d2c00); color: #fff;">
-                            <h5 class="fw-bold mb-3">
-                                💛 ¡Apoya a la Comunidad SBBL!
-                            </h5>
-                            <p class="mb-4" style="font-size: 1.05rem;">
-                                Tu aportación nos ayuda a mantener viva la liga, organizar torneos y seguir mejorando la experiencia de todos los bladers.
-                            </p>
-                            <a href="https://www.paypal.com/donate?business=info%40sbbl.es" target="_blank"
-                            class="btn btn-warning fw-bold px-4 py-2 rounded-pill shadow-lg"
-                            style="font-size: 1.1rem;">
-                                <i class="fab fa-paypal me-2"></i> Contribuir vía PayPal
-                            </a>
-                        </div>
-                    </div>
-                @endif
+        /* Componentes */
+        .card, .list-group-item { background-color: var(--bg-card) !important; border-color: var(--border-color) !important; color: var(--text-main) !important; }
+        .card-header { background-color: rgba(15, 23, 42, 0.8) !important; border-bottom: 1px solid var(--border-color) !important; }
 
-                <div id="app" class="mt-2">
-                    <chat-component :event-id="{{$event->id}}" />
+        /* Inputs */
+        .form-control, .form-select { background-color: var(--bg-input) !important; border: 1px solid #475569 !important; color: #fff !important; }
+        .form-control:focus, .form-select:focus { border-color: var(--accent) !important; box-shadow: 0 0 0 2px rgba(56, 189, 248, 0.2) !important; }
+
+        /* --- ARREGLO DE SELECT2 (CRÍTICO) --- */
+
+        /* 1. El contenedor del select NO debe tener z-index alto globalmente (Esto arregla la imagen 3) */
+        .select2-container { width: 100% !important; }
+
+        /* 2. Solo el menú DESPLEGADO debe estar por encima de todo */
+        .select2-dropdown {
+            z-index: 999999 !important; /* Muy alto para ganar al modal */
+            background-color: #1e293b !important;
+            border: 1px solid #38bdf8 !important;
+        }
+
+        /* 3. Estilos oscuros para Select2 */
+        .select2-container--bootstrap-5 .select2-selection { background-color: var(--bg-input) !important; border-color: #475569 !important; color: #fff !important; }
+        .select2-container--bootstrap-5 .select2-selection__rendered { color: #fff !important; }
+        .select2-search__field { background-color: #334155 !important; color: #fff !important; }
+        .select2-results__option { color: #fff !important; background-color: var(--bg-card) !important; }
+        .select2-container--bootstrap-5 .select2-results__option--highlighted { background-color: var(--accent) !important; color: #000 !important; }
+
+        /* Modal */
+        .modal-backdrop { z-index: 1050 !important; opacity: 0.85 !important; }
+        .modal { z-index: 1060 !important; }
+        .modal-content { background-color: var(--bg-card) !important; border: 1px solid #334155 !important; }
+        .modal-header, .modal-footer { border-color: #334155 !important; background-color: #0f172a !important; }
+        .btn-close-white { filter: invert(1) grayscale(100%) brightness(200%); }
+    </style>
+    @endsection
+
+    @section('content')
+    <div class="container-fluid py-5">
+
+        {{-- LÓGICA CORREGIDA: Calculamos si está inscrito mirando la lista de participantes --}}
+        @php
+            $isUserInscribed = Auth::check() && $assists->contains('id', Auth::id());
+            $hoy = \Carbon\Carbon::now()->format('Y-m-d');
+            // Calculamos horas restantes para cerrar inscripción
+            $diffInHours = \Carbon\Carbon::parse($event->date)->diffInHours(\Carbon\Carbon::now(), false);
+        @endphp
+
+        <div class="row mb-5">
+            <div class="col-12 text-center">
+                <h1 class="display-4 fw-bold mb-3 text-white" style="text-shadow: 0 0 20px rgba(56, 189, 248, 0.4);">
+                    {{ $event->name }}
+                </h1>
+                <div class="d-inline-block px-4 py-2 rounded-pill" style="background-color: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);">
+                    @switch($event->status)
+                        @case('OPEN') <span class="text-success fw-bold text-uppercase">🟢 Abierto</span> @break
+                        @case('INSCRIPCION') <span class="text-warning fw-bold text-uppercase">🔒 Inscripción Cerrada</span> @break
+                        @case('PENDING') <span class="text-warning fw-bold text-uppercase">⚠️ Pendiente Calificar</span> @break
+                        @case('REVIEW') <span class="text-info fw-bold text-uppercase">🔎 En Revisión</span> @break
+                        @case('INVALID') <span class="text-secondary fw-bold text-uppercase">❌ Inválido</span> @break
+                        @default <span class="text-danger fw-bold text-uppercase">🔴 Cerrado</span>
+                    @endswitch
                 </div>
             </div>
-            <div class="col-md-7">
-                @if (session('success'))
-                        <div class="alert alert-success" role="alert">
-                            {{ session('success') }}
-                        </div>
-                    @endif
-                    @if (session('error'))
-                        <div class="alert alert-danger" role="alert">
-                            {{ session('error') }}
-                        </div>
-                    @endif
+        </div>
 
+        <div class="row g-4">
+            <div class="col-lg-4 col-md-5">
 
-                <div class="row">
-                    <div class="col-md-6">
-                        <div class="event-meta">
-                        <p class="mb-2">
-                            <span class="fw-bold text-primary">Modalidad:</span>
-                            {{ ($event->mode == 'beybladex') ? 'Beyblade X' : 'Beyblade Burst' }} ({{ $event->beys }})
-                        </p>
-
-                        @if(in_array($event->beys, ['ranking', 'rankingplus']))
-                            <p class="mb-3">
-                                <a href="{{ route('inicio.rules') }}" target="_blank"
-                                class="btn btn-outline-info btn-sm d-inline-flex align-items-center gap-1">
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
-                                        class="bi bi-journal-text" viewBox="0 0 16 16">
-                                        <path d="M5 10.5a.5.5 0 0 1 .5-.5h5a.5.5 0 0 1 0 1h-5a.5.5 0 0 1-.5-.5zm0-2a.5.5 0 0 1 .5-.5h5a.5.5 0 0 1 0 1h-5a.5.5 0 0 1-.5-.5zm0-2a.5.5 0 0 1 .5-.5h5a.5.5 0 0 1 0 1h-5a.5.5 0 0 1-.5-.5z"/>
-                                        <path d="M3 1v14a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1V1H3zm8 13H5a.5.5 0 0 1 0-1h6a.5.5 0 0 1 0 1z"/>
-                                    </svg>
-                                    Reglas del torneo
-                                </a>
-                            </p>
+                <div class="card mb-4 overflow-hidden shadow-lg border-0">
+                    <div class="position-relative">
+                        @if ($event->image_mod)
+                            <img src="data:image/png;base64,{{ $event->image_mod }}" class="w-100 object-fit-cover" style="height: 280px;">
+                        @else
+                            <img src="/storage/{{ $event->imagen }}" class="w-100 object-fit-cover" style="height: 280px;">
                         @endif
+                        <div class="position-absolute top-0 end-0 m-3">
+                            <span class="badge bg-primary shadow">{{ $event->region->name }}</span>
+                        </div>
+                        <div class="position-absolute bottom-0 start-0 w-100 p-3" style="background: linear-gradient(to top, #1e293b, transparent);">
+                            <h5 class="text-white mb-0"><i class="fas fa-map-marker-alt me-2 text-info"></i>{{ $event->city }}</h5>
+                        </div>
+                    </div>
 
-                        <p class="mb-2">
-                            <span class="fw-bold text-primary">Configuración:</span>
-                            {{ $event->deck }} <span class="fw-bold">({{ $event->configuration }})</span>
-                        </p>
-                        <p class="mb-2">
-                            <span class="fw-bold text-primary">Región:</span>
-                            {{ $event->region->name }}
-                        </p>
-                        <p class="mb-2">
-                            <span class="fw-bold text-primary">Localidad:</span>
-                            {{ $event->city }}
-                        </p>
-                        <p class="mb-2">
-                            <span class="fw-bold text-primary">Lugar:</span>
-                            {{ $event->location }}
-                        </p>
-                        <p class="mb-2">
-                            <span class="fw-bold text-primary">Fecha y hora:</span>
-                            <event-date fecha="{{ $event->date }}"></event-date> <span class="fw-bold">({{ $event->time }})</span>
-                        </p>
-                        <p class="mb-3">
-                            <span class="fw-bold text-primary">Anotaciones:</span>
-                            {!! $event->note !!}
-                        </p>
+                    <div class="card-body">
+                        <ul class="list-unstyled mb-0">
+                            <li class="d-flex justify-content-between py-2 border-bottom border-secondary border-opacity-25">
+                                <span><i class="fas fa-gamepad me-2"></i>Modalidad</span>
+                                <span class="fw-bold text-white">{{ ($event->mode == 'beybladex') ? 'Beyblade X' : 'Burst' }} ({{ $event->beys }})</span>
+                            </li>
+                            <li class="d-flex justify-content-between py-2 border-bottom border-secondary border-opacity-25">
+                                <span><i class="fas fa-calendar me-2"></i>Fecha</span>
+                                <span class="fw-bold text-white"><event-date fecha="{{ $event->date }}"></event-date></span>
+                            </li>
+                            <li class="d-flex justify-content-between py-2 border-bottom border-secondary border-opacity-25">
+                                <span><i class="fas fa-clock me-2"></i>Hora</span>
+                                <span class="fw-bold text-white">{{ $event->time }}</span>
+                            </li>
+                            <li class="py-2 border-bottom border-secondary border-opacity-25">
+                                <span class="d-block mb-1"><i class="fas fa-map-pin me-2"></i>Ubicación</span>
+                                <span class="d-block text-white bg-dark p-2 rounded small">{{ $event->location }}</span>
+                            </li>
+                            @if($event->note)
+                            <li class="py-3">
+                                <span class="text-warning d-block mb-1"><i class="fas fa-sticky-note me-2"></i>Notas</span>
+                                <div class="small text-muted fst-italic">{!! $event->note !!}</div>
+                            </li>
+                            @endif
+                        </ul>
 
+                        <div class="d-grid gap-2 mt-4">
+                            @if(in_array($event->beys, ['ranking', 'rankingplus']))
+                                <a href="{{ route('inicio.rules') }}" target="_blank" class="btn btn-outline-info btn-sm">
+                                    <i class="fas fa-book me-1"></i> Reglamento Oficial
+                                </a>
+                            @endif
+                            @if ($event->iframe)
+                                <a href="{{ $event->iframe }}" target="_blank" class="btn btn-danger btn-sm">
+                                    <i class="fab fa-youtube me-1"></i> Ver Video
+                                </a>
+                            @endif
+                            @if ($event->challonge)
+                                <a href="{{ $event->challonge }}" target="_blank" class="btn btn-warning btn-sm text-dark">
+                                    <i class="fas fa-trophy me-1"></i> Ver Bracket
+                                </a>
+                            @endif
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card shadow-sm mb-4">
+                    <div class="card-header fw-bold text-white">
+                        <i class="fas fa-comments me-2 text-info"></i>Chat del Evento
+                    </div>
+                    <div class="card-body p-0">
+                        <div id="app">
+                            <chat-component :event-id="{{$event->id}}" />
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <div class="col-lg-8 col-md-7">
+
+                @if (session('success'))
+                    <div class="alert alert-success border-0 shadow-sm mb-4"><i class="fas fa-check-circle me-2"></i>{{ session('success') }}</div>
+                @endif
+                @if (session('error'))
+                    <div class="alert alert-danger border-0 shadow-sm mb-4"><i class="fas fa-exclamation-circle me-2"></i>{{ session('error') }}</div>
+                @endif
+
+                <div class="card shadow-sm mb-4">
+                    <div class="card-body p-4">
+                        <div class="d-flex justify-content-between align-items-center mb-4">
+                            <h4 class="mb-0 text-white">
+                                Participantes <span class="badge bg-info text-dark rounded-pill ms-2">{{ $assists->count() }}</span>
+                            </h4>
+
+                            <div class="d-flex gap-2">
+                                @if (($event->status == "OPEN") && (Auth::user()->is_admin || Auth::user()->is_referee) && ($diffInHours <= 24 && $diffInHours >= 0))
+                                    <form method="POST" action="{{ route('events.estado', ['event' => $event->id, 'estado' => 'inscripcion']) }}">
+                                        @csrf @method('PUT')
+                                        <button type="submit" class="btn btn-outline-secondary btn-sm">Cerrar Insc.</button>
+                                    </form>
+                                @endif
+
+                                @if (($event->status != "CLOSE" && $event->status != "INVALID") && Auth::user()->is_referee || ($event->status == "OPEN" && $event->created_by == Auth::user()->id))
+                                    <a href="{{ route('events.edit', ['event' => $event->id]) }}" class="btn btn-secondary btn-sm"><i class="fas fa-edit me-1"></i> Editar</a>
+                                @endif
+
+                                @if ($isUserInscribed && $event->status != "INVALID")
+                                    <button type="button" class="btn btn-info fw-bold btn-sm text-dark" data-bs-toggle="modal" data-bs-target="#formModal">
+                                        <i class="fas fa-layer-group me-1"></i> Mi Deck
+                                    </button>
+                                @endif
+                            </div>
+                        </div>
+
+                        <div class="p-3 rounded-3 mb-4" style="background-color: rgba(2, 6, 23, 0.5); border: 1px solid #334155;">
+                        @auth
+                            @if($event->status == "OPEN" && $event->date > $hoy)
+
+                            {{-- INICIO BLOQUE LIMITES DE ESTADIO --}}
+                    @if($event->has_stadium_limit)
                         @php
-                            use Carbon\Carbon;
-                            $now = Carbon::now();
-                            $eventDate = Carbon::parse($event->date);
-                            $diffInHours = $eventDate->diffInHours($now, false); // negativo si está en el futuro
+                            $limit = 9999;
+                            $limitText = "Aforo Ilimitado";
+                            $alertColor = "success"; // Verde por defecto
+                            $currentCount = $assists->count();
+
+                            if ($event->stadiums == 1) {
+                                $limit = 19;
+                                $limitText = "Aforo asegurado: 19 participantes (1 Estadio)";
+                                // Si se pasa del límite, rojo. Si no, amarillo (precaución 1 estadio)
+                                $alertColor = ($currentCount >= $limit) ? 'danger' : 'success';
+                            } elseif ($event->stadiums == 2) {
+                                $limit = 29;
+                                $limitText = "Aforo asegurado: 29 participantes (2 Estadios)";
+                                // Si se pasa, rojo. Si no, azul (info)
+                                $alertColor = ($currentCount >= $limit) ? 'danger' : 'info';
+                            }
                         @endphp
 
-                        @if (
-                            ($event->status == "OPEN") &&
-                            (Auth::user()->is_admin || Auth::user()->is_referee) &&
-                            ($diffInHours <= 24 && $diffInHours >= 0)
-                        )
-                            <form method="POST" action="{{ route('events.estado', ['event' => $event->id, 'estado' => 'inscripcion']) }}">
-                                @csrf
-                                @method('PUT')
-                                <button type="submit" class="btn btn-light mb-2 w-100">
-                                    Cerrar inscripción
-                                </button>
-                            </form>
-                        @endif
+                        <div class="alert alert-{{ $alertColor }} shadow-sm text-center mb-4">
+                            <h5 class="alert-heading font-weight-bold text-black" style="font-weight: bold;">
+                                🏟️ {{ $event->stadiums }} Estadios Disponibles
+                            </h5>
+                            <p class="mb-2">{{ $limitText }}</p>
 
-
-                        @if (($event->status != "CLOSE" && $event->status != "INVALID") && Auth::user()->is_referee || ($event->status == "OPEN" && $event->created_by == Auth::user()->id))
-                            <a href="{{ route('events.edit', ['event' => $event->id]) }}" class="btn btn-dark mb-3 d-block">
-                                Editar
-                            </a>
-                        @endif
-
-                        @if ($suscribe && $event->status != "INVALID")
-                            <button type="button" class="btn btn-warning w-100" data-bs-toggle="modal" data-bs-target="#formModal">
-                                Introducir deck
-                            </button>
-                        @endif
-
-
-                @if (in_array($event->beys, ['ranking', 'rankingplus']) && (in_array($event->status, ['INVALID', 'CLOSE']) || auth()->user()->is_admin))
-                    <!-- BOTÓN PARA MOSTRAR VALIDADORES -->
-                    <button class="btn btn-danger mt-2 w-100" type="button"
-                            data-bs-toggle="collapse" data-bs-target="#reviewCollapse{{ $event->id }}"
-                            aria-expanded="false" aria-controls="reviewCollapse{{ $event->id }}">
-                    Mostrar validadores y comentarios
-                    </button>
-
-                    <!-- SECCIÓN DESPLEGABLE DE VALIDADORES -->
-                    <div class="collapse mt-2" id="reviewCollapse{{ $event->id }}">
-                    <div class="card card-body bg-light text-dark p-2" style="font-size: 0.85rem;">
-                        <strong>Validadores y comentarios:</strong>
-                        @if($event->reviews->isEmpty() && !$event->judgeReview)
-                        <em>No hay revisiones aún.</em>
-                        @elseif (!$event->judgeReview)
-                        <ul class="mb-0 ps-3" style="max-height: 150px; overflow-y: auto;">
-                            @foreach($event->reviews as $review)
-                            <li class="mb-1">
-                                <strong>
-                                @if(auth()->user()->is_admin || Auth::user()->name == $review->referee->name)
-                                    {{ $review->referee->name ?? 'Árbitro desconocido' }}
-                                @else
-                                    Árbitro {{ $loop->iteration }}
-                                @endif
-                                </strong>:
-                                <span class="badge
-                                @if($review->status == 'approved') bg-success
-                                @elseif($review->status == 'rejected') bg-danger
-                                @else bg-secondary
-                                @endif">
-                                {{ strtoupper($review->status) }}
-                                </span><br>
-                                <em>{{ $review->comment }}</em>
-                            </li>
-                            @endforeach
-                        </ul>
-                        @else
-                        <ul class="mb-0 ps-3" style="max-height: 150px; overflow-y: auto;">
-                            <li class="mb-1">
-                                <strong>
-
-                                    Juez
-
-                                </strong>:
-                                <span class="badge
-                                @if($event->judgeReview->final_status == 'approved') bg-success
-                                @elseif($event->judgeReview->final_status == 'rejected') bg-danger
-                                @else bg-secondary
-                                @endif">
-                                {{ strtoupper($event->judgeReview->final_status) }}
-                                </span><br>
-                                <em>{{ $event->judgeReview->comment }}</em>
-                            </li>
-                        </ul>
-                        @endif
-                    </div>
-                    </div>
-
-                @endif
-
-
-
-                                @if ($event->iframe)
-                                    <div class="mt-2">
-                                        <a href="{{ $event->iframe }}" target="_blank" class="btn btn-info text-uppercase w-100"
-                                        style="width: 100%">Ver Video</a>
-                                    </div>
-                                @endif
-                                @if ($event->challonge)
-                                    <div class="mt-2">
-                                        <a href="{{ $event->challonge }}" target="_blank" class="btn btn-info text-uppercase w-100"
-                                        style="width: 100%">Ver Challonge</a>
-                                    </div>
-                                @endif
-
-                    </div>
-
-                    </div>
-                    <div class="col-md-6">
-                        @if($event->status == "OPEN" && Auth::user() && $event->date > $hoy)
-                    @if (!$suscribe)
-                        @if($isRegistered && ($event->beys == "ranking" || $event->beys == "rankingplus"))
-                            <span class="alert alert-warning d-block mt-3 p-2 text-center font-weight-bold">
-                                ⚠️ Ya te has apuntado a otro torneo esta semana. Recuerda que está prohibido participar en dos torneos la misma semana salvo excepción aprobada por los admins o ser un torneo especial.
-                            </span>
-                        @endif
-
-                        @if($event->beys === "grancopa")
-                            <div style="text-align: center; margin-bottom: 10px;">
-                                <strong>💶 Inscripción: 5€</strong> (Añadir <span class="me-1">🦎</span></i>500 al bote)
-                            </div>
-                                <div id="paypal-button-container" style="text-align: center;"></div>
-                        @elseif ($event->beys === "copapaypal")
-                            <div style="text-align: center; margin-bottom: 10px;">
-                                <strong>💶 Inscripción: 2€</strong> (Añadir <span class="me-1">🦎</span></i>200 al bote)
-                            </div>
-                                <div id="paypal-button-container" style="text-align: center;"></div>
-                        @else
-                            <form method="POST" action="{{ route('events.assist', ['event' => $event->id]) }}" enctype="multipart/form-data" novalidate style="text-align: center;">
-                                @csrf
-                                <div class="form-group py-2">
-                                    <input
-                                        type="submit"
-                                        class="btn btn-primary text-uppercase font-weight-bold m-1 flex-right"
-                                        value="Inscribirse"
-                                        @if(in_array($event->beys, ['ranking', 'rankingplus']) && $rankingTournamentsLeft == 0)
-                                            disabled
-                                        @endif
-                                    >
-                                    @if(in_array($event->beys, ['ranking', 'rankingplus']))
-                                        <span class="badge badge-warning ml-2" title="Torneos de ranking restantes este mes" style="font-size: 1rem;">
-                                            🎟️ {{ $rankingTournamentsLeft }}
-                                        </span>
-                                    @endif
+                            <div class="progress" style="height: 20px; background-color: rgba(0,0,0,0.1);">
+                                <div class="progress-bar bg-{{ $alertColor }}" role="progressbar"
+                                     style="width: {{ min(($currentCount / ($limit > 1000 ? 50 : $limit)) * 100, 100) }}%; font-weight: bold;">
+                                    {{ $currentCount }} / {{ ($limit > 1000) ? '∞' : $limit }}
                                 </div>
-                            </form>
-                        @endif
-
-                    @php
-                        $user = \App\Models\User::findOrFail($event->created_by);
-                    @endphp
-
-                    @if ($user && !($user->is_jury || $user->is_referee))
-                        <span class="alert alert-warning d-block mt-3 p-2 text-center font-weight-bold">
-                            ⚠️ Este evento <bold>NO HA SIDO CREADO POR UN ÁRBITRO</bold>, el material tiene que ser proporcionado por los participantes.
-                        </span>
-                    @endif
-
-                    @else
-                        <form method="POST" action="{{ route('events.noassist', ['event' => $event->id]) }}" style="display: contents; text-align: center;">
-                            @method('DELETE')
-                            @csrf
-                            <button type="submit" class="btn btn-danger mr-2 text-uppercase font-weight-bold m-1 flex-right">No asistiré</button>
-                        </form>
-                    @endif
-                @endif
-                        <h4 style="font-weight: bold">Listado de participantes ({{ $assists->count() }})</h4>
-                        @if ($event->beys == 'copapaypal' || $event->beys == 'grancopa')
-                        <div class="text-center">
-                            <div class="bg-dark rounded-pill px-3 py-2 shadow-sm d-inline-block">
-                                <span class="fw-bold text-warning">
-                                    Bote acumulado: <span class="me-1">🦎</span> {{ number_format($assists->count() * (($event->beys == 'copapaypal') ? 200 : 500)) }}
-                                </span>
                             </div>
+
+                            @if($currentCount >= $limit && $limit < 1000)
+                                <hr>
+                                <p class="mb-0 font-weight-bold">
+                                    ⚠️ Aforo garantizado completo. Las nuevas inscripciones entran en lista de espera.
+                                </p>
+                            @endif
                         </div>
-                        @endif
+                    @endif
+                    {{-- FIN BLOQUE LIMITES DE ESTADIO --}}
+                                @if (!$isUserInscribed)
+                                    @if(isset($isRegistered) && $isRegistered && in_array($event->beys, ['ranking', 'rankingplus']))
+                                        <div class="alert alert-warning text-dark small mb-3">
+                                            <i class="fas fa-exclamation-triangle me-1"></i> Ya estás inscrito en otro torneo de ranking esta semana.
+                                        </div>
+                                    @endif
 
-                        <!-- Botón para copiar nombres -->
-                        <button id="copyButton" class="btn btn-outline-primary mt-3 mb-3 w-100">Copiar nombres</button>
-                        @if (Auth::user() && Auth::user()->is_jury)
-                            <form method="POST" action="{{ route('events.addAssist', ['event' => $event->id]) }}" enctype="multipart/form-data" novalidate class="d-flex justify-content-center align-items-center gap-2 my-4">
-                                @csrf
-                                <select name="participante_id" id="participante" class="form-select select2" style="width: 300px;">
-                                    <option value="">-- Busca o selecciona un participante --</option>
-                                    @foreach($participantes as $p)
-                                        <option value="{{ $p->id }}">{{ $p->name }}</option>
-                                    @endforeach
-                                </select>
+                                    @php $creator = \App\Models\User::find($event->created_by); @endphp
+                                    @if ($creator && !($creator->is_jury || $creator->is_referee))
+                                        <div class="alert alert-info text-dark small mb-3">
+                                            Evento creado por fan. Material no garantizado.
+                                        </div>
+                                    @endif
 
-                                <button type="submit" class="btn btn-success fw-bold" title="Añadir participante" style="width: 40px; height: 40px; font-size: 20px;">
-                                    +
+                                    @if($event->beys === "grancopa" || $event->beys === "copapaypal")
+                                        <div class="text-center bg-white p-3 rounded">
+                                            <p class="text-dark fw-bold mb-2">Inscripción Requerida: {{ $event->beys === "grancopa" ? '5€' : '2€' }}</p>
+                                            <div id="paypal-button-container" class="d-flex justify-content-center"></div>
+                                        </div>
+                                    @else
+                                        <form method="POST" action="{{ route('events.assist', ['event' => $event->id]) }}">
+                                            @csrf
+                                            <button type="submit" class="btn btn-success w-100 fw-bold py-3 text-uppercase shadow-lg"
+                                                @if(in_array($event->beys, ['ranking', 'rankingplus']) && isset($rankingTournamentsLeft) && $rankingTournamentsLeft == 0) disabled @endif>
+                                                <i class="fas fa-user-plus me-2"></i> Inscribirse Ahora
+                                                @if(in_array($event->beys, ['ranking', 'rankingplus']) && isset($rankingTournamentsLeft))
+                                                    <span class="badge bg-white text-success ms-2 shadow-sm">Restantes: {{ $rankingTournamentsLeft }}</span>
+                                                @endif
+                                            </button>
+                                        </form>
+                                    @endif
+
+                                @else
+                                    <div class="d-flex align-items-center justify-content-between">
+                                        <div class="text-success fw-bold">
+                                            <i class="fas fa-check-circle me-2 fs-4"></i> Estás inscrito en este evento.
+                                        </div>
+                                        <form method="POST" action="{{ route('events.noassist', ['event' => $event->id]) }}">
+                                            @method('DELETE') @csrf
+                                            <button type="submit" class="btn btn-outline-danger btn-sm">Cancelar asistencia</button>
+                                        </form>
+                                    </div>
+                                @endif
+
+                            @elseif($event->status != "OPEN")
+                                <div class="text-center text-white py-2">Las inscripciones están cerradas.</div>
+                            @else
+                                <div class="text-center text-white py-2">El evento ya ha finalizado.</div>
+                            @endif
+                        @else
+                            <div class="text-center text-warning">Inicia sesión para inscribirte.</div>
+                        @endauth
+                        </div>
+
+                        <div class="d-flex gap-2 mb-3">
+                            <button id="copyButton" class="btn btn-outline-light btn-sm flex-fill border-secondary">
+                                <i class="fas fa-copy me-1"></i> Copiar Nombres
+                            </button>
+                            @if (Auth::user() && Auth::user()->is_jury)
+                                <button id="copyButtonEmail" class="btn btn-outline-light btn-sm flex-fill border-secondary">
+                                    <i class="fas fa-envelope me-1"></i> Copiar Emails
                                 </button>
-                            </form>
+                            @endif
+                        </div>
 
-                        @endif
-                        @if($assists->count() < 4 && $event->status == "OPEN")
-                            <div class="alert alert-danger">
-                                Importante: Si el número de participantes es menor a 4 el torneo no se realizará.
+                        @if (Auth::user() && Auth::user()->is_jury)
+                            <div class="mb-3">
+                                <form method="POST" action="{{ route('events.addAssist', ['event' => $event->id]) }}" class="input-group">
+                                    @csrf
+                                    <select name="participante_id" class="form-select form-select-sm select2">
+                                        <option value="">Añadir participante manual...</option>
+                                        @foreach($participantes as $p)
+                                            <option value="{{ $p->id }}">{{ $p->name }}</option>
+                                        @endforeach
+                                    </select>
+                                    <button type="submit" class="btn btn-success btn-sm"><i class="fas fa-plus"></i></button>
+                                </form>
                             </div>
                         @endif
-                        @if (count($assists) > 0)
-                            <form id="puestos-form" method="POST" action="{{ route('events.updatePuestos', ['event' => $event->id]) }}" enctype="multipart/form-data" novalidate>
-                                @csrf
-                                @method('PUT')
 
-                                @foreach ($assists as $assist)
-                                    <div class="row mb-2">
-                                        <div class="col-md-9">
-                                            <p class="mb-0">
-                                                {{ $assist->name }}
-                                                @if($event->beys == "ranking" || $event->beys == "rankingplus") ({{ DB::table('assist_user_event')
-                                                ->join('events', 'assist_user_event.event_id', '=', 'events.id')
-                                                ->where('assist_user_event.user_id', $assist->id)
-                                                ->whereMonth('events.date', \Carbon\Carbon::parse($event->date)->month)
-                                                ->whereYear('events.date', \Carbon\Carbon::parse($event->date)->year)
-                                                ->whereIn('events.beys', ['ranking', 'rankingplus']) // Añadir filtro de beys
-                                                ->where(function ($query) {
-                                                    $query->where('assist_user_event.puesto', '<>', 'nopresentado')
-                                                        ->orWhereNull('assist_user_event.puesto')
-                                                        ->orWhere('assist_user_event.puesto', '=','');
-                                                })
-                                                ->count();
+                        @if(count($assists) > 0)
+                            <form method="POST" action="{{ route('events.updatePuestos', ['event' => $event->id]) }}">
+                                @csrf @method('PUT')
+                                <div class="list-group list-group-flush rounded overflow-hidden">
+                                    @foreach ($assists as $assist)
+                                        <div class="list-group-item">
+                                            <div class="d-flex align-items-center justify-content-between flex-wrap">
+                                                <div class="d-flex align-items-center gap-3">
+                                                    <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center fw-bold shadow-sm" style="width: 35px; height: 35px; font-size: 0.9rem;">
+                                                        {{ substr($assist->name, 0, 1) }}
+                                                    </div>
+                                                    <div>
+                                                        <div class="fw-bold text-white">{{ $assist->name }}</div>
+                                                        @if(!empty($assist->pivot->puesto) && $assist->pivot->puesto !== 'participante')
+                                                            <span class="badge bg-info text-dark rounded-pill">{{ $assist->pivot->puesto }}</span>
+                                                        @endif
+                                                    </div>
+                                                </div>
 
-                                                }}
-                                                torneos) @endif
+                                                <div class="d-flex align-items-center gap-2 mt-2 mt-md-0">
+                                                    @if (($event->status != "CLOSE" && $event->status != "INVALID") && Auth::user()->is_referee || ($event->status == "OPEN" && $event->created_by == Auth::user()->id))
+                                                        <input type="hidden" name="participantes[{{ $assist->id }}][id]" value="{{ $assist->id }}">
+                                                        <select class="form-select form-select-sm" style="width: 130px;" name="participantes[{{ $assist->id }}][puesto]">
+                                                            <option value="participante" {{ $assist->pivot->puesto == 'participante' ? 'selected' : '' }}>Participante</option>
+                                                            <option value="primero" {{ $assist->pivot->puesto == 'primero' ? 'selected' : '' }}>1º Lugar</option>
+                                                            <option value="segundo" {{ $assist->pivot->puesto == 'segundo' ? 'selected' : '' }}>2º Lugar</option>
+                                                            <option value="tercero" {{ $assist->pivot->puesto == 'tercero' ? 'selected' : '' }}>3º Lugar</option>
+                                                            <option value="nopresentado" {{ $assist->pivot->puesto == 'nopresentado' ? 'selected' : '' }}>No Pres.</option>
+                                                        </select>
+                                                    @endif
 
-                                                @if(!empty($assist->pivot->puesto) && $assist->pivot->puesto !== 'No presentado')
-                                                    - {{ $assist->pivot->puesto }}
-                                                @endif
-
-                                                @if (Auth::user()->is_admin)
-                                                    <b>{{ $assist->email }}</b>
-                                                @endif
-
-                                                @if (($event->status != "CLOSE" && $event->status != "INVALID") && Auth::user()->is_referee || ($event->status == "OPEN" && $event->created_by == Auth::user()->id))
-                                                    <input type="hidden" name="participantes[{{ $assist->id }}][id]" value="{{ $assist->id }}">
                                                     @php
-                                                        $count = $assists->count();
-                                                        $options = ['primero', 'segundo']; // Default para <8
-
-                                                        if ($count >= 9 && $count <= 16) {
-                                                            $options = ['primero', 'segundo', 'tercero'];
-                                                        } elseif ($count >= 17 && $count <= 24) {
-                                                            $options = ['primero', 'segundo', 'tercero', 'cuarto'];
-                                                        } elseif ($count >= 25 && $count <= 32) {
-                                                            $options = ['primero', 'segundo', 'tercero', 'cuarto', 'quinto'];
-                                                        } elseif ($count > 32) {
-                                                            $options = ['primero', 'segundo', 'tercero', 'cuarto', 'quinto', 'septimo'];
-                                                        }
-
-                                                        // Etiquetas para mostrar (puedes modificar si quieres)
-                                                        $labels = [
-                                                            'primero' => 'Primer puesto',
-                                                            'segundo' => 'Segundo puesto',
-                                                            'tercero' => 'Tercer puesto',
-                                                            'cuarto' => 'Cuarto puesto',
-                                                            'quinto' => 'Quinto puesto',
-                                                            'septimo' => 'Séptimo puesto',
-                                                        ];
+                                                        $hasRes = isset($resultsByParticipant[$assist->id]) && count($resultsByParticipant[$assist->id]) > 0;
                                                     @endphp
+                                                    @if($hasRes)
+                                                        <button type="button" class="btn btn-sm btn-outline-info" data-bs-toggle="collapse" data-bs-target="#res-{{ $assist->id }}">
+                                                            <i class="fas fa-eye"></i>
+                                                        </button>
+                                                    @endif
+                                                </div>
+                                            </div>
 
-                                                    <select class="form-control" name="participantes[{{ $assist->id }}][puesto]">
-                                                        <option value="participante" {{ $assist->pivot->puesto == 'participante' ? 'selected' : '' }}>-- Selecciona un puesto --</option>
-
-                                                        @foreach ($options as $opt)
-                                                            <option value="{{ $opt }}" {{ $assist->pivot->puesto == $opt ? 'selected' : '' }}>
-                                                                {{ $labels[$opt] }}
-                                                            </option>
-                                                        @endforeach
-                                                        <option value="nopresentado" {{ $assist->pivot->puesto == 'nopresentado' ? 'selected' : '' }}>No presentado/a</option>
-                                                    </select>
-
-                                                @endif
-                                            </p>
-                                        </div>
-                                        <div class="col-md-3 text-right">
-                                            @php
-                                                $today = \Carbon\Carbon::now()->format('Y-m-d');  // Obtener la fecha actual en formato 'Y-m-d'
-                                                $eventDate = \Carbon\Carbon::parse($event->date)->format('Y-m-d');  // Fecha del evento en formato 'Y-m-d'
-                                            @endphp
-                                            @if(($today === $eventDate && isset($resultsByParticipant[Auth::user()->id]) && count($resultsByParticipant[Auth::user()->id]) > 0) || $today > $eventDate || Auth::user()->is_admin)
-                                                <button type="button" class="btn btn-info btn-sm" data-toggle="collapse" data-target="#results-{{ $assist->id }}" aria-expanded="false" aria-controls="results-{{ $assist->id }}" title="Ver resultados">
-                                                    <i class="fas fa-eye"></i>
-                                                </button>
-                                            @endif
-                                        </div>
-                                    </div>
-
-                                    @if($today === $eventDate && isset($resultsByParticipant[Auth::user()->id]) && count($resultsByParticipant[Auth::user()->id]) > 0 || $today > $eventDate || Auth::user()->is_admin)
-                                        <div class="collapse" id="results-{{ $assist->id }}">
-                                            <div class="card card-body mb-3" style="background-color: rgb(2, 0, 97)">
-                                                @if(isset($resultsByParticipant[$assist->id]) && count($resultsByParticipant[$assist->id]) > 0)
-                                                    @foreach($resultsByParticipant[$assist->id] as $index => $result)
-                                                        <div class="row">
-                                                            <div class="col-md-12">
-                                                                <div class="form-group">
-                                                                    <p> · {{ $result->blade }} {{ $result->assist_blade }} {{ $result->ratchet }} {{ $result->bit }}</p>
-                                                                </div>
+                                            <div class="collapse mt-2" id="res-{{ $assist->id }}">
+                                                <div class="card card-body p-2 small border-0" style="background-color: rgba(0,0,0,0.3);">
+                                                    @if($hasRes)
+                                                        @foreach($resultsByParticipant[$assist->id] as $res)
+                                                            <div class="d-flex gap-2 border-bottom border-secondary border-opacity-25 py-1">
+                                                                <span class="text-white fw-bold">{{ $res->blade }}</span>
+                                                                <span>{{ $res->assist_blade }} {{ $res->ratchet }}  {{ $res->bit }}</span>
                                                             </div>
-                                                        </div>
-                                                    @endforeach
-                                                @else
-                                                    <p>No hay resultados registrados para este participante.</p>
-                                                @endif
+                                                        @endforeach
+                                                    @endif
+                                                </div>
                                             </div>
                                         </div>
-                                    @endif
-                                @endforeach
-
-                                <div class="mt-4">
-                                    <h4 class="mb-4 text-info border-bottom border-info pb-2">Datos del torneo</h4>
-
-                                    <div class="form-group">
-                                        <label for="iframe" class="fw-semibold text-light">Link al video del torneo:</label>
-                                        <input type="url" name="iframe" id="iframe" class="form-control mb-2 bg-dark text-light border-secondary"
-                                            placeholder="https://www.youtube.com/embed/tu-video"
-                                            value="{{ old('iframe', $event->iframe ?? '') }}"
-                                            required>
-                                    </div>
-
-                                    <div class="form-group">
-                                        <label for="challonge" class="fw-semibold text-light">Enlace al torneo en Challonge:</label>
-                                        <input type="url" name="challonge" id="challonge" class="form-control mb-2 bg-dark text-light border-secondary"
-                                            placeholder="https://challonge.com/es/"
-                                            value="{{ old('challonge', $event->challonge ?? '') }}"
-                                            required>
-                                    </div>
+                                    @endforeach
                                 </div>
 
                                 @if (($event->status != "CLOSE" && $event->status != "INVALID") && Auth::user()->is_referee || ($event->status == "OPEN" && $event->created_by == Auth::user()->id))
-                                    <div class="form-group py-2">
-                                        <input type="submit" onclick="return confirm('¿Has rellenado el podio y los enlaces correctamente?');" class="btn btn-outline-success text-uppercase font-weight-bold flex-right" value="Enviar resultados"  style="width: 100%">
+                                    <div class="card-footer mt-3 border rounded p-3">
+                                        <h6 class="text-warning mb-2 small text-uppercase fw-bold">Cierre de Torneo</h6>
+                                        <input type="url" name="iframe" class="form-control form-control-sm mb-2" placeholder="Link YouTube" value="{{ old('iframe', $event->iframe) }}" required>
+                                        <input type="url" name="challonge" class="form-control form-control-sm mb-2" placeholder="Link Challonge" value="{{ old('challonge', $event->challonge) }}" required>
+                                        <button type="submit" onclick="return confirm('¿Confirmar?');" class="btn btn-primary w-100 btn-sm fw-bold">GUARDAR RESULTADOS</button>
                                     </div>
                                 @endif
                             </form>
-
                         @else
-                            <p>No hay participantes.</p>
+                            <div class="p-5 text-center text-muted border border-secondary border-opacity-25 rounded border-dashed mt-3">
+                                <i class="fas fa-users-slash fs-1 mb-2 opacity-50"></i>
+                                <p class="mb-0">Aún no hay participantes inscritos.</p>
+                            </div>
                         @endif
                     </div>
                 </div>
-            </div>
-        </div>
-    </article>
 
-@endsection
-
-@section('styles')
-<!-- jQuery -->
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-
-<!-- Select2 CSS -->
-<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
-
-<!-- Select2 JS -->
-<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
-
-    <!-- CDN de Select2 CSS -->
-    <style>
-        .select2-container--default .select2-selection--single {
-            z-index: 9999 !important; /* Asegúrate de que el select2 se muestra sobre otros elementos */
-        }
-        .select2-selection--single {
-    height: 38px !important; /* igual que form-control de Bootstrap */
-    padding: 0.375rem 0.75rem;
-}
-
-
-    </style>
-@endsection
-
-@section('scripts')
-    @php
-        $paypalClientId = config('paypal.mode') === 'sandbox'
-            ? config('paypal.sandbox.client_id')
-            : config('paypal.live.client_id');
-    @endphp
-
-    <script src="https://www.paypal.com/sdk/js?client-id={{ $paypalClientId }}&currency=EUR"></script>
-
-    <script>
-        jQuery(document).ready(function () {
-            const isReferee = @json(Auth::user()->is_jury);
-
-            // 👉 Botón PayPal solo si es GranCopa
-            @if($event->beys === "grancopa")
-                paypal.Buttons({
-                    style: {
-                        layout: 'vertical',   // o 'horizontal'
-                        size: 'responsive',        // 'small' | 'medium' | 'large' | 'responsive'
-                        shape: 'rect',        // 'rect' | 'pill'
-                        color: 'gold',        // 'gold' | 'blue' | 'silver' | 'black'
-                        label: 'pay'          // 'paypal' | 'checkout' | 'buynow' | 'pay'
-                    },
-                    createOrder: function(data, actions) {
-                        return actions.order.create({
-                            purchase_units: [{
-                                description: "Inscripción Gran Copa",
-                                amount: {
-                                    value: "5.00"
-                                }
-                            }]
-                        });
-                    },
-                    onApprove: function(data, actions) {
-                        return actions.order.capture().then(function(details) {
-                            fetch("{{ route('events.assist', ['event' => $event->id]) }}", {
-                                method: "POST",
-                                headers: {
-                                    "Content-Type": "application/json",
-                                    "X-CSRF-TOKEN": "{{ csrf_token() }}"
-                                },
-                                body: JSON.stringify({
-                                    paypal_order_id: data.orderID,
-                                    payer: details.payer
-                                })
-                            }).then(res => {
-                                if (res.ok) {
-                                    window.location.reload();
-                                } else {
-                                    alert("⚠️ Hubo un problema al inscribirte. Intenta de nuevo.");
-                                }
-                            });
-                        });
-                    }
-                }).render("#paypal-button-container");
-            @endif
-
-            // 👉 Botón PayPal solo si es GranCopa
-            @if($event->beys === "copapaypal")
-                paypal.Buttons({
-                    style: {
-                        layout: 'vertical',   // o 'horizontal'
-                        size: 'responsive',        // 'small' | 'medium' | 'large' | 'responsive'
-                        shape: 'rect',        // 'rect' | 'pill'
-                        color: 'gold',        // 'gold' | 'blue' | 'silver' | 'black'
-                        label: 'pay'          // 'paypal' | 'checkout' | 'buynow' | 'pay'
-                    },
-                    createOrder: function(data, actions) {
-                        return actions.order.create({
-                            purchase_units: [{
-                                description: "Inscripción Copa Paypal",
-                                amount: {
-                                    value: "2.00"
-                                }
-                            }]
-                        });
-                    },
-                    onApprove: function(data, actions) {
-                        return actions.order.capture().then(function(details) {
-                            fetch("{{ route('events.assist', ['event' => $event->id]) }}", {
-                                method: "POST",
-                                headers: {
-                                    "Content-Type": "application/json",
-                                    "X-CSRF-TOKEN": "{{ csrf_token() }}"
-                                },
-                                body: JSON.stringify({
-                                    paypal_order_id: data.orderID,
-                                    payer: details.payer
-                                })
-                            }).then(res => {
-                                if (res.ok) {
-                                    window.location.reload();
-                                } else {
-                                    alert("⚠️ Hubo un problema al inscribirte. Intenta de nuevo.");
-                                }
-                            });
-                        });
-                    }
-                }).render("#paypal-button-container");
-            @endif
-
-            // 👉 Copiar nombres al portapapeles
-            const copyBtn = jQuery('#copyButton');
-            if (copyBtn.length) {
-                copyBtn.on('click', () => {
-                    const participants = {!! json_encode($assists->pluck('name')->values()->toArray()) !!};
-                    const names = participants.join('\n');
-
-                    if (navigator.clipboard) {
-                        navigator.clipboard.writeText(names)
-                            .then(() => alert('✅ Nombres copiados al portapapeles'))
-                            .catch(() => fallbackCopy(names));
-                    } else {
-                        fallbackCopy(names);
-                    }
-
-                    function fallbackCopy(text) {
-                        const tempTextArea = document.createElement('textarea');
-                        tempTextArea.value = text;
-                        document.body.appendChild(tempTextArea);
-                        tempTextArea.select();
-                        document.execCommand('copy');
-                        document.body.removeChild(tempTextArea);
-                        alert('✅ Nombres copiados al portapapeles');
-                    }
-                });
-            }
-
-            // 👉 Validación de formulario si no es referee
-            if (!isReferee) {
-                jQuery("input[type='submit'][value='Enviar resultados']").on('click', function(event) {
-                    const iframeInput = jQuery("input[name='iframe']");
-                    const challongeInput = jQuery("input[name='challonge']");
-                    if (!iframeInput.val()?.trim() || !challongeInput.val()?.trim()) {
-                        event.preventDefault();
-                        alert("⚠️ Debes introducir un enlace de video y de challonge antes de enviar los resultados.");
-                    }
-                });
-            }
-
-            // 👉 Re-inicializar Select2 al mostrar el modal
-            jQuery('#formModal').on('shown.bs.modal', function () {
-                jQuery('.select2').select2({
-                    dropdownParent: jQuery('#formModal')
-                });
-            });
-        jQuery(document).ready(function() {
-                jQuery('.select2').select2({
-                    width: '100%',
-                    placeholder: "Añadir participante",
-            });
-        });
-
-            // 👉 Inicializar tooltips
-            jQuery('[data-toggle="tooltip"]').tooltip();
-        });
-
-    </script>
-
-<!-- Modal para introducir decks - Versión Bootstrap 5 -->
-<div class="modal fade" id="formModal" tabindex="-1" aria-labelledby="formModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-xl">
-        <div class="modal-content">
-            <div class="modal-header bg-primary text-white">
-                <h5 class="modal-title" id="formModalLabel">Resultados del deck en el torneo</h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <!-- Formulario dentro del popup -->
-                <form method="POST" action="{{ route('tournament.results.store', ['eventId' => $event->id]) }}">
-                    @csrf
-
-                    @if(Auth::user()->is_referee && 1==2 )
-                        @foreach($assists as $assist)
-                            <div class="mb-4">
-                                <h4>{{ $assist->name }} ({{ $assist->email }})</h4>
-                                @foreach(range(1, 3) as $index)
-                                    <div class="row g-3 mb-3">
-                                        <!-- Blade -->
-                                        <div class="col-md-2">
-                                            <label for="blade_{{ $assist->id }}_{{ $index }}" class="form-label">Blade</label>
-                                            <select class="form-select select2" id="blade_{{ $assist->id }}_{{ $index }}" name="blade[{{ $assist->id }}][{{ $index }}]" required>
-                                                <option value="">-- Selecciona un blade --</option>
-                                                @foreach($bladeOptions as $option)
-                                                    <option value="{{ $option }}"
-                                                        @if(isset($resultsByParticipant[$assist->id][$index-1]) && $resultsByParticipant[$assist->id][$index-1]->blade == $option) selected @endif>
-                                                        {{ $option }}
-                                                    </option>
-                                                @endforeach
-                                            </select>
-                                        </div>
-
-                                        <!-- Assist blade -->
-                                        <div class="col-md-2">
-                                            <label for="assist_blade_{{ $assist->id }}_{{ $index }}" class="form-label">Assist blade (Solo CX)</label>
-                                            <select class="form-select select2" id="assist_blade_{{ $assist->id }}_{{ $index }}" name="assist_blade[{{ $assist->id }}][{{ $index }}]">
-                                                <option value=""></option>
-                                                @foreach($assistBladeOptions as $option)
-                                                    <option value="{{ $option }}"
-                                                        @if(isset($resultsByParticipant[$assist->id][$index-1]) && $resultsByParticipant[$assist->id][$index-1]->assist_blade == $option) selected @endif>
-                                                        {{ $option }}
-                                                    </option>
-                                                @endforeach
-                                            </select>
-                                        </div>
-
-                                        <!-- Ratchet -->
-                                        <div class="col-md-2">
-                                            <label for="ratchet_{{ $assist->id }}_{{ $index }}" class="form-label">Ratchet</label>
-                                            <select class="form-select select2" id="ratchet_{{ $assist->id }}_{{ $index }}" name="ratchet[{{ $assist->id }}][{{ $index }}]" required>
-                                                <option value="">-- Selecciona un ratchet --</option>
-                                                @foreach($ratchetOptions as $option)
-                                                    <option value="{{ $option }}"
-                                                        @if(isset($resultsByParticipant[$assist->id][$index-1]) && $resultsByParticipant[$assist->id][$index-1]->ratchet == $option) selected @endif>
-                                                        {{ $option }}
-                                                    </option>
-                                                @endforeach
-                                            </select>
-                                        </div>
-
-                                        <!-- Bit -->
-                                        <div class="col-md-2">
-                                            <label for="bit_{{ $assist->id }}_{{ $index }}" class="form-label">Bit</label>
-                                            <select class="form-select select2" id="bit_{{ $assist->id }}_{{ $index }}" name="bit[{{ $assist->id }}][{{ $index }}]" required>
-                                                <option value="">-- Selecciona un bit --</option>
-                                                @foreach($bitOptions as $option)
-                                                    <option value="{{ $option }}"
-                                                        @if(isset($resultsByParticipant[$assist->id][$index-1]) && $resultsByParticipant[$assist->id][$index-1]->bit == $option) selected @endif>
-                                                        {{ $option }}
-                                                    </option>
-                                                @endforeach
-                                            </select>
-                                        </div>
-
-                                        <!-- Victorias -->
-                                        <div class="col-md-1">
-                                            <label for="victorias_{{ $assist->id }}_{{ $index }}" class="form-label">Victorias</label>
-                                            <input type="number" class="form-control" id="victorias_{{ $assist->id }}_{{ $index }}" name="victorias[{{ $assist->id }}][{{ $index }}]" value="{{ isset($resultsByParticipant[$assist->id][$index-1]) ? $resultsByParticipant[$assist->id][$index-1]->victorias : 0 }}">
-                                        </div>
-
-                                        <!-- Derrotas -->
-                                        <div class="col-md-1">
-                                            <label for="derrotas_{{ $assist->id }}_{{ $index }}" class="form-label">Derrotas</label>
-                                            <input type="number" class="form-control" id="derrotas_{{ $assist->id }}_{{ $index }}" name="derrotas[{{ $assist->id }}][{{ $index }}]" value="{{ isset($resultsByParticipant[$assist->id][$index-1]) ? $resultsByParticipant[$assist->id][$index-1]->derrotas : 0 }}">
-                                        </div>
-
-                                        <!-- Puntos Ganados -->
-                                        <div class="col-md-1">
-                                            <label for="puntos_ganados_{{ $assist->id }}_{{ $index }}" class="form-label">P. Ganados</label>
-                                            <input type="number" class="form-control" id="puntos_ganados_{{ $assist->id }}_{{ $index }}" name="puntos_ganados[{{ $assist->id }}][{{ $index }}]" value="{{ isset($resultsByParticipant[$assist->id][$index-1]) ? $resultsByParticipant[$assist->id][$index-1]->puntos_ganados : 0 }}">
-                                        </div>
-
-                                        <!-- Puntos Perdidos -->
-                                        <div class="col-md-1">
-                                            <label for="puntos_perdidos_{{ $assist->id }}_{{ $index }}" class="form-label">P. Perdidos</label>
-                                            <input type="number" class="form-control" id="puntos_perdidos_{{ $assist->id }}_{{ $index }}" name="puntos_perdidos[{{ $assist->id }}][{{ $index }}]" value="{{ isset($resultsByParticipant[$assist->id][$index-1]) ? $resultsByParticipant[$assist->id][$index-1]->puntos_perdidos : 0 }}">
-                                        </div>
-                                    </div>
-                                @endforeach
-                            </div>
-                        @endforeach
-
-                    @else
-                        <!-- Si no es referee, solo se muestra su propio deck -->
-                        <div class="mb-4">
-                            <h4>{{ Auth::user()->name }}'s Deck</h4>
-                            @foreach(range(1, 3) as $index)
-                                <div class="row g-3 mb-3">
-                                    <!-- Blade -->
-                                    <div class="col-md-2">
-                                        <label for="blade_{{ Auth::user()->id }}_{{ $index }}" class="form-label">Blade</label>
-                                        <select class="form-select select2" id="blade_{{ Auth::user()->id }}_{{ $index }}" name="blade[{{ Auth::user()->id }}][]" required>
-                                            <option value="">-- Selecciona un blade --</option>
-                                            @foreach($bladeOptions as $option)
-                                                <option value="{{ $option }}"
-                                                    @if(isset($results[$index-1]) && $results[$index-1]->blade == $option) selected @endif>
-                                                    {{ $option }}
-                                                </option>
-                                            @endforeach
-                                        </select>
-                                    </div>
-
-                                    <!-- Assist blade -->
-                                    <div class="col-md-2">
-                                        <label for="assist_blade_{{ Auth::user()->id }}_{{ $index }}" class="form-label">Assist blade (Solo CX)</label>
-                                        <select class="form-select select2" id="ratchet_{{ Auth::user()->id }}_{{ $index }}" name="assist_blade[{{ Auth::user()->id }}][]">
-                                            <option value="">-- Selecciona un assist blade --</option>
-                                            @foreach($assistBladeOptions as $option)
-                                                <option value="{{ $option }}"
-                                                    @if(isset($results[$index-1]) && $results[$index-1]->assist_blade == $option) selected @endif>
-                                                    {{ $option }}
-                                                </option>
-                                            @endforeach
-                                        </select>
-                                    </div>
-
-                                    <!-- Ratchet -->
-                                    <div class="col-md-2">
-                                        <label for="ratchet_{{ Auth::user()->id }}_{{ $index }}" class="form-label">Ratchet</label>
-                                        <select class="form-select select2" id="ratchet_{{ Auth::user()->id }}_{{ $index }}" name="ratchet[{{ Auth::user()->id }}][]" required>
-                                            <option value="">-- Selecciona un ratchet --</option>
-                                            @foreach($ratchetOptions as $option)
-                                                <option value="{{ $option }}"
-                                                    @if(isset($results[$index-1]) && $results[$index-1]->ratchet == $option) selected @endif>
-                                                    {{ $option }}
-                                                </option>
-                                            @endforeach
-                                        </select>
-                                    </div>
-
-                                    <!-- Bit -->
-                                    <div class="col-md-2">
-                                        <label for="bit_{{ Auth::user()->id }}_{{ $index }}" class="form-label">Bit</label>
-                                        <select class="form-select select2" id="bit_{{ Auth::user()->id }}_{{ $index }}" name="bit[{{ Auth::user()->id }}][]">
-                                            <option value="">-- Selecciona un bit --</option>
-                                            @foreach($bitOptions as $option)
-                                                <option value="{{ $option }}"
-                                                    @if(isset($results[$index-1]) && $results[$index-1]->bit == $option) selected @endif>
-                                                    {{ $option }}
-                                                </option>
-                                            @endforeach
-                                        </select>
-                                    </div>
-
-                                    <!-- Victorias -->
-                                    <div class="col-md-1">
-                                        <label for="victorias_{{ Auth::user()->id }}_{{ $index }}" class="form-label">Victorias</label>
-                                        <input type="number" class="form-control" id="victorias_{{ Auth::user()->id }}_{{ $index }}" name="victorias[{{ Auth::user()->id }}][]" value="{{ isset($results[$index-1]) ? $results[$index-1]->victorias : 0 }}">
-                                    </div>
-
-                                    <!-- Derrotas -->
-                                    <div class="col-md-1">
-                                        <label for="derrotas_{{ Auth::user()->id }}_{{ $index }}" class="form-label">Derrotas</label>
-                                        <input type="number" class="form-control" id="derrotas_{{ Auth::user()->id }}_{{ $index }}" name="derrotas[{{ Auth::user()->id }}][]" value="{{ isset($results[$index-1]) ? $results[$index-1]->derrotas : 0 }}">
-                                    </div>
-
-                                    <!-- Puntos Ganados -->
-                                    <div class="col-md-1">
-                                        <label for="puntos_ganados_{{ Auth::user()->id }}_{{ $index }}" class="form-label">P. Ganados</label>
-                                        <input type="number" class="form-control" id="puntos_ganados_{{ Auth::user()->id }}_{{ $index }}" name="puntos_ganados[{{ Auth::user()->id }}][]" value="{{ isset($results[$index-1]) ? $results[$index-1]->puntos_ganados : 0 }}">
-                                    </div>
-
-                                    <!-- Puntos Perdidos -->
-                                    <div class="col-md-1">
-                                        <label for="puntos_perdidos_{{ Auth::user()->id }}_{{ $index }}" class="form-label">P. Perdidos</label>
-                                        <input type="number" class="form-control" id="puntos_perdidos_{{ Auth::user()->id }}_{{ $index }}" name="puntos_perdidos[{{ Auth::user()->id }}][]" value="{{ isset($results[$index-1]) ? $results[$index-1]->puntos_perdidos : 0 }}">
-                                    </div>
-                                </div>
-                            @endforeach
-                        </div>
-                    @endif
-
-                    <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-4">
-                        <button type="submit" class="btn btn-primary">Guardar resultados</button>
-                    </div>
-                </form>
             </div>
         </div>
     </div>
-</div>
-@endsection
+
+
+    @endsection
+
+    @section('scripts')
+    @include('events.partials.deck_modal')
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+    @php
+        $paypalClientId = config('paypal.mode') === 'sandbox' ? config('paypal.sandbox.client_id') : config('paypal.live.client_id');
+    @endphp
+    <script src="https://www.paypal.com/sdk/js?client-id={{ $paypalClientId }}&currency=EUR"></script>
+
+    <script>
+        jQuery(document).ready(function ($) {
+
+            // 1. Inicializar Select2 de la página principal (fuera del modal)
+            // NO le ponemos dropdownParent para que funcione normal en la página
+            $('.select2').not('.select2-modal').select2({
+                theme: 'bootstrap-5',
+                width: '100%'
+            });
+
+            // 2. Inicializar Select2 DEL MODAL
+            // Usamos el evento shown.bs.modal para asegurar que el modal existe
+            $('#formModal').on('shown.bs.modal', function () {
+                $('.select2-modal').select2({
+                    theme: 'bootstrap-5',
+                    width: '100%',
+                    dropdownParent: $('#formModal') // <--- ESTO ARREGLA EL SCROLL
+                });
+            });
+
+            // Configuración PayPal
+            @if(in_array($event->beys, ["grancopa", "copapaypal"]))
+                const amount = "{{ $event->beys === 'grancopa' ? '5.00' : '2.00' }}";
+                paypal.Buttons({
+                    style: { layout: 'vertical', color: 'gold', shape: 'pill', label: 'pay' },
+                    createOrder: (data, actions) => {
+                        return actions.order.create({ purchase_units: [{ description: "Inscripción", amount: { value: amount } }] });
+                    },
+                    onApprove: (data, actions) => {
+                        return actions.order.capture().then(details => {
+                            fetch("{{ route('events.assist', ['event' => $event->id]) }}", {
+                                method: "POST",
+                                headers: { "Content-Type": "application/json", "X-CSRF-TOKEN": "{{ csrf_token() }}" },
+                                body: JSON.stringify({ paypal_order_id: data.orderID })
+                            }).then(res => { if (res.ok) window.location.reload(); });
+                        });
+                    }
+                }).render("#paypal-button-container");
+            @endif
+
+            // Copiar al portapapeles
+            $('#copyButton').on('click', function() {
+                const names = {!! json_encode($assists->pluck('name')->values()->toArray()) !!}.join('\n');
+                if(navigator.clipboard) {
+                    navigator.clipboard.writeText(names).then(() => alert('Nombres copiados'));
+                } else {
+                    alert('Navegador no compatible');
+                }
+            });
+        });
+    </script>
+    @endsection

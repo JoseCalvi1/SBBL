@@ -9,8 +9,7 @@ class Event extends Model
 {
     use HasFactory;
 
-    // --- 1. OBLIGATORIO: CAMPOS QUE SE PUEDEN GUARDAR ---
-    // Sin esto, Event::create() fallará.
+    // --- 1. CAMPOS QUE SE PUEDEN GUARDAR ---
     protected $fillable = [
         'name',
         'mode',
@@ -20,8 +19,8 @@ class Event extends Model
         'date',
         'time',
         'imagen',
-        'beys',         // Tipo de evento (ranking, quedada, etc)
-        'image_mod',    // Imagen personalizada en base64
+        'beys',
+        'image_mod',
         'deck',
         'configuration',
         'note',
@@ -29,11 +28,20 @@ class Event extends Model
         'created_by',
         'iframe',
         'challonge',
+        'stadiums',          // Nuevo
+        'has_stadium_limit', // Nuevo
     ];
 
-    // --- 2. RELACIONES ---
+    // --- 2. CASTS (CONVERSIÓN DE TIPOS) ---
+    // Esto es vital para que 'has_stadium_limit' funcione bien en los @if de la vista
+    protected $casts = [
+        'has_stadium_limit' => 'boolean', // Convierte 1/0 a true/false
+        'stadiums' => 'integer',
+        'date' => 'datetime',             // Permite usar ->format('d/m/Y') en la vista
+    ];
 
-    // Cambiado 'Videos' a 'videos' (estándar Laravel: camelCase)
+    // --- 3. RELACIONES ---
+
     public function videos()
     {
         return $this->hasMany(Video::class, 'event_id');
@@ -44,15 +52,13 @@ class Event extends Model
         return $this->belongsTo(Region::class, 'region_id');
     }
 
-    // Relación principal de participantes
     public function users()
     {
         return $this->belongsToMany(User::class, 'assist_user_event', 'event_id', 'user_id')
                     ->withPivot('puesto')
-                    ->withTimestamps(); // Añadido timestamps por si la tabla pivote los usa
+                    ->withTimestamps();
     }
 
-    // Esta relación es necesaria si usas $event->results en el controlador
     public function results()
     {
         return $this->hasMany(TournamentResult::class, 'event_id');
@@ -68,12 +74,10 @@ class Event extends Model
         return $this->hasOne(EventJudgeReview::class);
     }
 
-    // He mantenido esta por si la usas en otro lado, pero 'users' parece ser la principal
     public function assists() {
         return $this->belongsToMany(User::class, 'assist_event');
     }
 
-    // He mantenido esta, aunque el nombre 'event' dentro del modelo Event es confuso
     public function event()
     {
         return $this->belongsToMany(Versus::class, 'event_id');

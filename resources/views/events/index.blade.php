@@ -184,6 +184,31 @@
 
 <?php endif; ?>
 
+@if (
+    (auth()->user()->is_jury || auth()->user()->is_admin) &&
+    !in_array($event->status, ['INVALID', 'CLOSE']) &&
+    in_array($event->beys, ['ranking', 'rankingplus'])
+)
+    <div class="d-flex flex-wrap gap-2 mt-2">
+
+        <!-- BOTÓN VALIDAR -->
+        <button type="button"
+                class="btn btn-success btn-sm"
+                data-bs-toggle="modal"
+                data-bs-target="#validarModal{{ $event->id }}">
+            ✅ Validar evento
+        </button>
+
+        <!-- BOTÓN INVALIDAR -->
+        <button type="button"
+                class="btn btn-danger btn-sm"
+                data-bs-toggle="modal"
+                data-bs-target="#invalidarModal{{ $event->id }}">
+            ❌ Invalidar evento
+        </button>
+
+    </div>
+@endif
 
 
 

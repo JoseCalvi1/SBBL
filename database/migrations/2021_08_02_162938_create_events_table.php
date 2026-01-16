@@ -26,6 +26,8 @@ class CreateEventsTable extends Migration
             $table->string('deck')->nullable();
             $table->string('configuration')->nullable();
             $table->string('note')->nullable();
+            $table->integer('stadiums')->default(1);
+            $table->boolean('has_stadium_limit')->default(false);
             $table->foreignId('region_id')->nullable()->constrained()->onDelete('cascade');
             $table->date('date')->nullable();
             $table->time('time')->nullable();
