@@ -153,7 +153,7 @@ class EventController extends Controller
     public function show(Event $event)
     {
         // Optimización: Carga ansiosa para evitar consultas extra
-        $event->load('users');
+        $event->load(['users', 'judgeReview', 'reviews.referee']);
 
         $videos = DB::select('select * from videos where event_id = ?', [$event->id]);
         $assists = $event->users()->withPivot('puesto')->get();
