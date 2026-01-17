@@ -20,7 +20,7 @@ class ProfileController extends Controller
 {
     public function __construct()
     {
-        $this->middleware('auth');
+        $this->middleware('auth')->except(['getFilterOptions', 'getBladers']);
     }
     /**
      * Display a listing of the resource.
@@ -28,53 +28,139 @@ class ProfileController extends Controller
      * @return \Illuminate\Http\Response
      */
     public function index(Request $request)
-{
-    $regionId = $request->input('region');
-    $isFreeAgent = $request->input('free_agent');
+    {
+        $regionId = $request->input('region');
+        $isFreeAgent = $request->input('free_agent');
 
-    $bladersQuery = Profile::with(['user.activeSubscription.plan', 'region', 'trophies'])
-        ->withCount('trophies')
-        ->when($regionId, fn($query) => $query->where('profiles.region_id', $regionId))
-        ->when(isset($isFreeAgent) && $isFreeAgent !== '', function($query) use ($isFreeAgent) {
-            $value = $isFreeAgent == '1' ? true : false;
-            $query->where('profiles.free_agent', $value);
-        })
-        ->where(function ($query) {
-            $query->where('profiles.points_x2', '<>', 0)
-                  ->orWhere('profiles.points_s3', '<>', 0)
-                  ->orWhereNotNull('profiles.imagen');
-        })
-        ->leftJoin('subscriptions', function($join) {
-            $join->on('subscriptions.user_id', '=', 'profiles.user_id')
-                 ->where('subscriptions.status', 'active')
-                 ->where('subscriptions.ended_at', '>=', now());
-        })
-        ->leftJoin('plans', 'subscriptions.plan_id', '=', 'plans.id')
-        ->orderByRaw("
-            CASE
-                WHEN plans.slug = 'oro' THEN 1
-                WHEN plans.slug = 'plata' THEN 2
-                WHEN plans.slug = 'bronce' THEN 3
-                ELSE 4
-            END, profiles.id ASC
-        ");
+        $bladersQuery = Profile::with(['user.activeSubscription.plan', 'region', 'trophies'])
+            ->withCount('trophies')
+            ->when($regionId, fn($query) => $query->where('profiles.region_id', $regionId))
+            ->when(isset($isFreeAgent) && $isFreeAgent !== '', function($query) use ($isFreeAgent) {
+                $value = $isFreeAgent == '1' ? true : false;
+                $query->where('profiles.free_agent', $value);
+            })
+            ->where(function ($query) {
+                $query->where('profiles.points_x2', '<>', 0)
+                    ->orWhere('profiles.points_s3', '<>', 0)
+                    ->orWhereNotNull('profiles.imagen');
+            })
+            ->leftJoin('subscriptions', function($join) {
+                $join->on('subscriptions.user_id', '=', 'profiles.user_id')
+                    ->where('subscriptions.status', 'active')
+                    ->where('subscriptions.ended_at', '>=', now());
+            })
+            ->leftJoin('plans', 'subscriptions.plan_id', '=', 'plans.id')
+            ->orderByRaw("
+                CASE
+                    WHEN plans.slug = 'oro' THEN 1
+                    WHEN plans.slug = 'plata' THEN 2
+                    WHEN plans.slug = 'bronce' THEN 3
+                    ELSE 4
+                END, profiles.id ASC
+            ");
 
-    // ❌ Detectamos si hay filtros
-    $hasFilter = $regionId || $isFreeAgent !== null;
+        // ❌ Detectamos si hay filtros
+        $hasFilter = $regionId || $isFreeAgent !== null;
 
-    // Si hay filtros, traemos todos sin paginar
-    $bladers = $hasFilter ? $bladersQuery->get() : $bladersQuery->paginate(100);
+        // Si hay filtros, traemos todos sin paginar
+        $bladers = $hasFilter ? $bladersQuery->get() : $bladersQuery->paginate(100);
 
-    $regiones = Region::all();
-    $equipo = Team::where('captain_id', Auth::user()->id)->first();
+        $regiones = Region::all();
+        $equipo = Team::where('captain_id', Auth::user()->id)->first();
 
-    return view('profiles.index', compact('bladers', 'regiones', 'equipo'));
-}
+        return view('profiles.index', compact('bladers', 'regiones', 'equipo'));
+    }
 
+    public function getFilterOptions()
+    {
+        $regiones = Region::all(['id', 'name']);
 
+        $equipoId = null;
+        $isAuthenticated = Auth::check();
 
+        if ($isAuthenticated) {
+            // Asume que solo el capitán puede enviar invitaciones.
+            $equipo = Team::where('captain_id', Auth::id())->first(['id']);
+            if ($equipo) {
+                $equipoId = $equipo->id;
+            }
+        }
 
+        return response()->json([
+            'regiones' => $regiones,
+            // Solo devolvemos el ID del equipo (o null)
+            'equipo_id' => $equipoId,
+            'is_authenticated' => $isAuthenticated,
+        ]);
+    }
 
+    /**
+     * Devuelve la lista de bladers filtrados y/o paginados.
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function getBladers(Request $request)
+    {
+        $regionId = $request->input('region');
+        // El input viene como string ('1' o '0') desde Vue.
+        $isFreeAgent = $request->input('free_agent');
+        $perPage = 100; // Valor fijo para paginación
+
+        // --- 1. Construcción de la consulta (Tu lógica original) ---
+        $bladersQuery = Profile::with(['user.activeSubscription.plan', 'region', 'trophies'])
+            ->withCount('trophies')
+            ->when($regionId, fn($query) => $query->where('profiles.region_id', $regionId))
+            ->when(isset($isFreeAgent) && $isFreeAgent !== '', function($query) use ($isFreeAgent) {
+                // Conversión de string '1'/'0' a booleano
+                $value = $isFreeAgent == '1';
+                $query->where('profiles.free_agent', $value);
+            })
+            // Lógica de visibilidad (points_x2, points_s3 o imagen)
+            ->where(function ($query) {
+                $query->where('profiles.points_x2', '<>', 0)
+                      ->orWhere('profiles.points_s3', '<>', 0)
+                      ->orWhereNotNull('profiles.imagen');
+            })
+            // Tu lógica de LEFT JOIN para la suscripción activa
+            ->leftJoin('subscriptions', function($join) {
+                $join->on('subscriptions.user_id', '=', 'profiles.user_id')
+                     ->where('subscriptions.status', 'active')
+                     // Usamos DB::raw('NOW()') para ser coherentes con el contexto de la base de datos
+                     ->where('subscriptions.ended_at', '>=', DB::raw('NOW()'));
+            })
+            ->leftJoin('plans', 'subscriptions.plan_id', '=', 'plans.id')
+            // Tu lógica de ordenación por nivel de suscripción
+            ->orderByRaw("
+                CASE
+                    WHEN plans.slug = 'oro' THEN 1
+                    WHEN plans.slug = 'plata' THEN 2
+                    WHEN plans.slug = 'bronce' THEN 3
+                    ELSE 4
+                END, profiles.id ASC
+            ")
+            // Evitamos duplicados, crucial al usar LEFT JOIN
+            ->select('profiles.*');
+
+        // --- 2. Determinación de la paginación ---
+        $hasFilter = $regionId || ($isFreeAgent !== null && $isFreeAgent !== '');
+
+        if ($hasFilter) {
+            // Si hay filtros activos, no paginamos (como en tu lógica original)
+            $bladers = $bladersQuery->get()->unique('id'); // Aseguramos unicidad
+
+            // Devolvemos una estructura simple sin metadata de paginación
+            return response()->json([
+                'data' => $bladers,
+                'total' => $bladers->count(),
+                'last_page' => 1, // Indicador para Vue de que no hay paginación
+            ]);
+        } else {
+            // Si NO hay filtros, usamos la paginación estándar de Laravel
+            $bladersPaginados = $bladersQuery->paginate($perPage);
+
+            // Laravel ya formatea la respuesta de paginación con toda la metadata (links, current_page, last_page, data, etc.)
+            return response()->json($bladersPaginados);
+        }
+    }
 
     /**
      * Display a listing of the resource.
@@ -283,6 +369,8 @@ class ProfileController extends Controller
             'Base/SolEclipse.webp' => 'upload-profiles/Base/SolEclipse.webp',
             'Base/WhaleFlame.webp' => 'upload-profiles/Base/WhaleFlame.webp',
             'Base/WriggleKraken.webp' => 'upload-profiles/Base/WriggleKraken.webp',
+            'Base/EmperorMight.webp' => 'upload-profiles/Base/EmperorMight.webp',
+            'Base/WolfHunt.webp' => 'upload-profiles/Base/WolfHunt.webp',
         ];
 
 
@@ -356,6 +444,8 @@ class ProfileController extends Controller
             'BRONCE/GoatTacklePurple.webp' => 'upload-profiles/BRONCE/GoatTacklePurple.webp',
             'BRONCE/HellsReaperGreen.webp' => 'upload-profiles/BRONCE/HellsReaperGreen.webp',
             'BRONCE/RoarTyrannoRed.webp' => 'upload-profiles/BRONCE/RoarTyrannoRed.webp',
+            'BRONCE/BlueGillShark.webp' => 'upload-profiles/BRONCE/BlueGillShark.webp',
+            'BRONCE/GreenGolemRock.webp' => 'upload-profiles/BRONCE/GreenGolemRock.webp',
         ];
 
         if (Auth::user()->activeSubscription) {
@@ -431,6 +521,8 @@ class ProfileController extends Controller
             'ORO/KaW.webp' => 'upload-profiles/ORO/KaW.webp',
             'ORO/Androide.webp' => 'upload-profiles/ORO/Androide.webp',
             'ORO/Andymdfk_1.webp' => 'upload-profiles/ORO/Andymdfk_1.webp',
+            'ORO/Emperador.webp' => 'upload-profiles/ORO/Emperador.webp',
+            'ORO/XtremeV.webp' => 'upload-profiles/ORO/XtremeV.webp',
             /*'ORO/Leon.gif' => 'upload-profiles/ORO/Leon.gif',
             'ORO/dragoon.gif' => 'upload-profiles/ORO/dragoon.gif',
             'ORO/beyblade-tyson.gif' => 'upload-profiles/ORO/beyblade-tyson.gif',
@@ -455,13 +547,36 @@ class ProfileController extends Controller
         $copaLloros = DB::table('assist_user_event')
             ->join('events', 'assist_user_event.event_id', '=', 'events.id')
             ->where('assist_user_event.user_id', Auth::user()->id)
-            ->where('events.name', 'LIKE', '%lloro%')
-            ->exists(); // Devuelve true si hay algún resultado
+            ->whereRaw('LOWER(events.name) LIKE ?', ['%lloro%'])
+            ->exists();
+
+        $copaLetItRIP = DB::table('assist_user_event')
+            ->join('events', 'assist_user_event.event_id', '=', 'events.id')
+            ->where('assist_user_event.user_id', Auth::user()->id)
+            ->whereRaw('LOWER(events.name) LIKE ?', ['%let it%'])
+            ->exists();
 
         $copaLlorosAvatar = [
-                'EXC/SWLLOROS.webp' => 'upload-profiles/EXC/SWLLOROS.webp',
-                'EXC/WRLLOROS.webp' => 'upload-profiles/EXC/WRLLOROS.webp',
-            ];
+            'EXC/SWLLOROS.webp' => 'upload-profiles/EXC/SWLLOROS.webp',
+            'EXC/WRLLOROS.webp' => 'upload-profiles/EXC/WRLLOROS.webp',
+        ];
+
+        $copaLetItRIPAvatar = [
+            'EXC/GhostBurster.webp' => 'upload-profiles/EXC/GhostBurster.webp',
+            'EXC/Golemstein.webp' => 'upload-profiles/EXC/Golemstein.webp',
+        ];
+
+        // Array final con los iconos del usuario según participación
+        $avatars = [];
+
+        if ($copaLloros) {
+            $avatars = array_merge($avatars, $copaLlorosAvatar);
+        }
+
+        if ($copaLetItRIP) {
+            $avatars = array_merge($avatars, $copaLetItRIPAvatar);
+        }
+
 
         $marcoOptions = [
             'BaseBlack.png' => 'upload-profiles/Marcos/BaseBlack.png',
@@ -558,7 +673,7 @@ class ProfileController extends Controller
             }
         }
 
-        return view('profiles.edit', compact('profile', 'regions', 'regionT', 'avatarOptions', 'marcoOptions', 'fondoOptions', 'subscriptionLevel', 'bronzeAvatars', 'silverAvatars', 'goldAvatars', 'marcoBronce', 'marcoPlata', 'marcoOro', 'copaLloros', 'copaLlorosAvatar'));
+        return view('profiles.edit', compact('profile', 'regions', 'regionT', 'avatarOptions', 'marcoOptions', 'fondoOptions', 'subscriptionLevel', 'bronzeAvatars', 'silverAvatars', 'goldAvatars', 'marcoBronce', 'marcoPlata', 'marcoOro', 'avatars', 'copaLlorosAvatar'));
     }
 
     /**
@@ -688,8 +803,12 @@ class ProfileController extends Controller
 
         public function ranking(Request $request)
         {
+            ini_set('memory_limit', '1024M'); // Seguridad extra, por si acaso
             // Valores de filtros
             $limit = $request->input('limit', 25); // Valor por defecto: 25
+            if ($limit !== 'all') {
+                $limit = (int) $limit;
+            }
             $region = $request->input('region', null);
 
             // Función para generar cada ranking
@@ -703,7 +822,9 @@ class ProfileController extends Controller
                     ->where($column, '!=', 0)
                     ->orderBy($column, 'DESC')
                     ->orderBy('id', 'ASC')
-                    ->take($limit)
+                    ->when($limit !== 'all', function ($query) use ($limit) {
+                        return $query->take($limit);
+                    })
                     ->get()
                     ->map(function ($blader) use ($column) {
                         if ($blader->user->teams->isNotEmpty() && $blader->user->teams->first()->logo) {
@@ -811,6 +932,113 @@ class ProfileController extends Controller
 
         return view('profiles.splits', compact('data', 'splits'));
     }
+
+
+public function getDetails($id)
+{
+    $blader = Profile::with('user')
+                    ->findOrFail($id);
+
+    $user = $blader->user;
+
+    $team = null;
+    $teamName = 'Ninguno';
+    $teamLogoData = null;
+    $teamPoints = 0;
+
+    // 🔹 Inicializamos las estadísticas
+    $torneosJugados = 0;
+    $primeros = 0;
+    $segundos = 0;
+    $terceros = 0;
+    $torneosJugados_x1 = 0;
+    $primeros_x1 = 0;
+    $segundos_x1 = 0;
+    $terceros_x1 = 0;
+    $mostrarEstadisticas = false; // Por defecto, no mostrar
+
+    if ($user) {
+        // 🔸 Comprobamos si el usuario tiene una suscripción activa
+        $suscrito = DB::table('subscriptions')
+            ->where('user_id', Auth::user()->id)
+            ->where('status', 'active')
+            ->exists();
+
+        if ($suscrito) {
+            $mostrarEstadisticas = true;
+
+            // 🔹 Contar los eventos después del 1 de septiembre de 2025
+            $bladerData = DB::table('assist_user_event')
+                ->join('events', 'assist_user_event.event_id', '=', 'events.id')
+                ->where('assist_user_event.user_id', $user->id)
+                ->where('events.date', '>', '2025-09-01')
+                ->select('assist_user_event.puesto')
+                ->get();
+
+            $torneosJugados = $bladerData->count();
+            $primeros = $bladerData->where('puesto', 'primero')->count();
+            $segundos = $bladerData->where('puesto', 'segundo')->count();
+            $terceros = $bladerData->where('puesto', 'tercero')->count();
+
+            $bladerData_x1 = DB::table('assist_user_event')
+                ->join('events', 'assist_user_event.event_id', '=', 'events.id')
+                ->where('assist_user_event.user_id', $user->id)
+                ->where('events.date', '>', '2024-06-01')
+                ->where('events.date', '<', '2025-06-23')
+                ->select('assist_user_event.puesto')
+                ->get();
+
+            $torneosJugados_x1 = $bladerData_x1->count();
+            $primeros_x1 = $bladerData_x1->where('puesto', 'primero')->count();
+            $segundos_x1 = $bladerData_x1->where('puesto', 'segundo')->count();
+            $terceros_x1 = $bladerData_x1->where('puesto', 'tercero')->count();
+        }
+
+        // 🔹 Datos del equipo
+        $teamData = DB::table('team_user')
+                    ->where('user_id', $user->id)
+                    ->select('team_id')
+                    ->first();
+
+        if ($teamData) {
+            $team = DB::table('teams')
+                    ->where('id', $teamData->team_id)
+                    ->first();
+
+            if ($team) {
+                $teamName = $team->name;
+                $teamLogoData = $team->logo;
+                $teamPoints = $team->points_x2;
+            }
+        }
+    }
+
+    return response()->json([
+        'nombre' => $blader->user->name,
+        'region' => $blader->region->name ?? 'No definida',
+        'puntos_x1' => $blader->points_x1 ?? 0,
+        'puntos_x2' => $blader->points_x2 ?? 0,
+        'subtitulo' => $blader->subtitulo,
+        'imagen' => asset('storage/' . ($blader->imagen ?? 'upload-profiles/Base/DranDagger.webp')),
+        'marco' => asset('storage/' . ($blader->marco ?? 'upload-profiles/Marcos/BaseBlue.png')),
+        'free_agent' => $blader->free_agent ? 'Sí' : 'No',
+        'equipo_nombre' => $teamName,
+        'equipo_logo_b64' => $teamLogoData,
+        'equipo_puntos' => $teamPoints,
+
+        // 🔹 Solo si está suscrito
+        'mostrar_estadisticas' => $mostrarEstadisticas,
+        'torneos_jugados' => $torneosJugados,
+        'primeros' => $primeros,
+        'segundos' => $segundos,
+        'terceros' => $terceros,
+        'torneos_jugados_x1' => $torneosJugados_x1,
+        'primeros_x1' => $primeros_x1,
+        'segundos_x1' => $segundos_x1,
+        'terceros_x1' => $terceros_x1,
+        'is_subscribed' => Auth::user()->activeSubscription ? true : false,
+    ]);
+}
 
 
 

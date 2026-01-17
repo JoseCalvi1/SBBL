@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
 use App\Models\Ticket;
+use App\Models\User;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
@@ -275,4 +276,65 @@ class TicketController extends Controller
             'body' => json_decode($responseBody, true)
         ];
     }
+
+    public function index(Request $request)
+    {
+
+        // Obtener todos los tickets
+        $tickets = Ticket::all()->toArray();
+        $totalTickets = count($tickets);
+        $totalParticipants = User::whereIn('id', Ticket::pluck('user_id'))->count();
+
+        $winners = $request->session()->get('winners', []);
+
+        return view('tickets.sorteo', [
+            'totalTickets' => $totalTickets,
+            'totalParticipants' => $totalParticipants,
+            'winners' => $winners
+        ]);
+    }
+
+    public function draw(Request $request)
+    {
+        // Limpiar los ganadores anteriores
+        $request->session()->forget('winners');
+
+        $tickets = Ticket::all()->toArray();
+
+        if(count($tickets) < 3){
+            return redirect()->back()->with('error', 'No hay suficientes papeletas para la rifa');
+        }
+
+        $winners = [];
+        $availableTickets = $tickets;
+
+        for($i=0; $i<3; $i++){
+            $winnerTicket = $availableTickets[array_rand($availableTickets)];
+            $user = User::find($winnerTicket['user_id']);
+            $winners[] = [
+                'ticket' => $winnerTicket['identifier'],
+                'user' => $user->name
+            ];
+            // Quitar todas las papeletas del usuario ganador
+            $availableTickets = array_filter($availableTickets, fn($t) => $t['user_id'] != $winnerTicket['user_id']);
+            $availableTickets = array_values($availableTickets);
+        }
+
+        // Guardar ganadores en sesión
+        $request->session()->put('winners', $winners);
+
+        return redirect()->route('tickets.sorteo');
+    }
+
+    public function reset(Request $request)
+    {
+        // Borrar los ganadores de la sesión
+        $request->session()->forget('winners');
+
+        // Redirigir de nuevo al sorteo
+        return redirect()->route('tickets.sorteo')->with('success', 'Rifa reiniciada correctamente.');
+    }
+
+
+
 }

@@ -55,9 +55,8 @@ class TeamsVersusController extends Controller
     public function create()
     {
         $teams = Team::orderBy('name')->get();
-        $events = Event::orderBy('id', 'DESC')->get();
 
-        return view('teams_versus.create', compact('teams', 'events'));
+        return view('teams_versus.create', compact('teams'));
     }
 
     /**
@@ -66,56 +65,55 @@ class TeamsVersusController extends Controller
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-    public function store(Request $request)
-    {
-        $team_id_1 = $request->input('team_id_1');
-        $team_id_2 = $request->input('team_id_2');
+public function store(Request $request)
+{
+    $team_id_1 = $request->input('team_id_1');
+    $team_id_2 = $request->input('team_id_2');
 
-        $primer_dia_mes_actual = Carbon::now()->startOfMonth(); // Obtener el primer día del mes actual
-        $ultimo_dia_mes_actual = Carbon::now()->endOfMonth();   // Obtener el último día del mes actual
+    $primer_dia_mes_actual = Carbon::now()->startOfMonth();
+    $ultimo_dia_mes_actual = Carbon::now()->endOfMonth();
 
-        $se_enfrentaron = TeamsVersus::where(function($query) use ($team_id_1, $team_id_2) {
-            $query->where(function($q) use ($team_id_1, $team_id_2) {
-                $q->where('team_id_1', $team_id_1)
-                ->where('team_id_2', $team_id_2);
-            })
-            ->orWhere(function($q) use ($team_id_1, $team_id_2) {
-                $q->where('team_id_1', $team_id_2)
-                ->where('team_id_2', $team_id_1);
-            });
+    $se_enfrentaron = TeamsVersus::where(function($query) use ($team_id_1, $team_id_2) {
+        $query->where(function($q) use ($team_id_1, $team_id_2) {
+            $q->where('team_id_1', $team_id_1)
+              ->where('team_id_2', $team_id_2);
         })
-        ->whereBetween('created_at', [$primer_dia_mes_actual, $ultimo_dia_mes_actual])
-        ->where('matchup', $request->input('modalidad'))
-        ->exists();
+        ->orWhere(function($q) use ($team_id_1, $team_id_2) {
+            $q->where('team_id_1', $team_id_2)
+              ->where('team_id_2', $team_id_1);
+        });
+    })
+    ->whereBetween('created_at', [$primer_dia_mes_actual, $ultimo_dia_mes_actual])
+    ->where('matchup', $request->input('modalidad'))
+    ->exists();
 
-        if ($se_enfrentaron) {
-            return redirect()->back()->with('error', 'Estos equipos ya se han enfrentado una vez este mes');
-        }
-
-        // Validación
-        $data = $request->validate([
-            'team_id_1' => 'required',
-            'team_id_2' => 'required',
-            'result_1' => 'required',
-            'result_2' => 'required',
-            'modalidad' => 'required',
-        ]);
-
-        // Almacenar datos en la BD (sin modelos)
-        DB::table('teams_versus')->insert([
-            'team_id_1' => $data['team_id_1'],
-            'team_id_2' => $data['team_id_2'],
-            'result_1' => $data['result_1'],
-            'result_2' => $data['result_2'],
-            'matchup' => $request['modalidad'],
-            'status' => 'OPEN',
-            'created_at' => Carbon::now(),
-        ]);
-
-        $versus = TeamsVersus::orderBy('id', 'DESC')->where('status', 'CLOSED')->get();
-
-        return view('teams_versus.all', compact('versus'));
+    if ($se_enfrentaron) {
+        return redirect()->back()->with('error', 'Estos equipos ya se han enfrentado una vez este mes');
     }
+
+    $data = $request->validate([
+        'team_id_1' => 'required',
+        'team_id_2' => 'required',
+        'result_1' => 'required',
+        'result_2' => 'required',
+        'modalidad' => 'required',
+    ]);
+
+    DB::table('teams_versus')->insert([
+        'team_id_1' => $data['team_id_1'],
+        'team_id_2' => $data['team_id_2'],
+        'result_1' => $data['result_1'],
+        'result_2' => $data['result_2'],
+        'matchup' => $data['modalidad'],
+        'status' => 'OPEN',
+        'created_at' => Carbon::now(),
+    ]);
+
+    // 🔁 Redirige en lugar de renderizar
+    return redirect()->route('teams_versus.all')
+        ->with('success', 'Duelo añadido correctamente');
+}
+
 
     /**
      * Show the form for editing the specified resource.

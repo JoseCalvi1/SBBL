@@ -278,6 +278,22 @@ h4 {
                                 </div>
                             </div>
                         @endif
+                        @if (!empty($avatars) || Auth::user()->is_admin)
+                            <div class="exclusive-section-gold">
+                                <h4>AVATARES COPAS EXCLUSIVAS</h4>
+                                <div class="row">
+                                    @foreach ($avatars as $key => $avatar)
+                                        <div class="col-md-2 col-options">
+                                            <label>
+                                                <input type="radio" name="default_img" value="{{ $key }}"
+                                                    @if ($profile->imagen == $avatar) checked @endif/>
+                                                <img src="/storage/{{ $avatar }}" class="img-fluid" loading="lazy" />
+                                            </label>
+                                        </div>
+                                    @endforeach
+                                </div>
+                            </div>
+                        @endif
                     </div>
                 </div>
 
@@ -348,21 +364,6 @@ h4 {
                                             <label>
                                                 <input type="radio" name="marco" value="{{ $key }}" @if ($profile->marco == $marco) checked @endif/>
                                                 <img src="/storage/{{ $marco }}" class="img-fluid" loading="lazy" />
-                                            </label>
-                                        </div>
-                                    @endforeach
-                                </div>
-                            </div>
-                        @endif
-                        @if ($copaLloros || Auth::user()->is_admin)
-                            <div class="exclusive-section-gold">
-                            <h4>AVATARES COPAS EXCLUSIVAS</h4>
-                                <div class="row">
-                                    @foreach ($copaLlorosAvatar as $key => $avatar)
-                                        <div class="col-md-2 col-options">
-                                            <label>
-                                                <input type="radio" name="default_img" value="{{ $key }}" @if ($profile->imagen == $avatar) checked @endif/>
-                                                <img src="/storage/{{ $avatar }}" class="img-fluid" loading="lazy" />
                                             </label>
                                         </div>
                                     @endforeach

@@ -139,11 +139,26 @@ class BeybladeCollectionController extends Controller
      */
     public function update(Request $request, $id)
     {
+        // Validar si es necesario (Recomendado)
+        $request->validate([
+            'part_id' => 'required|integer', // Asegúrate de que sea requerido
+            'weight' => 'nullable|numeric',
+            'color' => 'nullable|string',
+            'quantity' => 'nullable|integer',
+            'comment' => 'nullable|string|max:255',
+            'type' => 'required|string', // Aunque no se guarda, es bueno validarlo
+        ]);
+
         $item = BeybladeCollection::findOrFail($id);
+
+        // **CORRECCIÓN: Incluir part_id**
+        $item->part_id = $request->part_id;
+
         $item->weight = $request->weight;
         $item->color = $request->color;
         $item->quantity = $request->quantity;
         $item->comment = $request->comment;
+
         $item->save();
 
         return redirect()->back()->with('success', 'Pieza actualizada correctamente');

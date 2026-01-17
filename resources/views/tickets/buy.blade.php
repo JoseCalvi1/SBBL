@@ -47,7 +47,7 @@
                     <p class="mt-3 text-center">🌟 ¡Vamos a cerrar el año por todo lo alto! 🌟</p>
                 </div>
 
-                {{-- COLUMNA DERECHA--}}
+                {{-- COLUMNA DERECHA
                 <div class="col-md-5">
                     <div class="ticket-card">
                         <h3 class="text-center mb-3">🎫 Compra tus tickets</h3>
@@ -63,7 +63,7 @@
                         <div id="buyMsg" class="mt-3"></div>
 
                     </div>
-                </div>
+                </div>--}}
 
             </div>
         </div>

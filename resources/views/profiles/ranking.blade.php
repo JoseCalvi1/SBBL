@@ -3,25 +3,57 @@
 @section('title', 'Ranking Beyblade X')
 
 @section('content')
+@php
+    // Divisiones Beyblade X S2
+    function divisionBX2($points) {
+        if ($points >= 95) return 'Xtreme';
+        if ($points >= 79) return 'Maestro';
+        if ($points >= 59) return 'Platino';
+        if ($points >= 39) return 'Oro';
+        if ($points >= 23) return 'Plata';
+        return 'Bronce';
+    }
+
+    function rangoPuntos($division) {
+        $rangos = [
+            'Bronce'  => '0 - 22',
+            'Plata'   => '23 - 38',
+            'Oro'     => '39 - 58',
+            'Platino' => '59 - 78',
+            'Maestro' => '79 - 94',
+            'Xtreme'  => '≥95',
+        ];
+
+        return $rangos[$division] ?? '';
+    }
+
+$divisionOrder = ['Xtreme', 'Maestro', 'Platino', 'Oro', 'Plata', 'Bronce'];
+
+    // Obtener filtros actuales
+    $filterRegion = request('region', '');
+    $limit = request('limit', 'all');
+@endphp
+
 <div class="container">
+
     <!-- Filtros -->
     <div class="row justify-content-center mb-4">
         <div class="col-md-6">
-            <label for="limitSelect" class="text-white">Mostrar:</label>
+            <label class="text-white">Mostrar:</label>
             <select id="limitSelect" class="form-control bg-dark text-white" onchange="applyFilters()">
-                <option value="25" {{ $limit == 25 ? 'selected' : '' }}>25</option>
-                <option value="50" {{ $limit == 50 ? 'selected' : '' }}>50</option>
-                <option value="200" {{ $limit == 200 ? 'selected' : '' }}>200</option>
-                <option value="500" {{ $limit == 500 ? 'selected' : '' }}>500</option>
-                <option value="1000" {{ $limit == 1000 ? 'selected' : '' }}>1000</option>
+                @foreach([25,50,200,500,1000,'all'] as $val)
+                    <option value="{{ $val }}" {{ $limit == $val ? 'selected' : '' }}>
+                        {{ $val == 'all' ? 'Todos' : $val }}
+                    </option>
+                @endforeach
             </select>
         </div>
         <div class="col-md-6">
-            <label for="regionSelect" class="text-white">Filtrar por región:</label>
+            <label class="text-white">Filtrar por región:</label>
             <select id="regionSelect" class="form-control bg-dark text-white" onchange="applyFilters()">
                 <option value="">Todas las regiones</option>
                 @foreach ($regions as $regionOption)
-                    <option value="{{ $regionOption }}" {{ $region == $regionOption ? 'selected' : '' }}>
+                    <option value="{{ $regionOption }}" {{ $filterRegion == $regionOption ? 'selected' : '' }}>
                         {{ $regionOption }}
                     </option>
                 @endforeach
@@ -30,90 +62,117 @@
     </div>
 
     <!-- Tabs -->
-    <ul class="nav nav-tabs mb-4" id="rankingTabs" role="tablist">
-        @php $tabs = ['points' => 'Burst S1', 'points_s2' => 'Burst S2', 'points_s3' => 'Burst S3', 'points_x1' => 'Beyblade X S1', 'points_x2' => 'Beyblade X S2']; @endphp
+    <ul class="nav nav-tabs mb-4">
+        @php
+            $tabs = [
+                'points' => 'Burst S1',
+                'points_s2' => 'Burst S2',
+                'points_s3' => 'Burst S3',
+                'points_x1' => 'Beyblade X S1',
+                'points_x2' => 'Beyblade X S2'
+            ];
+        @endphp
         @foreach ($tabs as $key => $label)
-            <li class="nav-item" role="presentation">
-                <button class="nav-link {{ $loop->last ? 'active' : '' }}" id="{{ $key }}-tab"
-                    data-bs-toggle="tab" data-bs-target="#{{ $key }}" type="button" role="tab"
-                    aria-controls="{{ $key }}" aria-selected="{{ $loop->first ? 'true' : 'false' }}">
+            <li class="nav-item">
+                <button class="nav-link {{ $loop->last ? 'active' : '' }}"
+                        data-bs-toggle="tab"
+                        data-bs-target="#{{ $key }}">
                     {{ $label }}
                 </button>
             </li>
         @endforeach
     </ul>
 
-    <!-- Contenido de los tabs -->
-    <div class="tab-content" id="rankingTabsContent">
+    <!-- Contenido -->
+    <div class="tab-content">
         @foreach ($tabs as $key => $label)
-            <div class="tab-pane fade {{ $loop->last ? 'show active' : '' }}" id="{{ $key }}" role="tabpanel"
-                aria-labelledby="{{ $key }}-tab">
+            <div class="tab-pane fade {{ $loop->last ? 'show active' : '' }}" id="{{ $key }}">
+
+            {{-- BEYBLADE X SEASON 2 --}}
+            @if ($key === 'points_x2')
+
+                @foreach ($divisionOrder as $divisionName)
+
+                    @php
+                        $filtered = collect($bladers_points_x2 ?? [])
+                            ->filter(function ($b) use ($divisionName) {
+                                return divisionBX2($b->points_x2) === $divisionName;
+                            })
+                            ->when($filterRegion, function ($c) use ($filterRegion) {
+                                return $c->filter(function ($b) use ($filterRegion) {
+                                    return optional($b->region)->name === $filterRegion;
+                                });
+                            })
+                            ->values();
+
+                        if ($limit != 'all') {
+                            $filtered = $filtered->take((int) $limit);
+                        }
+                    @endphp
+
+
+                    <div class="division-block division-{{ strtolower($divisionName) }}">
+                        <h4 class="division-title">
+                            {{ $divisionName }} ({{ rangoPuntos($divisionName) }} pts)
+                        </h4>
+
+                        <div class="clasificacion">
+                            <div class="item encabezado">
+                                <span class="posicion">#</span>
+                                <span></span>
+                                <span>Blader</span>
+                                <span>Región</span>
+                                <span>Puntos</span>
+                            </div>
+
+                            @forelse ($filtered as $index => $blader)
+                                <div class="item {{ $index < 3 ? 'resaltado' : '' }}">
+                                    <span class="posicion">{{ $index + 1 }}</span>
+
+                                    <span class="profile-container">
+                                        <div class="blader-avatar d-none d-sm-block">
+                                            <img src="/storage/{{ $blader->imagen ?? 'upload-profiles/Base/DranDagger.webp' }}" class="blader-image">
+                                            <img src="/storage/{{ $blader->marco ?? 'upload-profiles/Marcos/BaseBlue.png' }}" class="blader-frame">
+                                        </div>
+                                    </span>
+
+                                    <span>{{ $blader->user->name }}</span>
+                                    <span>{{ optional($blader->region)->name ?? 'Región desconocida' }}</span>
+                                    <span>{{ $blader->points_x2 }} pts</span>
+                                </div>
+                            @empty
+                                <div class="item">
+                                    <span style="width:100%; text-align:center; opacity:.6">
+                                        No hay jugadores en esta división
+                                    </span>
+                                </div>
+                            @endforelse
+                        </div>
+                    </div>
+
+                @endforeach
+
+            {{-- RESTO DE TEMPORADAS --}}
+            @else
                 <div class="clasificacion mb-4">
                     <div class="item encabezado">
                         <span class="posicion">#</span>
-                        @if ($key === 'points_x2')
-                            <span></span>
-                        @endif
                         <span>Blader</span>
                         <span>Región</span>
                         <span>Puntos</span>
                     </div>
+
                     @foreach (${'bladers_' . $key} ?? [] as $index => $blader)
-                        @php
-                            // 1️⃣ Prioridad: suscripción activa
-                            $subscriptionClass = '';
-                            if ($blader->user->activeSubscription) {
-                                $level = $blader->user->activeSubscription->plan->slug; // asumiendo que los slugs son '1', '2', '3'
-                                switch ($level) {
-                                    case 'oro':
-                                        $subscriptionClass = 'suscripcion-nivel-3';
-                                        break;
-                                    case 'plata':
-                                        $subscriptionClass = 'suscripcion-nivel-2';
-                                        break;
-                                    case 'bronce':
-                                        $subscriptionClass = 'suscripcion-nivel-1';
-                                        break;
-                                }
-                            }
-
-                            // 2️⃣ Si no hay suscripción activa, recurrir al trofeo de suscripción (lógica antigua)
-                            if (!$subscriptionClass) {
-                                $subscriptionTrophy = $blader->trophies->first(function ($trophy) {
-                                    return stripos($trophy->name, 'SUSCRIPCIÓN') !== false;
-                                });
-
-                                if ($subscriptionTrophy) {
-                                    if (stripos($subscriptionTrophy->name, 'NIVEL 3') !== false) {
-                                        $subscriptionClass = 'suscripcion-nivel-3';
-                                    } elseif (stripos($subscriptionTrophy->name, 'NIVEL 2') !== false) {
-                                        $subscriptionClass = 'suscripcion-nivel-2';
-                                    } elseif (stripos($subscriptionTrophy->name, 'NIVEL 1') !== false) {
-                                        $subscriptionClass = 'suscripcion-nivel-1';
-                                    }
-                                }
-                            }
-                        @endphp
                         <div class="item {{ $index < 4 ? 'resaltado' : '' }}">
                             <span class="posicion">{{ $index + 1 }}</span>
-
-                            @if ($key === 'points_x2')
-                                <span class="profile-container">
-                                    <div class="blader-avatar d-none d-sm-block">
-                                        <img src="/storage/{{ $blader->imagen ?? 'upload-profiles/Base/DranDagger.webp' }}"
-                                             class="blader-image">
-                                        <img src="/storage/{{ $blader->marco ?? 'upload-profiles/Marcos/BaseBlue.png' }}"
-                                             class="blader-frame">
-                                    </div>
-                                </span>
-                            @endif
-
-                            <span class="{{ $subscriptionClass }}">{{ $blader->user->name }}</span>
+                            <span>{{ $blader->user->name }}</span>
                             <span>{{ $blader->region->name ?? 'Región desconocida' }}</span>
-                            <span>{{ $blader->{$key} }} puntos</span>
+                            <span>{{ $blader->{$key} }} pts</span>
                         </div>
                     @endforeach
                 </div>
+            @endif
+
             </div>
         @endforeach
     </div>
@@ -122,140 +181,160 @@
 
 @section('scripts')
 <script>
-    function applyFilters() {
-        const limit = document.getElementById('limitSelect').value;
-        const region = document.getElementById('regionSelect').value;
-        const url = `?limit=${limit}&region=${region}`;
-        window.location.href = url;
-    }
+function applyFilters() {
+    const limit = document.getElementById('limitSelect').value;
+    const region = document.getElementById('regionSelect').value;
+    window.location.href = `?limit=${limit}&region=${region}`;
+}
 </script>
 @endsection
 
 @section('styles')
 <style>
-    body {
-        background-color: #121212;
-        color: #e0e0e0;
-    }
+body { background:#121212; color:#e0e0e0 !important; }
+.nav-tabs .nav-link { background:#333; color:#e0e0e0; border:none; }
+.nav-tabs .nav-link.active { background:#ffca28; color:#121212; font-weight:bold; }
 
-    .nav-tabs .nav-link {
-        background-color: #333;
-        color: #e0e0e0;
-        border: none;
-        border-radius: 0;
-    }
+.clasificacion { padding:15px; border-radius:10px; }
+.item { display:flex; align-items:center; justify-content:space-between; padding:10px; margin-bottom:8px; border-radius:6px; }
+.encabezado { font-weight:bold; opacity:.85; }
+.posicion { width:40px; text-align:center; font-weight:bold; }
+.resaltado { box-shadow: 0 0 10px rgba(255,255,255,.05); }
+.profile-container { width:50px; height:50px; }
+.blader-avatar { position:relative; width:50px; height:50px; }
+.blader-image, .blader-frame { width:50px; height:50px; border-radius:50%; position:absolute; }
 
-    .nav-tabs .nav-link.active {
-        background-color: #ffca28;
-        color: #121212;
-        font-weight: bold;
-    }
+/* Bloques por división */
+.division-block { margin-bottom:40px; border-radius:12px; padding:15px; }
+.division-title { text-align:center; font-weight:bold; letter-spacing:2px; margin-bottom:15px; }
 
-    .clasificacion {
-        border-radius: 10px;
-        padding: 20px;
-        background-color: #1e1e1e;
-    }
+/* ===== XTREME ===== */
+.division-xtreme {
+    position: relative;
+    background:
+        linear-gradient(
+            135deg,
+            rgba(104, 0, 165, .35),
+            rgba(180, 0, 255, .18)
+        );
+    border-radius: 14px;
+    box-shadow:
+        0 0 25px rgba(104, 0, 165, .45),
+        inset 0 0 30px rgba(180, 0, 255, .15);
+    overflow: hidden;
+}
 
-    .item {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 10px;
-        padding: 10px;
-        border: 1px solid #333;
-        border-radius: 5px;
-        background-color: #2a2a2a;
-        color: #e0e0e0;
-    }
+/* Aura animada */
+.division-xtreme::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background:
+        linear-gradient(
+            120deg,
+            transparent 30%,
+            rgba(195, 0, 255, .35),
+            transparent 70%
+        );
+    animation: xtremeGlow 6s linear infinite;
+    pointer-events: none;
+}
 
-    .encabezado {
-        font-weight: bold;
-        background-color: #333;
-        color: #fff;
-    }
+/* Título */
+.division-xtreme .division-title {
+    color: #e4b3ff;
+    text-shadow:
+        0 0 8px rgba(195, 0, 255, .8),
+        0 0 18px rgba(104, 0, 165, .9);
+    letter-spacing: 4px;
+}
 
-    .item span.posicion {
-        flex: 1;
-        text-align: center;
-        color: #ffca28;
-    }
+/* Items */
+.division-xtreme .item {
+    background:
+        linear-gradient(
+            90deg,
+            rgba(104, 0, 165, .35),
+            rgba(180, 0, 255, .18)
+        );
+    border: 1px solid rgba(195, 0, 255, .55);
+    box-shadow:
+        0 0 12px rgba(104, 0, 165, .4);
+}
 
-    .item span:nth-child(2) {
-        flex: 1;
-        text-align: center;
-    }
+/* TOP 3 aún más pro */
+.division-xtreme .item.resaltado {
+    box-shadow:
+        0 0 18px rgba(195, 0, 255, .85),
+        inset 0 0 12px rgba(255, 255, 255, .15);
+}
 
-    .item span:nth-child(3) {
-        flex: 4;
-    }
+/* Animación */
+@keyframes xtremeGlow {
+    0%   { transform: translateX(-100%); }
+    100% { transform: translateX(100%); }
+}
 
-    .item span:nth-child(4) {
-        flex: 3;
-    }
 
-    .item span:nth-child(5) {
-        flex: 3;
-        text-align: center;
-    }
+/* Maestro */
+.division-maestro {
+    background: rgba(221, 8, 0, .18);
+}
+.division-maestro .division-title {
+    color: #dd0800;
+}
+.division-maestro .item {
+    background: rgba(221, 8, 0, .12);
+    border: 1px solid rgba(221, 8, 0, .35);
+}
 
-    .resaltado {
-        background-color: #424242;
-    }
+/* Platino */
+.division-platino {
+    background: rgba(0, 153, 127, .18);
+}
+.division-platino .division-title {
+    color: #00997f;
+}
+.division-platino .item {
+    background: rgba(0, 153, 127, .12);
+    border: 1px solid rgba(0, 153, 127, .35);
+}
 
-    .form-control {
-        background-color: #333;
-        color: #e0e0e0;
-        border: 1px solid #555;
-    }
+/* Oro */
+.division-oro {
+    background: rgba(221, 179, 0, .18);
+}
+.division-oro .division-title {
+    color: #ddb300;
+}
+.division-oro .item {
+    background: rgba(221, 179, 0, .12);
+    border: 1px solid rgba(221, 179, 0, .35);
+}
 
-    .form-control:focus {
-        border-color: #ffca28;
-        box-shadow: none;
-    }
+/* Plata */
+.division-plata {
+    background: rgba(162, 168, 192, .18);
+}
+.division-plata .division-title {
+    color: #a2a8c0;
+}
+.division-plata .item {
+    background: rgba(162, 168, 192, .12);
+    border: 1px solid rgba(162, 168, 192, .35);
+}
 
-    .suscripcion-nivel-3 {
-        color: gold;
-        font-weight: bold;
-    }
+/* Bronce */
+.division-bronce {
+    background: rgba(177, 86, 15, .18);
+}
+.division-bronce .division-title {
+    color: #b1560f;
+}
+.division-bronce .item {
+    background: rgba(177, 86, 15, .12);
+    border: 1px solid rgba(177, 86, 15, .35);
+}
 
-    .suscripcion-nivel-2 {
-        color: #c0e5fb;
-        font-weight: bold;
-    }
-
-    .suscripcion-nivel-1 {
-        color: #CD7F32;
-        font-weight: bold;
-    }
-
-    .profile-container {
-        position: relative;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        width: 50px;
-        height: 50px;
-    }
-
-    .blader-avatar {
-        position: relative;
-        width: 100%;
-        height: 100%;
-    }
-
-    .blader-image, .blader-frame {
-        width: 50px;
-        height: 50px;
-        position: absolute;
-        top: 0;
-        left: 0;
-        border-radius: 50%;
-        object-fit: cover;
-    }
-
-    .blader-frame {
-        z-index: 2;
-    }
 </style>
 @endsection
