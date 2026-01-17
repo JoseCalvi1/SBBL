@@ -571,6 +571,7 @@
                                 @endif
                                 @if(Auth::user()->is_admin)
                                 <h4>ADMIN</h4>
+                                    <a href="{{ route('admin.dashboard.reviews') }}" class="sidebar-link"><i class="fas fa-chart-bar"></i>Revisiones</a>
                                     <a href="{{ route('productos.index') }}" class="sidebar-link"><i class="fas fa-shopping-bag"></i> Productos</a>
                                     <a href="{{ route('profiles.indexAdmin') }}" class="sidebar-link"><i class="fas fa-user-shield"></i> Gestión Usuarios</a>
                                     <a href="{{ route('profiles.indexAdminX') }}" class="sidebar-link"><i class="fas fa-user-cog"></i> Usuarios X</a>
