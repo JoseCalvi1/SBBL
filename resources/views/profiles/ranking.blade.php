@@ -131,8 +131,17 @@ $divisionOrder = ['Xtreme', 'Maestro', 'Platino', 'Oro', 'Plata', 'Bronce'];
 
                                     <span class="profile-container">
                                         <div class="blader-avatar d-none d-sm-block">
-                                            <img src="/storage/{{ $blader->imagen ?? 'upload-profiles/Base/DranDagger.webp' }}" class="blader-image">
-                                            <img src="/storage/{{ $blader->marco ?? 'upload-profiles/Marcos/BaseBlue.png' }}" class="blader-frame">
+                                            {{-- AVATAR: Usando el Accessor del modelo --}}
+                                            <img src="{{ $blader->avatar_url }}"
+                                                class="blader-image"
+                                                loading="lazy"
+                                                alt="Avatar">
+
+                                            {{-- MARCO: Usando el Accessor del modelo --}}
+                                            <img src="{{ $blader->marco_url }}"
+                                                class="blader-frame"
+                                                loading="lazy"
+                                                alt="Marco">
                                         </div>
                                     </span>
 

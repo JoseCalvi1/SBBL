@@ -369,93 +369,57 @@
         <div class="row">
             <div class="col-md-12 text-center d-none d-sm-block">
                 <h3 class="titulo-categoria text-uppercase mb-4 mt-4" style="color:white">Top individual</h3>
-                <div class="row" style="align-items: center;display: flex;justify-content: center;">
+                <div class="row" style="align-items: center; display: flex; justify-content: center;">
+                {{-- Tomamos solo los primeros 5 bladers y hacemos un bucle --}}
+                @foreach ($bladers->take(5) as $index => $blader)
+                    @php
+                        $posicion = $index + 1;
+
+                        // Lógica para textos y clases según la posición
+                        $textos = [1 => '1er Puesto', 2 => '2º Puesto', 3 => '3er Puesto', 4 => '4º Puesto', 5 => '5º Puesto'];
+                        $titulo = $textos[$posicion] ?? "{$posicion}º Puesto";
+
+                        // Clase CSS especial solo para los 3 primeros (top-1, top-2, top-3)
+                        $claseTop = $posicion <= 3 ? "top-{$posicion}" : "";
+
+                        // Padding para GIF
+                        $gifStyle = strpos($blader->avatar_url, '.gif') !== false ? 'padding: 10px;' : '';
+                    @endphp
+
                     <div class="col-md-2 text-center m-2">
-                        <h4 class="font-weight-bold top-1 ranking-card mb-3">1er Puesto</h4>
-                        <div style="position: relative">
-                        @if ($bladers[0]->imagen)
-                                <img src="/storage/{{ $bladers[0]->imagen }}" class="rounded-circle" width="100" style="position: absolute; top: 0; left: 1.2vw; {{ strpos($bladers[0]->imagen, '.gif') !== false ? 'padding: 10px;' : '' }}">
-                            @else
-                                <img src="/storage/upload-profiles/Base/DranDagger.webp" class="rounded-circle" width="100" style="position: absolute; : 0; left: 1.2vw;">
-                            @endif
-                            @if ($bladers[0]->marco)
-                                <img src="/storage/{{ $bladers[0]->marco }}" class="rounded-circle" width="100" style="position: absolute; top: 0; left: 1.2vw;">
-                            @else
-                                <img src="/storage/upload-profiles/Marcos/BaseBlue.png" class="rounded-circle" width="100" style="position: absolute; top: 0; left: 1.2vw;">
-                            @endif
+                        {{-- Título del Ranking --}}
+                        <h4 class="font-weight-bold ranking-card {{ $claseTop }} mb-3">
+                            {{ $titulo }}
+                        </h4>
+
+                        {{-- Contenedor de Avatar (Centrado con margin auto en lugar de left vw) --}}
+                        <div style="position: relative; width: 100px; height: 100px; margin: 0 auto;">
+
+                            {{-- AVATAR --}}
+                            <img src="{{ $blader->avatar_url }}"
+                                class="rounded-circle"
+                                width="100" height="100"
+                                style="position: absolute; top: 0; left: 0; object-fit: cover; {{ $gifStyle }}"
+                                loading="lazy"
+                                alt="Avatar de {{ $blader->user->name }}">
+
+                            {{-- MARCO --}}
+                            <img src="{{ $blader->marco_url }}"
+                                class="rounded-circle"
+                                width="100" height="100"
+                                style="position: absolute; top: 0; left: 0;"
+                                loading="lazy"
+                                alt="Marco">
                         </div>
-                        <h3 style="color: white; margin-top: 120px">{{ $bladers[0]->user->name }}</h3>
-                        <h2 style="color: white">{{ $bladers[0]->points_x2 }}<span style="font-size:0.5em">pts</span></h2>
+
+                        {{-- Nombre y Puntos --}}
+                        <h3 class="text-white mt-4">{{ $blader->user->name }}</h3>
+                        <h2 class="text-white">
+                            {{ $blader->points_x2 }}<span style="font-size:0.5em">pts</span>
+                        </h2>
                     </div>
-                    <div class="col-md-2 text-center m-2">
-                        <h4 class="font-weight-bold top-2 ranking-card mb-3">2º Puesto</h4>
-                        <div style="position: relative">
-                        @if ($bladers[1]->imagen)
-                                <img src="/storage/{{ $bladers[1]->imagen }}" class="rounded-circle" width="100" style="position: absolute; top: 0; left: 1.2vw; {{ strpos($bladers[1]->imagen, '.gif') !== false ? 'padding: 10px;' : '' }}">
-                            @else
-                                <img src="/storage/upload-profiles/Base/DranDagger.webp" class="rounded-circle" width="100" style="position: absolute; top: 0; left: 1.2vw;">
-                            @endif
-                            @if ($bladers[1]->marco)
-                                <img src="/storage/{{ $bladers[1]->marco }}" class="rounded-circle" width="100" style="position: absolute; top: 0; left: 1.2vw;">
-                            @else
-                                <img src="/storage/upload-profiles/Marcos/BaseBlue.png" class="rounded-circle" width="100" style="position: absolute; top: 0; left: 1.2vw;">
-                            @endif
-                        </div>
-                        <h3 style="color: white; margin-top: 120px">{{ $bladers[1]->user->name }}</h3>
-                        <h2 style="color: white">{{ $bladers[1]->points_x2 }}<span style="font-size:0.5em">pts</span></h2>
-                    </div>
-                    <div class="col-md-2 text-center m-2">
-                        <h4 class="font-weight-bold top-3 ranking-card mb-3">3º Puesto</h4>
-                        <div style="position: relative">
-                        @if ($bladers[2]->imagen)
-                                <img src="/storage/{{ $bladers[2]->imagen }}" class="rounded-circle" width="100" style="position: absolute; top: 0; left: 1.2vw; {{ strpos($bladers[2]->imagen, '.gif') !== false ? 'padding: 10px;' : '' }}">
-                            @else
-                                <img src="/storage/upload-profiles/Base/DranDagger.webp" class="rounded-circle" width="100" style="position: absolute; top: 0; left: 1.2vw;">
-                            @endif
-                            @if ($bladers[2]->marco)
-                                <img src="/storage/{{ $bladers[2]->marco }}" class="rounded-circle" width="100" style="position: absolute; top: 0; left: 1.2vw;">
-                            @else
-                                <img src="/storage/upload-profiles/Marcos/BaseBlue.png" class="rounded-circle" width="100" style="position: absolute; top: 0; left: 1.2vw;">
-                            @endif
-                    </div>
-                        <h3 style="color: white; margin-top: 120px">{{ $bladers[2]->user->name }}</h3>
-                        <h2 style="color: white">{{ $bladers[2]->points_x2 }}<span style="font-size:0.5em">pts</span></h2>
-                    </div>
-                    <div class="col-md-2 text-center m-2">
-                        <h4 class="font-weight-bold ranking-card mb-3">4º Puesto</h4>
-                        <div style="position: relative">
-                        @if ($bladers[3]->imagen)
-                                <img src="/storage/{{ $bladers[3]->imagen }}" class="rounded-circle" width="100" style="position: absolute; top: 0; left: 1.2vw; {{ strpos($bladers[3]->imagen, '.gif') !== false ? 'padding: 10px;' : '' }}">
-                            @else
-                                <img src="/storage/upload-profiles/Base/DranDagger.webp" class="rounded-circle" width="100" style="position: absolute; top: 0; left: 1.2vw;">
-                            @endif
-                            @if ($bladers[3]->marco)
-                                <img src="/storage/{{ $bladers[3]->marco }}" class="rounded-circle" width="100" style="position: absolute; top: 0; left: 1.2vw;">
-                            @else
-                                <img src="/storage/upload-profiles/Marcos/BaseBlue.png" class="rounded-circle" width="100" style="position: absolute; top: 0; left: 1.2vw;">
-                            @endif
-                        </div>
-                        <h3 style="color: white; margin-top: 120px">{{ $bladers[3]->user->name }}</h3>
-                        <h2 style="color: white">{{ $bladers[3]->points_x2 }}<span style="font-size:0.5em">pts</span></h2>
-                    </div>
-                    <div class="col-md-2 text-center m-2">
-                        <h4 class="font-weight-bold ranking-card mb-3">5º Puesto</h4>
-                        <div style="position: relative">
-                        @if ($bladers[4]->imagen)
-                                <img src="/storage/{{ $bladers[4]->imagen }}" class="rounded-circle" width="100" style="position: absolute; top: 0; left: 1.2vw; {{ strpos($bladers[4]->imagen, '.gif') !== false ? 'padding: 10px;' : '' }}">
-                            @else
-                                <img src="/storage/upload-profiles/Base/DranDagger.webp" class="rounded-circle" width="100" style="position: absolute; top: 0; left: 1.2vw;">
-                            @endif
-                            @if ($bladers[4]->marco)
-                                <img src="/storage/{{ $bladers[4]->marco }}" class="rounded-circle" width="100" style="position: absolute; top: 0; left: 1.2vw;">
-                            @else
-                                <img src="/storage/upload-profiles/Marcos/BaseBlue.png" class="rounded-circle" width="100" style="position: absolute; top: 0; left: 1.2vw;">
-                            @endif
-                        </div>
-                        <h3 style="color: white; margin-top: 120px">{{ $bladers[4]->user->name }}</h3>
-                        <h2 style="color: white">{{ $bladers[4]->points_x2 }}<span style="font-size:0.5em">pts</span></h2>
-                    </div>
-                </div>
+                @endforeach
+            </div>
             </div>
         </div>
 
@@ -509,18 +473,26 @@
         <!-- Imagen -->
         <div class="col-md-3 text-center d-none d-md-block">
             <div class="position-relative d-inline-block" style="width: 180px; height: 180px;">
-                <!-- Imagen del perfil -->
-                <img
-                    src="/storage/{{ $bestUserProfile->profile->imagen ?? 'upload-profiles/Base/DranDagger.webp' }}"
-                    class="rounded-circle position-absolute top-0 start-0 w-100 h-100"
-                    style="{{ isset($bestUserProfile->profile->imagen) && strpos($bestUserProfile->profile->imagen, '.gif') !== false ? 'padding: 20px;' : '' }}"
-                >
 
-                <!-- Marco -->
-                <img
-                    src="/storage/{{ $bestUserProfile->profile->marco ?? 'upload-profiles/Marcos/BaseBlue.png' }}"
+                @php
+                    // Creamos un atajo para no escribir tanto código dentro del HTML
+                    $profile = $bestUserProfile->profile;
+
+                    // Calculamos el estilo del GIF usando la nueva URL
+                    $gifStyle = strpos($profile->avatar_url, '.gif') !== false ? 'padding: 20px;' : '';
+                @endphp
+
+                <img src="{{ $profile->avatar_url }}"
                     class="rounded-circle position-absolute top-0 start-0 w-100 h-100"
-                >
+                    style="{{ $gifStyle }}"
+                    loading="lazy"
+                    alt="Avatar">
+
+                <img src="{{ $profile->marco_url }}"
+                    class="rounded-circle position-absolute top-0 start-0 w-100 h-100"
+                    loading="lazy"
+                    alt="Marco">
+
             </div>
         </div>
     </div>
@@ -597,24 +569,46 @@
     <!-- Equipo -->
     <div class="row justify-content-center mt-5">
         @foreach ($usuarios as $usuario)
+            @php
+                // Creamos un atajo al perfil
+                $profile = $usuario->profile;
+
+                // Calculamos estilo si es GIF
+                $gifStyle = strpos($profile->avatar_url, '.gif') !== false ? 'padding: 10px;' : '';
+            @endphp
+
             <div class="col-md-4 text-center p-2">
-                <div class="position-relative d-flex flex-column align-items-center user-card" style="background: #333; border-radius: 10px; padding: 20px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3); transition: transform 0.3s ease;">
-                    <div class="position-relative">
-                        @if ($usuario->profile->marco)
-                            <img src="/storage/{{ $usuario->profile->marco }}" class="rounded-circle" width="110" height="110" style="position: relative; top: -5px; left: -5px; z-index: 2">
-                        @else
-                            <img src="/storage/upload-profiles/Marcos/BaseBlue.png" class="rounded-circle" width="110" height="110" style="position: relative; top: -5px; left: -5px; z-index: 2">
-                        @endif
-                        @if ($usuario->profile->imagen)
-                            <img src="/storage/{{ $usuario->profile->imagen }}" class="rounded-circle" width="100" height="100" style="position: absolute; top: 0; left: 0; z-index: 1;{{ strpos($usuario->profile->imagen, '.gif') !== false ? 'padding: 10px;' : '' }}">
-                        @else
-                            <img src="/storage/upload-profiles/Base/DranDagger.webp" class="rounded-circle" width="100" height="100" style="position: absolute; top: 0; left: 0; z-index: 1;">
-                        @endif
+                <div class="position-relative d-flex flex-column align-items-center user-card"
+                    style="background: #333; border-radius: 10px; padding: 20px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3); transition: transform 0.3s ease;">
+
+                    {{-- Contenedor de Avatar + Marco (Definimos tamaño fijo para centrado perfecto) --}}
+                    <div class="position-relative" style="width: 100px; height: 100px;">
+
+                        {{-- AVATAR (Z-Index 1: Fondo) --}}
+                        <img src="{{ $profile->avatar_url }}"
+                            class="rounded-circle"
+                            width="100" height="100"
+                            style="position: absolute; top: 0; left: 0; z-index: 1; object-fit: cover; {{ $gifStyle }}"
+                            loading="lazy"
+                            alt="Avatar">
+
+                        {{-- MARCO (Z-Index 2: Frente, ligeramente más grande y desplazado) --}}
+                        <img src="{{ $profile->marco_url }}"
+                            class="rounded-circle"
+                            width="110" height="110"
+                            style="position: absolute; top: -5px; left: -5px; z-index: 2;"
+                            loading="lazy"
+                            alt="Marco">
                     </div>
-                    <h3 class="user-name" style="color: white; margin-top: 10px; font-size: 1.5rem; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.5);">
+
+                    {{-- Textos --}}
+                    <h3 class="user-name"
+                        style="color: white; margin-top: 15px; font-size: 1.5rem; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.5);">
                         {{ $usuario->name }}
                     </h3>
-                    <p class="user-title" style="color: #ccc; font-size: 1rem; margin-top: 5px; font-style: italic;">
+
+                    <p class="user-title"
+                    style="color: #ccc; font-size: 1rem; margin-top: 5px; font-style: italic;">
                         {{ $usuario->titulo ?? 'Miembro del equipo SBBL' }}
                     </p>
                 </div>

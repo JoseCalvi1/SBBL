@@ -27,33 +27,42 @@
 .exclusive-section-bronze {
     margin-top: 30px;
     margin-bottom: 30px;
-    border: 3px solid #CD7F32;  /* Borde dorado */
-    box-shadow: 0 0 15px #CD7F32; /* Sombra dorada */
-    transform: scale(1.05); /* Aumentar tamaño ligeramente */
-    transition: all 0.3s ease; /* Transición suave */
+    border: 3px solid #CD7F32;  /* Borde Bronce */
+    box-shadow: 0 0 15px #CD7F32;
+    transform: scale(1.02);
+    transition: all 0.3s ease;
+    padding: 15px;
+    border-radius: 10px;
 }
 .exclusive-section-silver {
     margin-top: 30px;
     margin-bottom: 30px;
-    border: 3px solid #c0e5fb;  /* Borde dorado */
-    box-shadow: 0 0 15px #c0e5fb; /* Sombra dorada */
-    transform: scale(1.05); /* Aumentar tamaño ligeramente */
-    transition: all 0.3s ease; /* Transición suave */
+    border: 3px solid #c0e5fb;  /* Borde Plata */
+    box-shadow: 0 0 15px #c0e5fb;
+    transform: scale(1.02);
+    transition: all 0.3s ease;
+    padding: 15px;
+    border-radius: 10px;
 }
 .exclusive-section-gold {
     margin-top: 30px;
     margin-bottom: 30px;
-    border: 3px solid gold;  /* Borde dorado */
-    box-shadow: 0 0 15px rgba(255, 223, 0, 0.7); /* Sombra dorada */
-    transform: scale(1.05); /* Aumentar tamaño ligeramente */
-    transition: all 0.3s ease; /* Transición suave */
+    border: 3px solid gold;  /* Borde Oro */
+    box-shadow: 0 0 15px rgba(255, 223, 0, 0.7);
+    transform: scale(1.02);
+    transition: all 0.3s ease;
+    padding: 15px;
+    border-radius: 10px;
 }
 h4 {
     font-size: 1.25rem;
     font-weight: bold;
-    color: #FFD700;  /* Dorado */
+    color: #FFD700;
     text-align: center;
-    margin-top: 20px;
+    margin-top: 10px;
+    margin-bottom: 20px;
+    text-transform: uppercase;
+    text-shadow: 2px 2px 4px #000;
 }
 </style>
 @endsection
@@ -110,7 +119,6 @@ h4 {
 
                     // 2️⃣ Si no hay suscripción activa, buscar entre los trofeos
                     if (!$subscriptionClass) {
-                        // Buscar cualquier trofeo que contenga 'SUSCRIPCIÓN'
                         $subscriptionTrophy = $profile->trophies->first(function ($trophy) {
                             return stripos($trophy->name, 'SUSCRIPCIÓN') !== false;
                         });
@@ -119,7 +127,7 @@ h4 {
                             if (stripos($subscriptionTrophy->name, 'NIVEL 3') !== false) {
                                 $subscriptionClass = 'suscripcion-nivel-3';
                             } elseif (stripos($subscriptionTrophy->name, 'NIVEL 2') !== false ||
-                                    stripos($subscriptionTrophy->name, 'NIVEL 1') !== false) {
+                                      stripos($subscriptionTrophy->name, 'NIVEL 1') !== false) {
                                 $subscriptionClass = 'suscripcion';
                             }
                         }
@@ -144,7 +152,6 @@ h4 {
                                         "Colormaxxing", "Brainrot"
                                     ];
 
-                                    // Limitar si es nivel 1 (opción antigua) o mostrar todas
                                     $limit = in_array($subscriptionClass, ['suscripcion']) ? 10 : count($subtitulos);
                                 @endphp
 
@@ -213,7 +220,6 @@ h4 {
             </div>
 
 
-            <!-- Avatar -->
             <div class="form-group mt-2">
                 <div class="d-flex justify-content-between align-items-center mb-2" style="cursor: pointer;" onclick="toggleOptions('avatarOptions')">
                     <label for="default_img">Avatar</label>
@@ -221,83 +227,85 @@ h4 {
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
                     </svg>
                 </div>
+
                 <div id="avatarOptions" class="optionsContainer">
+
                     <div class="row">
                         @foreach ($avatarOptions as $key => $avatar)
                             <div class="col-md-2 col-options">
                                 <label>
-                                    <input type="radio" name="default_img" value="{{ $key }}" @if ($profile->imagen == $avatar) checked @endif/>
-                                    <img src="/storage/{{ $avatar }}" class="img-fluid" />
+                                    <input type="radio" name="default_img" value="{{ $key }}" @if ($profile->imagen == $key) checked @endif/>
+                                    <img src="{{ asset($avatar) }}" class="img-fluid" loading="lazy" />
                                 </label>
                             </div>
                         @endforeach
-
-                        <!-- Resaltar la sección de avatares exclusivos -->
-                        @if ($subscriptionLevel == 'SUSCRIPCIÓN NIVEL 1' || $subscriptionLevel == 'SUSCRIPCIÓN NIVEL 2' || $subscriptionLevel == 'SUSCRIPCIÓN NIVEL 3')
-                            <div class="exclusive-section-bronze mt-5 mb-5">
-                            <h4>AVATARES EXCLUSIVOS NIVEL 1</h4>
-                                <div class="row">
-                                    @foreach ($bronzeAvatars as $key => $avatar)
-                                        <div class="col-md-2 col-options">
-                                            <label>
-                                                <input type="radio" name="default_img" value="{{ $key }}" @if ($profile->imagen == $avatar) checked @endif/>
-                                                <img src="/storage/{{ $avatar }}" class="img-fluid" loading="lazy" />
-                                            </label>
-                                        </div>
-                                    @endforeach
-                                </div>
-                            </div>
-                        @endif
-                        @if ($subscriptionLevel == 'SUSCRIPCIÓN NIVEL 2' || $subscriptionLevel == 'SUSCRIPCIÓN NIVEL 3')
-                            <div class="exclusive-section-silver mt-5 mb-5">
-                            <h4>AVATARES EXCLUSIVOS NIVEL 2</h4>
-                                <div class="row">
-                                    @foreach ($silverAvatars as $key => $avatar)
-                                        <div class="col-md-2 col-options">
-                                            <label>
-                                                <input type="radio" name="default_img" value="{{ $key }}" @if ($profile->imagen == $avatar) checked @endif/>
-                                                <img src="/storage/{{ $avatar }}" class="img-fluid" loading="lazy" />
-                                            </label>
-                                        </div>
-                                    @endforeach
-                                </div>
-                            </div>
-                        @endif
-                        @if ($subscriptionLevel == 'SUSCRIPCIÓN NIVEL 3')
-                            <div class="exclusive-section-gold mt-5 mb-5">
-                            <h4>AVATARES EXCLUSIVOS NIVEL 3</h4>
-                                <div class="row">
-                                    @foreach ($goldAvatars as $key => $avatar)
-                                        <div class="col-md-2 col-options">
-                                            <label>
-                                                <input type="radio" name="default_img" value="{{ $key }}" @if ($profile->imagen == $avatar) checked @endif/>
-                                                <img src="/storage/{{ $avatar }}" class="img-fluid" loading="lazy" />
-                                            </label>
-                                        </div>
-                                    @endforeach
-                                </div>
-                            </div>
-                        @endif
-                        @if (!empty($avatars) || Auth::user()->is_admin)
-                            <div class="exclusive-section-gold">
-                                <h4>AVATARES COPAS EXCLUSIVAS</h4>
-                                <div class="row">
-                                    @foreach ($avatars as $key => $avatar)
-                                        <div class="col-md-2 col-options">
-                                            <label>
-                                                <input type="radio" name="default_img" value="{{ $key }}"
-                                                    @if ($profile->imagen == $avatar) checked @endif/>
-                                                <img src="/storage/{{ $avatar }}" class="img-fluid" loading="lazy" />
-                                            </label>
-                                        </div>
-                                    @endforeach
-                                </div>
-                            </div>
-                        @endif
                     </div>
+
+                    @if ($subscriptionLevel == 'SUSCRIPCIÓN NIVEL 1' || $subscriptionLevel == 'SUSCRIPCIÓN NIVEL 2' || $subscriptionLevel == 'SUSCRIPCIÓN NIVEL 3')
+                        <div class="exclusive-section-bronze mt-4">
+                            <h4><i class="fas fa-medal me-2"></i> AVATARES NIVEL 1</h4>
+                            <div class="row">
+                                @foreach ($bronzeAvatars as $key => $avatar)
+                                    <div class="col-md-2 col-options">
+                                        <label>
+                                            <input type="radio" name="default_img" value="{{ $key }}" @if ($profile->imagen == $key) checked @endif/>
+                                            <img src="{{ asset($avatar) }}" class="img-fluid" loading="lazy" />
+                                        </label>
+                                    </div>
+                                @endforeach
+                            </div>
+                        </div>
+                    @endif
+
+                    @if ($subscriptionLevel == 'SUSCRIPCIÓN NIVEL 2' || $subscriptionLevel == 'SUSCRIPCIÓN NIVEL 3')
+                        <div class="exclusive-section-silver mt-4">
+                            <h4><i class="fas fa-medal me-2"></i> AVATARES NIVEL 2</h4>
+                            <div class="row">
+                                @foreach ($silverAvatars as $key => $avatar)
+                                    <div class="col-md-2 col-options">
+                                        <label>
+                                            <input type="radio" name="default_img" value="{{ $key }}" @if ($profile->imagen == $key) checked @endif/>
+                                            <img src="{{ asset($avatar) }}" class="img-fluid" loading="lazy" />
+                                        </label>
+                                    </div>
+                                @endforeach
+                            </div>
+                        </div>
+                    @endif
+
+                    @if ($subscriptionLevel == 'SUSCRIPCIÓN NIVEL 3')
+                        <div class="exclusive-section-gold mt-4">
+                            <h4><i class="fas fa-crown me-2"></i> AVATARES NIVEL 3</h4>
+                            <div class="row">
+                                @foreach ($goldAvatars as $key => $avatar)
+                                    <div class="col-md-2 col-options">
+                                        <label>
+                                            <input type="radio" name="default_img" value="{{ $key }}" @if ($profile->imagen == $key) checked @endif/>
+                                            <img src="{{ asset($avatar) }}" class="img-fluid" loading="lazy" />
+                                        </label>
+                                    </div>
+                                @endforeach
+                            </div>
+                        </div>
+                    @endif
+
+                    @if (!empty($avatars) || Auth::user()->is_admin)
+                        <div class="exclusive-section-gold mt-4" style="border-color: #e83e8c; box-shadow: 0 0 15px #e83e8c;">
+                            <h4 style="color: #e83e8c"><i class="fas fa-trophy me-2"></i> COPAS EXCLUSIVAS</h4>
+                            <div class="row">
+                                @foreach ($avatars as $key => $avatar)
+                                    <div class="col-md-2 col-options">
+                                        <label>
+                                            <input type="radio" name="default_img" value="{{ $key }}" @if ($profile->imagen == $key) checked @endif/>
+                                            <img src="{{ asset($avatar) }}" class="img-fluid" loading="lazy" />
+                                        </label>
+                                    </div>
+                                @endforeach
+                            </div>
+                        </div>
+                    @endif
+
                 </div>
-
-
                 @error('default_img')
                     <span class="invalid-feedback d-block" role="alert">
                         <strong>{{ $message }}</strong>
@@ -305,7 +313,7 @@ h4 {
                 @enderror
             </div>
 
-            <!-- Marco -->
+
             <div class="form-group mt-2">
                 <div class="d-flex justify-content-between align-items-center mb-2" style="cursor: pointer;" onclick="toggleOptions('marcoOptions')">
                     <label for="marco">Marco de avatar</label>
@@ -314,63 +322,66 @@ h4 {
                     </svg>
                 </div>
                 <div id="marcoOptions" class="optionsContainer">
+
                     <div class="row">
                         @foreach ($marcoOptions as $key => $marco)
                             <div class="col-md-2 col-options">
                                 <label>
-                                    <input type="radio" name="marco" value="{{ $marco }}"
-                                           @if ($profile->marco == $marco) checked @endif/>
-                                    <img src="/storage/{{ $marco }}" class="img-fluid" />
+                                    <input type="radio" name="marco" value="{{ $key }}" @if ($profile->marco == $key) checked @endif/>
+                                    <img src="{{ asset($marco) }}" class="img-fluid" loading="lazy" />
                                 </label>
                             </div>
                         @endforeach
-                        <!-- Resaltar la sección de avatares exclusivos -->
-                        @if ($subscriptionLevel == 'SUSCRIPCIÓN NIVEL 1' || $subscriptionLevel == 'SUSCRIPCIÓN NIVEL 2' || $subscriptionLevel == 'SUSCRIPCIÓN NIVEL 3')
-                            <div class="exclusive-section-bronze">
-                            <h4>MARCOS EXCLUSIVOS NIVEL 1</h4>
-                                <div class="row">
-                                    @foreach ($marcoBronce as $key => $marco)
-                                        <div class="col-md-2 col-options">
-                                            <label>
-                                                <input type="radio" name="marco" value="{{ $key }}" @if ($profile->marco == $marco) checked @endif/>
-                                                <img src="/storage/{{ $marco }}" class="img-fluid" loading="lazy" />
-                                            </label>
-                                        </div>
-                                    @endforeach
-                                </div>
-                            </div>
-                        @endif
-                        @if ($subscriptionLevel == 'SUSCRIPCIÓN NIVEL 2' || $subscriptionLevel == 'SUSCRIPCIÓN NIVEL 3')
-                            <div class="exclusive-section-silver">
-                            <h4>MARCOS EXCLUSIVOS NIVEL 2</h4>
-                                <div class="row">
-                                    @foreach ($marcoPlata as $key => $marco)
-                                        <div class="col-md-2 col-options">
-                                            <label>
-                                                <input type="radio" name="marco" value="{{ $key }}" @if ($profile->marco == $marco) checked @endif/>
-                                                <img src="/storage/{{ $marco }}" class="img-fluid" loading="lazy" />
-                                            </label>
-                                        </div>
-                                    @endforeach
-                                </div>
-                            </div>
-                        @endif
-                        @if ($subscriptionLevel == 'SUSCRIPCIÓN NIVEL 3')
-                            <div class="exclusive-section-gold">
-                            <h4>MARCOS EXCLUSIVOS NIVEL 3</h4>
-                                <div class="row">
-                                    @foreach ($marcoOro as $key => $marco)
-                                        <div class="col-md-2 col-options">
-                                            <label>
-                                                <input type="radio" name="marco" value="{{ $key }}" @if ($profile->marco == $marco) checked @endif/>
-                                                <img src="/storage/{{ $marco }}" class="img-fluid" loading="lazy" />
-                                            </label>
-                                        </div>
-                                    @endforeach
-                                </div>
-                            </div>
-                        @endif
                     </div>
+
+                    @if ($subscriptionLevel == 'SUSCRIPCIÓN NIVEL 1' || $subscriptionLevel == 'SUSCRIPCIÓN NIVEL 2' || $subscriptionLevel == 'SUSCRIPCIÓN NIVEL 3')
+                        <div class="exclusive-section-bronze mt-4">
+                            <h4>MARCOS NIVEL 1</h4>
+                            <div class="row">
+                                @foreach ($marcoBronce as $key => $marco)
+                                    <div class="col-md-2 col-options">
+                                        <label>
+                                            <input type="radio" name="marco" value="{{ $key }}" @if ($profile->marco == $key) checked @endif/>
+                                            <img src="{{ asset($marco) }}" class="img-fluid" loading="lazy" />
+                                        </label>
+                                    </div>
+                                @endforeach
+                            </div>
+                        </div>
+                    @endif
+
+                    @if ($subscriptionLevel == 'SUSCRIPCIÓN NIVEL 2' || $subscriptionLevel == 'SUSCRIPCIÓN NIVEL 3')
+                        <div class="exclusive-section-silver mt-4">
+                            <h4>MARCOS NIVEL 2</h4>
+                            <div class="row">
+                                @foreach ($marcoPlata as $key => $marco)
+                                    <div class="col-md-2 col-options">
+                                        <label>
+                                            <input type="radio" name="marco" value="{{ $key }}" @if ($profile->marco == $key) checked @endif/>
+                                            <img src="{{ asset($marco) }}" class="img-fluid" loading="lazy" />
+                                        </label>
+                                    </div>
+                                @endforeach
+                            </div>
+                        </div>
+                    @endif
+
+                    @if ($subscriptionLevel == 'SUSCRIPCIÓN NIVEL 3')
+                        <div class="exclusive-section-gold mt-4">
+                            <h4>MARCOS NIVEL 3</h4>
+                            <div class="row">
+                                @foreach ($marcoOro as $key => $marco)
+                                    <div class="col-md-2 col-options">
+                                        <label>
+                                            <input type="radio" name="marco" value="{{ $key }}" @if ($profile->marco == $key) checked @endif/>
+                                            <img src="{{ asset($marco) }}" class="img-fluid" loading="lazy" />
+                                        </label>
+                                    </div>
+                                @endforeach
+                            </div>
+                        </div>
+                    @endif
+
                 </div>
                 @error('marco')
                     <span class="invalid-feedback d-block" role="alert">
@@ -379,7 +390,7 @@ h4 {
                 @enderror
             </div>
 
-            <!-- Fondo de tarjeta -->
+
             <div class="form-group mt-2">
                 <div class="d-flex justify-content-between align-items-center mb-2" style="cursor: pointer;" onclick="toggleOptions('fondoOptions')">
                     <label for="fondo">Fondo de tarjeta</label>
@@ -392,9 +403,8 @@ h4 {
                         @foreach ($fondoOptions as $key => $fondo)
                             <div class="col-md-3 col-options">
                                 <label>
-                                    <input type="radio" name="fondo" value="{{ $fondo }}"
-                                           @if ($profile->fondo == $fondo) checked @endif/>
-                                    <img src="/storage/{{ $fondo }}" class="img-fluid" alt="{{ $key }}" />
+                                    <input type="radio" name="fondo" value="{{ $key }}" @if ($profile->fondo == $key) checked @endif/>
+                                    <img src="{{ asset($fondo) }}" class="img-fluid" alt="{{ $key }}" loading="lazy" />
                                 </label>
                             </div>
                         @endforeach

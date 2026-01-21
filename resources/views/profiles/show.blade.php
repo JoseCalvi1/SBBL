@@ -137,33 +137,40 @@
 @section('content')
 @if (Auth::check() && (Auth::user()->profile->id == $profile->id || Auth::user()->is_admin))
 <div class="container pb-4">
-
-    {{-- 🏆 SECCIÓN DE CABECERA Y PERFIL --}}
-    <div class="row">
-        {{-- Fondo del perfil --}}
-        <div class="col-12 p-0">
-            @php
-                $fondoUrl = $profile->fondo ? "/storage/{$profile->fondo}" : '/storage/upload-profiles/SBBLFondo.png';
-                $backgroundStyle = $profile->fondo ? 'background-size: cover; background-repeat: no-repeat;' : 'background-repeat: repeat;';
-            @endphp
-            <div class="profile-header-background" style="background-image: url('{{ $fondoUrl }}'); {{ $backgroundStyle }} background-position: center; height: 160px; border-radius: 10px 10px 0 0;"></div>
-        </div>
-
-        {{-- Avatar, Nombre y Estadísticas --}}
-        <div class="col-md-4 d-flex justify-content-center justify-content-md-start">
-            <div class="profile-avatar-container">
-                {{-- Imagen del Perfil --}}
-                @php
-                    $imgSrc = $profile->imagen ? "/storage/{$profile->imagen}" : '/storage/upload-profiles/Base/DranDagger.webp';
-                    $imgPadding = strpos($profile->imagen ?? '', '.gif') !== false ? 'padding: 20px;' : '';
-                    $marcoSrc = $profile->marco ? "/storage/{$profile->marco}" : '/storage/upload-profiles/Marcos/BaseBlue.png';
-                @endphp
-                <img src="{{ $imgSrc }}" class="rounded-circle profile-img-base" width="200" height="200" style="{{ $imgPadding }}">
-
-                {{-- Marco del Perfil --}}
-                <img src="{{ $marcoSrc }}" class="rounded-circle profile-img-frame" width="200" height="200">
+        {{-- 🏆 SECCIÓN DE CABECERA Y PERFIL --}}
+        <div class="row">
+            {{-- Fondo del perfil --}}
+            <div class="col-12 p-0">
+                {{-- FONDO: Usamos la nueva variable mágica del modelo --}}
+                <div class="profile-header-background"
+                    style="background-image: url('{{ $profile->fondo_url }}');
+                            {{ $profile->fondo ? 'background-size: cover; background-repeat: no-repeat;' : 'background-repeat: repeat;' }}
+                            background-position: center; height: 160px; border-radius: 10px 10px 0 0;">
+                </div>
             </div>
-        </div>
+
+            <div class="col-md-4 d-flex justify-content-center justify-content-md-start">
+                <div class="profile-avatar-container">
+
+                    {{-- AVATAR: Usamos $profile->avatar_url --}}
+                    @php
+                        // Solo dejamos esta pequeña lógica del GIF si es visual, o podrías llevarla al modelo también
+                        $imgPadding = strpos($profile->avatar_url, '.gif') !== false ? 'padding: 20px;' : '';
+                    @endphp
+
+                    <img src="{{ $profile->avatar_url }}"
+                        class="rounded-circle profile-img-base"
+                        width="200" height="200"
+                        style="{{ $imgPadding }}"
+                        loading="lazy">
+
+                    {{-- MARCO: Usamos $profile->marco_url --}}
+                    <img src="{{ $profile->marco_url }}"
+                        class="rounded-circle profile-img-frame"
+                        width="200" height="200"
+                        loading="lazy">
+                </div>
+            </div>
 
         {{-- Información Principal del Usuario --}}
         <div class="col-md-8 pt-4 pt-md-0 d-flex flex-column justify-content-center">

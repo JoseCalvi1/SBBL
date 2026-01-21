@@ -181,56 +181,98 @@
                 @foreach ($miembros as $miembroId)
                 <div class="col-md-4 col-sm-6 mb-3">
                     @php
+                        // Obtenemos el usuario (Si $miembroId ya es el objeto User del loop,
+                        // podrías ahorrarte el User::find y usar $miembroId directamente).
                         $miembro = App\Models\User::find($miembroId->id);
+                        $profile = $miembro->profile;
+
+                        // Lógica visual calculada aquí para limpiar el HTML
+                        $bgStyle = $profile->fondo ? 'background-size: cover; background-repeat: no-repeat;' : 'background-repeat: repeat;';
+
+                        // Padding para GIFs
+                        $gifPadding = strpos($profile->avatar_url, '.gif') !== false ? 'padding: 10px;' : '';
+
+                        // Verificamos si es capitán (usando la variable pivot original)
+                        $esCapitan = $miembroId->pivot->is_captain;
                     @endphp
-                    <div class="tarjeta" style="background-image: url('/storage/{{ ($miembro->profile->fondo) ? $miembro->profile->fondo : "upload-profiles/Fondos/SBBLFondo.png" }}'); background-size: cover; background-repeat: no-repeat; background-position: center; color: white; @if ($miembroId->pivot->is_captain) border: 2px solid yellow; @endif">
+
+                    <div class="tarjeta position-relative"
+                        style="background-image: url('{{ $profile->fondo_url }}');
+                                {{ $bgStyle }}
+                                background-position: center;
+                                color: white;
+                                height: 100%; /* Asegura altura consistente */
+                                padding: 15px;
+                                border-radius: 10px;
+                                box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+                                @if ($esCapitan) border: 2px solid yellow; @endif">
+
                         <div style="display: flex; align-items: center;">
-                            <div style="position: relative;">
-                                @if ($miembro->profile->imagen)
-                                    <img src="/storage/{{ $miembro->profile->imagen }}" class="rounded-circle" style="width: 100px; height: 100px; object-fit: cover;">
-                                @else
-                                    <img src="/storage/upload-profiles/Base/DranDagger.webp" class="rounded-circle" style="width: 100px; height: 100px; object-fit: cover;">
-                                @endif
-                                @if ($miembro->profile->marco)
-                                    <img src="/storage/{{ $miembro->profile->marco }}" class="rounded-circle" style="position: absolute; top: 0; left: 0; width: 100px; height: 100px; object-fit: cover;">
-                                @else
-                                    <img src="/storage/upload-profiles/Marcos/BaseBlue.png" class="rounded-circle" style="position: absolute; top: 0; left: 0; width: 100px; height: 100px; object-fit: cover;">
-                                @endif
+                            <div style="position: relative; width: 100px; height: 100px; flex-shrink: 0;">
+
+                                {{-- AVATAR (Usando el Accessor) --}}
+                                <img src="{{ $profile->avatar_url }}"
+                                    class="rounded-circle"
+                                    style="width: 100%; height: 100%; object-fit: cover; {{ $gifPadding }}"
+                                    loading="lazy"
+                                    alt="Avatar">
+
+                                {{-- MARCO (Usando el Accessor) --}}
+                                <img src="{{ $profile->marco_url }}"
+                                    class="rounded-circle"
+                                    style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover;"
+                                    loading="lazy"
+                                    alt="Marco">
                             </div>
-                            <div class="info">
-                                <div class="nombre">{{ $miembro->name }}</div>
-                                <div class="region">{{ ($miembro->profile->region) ? $miembro->profile->region->name : 'No definida'}}</div>
+
+                            <div class="info ms-3">
+                                <div class="nombre fw-bold" style="text-shadow: 1px 1px 2px black;">{{ $miembro->name }}</div>
+                                <div class="region small" style="text-shadow: 1px 1px 2px black;">
+                                    {{ $profile->region ? $profile->region->name : 'No definida'}}
+                                </div>
                             </div>
                         </div>
-                        @if ($equipo && ($equipo->captain_id === Auth::user()->id))
-                            @if (!$miembroId->pivot->is_captain)
-                                <!-- Formulario para hacer a este miembro el nuevo capitán del equipo -->
-                                <form action="{{ route('equipos.changeCaptain', [$equipo, $miembroId]) }}" method="POST" style="position: absolute; bottom: 40px; right: 10px;">
+
+                        {{-- LÓGICA DE BOTONES (Solo visible si tienes permisos) --}}
+                        <div class="mt-3 text-end">
+                            @if ($equipo && ($equipo->captain_id === Auth::user()->id))
+
+                                @if (!$esCapitan)
+                                    <form action="{{ route('equipos.changeCaptain', [$equipo, $miembroId]) }}" method="POST" class="d-inline-block">
+                                        @csrf
+                                        @method('PATCH')
+                                        <button type="submit" class="btn btn-warning btn-sm py-0" onclick="return confirm('¿Nuevo capitán?')">
+                                            <i class="fas fa-crown"></i> Ascender
+                                        </button>
+                                    </form>
+                                @endif
+
+                                <form action="{{ route('equipos.removeMember', [$equipo, $miembroId]) }}" method="POST" class="d-inline-block ms-1">
                                     @csrf
-                                    @method('PATCH')
-                                    <button type="submit" class="btn btn-warning btn-sm" onclick="return confirm('¿Estás seguro de querer hacer a este miembro el nuevo capitán del equipo?')">Hacer Capitán</button>
+                                    @method('DELETE')
+                                    <button type="submit" class="btn btn-danger btn-sm py-0" onclick="return confirm('¿Eliminar miembro?')">
+                                        <i class="fas fa-times"></i>
+                                    </button>
+                                </form>
+
+                            @elseif ($miembro->id === Auth::user()->id)
+                                <form action="{{ route('equipos.removeMember', [$equipo, Auth::user()]) }}" method="POST" class="d-inline-block">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button type="submit" class="btn btn-danger btn-sm py-0" onclick="return confirm('¿Salir del equipo?')">
+                                        Abandonar
+                                    </button>
                                 </form>
                             @endif
+                        </div>
 
-                            <!-- Formulario para eliminar miembro -->
-                            <form action="{{ route('equipos.removeMember', [$equipo, $miembroId]) }}" method="POST" style="position: absolute; bottom: 10px; right: 10px;">
-                                @csrf
-                                @method('DELETE')
-                                <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('¿Estás seguro de querer eliminar a este miembro del equipo?')">Eliminar</button>
-                            </form>
-
-                        @elseif ($miembro->id === Auth::user()->id)
-                            <!-- Formulario para abandonar el equipo -->
-                            <form action="{{ route('equipos.removeMember', [$equipo, Auth::user()]) }}" method="POST" style="position: absolute; bottom: 10px; right: 10px;">
-                                @csrf
-                                @method('DELETE')
-                                <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('¿Estás seguro de querer abandonar el equipo?')">Abandonar Equipo</button>
-                            </form>
+                        {{-- BADGE DE CAPITÁN --}}
+                        @if ($esCapitan)
+                            <div style="position: absolute; top: 0; right: 0; background-color: yellow; color: black; padding: 2px 10px; font-weight: bold; border-radius: 0 10px 0 10px; font-size: 0.8rem;">
+                                <i class="fas fa-crown me-1"></i> Capitán
+                            </div>
                         @endif
 
-                        @if ($miembroId->pivot->is_captain)
-                            <div style="position: absolute; top: 0px; right: 0px; background-color: yellow; color: black; padding: 5px;">Capitán</div>
-                        @endif
                     </div>
                 </div>
                 @endforeach

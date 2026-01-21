@@ -141,6 +141,11 @@ Route::put('/profiles/update-roles/{user}', [ProfileController::class, 'updateRo
 Route::get('/ranking-splits', [ProfileController::class, 'rankingPorSplits'])->name('profiles.splits');
 Route::get('/bladers/{id}/details', [ProfileController::class, 'getDetails'])->name('blader.details');
 Route::get('/rankings', [App\Http\Controllers\ProfileController::class, 'ranking'])->name('profiles.ranking');
+// Ruta temporal para limpiar caché desde el navegador
+Route::get('/limpiar-cache', function () {
+    \Illuminate\Support\Facades\Artisan::call('cache:clear');
+    return '¡Caché borrada correctamente!';
+});
 
 Route::get('/challenges', [App\Http\Controllers\ChallengeController::class, 'index'])->name('challenges.index');
 Route::post('/challenges', [App\Http\Controllers\ChallengeController::class, 'store'])->name('challenges.store');
@@ -275,6 +280,7 @@ Route::get('/beyblade-database/collection', [BeybladeCollectionController::class
 Route::post('/beyblade-database/collection/store', [BeybladeCollectionController::class, 'store'])->name('collection.store');
 Route::put('/collection/{id}', [BeybladeCollectionController::class, 'update'])->name('collection.update');
 Route::delete('/collection/{id}', [BeybladeCollectionController::class, 'destroy'])->name('collection.destroy');
+Route::post('/collection/bulk-destroy', [BeybladeCollectionController::class, 'bulkDestroy'])->name('collection.bulk_destroy');
 
 // Tienda
 Route::get('/tienda', [CarritoController::class, 'index'])->name('carrito.index');

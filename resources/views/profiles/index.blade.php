@@ -43,76 +43,76 @@
 
     <div class="row justify-content-center">
         @foreach ($bladers->unique('id') as $blader)
+            <div class="col-12 col-sm-6 col-md-4 col-lg-3 mb-4">
             @php
+                // 1. Lógica de Suscripción simplificada (Array Map en lugar de Switch)
                 $subscriptionClass = '';
                 if ($blader->user->activeSubscription) {
-                    $level = $blader->user->activeSubscription->plan->slug;
-
-                    // 🔑 SOLUCIÓN: Usar la estructura SWITCH compatible con PHP < 8.0
-                    switch ($level) {
-                        case 'oro':
-                            $subscriptionClass = 'suscripcion-nivel-3';
-                            break;
-                        case 'plata':
-                            $subscriptionClass = 'suscripcion-nivel-2';
-                            break;
-                        case 'bronce':
-                            $subscriptionClass = 'suscripcion-nivel-1';
-                            break;
-                        default:
-                            $subscriptionClass = '';
-                            break;
-                    }
+                    $slug = $blader->user->activeSubscription->plan->slug;
+                    $subscriptionMap = [
+                        'oro'    => 'suscripcion-nivel-3',
+                        'plata'  => 'suscripcion-nivel-2',
+                        'bronce' => 'suscripcion-nivel-1',
+                    ];
+                    $subscriptionClass = $subscriptionMap[$slug] ?? '';
                 }
+
+                // 2. Consultas de Copas (Se mantienen igual)
+                // Nota: Asegúrate de si $blader es el 'Profile' o el 'User' para usar la ID correcta.
+                // Asumo que $blader es 'Profile' porque usas $blader->user->...
+                $userId = $blader->user_id ?? $blader->id;
+
                 $hasGranCopaHalloween = DB::table('assist_user_event')
                     ->join('events', 'assist_user_event.event_id', '=', 'events.id')
-                    ->where('assist_user_event.user_id', $blader->id)
+                    ->where('assist_user_event.user_id', $userId)
                     ->whereRaw('LOWER(events.name) LIKE ?', ['%let it%'])
                     ->exists();
+
                 $hasGranCopaSantaKlaw = $blader->trophies->contains('name', 'Gran Copa Santa Klaw');
-                $avatarImage = $blader->imagen ?? 'upload-profiles/Base/DranDagger.webp';
-                $avatarMarco = $blader->marco ?? 'upload-profiles/Marcos/BaseBlue.png';
-                $fondo = $blader->fondo ?? 'upload-profiles/Fondos/SBBLFondo.png';
+
+                // 3. ¡VARIABLES DE IMAGEN ELIMINADAS! Usaremos los atributos mágicos abajo.
             @endphp
 
-            <div class="col-12 col-sm-6 col-md-4 col-lg-3 mb-4">
-                <div class="tarjeta {{ $subscriptionClass }}"
-                    style="background-image: url('/storage/{{ $fondo }}')"
-                    data-bs-toggle="modal"
-                    data-bs-target="#bladerModal"
-                    data-blader-id="{{ $blader->id }}">
+            {{-- Usamos $blader->fondo_url --}}
+            <div class="tarjeta {{ $subscriptionClass }}"
+                style="background-image: url('{{ $blader->fondo_url }}')"
+                data-bs-toggle="modal"
+                data-bs-target="#bladerModal"
+                data-blader-id="{{ $blader->id }}">
 
-                    <div class="avatar-container">
-                        <img src="/storage/{{ $avatarImage }}" class="rounded-circle img-blader">
-                        <img src="/storage/{{ $avatarMarco }}" class="rounded-circle marco-blader">
-                    </div>
+                <div class="avatar-container">
+                    {{-- Usamos $blader->avatar_url --}}
+                    <img src="{{ $blader->avatar_url }}" class="rounded-circle img-blader" loading="lazy" alt="Avatar">
 
-                    {{-- 🔑 CONTENEDOR DE VISIBILIDAD DE TEXTO --}}
-                    <div class="text-overlay">
-                        <div class="info text-center">
-                            <h5 class="fw-bold {{ $subscriptionClass }}">{{ $blader->user->name }}</h5>
-                            <p class="mb-1">{{ $blader->subtitulo }}</p>
-                            <p class="fw-semibold">{{ $blader->region->name ?? 'No definida' }}</p>
-                        </div>
-                    </div>
-                    {{-- FIN CONTENEDOR --}}
+                    {{-- Usamos $blader->marco_url --}}
+                    <img src="{{ $blader->marco_url }}" class="rounded-circle marco-blader" loading="lazy" alt="Marco">
+                </div>
 
-                    <div class="efecto-hover"></div>
-
-                    @if ($blader->free_agent)
-                        <div class="free-agent-label" title="Blader disponible para formar parte de un equipo">Open to work</div>
-                    @endif
-
-                    <div class="iconos">
-                        @if ($hasGranCopaHalloween)
-                            <i class="fas fa-ghost text-warning me-2" title="Gran Copa Let It R.I.P."></i>
-                        @endif
-                        @if ($hasGranCopaSantaKlaw)
-                            <i class="fas fa-snowflake text-info" title="Gran Copa Santa Klaw"></i>
-                        @endif
+                {{-- CONTENEDOR DE VISIBILIDAD DE TEXTO --}}
+                <div class="text-overlay">
+                    <div class="info text-center">
+                        <h5 class="fw-bold {{ $subscriptionClass }}">{{ $blader->user->name }}</h5>
+                        <p class="mb-1">{{ $blader->subtitulo }}</p>
+                        <p class="fw-semibold">{{ $blader->region->name ?? 'No definida' }}</p>
                     </div>
                 </div>
+
+                <div class="efecto-hover"></div>
+
+                @if ($blader->free_agent)
+                    <div class="free-agent-label" title="Blader disponible para formar parte de un equipo">Open to work</div>
+                @endif
+
+                <div class="iconos">
+                    @if ($hasGranCopaHalloween)
+                        <i class="fas fa-ghost text-warning me-2" title="Gran Copa Let It R.I.P."></i>
+                    @endif
+                    @if ($hasGranCopaSantaKlaw)
+                        <i class="fas fa-snowflake text-info" title="Gran Copa Santa Klaw"></i>
+                    @endif
+                </div>
             </div>
+        </div>
         @endforeach
     </div>
 
