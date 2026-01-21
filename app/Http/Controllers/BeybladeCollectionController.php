@@ -179,4 +179,19 @@ class BeybladeCollectionController extends Controller
         return redirect()->back()->with('success', 'Pieza eliminada de tu colección.');
     }
 
+    // Añade este método a tu controlador
+    public function bulkDestroy(Request $request)
+    {
+        $request->validate([
+            'ids' => 'required|array',
+            'ids.*' => 'exists:beyblade_collections,id'
+        ]);
+
+        // Asegurarse de que solo borra sus propias piezas
+        $deleted = BeybladeCollection::whereIn('id', $request->ids)
+                    ->where('user_id', Auth::user()->id)
+                    ->delete();
+
+        return response()->json(['success' => true, 'message' => "$deleted piezas eliminadas."]);
+    }
 }

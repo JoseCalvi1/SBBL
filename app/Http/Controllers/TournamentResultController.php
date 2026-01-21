@@ -68,78 +68,76 @@ class TournamentResultController extends Controller
     return redirect()->back()->with('success', 'Resultados guardados correctamente.');
     }
 
+public function beybladeStats(Request $request)
+{
+    // 1. Valores por defecto y Filtros Simples
+    $sort = $request->get('sort', 'percentage_victories');
+    $order = $request->get('order', 'desc');
+    $minPartidas = $request->get('min_partidas', 10);
+    $fechaInicio = $request->get('fecha_inicio'); // Nuevo: Capturar fecha
+    $fechaFin = $request->get('fecha_fin');       // Nuevo: Capturar fecha
 
+    // 2. Listas para los selects
+    $parts = DB::table('tournament_results')
+        ->select('blade', 'assist_blade', 'ratchet', 'bit')
+        ->distinct()
+        ->get();
 
+    $blades = $parts->pluck('blade')->unique()->sort()->values();
+    $assistBlades = $parts->pluck('assist_blade')->unique()
+        ->filter(fn($v) => $v !== '-- Selecciona un assist blade --')
+        ->sort()->values();
+    $ratchets = $parts->pluck('ratchet')->unique()->sort()->values();
+    $bits = $parts->pluck('bit')->unique()->sort()->values();
 
-    public function beybladeStats(Request $request)
-    {
-        $sort = $request->get('sort', 'blade');
-        $order = $request->get('order', 'asc');
-        $fechaInicio = $request->get('fecha_inicio');
-        $fechaFin = $request->get('fecha_fin');
-        $minPartidas = $request->get('min_partidas', 10);
+    // 3. Query Principal
+    $query = DB::table('tournament_results')
+        ->select(
+            'blade',
+            DB::raw("CASE WHEN assist_blade LIKE '%Selecciona%' OR assist_blade IS NULL THEN '-' ELSE assist_blade END as assist_blade"),
+            'ratchet',
+            'bit',
+            DB::raw('SUM(victorias) as total_victorias'),
+            DB::raw('SUM(derrotas) as total_derrotas'),
+            DB::raw('SUM(victorias) + SUM(derrotas) as total_partidas'),
 
-        // Filtros
-        $bladeFilter = $request->get('blade');
-        $assistBladeFilter = $request->get('assist_blade');
-        $ratchetFilter = $request->get('ratchet');
-        $bitFilter = $request->get('bit');
-        $userPartsFilter = $request->get('only_user_parts') == 'on';
+            // Win Rate
+            DB::raw('CASE WHEN SUM(victorias) + SUM(derrotas) > 0 THEN (SUM(victorias) / (SUM(victorias) + SUM(derrotas))) * 100 ELSE 0 END AS percentage_victories'),
 
-        // Obtener opciones únicas y ordenarlas alfabéticamente
-        $blades = DB::table('tournament_results')->distinct()->pluck('blade')->sort();
-        $assistBlades = DB::table('tournament_results')->distinct()->pluck('assist_blade')->sort();
-        $ratchets = DB::table('tournament_results')->distinct()->pluck('ratchet')->sort();
-        $bits = DB::table('tournament_results')->distinct()->pluck('bit')->sort();
+            // Puntos Promedio (Necesarios para el detalle)
+            DB::raw('CASE WHEN SUM(victorias) > 0 THEN SUM(puntos_ganados) / GREATEST(SUM(victorias), 1) ELSE 0 END AS puntos_ganados_por_combate'),
+            DB::raw('CASE WHEN SUM(derrotas) > 0 THEN SUM(puntos_perdidos) / GREATEST(SUM(derrotas), 1) ELSE 0 END AS puntos_perdidos_por_combate'),
 
-        $beybladeStats = DB::table('tournament_results')
-            ->select(
-                'blade',
-                DB::raw("CASE WHEN assist_blade = '-- Selecciona un assist blade --' THEN '' ELSE assist_blade END as assist_blade"),
-                'ratchet',
-                'bit',
-                DB::raw('SUM(victorias) as total_victorias'),
-                DB::raw('SUM(derrotas) as total_derrotas'),
-                DB::raw('CASE WHEN SUM(victorias) > 0 THEN SUM(puntos_ganados) / GREATEST(SUM(victorias), 1) ELSE 0 END AS puntos_ganados_por_combate'),
-                DB::raw('CASE WHEN SUM(derrotas) > 0 THEN SUM(puntos_perdidos) / GREATEST(SUM(derrotas), 1) ELSE 0 END AS puntos_perdidos_por_combate'),
-                DB::raw('SUM(victorias) + SUM(derrotas) as total_partidas'),
-                DB::raw('CASE WHEN SUM(victorias) + SUM(derrotas) > 0 THEN (SUM(victorias) / GREATEST(SUM(victorias) + SUM(derrotas), 1)) * 100 ELSE 0 END AS percentage_victories'),
-                DB::raw('CASE WHEN (SUM(victorias) + SUM(derrotas)) > 0 THEN (((SUM(puntos_ganados) / GREATEST(SUM(victorias), 1)) / ((SUM(puntos_ganados) / GREATEST(SUM(victorias), 1)) + (SUM(puntos_perdidos) / GREATEST(SUM(derrotas), 1)))) * ((SUM(victorias) / GREATEST(SUM(victorias) + SUM(derrotas), 1)) * 100)) * LOG(SUM(victorias) + SUM(derrotas) + 1) ELSE 0 END AS eficiencia')
-            )
-            ->where('blade', 'NOT LIKE', '%Selecciona%')
-            ->when($bladeFilter, function ($query) use ($bladeFilter) {
-                return $query->where('blade', $bladeFilter);
-            })
-            ->when($assistBladeFilter, function ($query) use ($assistBladeFilter) {
-                return $query->where('assist_blade', $assistBladeFilter);
-            })
-            ->when($ratchetFilter, function ($query) use ($ratchetFilter) {
-                return $query->where('ratchet', $ratchetFilter);
-            })
-            ->when($bitFilter, function ($query) use ($bitFilter) {
-                return $query->where('bit', $bitFilter);
-            })
-            ->when($userPartsFilter, function ($query) {
-                return $query->where('user_id', Auth::user()->id);
-            })
-            ->when($fechaInicio, function ($query) use ($fechaInicio) {
-                return $query->whereDate('created_at', '>=', $fechaInicio);
-            })
-            ->when($fechaFin, function ($query) use ($fechaFin) {
-                return $query->whereDate('created_at', '<=', $fechaFin);
-            })
-            ->groupBy('blade', 'assist_blade', 'ratchet', 'bit')
-            ->havingRaw('(SUM(victorias) + SUM(derrotas)) >= ?', [$minPartidas])
-            ->orderBy($sort, $order)
-            ->get();
+            // Eficiencia
+            DB::raw('CASE WHEN (SUM(victorias) + SUM(derrotas)) > 0 THEN (((SUM(puntos_ganados) / GREATEST(SUM(victorias), 1)) / ((SUM(puntos_ganados) / GREATEST(SUM(victorias), 1)) + (SUM(puntos_perdidos) / GREATEST(SUM(derrotas), 1)))) * ((SUM(victorias) / GREATEST(SUM(victorias) + SUM(derrotas), 1)) * 100)) * LOG(SUM(victorias) + SUM(derrotas) + 1) ELSE 0 END AS eficiencia')
+        )
+        ->where('blade', 'NOT LIKE', '%Selecciona%');
 
-            return view('inicio.stats', compact(
-                'beybladeStats', 'sort', 'order',
-                'bladeFilter', 'assistBladeFilter', 'ratchetFilter', 'bitFilter',
-                'blades', 'assistBlades', 'ratchets', 'bits', 'userPartsFilter',
-                'fechaInicio', 'fechaFin', 'minPartidas'
-            ));
-    }
+    // 4. Aplicar Filtros
+    if ($request->filled('blade')) $query->where('blade', $request->blade);
+    if ($request->filled('assist_blade')) $query->where('assist_blade', $request->assist_blade); // Filtro opcional si quisieras usarlo
+    if ($request->filled('ratchet')) $query->where('ratchet', $request->ratchet);
+    if ($request->filled('bit')) $query->where('bit', $request->bit);
+
+    // Filtros de fecha añadidos
+    if ($request->filled('fecha_inicio')) $query->whereDate('created_at', '>=', $fechaInicio);
+    if ($request->filled('fecha_fin')) $query->whereDate('created_at', '<=', $fechaFin);
+
+    if ($request->has('only_user_parts') && Auth::check()) $query->where('user_id', Auth::id());
+
+    // 5. Agrupación y Ejecución
+    $beybladeStats = $query
+        ->groupBy('blade', 'assist_blade', 'ratchet', 'bit')
+        ->havingRaw('(SUM(victorias) + SUM(derrotas)) >= ?', [$minPartidas])
+        ->orderBy($sort, $order)
+        ->get();
+
+    return view('inicio.stats', compact(
+        'beybladeStats', 'sort', 'order', 'minPartidas',
+        'blades', 'assistBlades', 'ratchets', 'bits',
+        'fechaInicio', 'fechaFin' // Pasamos las fechas a la vista
+    ));
+}
 
     public function separateStats(Request $request)
     {

@@ -18,8 +18,8 @@ class ResolveGameTurn extends Command
 
     public function handle()
     {
-        // 1. CONTROL DE SEMANA
-        if (Carbon::now()->weekOfYear % 2 == 0) {
+        // 1. CONTROL DE SEMANA TODO Cambiar para el final
+        if (Carbon::now()->weekOfYear % 2 != 0) {
             $this->info("📅 Semana IMPAR (Mantenimiento).");
             return;
         }

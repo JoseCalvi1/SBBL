@@ -195,10 +195,18 @@ class EventController extends Controller
 
         $participantes = User::all();
 
+        $assists = $event->users()->withPivot('puesto')->get();
+
+        // CALCULAR NÚMERO DE PARTICIPANTES
+        $totalParticipantes = $assists->count(); // <--- AÑADIR ESTA VARIABLE
+
+        // ... (resto de tu código) ...
+
         return view('events.show', array_merge(compact(
             'event', 'videos', 'assists', 'suscribe', 'hoy',
             'bladeOptions', 'assistBladeOptions', 'ratchetOptions', 'bitOptions',
-            'results', 'extraLines', 'resultsByParticipant', 'participantes'
+            'results', 'extraLines', 'resultsByParticipant', 'participantes',
+            'totalParticipantes' // <--- AÑADIR AL COMPACT
         ), $limits));
     }
 

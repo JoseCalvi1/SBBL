@@ -13,7 +13,7 @@
 
                 <div class="container py-3">
                     <div class="alert alert-info bg-dark border-info text-info small mb-4 shadow-sm">
-                        <i class="fas fa-info-circle me-1"></i> Configura los 3 Beyblades de tu deck.
+                        <i class="fas fa-info-circle me-1"></i> Configura los 3 Beyblades de tu deck y sus estadísticas.
                     </div>
 
                     <form method="POST" action="{{ route('tournament.results.store', ['eventId' => $event->id]) }}" id="deckForm">
@@ -35,8 +35,7 @@
                                                     <select class="form-select select2-modal" id="blade_{{ $index }}" name="blade[{{ Auth::id() }}][]" required>
                                                         <option value="">Seleccionar...</option>
                                                         @foreach($bladeOptions as $option)
-                                                            <option value="{{ $option }}"
-                                                                {{ (isset($results[$index-1]) && $results[$index-1]->blade == $option) ? 'selected' : '' }}>
+                                                            <option value="{{ $option }}" {{ (isset($results[$index-1]) && $results[$index-1]->blade == $option) ? 'selected' : '' }}>
                                                                 {{ $option }}
                                                             </option>
                                                         @endforeach
@@ -48,8 +47,7 @@
                                                     <select class="form-select select2-modal" id="ratchet_{{ $index }}" name="ratchet[{{ Auth::id() }}][]" required>
                                                         <option value="">Seleccionar...</option>
                                                         @foreach($ratchetOptions as $option)
-                                                            <option value="{{ $option }}"
-                                                                {{ (isset($results[$index-1]) && $results[$index-1]->ratchet == $option) ? 'selected' : '' }}>
+                                                            <option value="{{ $option }}" {{ (isset($results[$index-1]) && $results[$index-1]->ratchet == $option) ? 'selected' : '' }}>
                                                                 {{ $option }}
                                                             </option>
                                                         @endforeach
@@ -61,8 +59,7 @@
                                                     <select class="form-select select2-modal" id="bit_{{ $index }}" name="bit[{{ Auth::id() }}][]" required>
                                                         <option value="">Seleccionar...</option>
                                                         @foreach($bitOptions as $option)
-                                                            <option value="{{ $option }}"
-                                                                {{ (isset($results[$index-1]) && $results[$index-1]->bit == $option) ? 'selected' : '' }}>
+                                                            <option value="{{ $option }}" {{ (isset($results[$index-1]) && $results[$index-1]->bit == $option) ? 'selected' : '' }}>
                                                                 {{ $option }}
                                                             </option>
                                                         @endforeach
@@ -70,30 +67,55 @@
                                                 </div>
 
                                                 <div class="col-12">
-                                                    <label class="form-label small text-uppercase fw-bold mb-1">Assist (Opcional)</label>
+                                                    <label class="form-label small text-uppercase text-light fw-bold mb-1">Assist (Opcional)</label>
                                                     <select class="form-select select2-modal" id="assist_{{ $index }}" name="assist_blade[{{ Auth::id() }}][]">
                                                         <option value="">-</option>
                                                         @foreach($assistBladeOptions as $option)
-                                                            <option value="{{ $option }}"
-                                                                {{ (isset($results[$index-1]) && $results[$index-1]->assist_blade == $option) ? 'selected' : '' }}>
+                                                            <option value="{{ $option }}" {{ (isset($results[$index-1]) && $results[$index-1]->assist_blade == $option) ? 'selected' : '' }}>
                                                                 {{ $option }}
                                                             </option>
                                                         @endforeach
                                                     </select>
                                                 </div>
 
-                                                <input type="hidden" name="victorias[{{ Auth::id() }}][]" value="0">
-                                                <input type="hidden" name="derrotas[{{ Auth::id() }}][]" value="0">
-                                                <input type="hidden" name="puntos_ganados[{{ Auth::id() }}][]" value="0">
-                                                <input type="hidden" name="puntos_perdidos[{{ Auth::id() }}][]" value="0">
-                                            </div>
+                                                <div class="col-12 mt-4 pt-3 border-top border-secondary">
+                                                    <h6 class="small text-uppercase text-muted fw-bold mb-3"><i class="fas fa-chart-bar me-1"></i> Estadísticas</h6>
+
+                                                    <div class="row g-2">
+                                                        <div class="col-6">
+                                                            <label class="form-label small text-white mb-0">Victorias</label>
+                                                            <input type="number" class="form-control form-control-sm bg-dark text-white border-secondary"
+                                                                   name="victorias[{{ Auth::id() }}][]"
+                                                                   value="{{ isset($results[$index-1]) ? $results[$index-1]->victorias : 0 }}" min="0">
+                                                        </div>
+                                                        <div class="col-6">
+                                                            <label class="form-label small text-white mb-0">Derrotas</label>
+                                                            <input type="number" class="form-control form-control-sm bg-dark text-white border-secondary"
+                                                                   name="derrotas[{{ Auth::id() }}][]"
+                                                                   value="{{ isset($results[$index-1]) ? $results[$index-1]->derrotas : 0 }}" min="0">
+                                                        </div>
+                                                        <div class="col-6">
+                                                            <label class="form-label small text-white mb-0">P. Ganados</label>
+                                                            <input type="number" class="form-control form-control-sm bg-dark text-white border-secondary"
+                                                                   name="puntos_ganados[{{ Auth::id() }}][]"
+                                                                   value="{{ isset($results[$index-1]) ? $results[$index-1]->puntos_ganados : 0 }}" min="0">
+                                                        </div>
+                                                        <div class="col-6">
+                                                            <label class="form-label small text-white mb-0">P. Perdidos</label>
+                                                            <input type="number" class="form-control form-control-sm bg-dark text-white border-secondary"
+                                                                   name="puntos_perdidos[{{ Auth::id() }}][]"
+                                                                   value="{{ isset($results[$index-1]) ? $results[$index-1]->puntos_perdidos : 0 }}" min="0">
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                </div>
                                         </div>
                                     </div>
                                 </div>
                             @endforeach
                         </div>
 
-                        </form>
+                    </form>
                 </div>
             </div>
 

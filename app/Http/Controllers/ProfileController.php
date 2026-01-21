@@ -15,6 +15,8 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\Cache;
 
 class ProfileController extends Controller
 {
@@ -286,264 +288,54 @@ class ProfileController extends Controller
      */
     public function edit(Profile $profile)
     {
+        // Verificar permisos
+        if (Auth::user()->profile->id != $profile->id && !Auth::user()->is_admin) {
+             return redirect()->route('index'); // O mostrar un error 403
+        }
+
         $regionT = Region::find($profile->region_id);
         $regions = Region::all();
-        $avatarOptions = [
-            'Base/AeroPegasus_1.webp' => 'upload-profiles/Base/AeroPegasus_1.webp',
-            'Base/BiteCroc_1.webp' => 'upload-profiles/Base/BiteCroc_1.webp',
-            'Base/BlackShell.webp' => 'upload-profiles/Base/BlackShell.webp',
-            'Base/BurnFugiwara_2.webp' => 'upload-profiles/Base/BurnFugiwara_2.webp',
-            'Base/ChoPan_2.webp' => 'upload-profiles/Base/ChoPan_2.webp',
-            'Base/ChromeRyugu.webp' => 'upload-profiles/Base/ChromeRyugu.webp',
-            'Base/CobaltDragoon.webp' => 'upload-profiles/Base/CobaltDragoon.webp',
-            'Base/CrimsonGaruda.webp' => 'upload-profiles/Base/CrimsonGaruda.webp',
-            'Base/DranBuster.webp' => 'upload-profiles/Base/DranBuster.webp',
-            'Base/DranDagger.webp' => 'upload-profiles/Base/DranDagger.webp',
-            'Base/DranSword.webp' => 'upload-profiles/Base/DranSword.webp',
-            'Base/EkusuKurosu_2.webp' => 'upload-profiles/Base/EkusuKurosu_2.webp',
-            'Base/GhostCircle.webp' => 'upload-profiles/Base/GhostCircle.webp',
-            'Base/HellChain.webp' => 'upload-profiles/Base/HellChain.webp',
-            'Base/HellHammer.webp' => 'upload-profiles/Base/HellHammer.webp',
-            'Base/HellScythe.webp' => 'upload-profiles/Base/HellScythe.webp',
-            'Base/ImpactDrake.webp' => 'upload-profiles/Base/ImpactDrake.webp',
-            'Base/Kadovar_2.webp' => 'upload-profiles/Base/Kadovar_2.webp',
-            'Base/KamenX_2.webp' => 'upload-profiles/Base/KamenX_2.webp',
-            'Base/KaminariShieru.webp' => 'upload-profiles/Base/KaminariShieru.webp',
-            'Base/KaruraKonjiki.webp' => 'upload-profiles/Base/KaruraKonjiki.webp',
-            'Base/KazamiBird_2.webp' => 'upload-profiles/Base/KazamiBird_2.webp',
-            'Base/KazamiBird2_2.webp' => 'upload-profiles/Base/KazamiBird2_2.webp',
-            'Base/KingManju_2.webp' => 'upload-profiles/Base/KingManju_2.webp',
-            'Base/KnightLance.webp' => 'upload-profiles/Base/KnightLance.webp',
-            'Base/KnightMail.webp' => 'upload-profiles/Base/KnightMail.webp',
-            'Base/KnightShield.webp' => 'upload-profiles/Base/KnightShield.webp',
-            'Base/LeonCrest.webp' => 'upload-profiles/Base/LeonCrest.webp',
-            'Base/MeikoMaiden_2.webp' => 'upload-profiles/Base/MeikoMaiden_2.webp',
-            'Base/MultiNanario_2.webp' => 'upload-profiles/Base/MultiNanario_2.webp',
-            'Base/MultiNanario2_2.webp' => 'upload-profiles/Base/MultiNanario2_2.webp',
-            'Base/MultiNanario3_2.webp' => 'upload-profiles/Base/MultiNanario3_2.webp',
-            'Base/PhoenixFeather.webp' => 'upload-profiles/Base/PhoenixFeather.webp',
-            'Base/PhoenixRudder.webp' => 'upload-profiles/Base/PhoenixRudder.webp',
-            'Base/PhoenixWing.webp' => 'upload-profiles/Base/PhoenixWing.webp',
-            'Base/PteraSwing.webp' => 'upload-profiles/Base/PteraSwing.webp',
-            'Base/QueenManju.webp' => 'upload-profiles/Base/QueenManju.webp',
-            'Base/RexJura.webp' => 'upload-profiles/Base/RexJura.webp',
-            'Base/RhinoHorn.webp' => 'upload-profiles/Base/RhinoHorn.webp',
-            'Base/RoarTyranno_1.webp' => 'upload-profiles/Base/RoarTyranno_1.webp',
-            'Base/SamuraiSaber.webp' => 'upload-profiles/Base/SamuraiSaber.webp',
-            'Base/SavageBear.webp' => 'upload-profiles/Base/SavageBear.webp',
-            'Base/SharkEdge.webp' => 'upload-profiles/Base/SharkEdge.webp',
-            'Base/ShiguruNanairo.webp' => 'upload-profiles/Base/ShiguruNanairo.webp',
-            'Base/ShinobiShadow_1.webp' => 'upload-profiles/Base/ShinobiShadow_1.webp',
-            'Base/SilverWolf_1.webp' => 'upload-profiles/Base/SilverWolf_1.webp',
-            'Base/SphinxCowl.webp' => 'upload-profiles/Base/SphinxCowl.webp',
-            'Base/TalonPtera_1.webp' => 'upload-profiles/Base/TalonPtera_1.webp',
-            'Base/TenkaShiroboshi.webp' => 'upload-profiles/Base/TenkaShiroboshi.webp',
-            'Base/ToguroOkunaga_2.webp' => 'upload-profiles/Base/ToguroOkunaga_2.webp',
-            'Base/TuskMammoth_1.webp' => 'upload-profiles/Base/TuskMammoth_1.webp',
-            'Base/TyrannoBeat.webp' => 'upload-profiles/Base/TyrannoBeat.webp',
-            'Base/UnicornSting.webp' => 'upload-profiles/Base/UnicornSting.webp',
-            'Base/WeissTiger.webp' => 'upload-profiles/Base/WeissTiger.webp',
-            'Base/WhaleWave.webp' => 'upload-profiles/Base/WhaleWave.webp',
-            'Base/WizardArrow.webp' => 'upload-profiles/Base/WizardArrow.webp',
-            'Base/WizardRod.webp' => 'upload-profiles/Base/WizardRod.webp',
-            'Base/WyvernGale.webp' => 'upload-profiles/Base/WyvernGale.webp',
-            'Base/YellKong_1.webp' => 'upload-profiles/Base/YellKong_1.webp',
-            'Base/YuniNamba_2.webp' => 'upload-profiles/Base/YuniNamba_2.webp',
-            'Base/ZonamosNekoya.webp' => 'upload-profiles/Base/ZonamosNekoya.webp',
-            'Base/HellsReaper.webp' => 'upload-profiles/Base/HellsReaper.webp',
-            'Base/RhinoReaper.webp' => 'upload-profiles/Base/RhinoReaper.webp',
-            'Base/ScorpioSpear.webp' => 'upload-profiles/Base/ScorpioSpear.webp',
-            'Base/TriceraPress.webp' => 'upload-profiles/Base/TriceraPress.webp',
-            'Base/AntlerStag.webp' => 'upload-profiles/Base/AntlerStag.webp',
-            'Base/CerberusFlame.webp' => 'upload-profiles/Base/CerberusFlame.webp',
-            'Base/ClockMirage.webp' => 'upload-profiles/Base/ClockMirage.webp',
-            'Base/FortHornet.webp' => 'upload-profiles/Base/FortHornet.webp',
-            'Base/GillShark.webp' => 'upload-profiles/Base/GillShark.webp',
-            'Base/GoatTackle.webp' => 'upload-profiles/Base/GoatTackle.webp',
-            'Base/HoverWyvern.webp' => 'upload-profiles/Base/HoverWyvern.webp',
-            'Base/PegasusBlast.webp' => 'upload-profiles/Base/PegasusBlast.webp',
-            'Base/SamuraiCalibur.webp' => 'upload-profiles/Base/SamuraiCalibur.webp',
-            'Base/SamuraiSteel.webp' => 'upload-profiles/Base/SamuraiSteel.webp',
-            'Base/SharkScale.webp' => 'upload-profiles/Base/SharkScale.webp',
-            'Base/ShinobiKnife.webp' => 'upload-profiles/Base/ShinobiKnife.webp',
-            'Base/SolEclipse.webp' => 'upload-profiles/Base/SolEclipse.webp',
-            'Base/WhaleFlame.webp' => 'upload-profiles/Base/WhaleFlame.webp',
-            'Base/WriggleKraken.webp' => 'upload-profiles/Base/WriggleKraken.webp',
-            'Base/EmperorMight.webp' => 'upload-profiles/Base/EmperorMight.webp',
-            'Base/WolfHunt.webp' => 'upload-profiles/Base/WolfHunt.webp',
-        ];
 
+        // =====================================================================
+        // 1. CARGA DINÁMICA DE IMÁGENES DESDE CARPETAS
+        // =====================================================================
+        // Nota: El método auxiliar getImagesFromFolder se define más abajo.
+        // Lee la carpeta public/upload-profiles/Base, public/upload-profiles/BRONCE, etc.
 
-        $bronzeAvatars = [
-            'BRONCE/BearScratch.webp' => 'upload-profiles/BRONCE/BearScratch.webp',
-            'BRONCE/BlackKnightLance.webp' => 'upload-profiles/BRONCE/BlackKnightLance.webp',
-            'BRONCE/BlackSharkEdge.webp' => 'upload-profiles/BRONCE/BlackSharkEdge.webp',
-            'BRONCE/BlackShinobiShadow.webp' => 'upload-profiles/BRONCE/BlackShinobiShadow.webp',
-            'BRONCE/BlackSphinxCowl.webp' => 'upload-profiles/BRONCE/BlackSphinxCowl.webp',
-            'BRONCE/BlackViperTail.webp' => 'upload-profiles/BRONCE/BlackViperTail.webp',
-            'BRONCE/BlackWhaleWave.webp' => 'upload-profiles/BRONCE/BlackWhaleWave.webp',
-            'BRONCE/BlueDranSword.webp' => 'upload-profiles/BRONCE/BlueDranSword.webp',
-            'BRONCE/BlueHellChain.webp' => 'upload-profiles/BRONCE/BlueHellChain.webp',
-            'BRONCE/BlueHellHammer.webp' => 'upload-profiles/BRONCE/BlueHellHammer.webp',
-            'BRONCE/BlueKnightShield.webp' => 'upload-profiles/BRONCE/BlueKnightShield.webp',
-            'BRONCE/BluePhoenixWing.webp' => 'upload-profiles/BRONCE/BluePhoenixWing.webp',
-            'BRONCE/BlueShinobiShadow.webp' => 'upload-profiles/BRONCE/BlueShinobiShadow.webp',
-            'BRONCE/BlueSphinxCowl.webp' => 'upload-profiles/BRONCE/BlueSphinxCowl.webp',
-            'BRONCE/BlueViperTail.webp' => 'upload-profiles/BRONCE/BlueViperTail.webp',
-            'BRONCE/BlueWizardArrow.webp' => 'upload-profiles/BRONCE/BlueWizardArrow.webp',
-            'BRONCE/BrownWizardArrow.webp' => 'upload-profiles/BRONCE/BrownWizardArrow.webp',
-            'BRONCE/CyanKnightShield.webp' => 'upload-profiles/BRONCE/CyanKnightShield.webp',
-            'BRONCE/BronzeDranSword.webp' => 'upload-profiles/BRONCE/BronzeDranSword.webp',
-            'BRONCE/GreenGhostCircle.webp' => 'upload-profiles/BRONCE/GreenGhostCircle.webp',
-            'BRONCE/GreenHellScythe.webp' => 'upload-profiles/BRONCE/GreenHellScythe.webp',
-            'BRONCE/GreenSharkEdge.webp' => 'upload-profiles/BRONCE/GreenSharkEdge.webp',
-            'BRONCE/GreenTyrannoBeat.webp' => 'upload-profiles/BRONCE/GreenTyrannoBeat.webp',
-            'BRONCE/GreenWizardArrow.webp' => 'upload-profiles/BRONCE/GreenWizardArrow.webp',
-            'BRONCE/GreenWizardRod.webp' => 'upload-profiles/BRONCE/GreenWizardRod.webp',
-            'BRONCE/GreyDranSword.webp' => 'upload-profiles/BRONCE/GreyDranSword.webp',
-            'BRONCE/GreyPhoenixFeather.webp' => 'upload-profiles/BRONCE/GreyPhoenixFeather.webp',
-            'BRONCE/GreyWyvernGale.webp' => 'upload-profiles/BRONCE/GreyWyvernGale.webp',
-            'BRONCE/OrangeDranDagger.webp' => 'upload-profiles/BRONCE/OrangeDranDagger.webp',
-            'BRONCE/OrangeWizardArrow.webp' => 'upload-profiles/BRONCE/OrangeWizardArrow.webp',
-            'BRONCE/OrangeWizardRod.webp' => 'upload-profiles/BRONCE/OrangeWizardRod.webp',
-            'BRONCE/PurpleKnightShield.webp' => 'upload-profiles/BRONCE/PurpleKnightShield.webp',
-            'BRONCE/PurpleRhinoHorn.webp' => 'upload-profiles/BRONCE/PurpleRhinoHorn.webp',
-            'BRONCE/PurpleViperTail.webp' => 'upload-profiles/BRONCE/PurpleViperTail.webp',
-            'BRONCE/PurpleWizardArrow.webp' => 'upload-profiles/BRONCE/PurpleWizardArrow.webp',
-            'BRONCE/RedDranSword.webp' => 'upload-profiles/BRONCE/RedDranSword.webp',
-            'BRONCE/RedKnightShield.webp' => 'upload-profiles/BRONCE/RedKnightShield.webp',
-            'BRONCE/RedLeonCLaw.webp' => 'upload-profiles/BRONCE/RedLeonCLaw.webp',
-            'BRONCE/RedTyrannoBeat.webp' => 'upload-profiles/BRONCE/RedTyrannoBeat.webp',
-            'BRONCE/RedUnicorn.webp' => 'upload-profiles/BRONCE/RedUnicorn.webp',
-            'BRONCE/RedWizardArrow.webp' => 'upload-profiles/BRONCE/RedWizardArrow.webp',
-            'BRONCE/RedWyvernGale.webp' => 'upload-profiles/BRONCE/RedWyvernGale.webp',
-            'BRONCE/WhiteLeonClaw.webp' => 'upload-profiles/BRONCE/WhiteLeonClaw.webp',
-            'BRONCE/WhiteSphinxCowl.webp' => 'upload-profiles/BRONCE/WhiteSphinxCowl.webp',
-            'BRONCE/WhiteWhaleWave.webp' => 'upload-profiles/BRONCE/WhiteWhaleWave.webp',
-            'BRONCE/YellowBlackShell.webp' => 'upload-profiles/BRONCE/YellowBlackShell.webp',
-            'BRONCE/YellowHellScythe.webp' => 'upload-profiles/BRONCE/YellowHellScythe.webp',
-            'BRONCE/YellowKnightLance.webp' => 'upload-profiles/BRONCE/YellowKnightLance.webp',
-            'BRONCE/YellowSharkEdge.webp' => 'upload-profiles/BRONCE/YellowSharkEdge.webp',
-            'BRONCE/YellowShinobiShadow_1.webp' => 'upload-profiles/BRONCE/YellowShinobiShadow_1.webp',
-            'BRONCE/YellowViperTail.webp' => 'upload-profiles/BRONCE/YellowViperTail.webp',
-            'BRONCE/YellowWyvernGale.webp' => 'upload-profiles/BRONCE/YellowWyvernGale.webp',
-            'BRONCE/BlackPhoenixRudder.webp' => 'upload-profiles/BRONCE/BlackPhoenixRudder.webp',
-            'BRONCE/HellsArc.webp' => 'upload-profiles/BRONCE/HellsArc.webp',
-            'BRONCE/WhiteLeonCrest.webp' => 'upload-profiles/BRONCE/WhiteLeonCrest.webp',
-            'BRONCE/YellowWhaleWave.webp' => 'upload-profiles/BRONCE/YellowWhaleWave.webp',
-        ];
+        // --- AVATARES ---
+        $avatarOptions = $this->getImagesFromFolder('Base');
+        $bronzeAvatars = $this->getImagesFromFolder('BRONCE');
+        $silverAvatars = $this->getImagesFromFolder('PLATA');
+        $goldAvatars   = $this->getImagesFromFolder('ORO');
 
-        $bronzeAvatarsS2 = [
-            'BRONCE/BlackShellPink.webp' => 'upload-profiles/BRONCE/BlackShellPink.webp',
-            'BRONCE/CerberusFlameBlue.webp' => 'upload-profiles/BRONCE/CerberusFlameBlue.webp',
-            'BRONCE/ClockMirageGrey.webp' => 'upload-profiles/BRONCE/ClockMirageGrey.webp',
-            'BRONCE/ClockMiragePink.webp' => 'upload-profiles/BRONCE/ClockMiragePink.webp',
-            'BRONCE/CobaltDragoonYellow.webp' => 'upload-profiles/BRONCE/CobaltDragoonYellow.webp',
-            'BRONCE/CobaltDrakeRed.webp' => 'upload-profiles/BRONCE/CobaltDrakeRed.webp',
-            'BRONCE/DranBusterGrey.webp' => 'upload-profiles/BRONCE/DranBusterGrey.webp',
-            'BRONCE/GoatTacklePurple.webp' => 'upload-profiles/BRONCE/GoatTacklePurple.webp',
-            'BRONCE/HellsReaperGreen.webp' => 'upload-profiles/BRONCE/HellsReaperGreen.webp',
-            'BRONCE/RoarTyrannoRed.webp' => 'upload-profiles/BRONCE/RoarTyrannoRed.webp',
-            'BRONCE/BlueGillShark.webp' => 'upload-profiles/BRONCE/BlueGillShark.webp',
-            'BRONCE/GreenGolemRock.webp' => 'upload-profiles/BRONCE/GreenGolemRock.webp',
-        ];
-
+        // Si tuvieras carpetas separadas para la Temporada 2 (S2) y quisieras unirlas
+        // solo para suscriptores, descomenta las líneas siguientes:
+        /*
         if (Auth::user()->activeSubscription) {
-            $bronzeAvatars = array_merge($bronzeAvatars, $bronzeAvatarsS2);
+             $bronzeAvatars = array_merge($bronzeAvatars, $this->getImagesFromFolder('BRONCE_S2'));
+             $silverAvatars = array_merge($silverAvatars, $this->getImagesFromFolder('PLATA_S2'));
+             $goldAvatars   = array_merge($goldAvatars, $this->getImagesFromFolder('ORO_S2'));
         }
+        */
 
-        $silverAvatars = [
-            'PLATA/AeroPegasus_2.webp' => 'upload-profiles/PLATA/AeroPegasus_2.webp',
-            'PLATA/BlackDragoon.webp' => 'upload-profiles/PLATA/BlackDragoon.webp',
-            'PLATA/BlackHellsHammer.webp' => 'upload-profiles/PLATA/BlackHellsHammer.webp',
-            'PLATA/BluenYellowPhoenixWing.webp' => 'upload-profiles/PLATA/BluenYellowPhoenixWing.webp',
-            'PLATA/BlueSharkEdge.webp' => 'upload-profiles/PLATA/BlueSharkEdge.webp',
-            'PLATA/CobaltDrake.webp' => 'upload-profiles/PLATA/CobaltDrake.webp',
-            'PLATA/CobaltDran.webp' => 'upload-profiles/PLATA/CobaltDran.webp',
-            'PLATA/DranzerS.webp' => 'upload-profiles/PLATA/DranzerS.webp',
-            'PLATA/DrigerS.webp' => 'upload-profiles/PLATA/DrigerS.webp',
-            'PLATA/GoldHellScythe.webp' => 'upload-profiles/PLATA/GoldHellScythe.webp',
-            'PLATA/GoldKnightShield.webp' => 'upload-profiles/PLATA/GoldKnightShield.webp',
-            'PLATA/GoldLeonClaw.webp' => 'upload-profiles/PLATA/GoldLeonClaw.webp',
-            'PLATA/GoldWizardRod.webp' => 'upload-profiles/PLATA/GoldWizardRod.webp',
-            'PLATA/PinkTuskMammoth.webp' => 'upload-profiles/PLATA/PinkTuskMammoth.webp',
-            'PLATA/RedDranBuster.webp' => 'upload-profiles/PLATA/RedDranBuster.webp',
-            'PLATA/SilverDrake.webp' => 'upload-profiles/PLATA/SilverDrake.webp',
-            'PLATA/SilverDranSword.webp' => 'upload-profiles/PLATA/SilverDranSword.webp',
-            'PLATA/SushiroDranSword.webp' => 'upload-profiles/PLATA/SushiroDranSword.webp',
-            'PLATA/LeonFang.webp' => 'upload-profiles/PLATA/LeonFang.webp',
-        ];
+        // --- MARCOS ---
+        $marcoOptions = $this->getImagesFromFolder('Marcos'); // Marcos base
+        $marcoBronce  = $this->getImagesFromFolder('Marcos/BRONCE');
+        $marcoPlata   = $this->getImagesFromFolder('Marcos/PLATA');
+        $marcoOro     = $this->getImagesFromFolder('Marcos/ORO');
 
-        $silverAvatarsS2 = [
-            'PLATA/AeroPegasusRed.webp' => 'upload-profiles/PLATA/AeroPegasusRed.webp',
-            'PLATA/BiteCrocGreen.webp' => 'upload-profiles/PLATA/BiteCrocGreen.webp',
-            'PLATA/DranBraveHolo.webp' => 'upload-profiles/PLATA/DranBraveHolo.webp',
-            'PLATA/DranBusterLightBlue.webp' => 'upload-profiles/PLATA/DranBusterLightBlue.webp',
-            'PLATA/DranBusterNeon.webp' => 'upload-profiles/PLATA/DranBusterNeon.webp',
-            'PLATA/DranBusterPurple.webp' => 'upload-profiles/PLATA/DranBusterPurple.webp',
-            'PLATA/HoverWyvernPurple.webp' => 'upload-profiles/PLATA/HoverWyvernPurple.webp',
-            'PLATA/HoverWyvernWhite.webp' => 'upload-profiles/PLATA/HoverWyvernWhite.webp',
-            'PLATA/KnightMaleNavy.webp' => 'upload-profiles/PLATA/KnightMaleNavy.webp',
-            'PLATA/PegasusBlastRed.webp' => 'upload-profiles/PLATA/PegasusBlastRed.webp',
-            'PLATA/SamuraiSaberOrange.webp' => 'upload-profiles/PLATA/SamuraiSaberOrange.webp',
-            'PLATA/SamuraiSteelGreen.webp' => 'upload-profiles/PLATA/SamuraiSteelGreen.webp',
-            'PLATA/ShinobiKnifeGrey.webp' => 'upload-profiles/PLATA/ShinobiKnifeGrey.webp',
-            'PLATA/TeamPersona.webp' => 'upload-profiles/PLATA/TeamPersona.webp',
-            'PLATA/ValkyrieVolt.webp' => 'upload-profiles/PLATA/ValkyrieVolt.webp',
-            'PLATA/WizardArc_1.webp' => 'upload-profiles/PLATA/WizardArc_1.webp',
-
-        ];
-
-        if (Auth::user()->activeSubscription) {
-            $silverAvatars = array_merge($silverAvatars, $silverAvatarsS2);
-        }
+        // --- FONDOS ---
+        $fondoOptions = $this->getImagesFromFolder('Fondos');
+        // Si tienes fondos S2 en otra carpeta:
+        // if (Auth::user()->activeSubscription) {
+        //    $fondoOptions = array_merge($fondoOptions, $this->getImagesFromFolder('Fondos_S2'));
+        // }
 
 
-        $goldAvatars = [
-            'ORO/GoldDranSword.webp' => 'upload-profiles/ORO/GoldDranSword.webp',
-            'ORO/BronceTest120.gif' => 'upload-profiles/ORO/BronceTest120.gif',
-            'ORO/SilverTest120.gif' => 'upload-profiles/ORO/SilverTest120.gif',
-            'ORO/GoldTest120.gif' => 'upload-profiles/ORO/GoldTest120.gif',
-            'ORO/JinniusWave.webp' => 'upload-profiles/ORO/JinniusWave.webp',
-            'ORO/Extintor.webp' => 'upload-profiles/ORO/Extintor.webp',
-            'ORO/AsefronBeelze.webp' => 'upload-profiles/ORO/AsefronBeelze.webp',
-            'ORO/ElPibeCalavera.webp' => 'upload-profiles/ORO/ElPibeCalavera.webp',
-            'ORO/Arlen.webp' => 'upload-profiles/ORO/Arlen.webp',
-            'ORO/Erubita.webp' => 'upload-profiles/ORO/Erubita.webp',
-            'ORO/Hyuga.webp' => 'upload-profiles/ORO/Hyuga.webp',
-            'ORO/Ritsu.webp' => 'upload-profiles/ORO/Ritsu.webp',
-            'ORO/PhazeON.webp' => 'upload-profiles/ORO/PhazeON.webp',
-            'ORO/Shirk.webp' => 'upload-profiles/ORO/Shirk.webp',
-            'ORO/ThuBerni_1.webp' => 'upload-profiles/ORO/ThuBerni_1.webp',
-            'ORO/Ursh.webp' => 'upload-profiles/ORO/Ursh.webp',
-            'ORO/Fujen.webp' => 'upload-profiles/ORO/Fujen.webp',
-            'ORO/KaosCore.webp' => 'upload-profiles/ORO/KaosCore.webp',
-            'ORO/KaW.webp' => 'upload-profiles/ORO/KaW.webp',
-            'ORO/Androide.webp' => 'upload-profiles/ORO/Androide.webp',
-            'ORO/Andymdfk_1.webp' => 'upload-profiles/ORO/Andymdfk_1.webp',
-            'ORO/Emperador.webp' => 'upload-profiles/ORO/Emperador.webp',
-            'ORO/XtremeV.webp' => 'upload-profiles/ORO/XtremeV.webp',
-            /*'ORO/Leon.gif' => 'upload-profiles/ORO/Leon.gif',
-            'ORO/dragoon.gif' => 'upload-profiles/ORO/dragoon.gif',
-            'ORO/beyblade-tyson.gif' => 'upload-profiles/ORO/beyblade-tyson.gif',
-            'ORO/aiga.gif' => 'upload-profiles/ORO/aiga.gif',*/
-        ];
-
-        $goldAvatarsS2 = [
-            'ORO/BlackDranzer.webp' => 'upload-profiles/ORO/BlackDranzer.webp',
-            'ORO/CobaltDragoonTyson.webp' => 'upload-profiles/ORO/CobaltDragoonTyson.webp',
-            'ORO/DracielShield.webp' => 'upload-profiles/ORO/DracielShield.webp',
-            'ORO/DragoonStorm.webp' => 'upload-profiles/ORO/DragoonStorm.webp',
-            'ORO/DranzerS_1.webp' => 'upload-profiles/ORO/DranzerS_1.webp',
-            'ORO/PegasusBlastHagane.webp' => 'upload-profiles/ORO/PegasusBlastHagane.webp',
-            'ORO/ValkyrieVoltAoi.webp' => 'upload-profiles/ORO/ValkyrieVoltAoi.webp',
-            'ORO/WolfborgS.webp' => 'upload-profiles/ORO/WolfborgS.webp',
-        ];
-
-        if (Auth::user()->activeSubscription) {
-            $goldAvatars = array_merge($goldAvatars, $goldAvatarsS2);
-        }
-
+        // =====================================================================
+        // 2. LÓGICA DE EVENTOS ESPECIALES (Copas)
+        // =====================================================================
+        // Mantenemos tu lógica de BD para verificar si ganaron copas
         $copaLloros = DB::table('assist_user_event')
             ->join('events', 'assist_user_event.event_id', '=', 'events.id')
             ->where('assist_user_event.user_id', Auth::user()->id)
@@ -556,115 +348,24 @@ class ProfileController extends Controller
             ->whereRaw('LOWER(events.name) LIKE ?', ['%let it%'])
             ->exists();
 
-        $copaLlorosAvatar = [
-            'EXC/SWLLOROS.webp' => 'upload-profiles/EXC/SWLLOROS.webp',
-            'EXC/WRLLOROS.webp' => 'upload-profiles/EXC/WRLLOROS.webp',
-        ];
+        $avatars = []; // Array para los avatares especiales desbloqueados
 
-        $copaLetItRIPAvatar = [
-            'EXC/GhostBurster.webp' => 'upload-profiles/EXC/GhostBurster.webp',
-            'EXC/Golemstein.webp' => 'upload-profiles/EXC/Golemstein.webp',
-        ];
-
-        // Array final con los iconos del usuario según participación
-        $avatars = [];
-
-        if ($copaLloros) {
-            $avatars = array_merge($avatars, $copaLlorosAvatar);
-        }
-
-        if ($copaLetItRIP) {
-            $avatars = array_merge($avatars, $copaLetItRIPAvatar);
+        // Si tienen alguna copa, leemos la carpeta de exclusivos (ej: 'EXC')
+        // Asegúrate de que la carpeta public/upload-profiles/EXC exista y tenga imágenes.
+        if ($copaLloros || $copaLetItRIP) {
+            $avatars = array_merge($avatars, $this->getImagesFromFolder('EXC'));
         }
 
 
-        $marcoOptions = [
-            'BaseBlack.png' => 'upload-profiles/Marcos/BaseBlack.png',
-            'BaseBlue.png' => 'upload-profiles/Marcos/BaseBlue.png',
-            'BaseDBlue.png' => 'upload-profiles/Marcos/BaseDBlue.png',
-            'BaseDGreen.png' => 'upload-profiles/Marcos/BaseDGreen.png',
-            'BaseGreen.png' => 'upload-profiles/Marcos/BaseGreen.png',
-            'BaseOrange.png' => 'upload-profiles/Marcos/BaseOrange.png',
-            'BasePink.png' => 'upload-profiles/Marcos/BasePink.png',
-            'BasePurple.png' => 'upload-profiles/Marcos/BasePurple.png',
-            'BaseRed.png' => 'upload-profiles/Marcos/BaseRed.png',
-            'BaseTeal.png' => 'upload-profiles/Marcos/BaseTeal.png',
-            'BaseWhite.png' => 'upload-profiles/Marcos/BaseWhite.png',
-            'BaseYellow.png' => 'upload-profiles/Marcos/BaseYellow.png',
-            'BaseAttack.png' => 'upload-profiles/Marcos/BaseAttack.png',
-            'BaseBalance.png' => 'upload-profiles/Marcos/BaseBalance.png',
-            'BaseDefense.png' => 'upload-profiles/Marcos/BaseDefense.png',
-            'BaseStamina.png' => 'upload-profiles/Marcos/BaseStamina.png',
-        ];
-
-        $marcoBronce = [
-            'upload-profiles/Marcos/BRONCE/BlackMARCO.webp' => 'upload-profiles/Marcos/BRONCE/BlackMARCO.webp',
-            'upload-profiles/Marcos/BRONCE/CBlueMARCO.webp' => 'upload-profiles/Marcos/BRONCE/CBlueMARCO.webp',
-            'upload-profiles/Marcos/BRONCE/DBlueMARCO.webp' => 'upload-profiles/Marcos/BRONCE/DBlueMARCO.webp',
-            'upload-profiles/Marcos/BRONCE/GreenMARCO.webp' => 'upload-profiles/Marcos/BRONCE/GreenMARCO.webp',
-            'upload-profiles/Marcos/BRONCE/LimeMARCO.webp' => 'upload-profiles/Marcos/BRONCE/LimeMARCO.webp',
-            'upload-profiles/Marcos/BRONCE/OrangeMARCO.webp' => 'upload-profiles/Marcos/BRONCE/OrangeMARCO.webp',
-            'upload-profiles/Marcos/BRONCE/PinkMARCO.webp' => 'upload-profiles/Marcos/BRONCE/PinkMARCO.webp',
-            'upload-profiles/Marcos/BRONCE/PurpleMARCO.webp' => 'upload-profiles/Marcos/BRONCE/PurpleMARCO.webp',
-            'upload-profiles/Marcos/BRONCE/RedMARCO.webp' => 'upload-profiles/Marcos/BRONCE/RedMARCO.webp',
-            'upload-profiles/Marcos/BRONCE/TurquoseMARCO.webp' => 'upload-profiles/Marcos/BRONCE/TurquoseMARCO.webp',
-            'upload-profiles/Marcos/BRONCE/WhiteMARCO.webp' => 'upload-profiles/Marcos/BRONCE/WhiteMARCO.webp',
-            'upload-profiles/Marcos/BRONCE/YellowMARCO.webp' => 'upload-profiles/Marcos/BRONCE/YellowMARCO.webp',
-        ];
-
-        $marcoPlata = [
-            'upload-profiles/Marcos/PLATA/Beast1MARCO.webp' => 'upload-profiles/Marcos/PLATA/Beast1MARCO.webp',
-            'upload-profiles/Marcos/PLATA/Beast2MARCO.webp' => 'upload-profiles/Marcos/PLATA/Beast2MARCO.webp',
-            'upload-profiles/Marcos/PLATA/Pendragon1MARCO.webp' => 'upload-profiles/Marcos/PLATA/Pendragon1MARCO.webp',
-            'upload-profiles/Marcos/PLATA/Pendragon2MARCO.webp' => 'upload-profiles/Marcos/PLATA/Pendragon2MARCO.webp',
-            'upload-profiles/Marcos/PLATA/Persona1MARCO.webp' => 'upload-profiles/Marcos/PLATA/Persona1MARCO.webp',
-            'upload-profiles/Marcos/PLATA/Persona2MARCO.webp' => 'upload-profiles/Marcos/PLATA/Persona2MARCO.webp',
-            'upload-profiles/Marcos/PLATA/Yggdrasil1MARCO.webp' => 'upload-profiles/Marcos/PLATA/Yggdrasil1MARCO.webp',
-            'upload-profiles/Marcos/PLATA/Yggdrasil2MARCO.webp' => 'upload-profiles/Marcos/PLATA/Yggdrasil2MARCO.webp',
-        ];
-
-        $marcoOro = [
-            'upload-profiles/Marcos/ORO/BusterMARCO.webp' => 'upload-profiles/Marcos/ORO/BusterMARCO.webp',
-            'upload-profiles/Marcos/ORO/HammerMARCO.webp' => 'upload-profiles/Marcos/ORO/HammerMARCO.webp',
-            'upload-profiles/Marcos/ORO/MailMARCO.webp' => 'upload-profiles/Marcos/ORO/MailMARCO.webp',
-            'upload-profiles/Marcos/ORO/RodMARCO.webp' => 'upload-profiles/Marcos/ORO/RodMARCO.webp',
-            'upload-profiles/Marcos/ORO/SaberMARCO.webp' => 'upload-profiles/Marcos/ORO/SaberMARCO.webp',
-            'upload-profiles/Marcos/ORO/WaveMARCO.webp' => 'upload-profiles/Marcos/ORO/WaveMARCO.webp',
-        ];
-
-
-
-        $fondoOptions = [
-            'FondoBaseBlue.png' => 'upload-profiles/Fondos/FondoBaseBlue.png',
-            'FondoBaseGreen.png' => 'upload-profiles/Fondos/FondoBaseGreen.png',
-            'FondoBaseRed.png' => 'upload-profiles/Fondos/FondoBaseRed.png',
-            'FondoBaseYellow.png' => 'upload-profiles/Fondos/FondoBaseYellow.png',
-            'FondoATK.png' => 'upload-profiles/Fondos/FondoATK.png',
-            'FondoDEF.png' => 'upload-profiles/Fondos/FondoDEF.png',
-            'FondoBAL.png' => 'upload-profiles/Fondos/FondoBAL.png',
-            'FondoSTA.png' => 'upload-profiles/Fondos/FondoSTA.png',
-            // Add more options as needed
-        ];
-        $fondoOptionsS2 = [
-            'S2_atk.webp' => 'upload-profiles/Fondos/S2_atk.webp',
-            'S2_bal.webp' => 'upload-profiles/Fondos/S2_bal.webp',
-            'S2_def.webp' => 'upload-profiles/Fondos/S2_def.webp',
-            'S2_sta.webp' => 'upload-profiles/Fondos/S2_sta.webp',
-        ];
-
-        if (Auth::user()->activeSubscription) {
-            $fondoOptions = array_merge($fondoOptions, $fondoOptionsS2);
-        }
-
-        // Verificar el nivel de suscripción del usuario
-        $subscriptionLevel = optional(Auth::user()->profile->trophies->first())->name;
-
-        // Prioridad: suscripción activa del usuario
+        // =====================================================================
+        // 3. DETERMINAR NIVEL DE SUSCRIPCIÓN (Tu lógica original)
+        // =====================================================================
         $subscriptionLevel = '';
+        // Prioridad: suscripción activa del usuario
         if (Auth::user()->activeSubscription) {
-            $subscriptionLevel = 'SUSCRIPCIÓN '.strtoupper(Auth::user()->activeSubscription->plan->name); // '1', '2', '3'
+            $subscriptionLevel = 'SUSCRIPCIÓN '.strtoupper(Auth::user()->activeSubscription->plan->name); // Ej: 'SUSCRIPCIÓN ORO'
         } else {
-            // Fallback: trofeo de suscripción
+            // Fallback: buscar en trofeos
             $subscriptionTrophy = Auth::user()->profile->trophies->first(function ($trophy) {
                 return stripos($trophy->name, 'SUSCRIPCIÓN') !== false;
             });
@@ -673,7 +374,14 @@ class ProfileController extends Controller
             }
         }
 
-        return view('profiles.edit', compact('profile', 'regions', 'regionT', 'avatarOptions', 'marcoOptions', 'fondoOptions', 'subscriptionLevel', 'bronzeAvatars', 'silverAvatars', 'goldAvatars', 'marcoBronce', 'marcoPlata', 'marcoOro', 'avatars', 'copaLlorosAvatar'));
+        return view('profiles.edit', compact(
+            'profile', 'regions', 'regionT',
+            'avatarOptions', 'bronzeAvatars', 'silverAvatars', 'goldAvatars',
+            'marcoOptions', 'marcoBronce', 'marcoPlata', 'marcoOro',
+            'fondoOptions',
+            'avatars', // Iconos especiales de copa
+            'subscriptionLevel'
+        ));
     }
 
     /**
@@ -934,112 +642,164 @@ class ProfileController extends Controller
     }
 
 
-public function getDetails($id)
-{
-    $blader = Profile::with('user')
-                    ->findOrFail($id);
+    public function getDetails($id)
+    {
+        $blader = Profile::with('user')
+                        ->findOrFail($id);
 
-    $user = $blader->user;
+        $user = $blader->user;
 
-    $team = null;
-    $teamName = 'Ninguno';
-    $teamLogoData = null;
-    $teamPoints = 0;
+        $team = null;
+        $teamName = 'Ninguno';
+        $teamLogoData = null;
+        $teamPoints = 0;
 
-    // 🔹 Inicializamos las estadísticas
-    $torneosJugados = 0;
-    $primeros = 0;
-    $segundos = 0;
-    $terceros = 0;
-    $torneosJugados_x1 = 0;
-    $primeros_x1 = 0;
-    $segundos_x1 = 0;
-    $terceros_x1 = 0;
-    $mostrarEstadisticas = false; // Por defecto, no mostrar
+        // 🔹 Inicializamos las estadísticas
+        $torneosJugados = 0;
+        $primeros = 0;
+        $segundos = 0;
+        $terceros = 0;
+        $torneosJugados_x1 = 0;
+        $primeros_x1 = 0;
+        $segundos_x1 = 0;
+        $terceros_x1 = 0;
+        $mostrarEstadisticas = false; // Por defecto, no mostrar
 
-    if ($user) {
-        // 🔸 Comprobamos si el usuario tiene una suscripción activa
-        $suscrito = DB::table('subscriptions')
-            ->where('user_id', Auth::user()->id)
-            ->where('status', 'active')
-            ->exists();
+        if ($user) {
+            // 🔸 Comprobamos si el usuario tiene una suscripción activa
+            $suscrito = DB::table('subscriptions')
+                ->where('user_id', Auth::user()->id)
+                ->where('status', 'active')
+                ->exists();
 
-        if ($suscrito) {
-            $mostrarEstadisticas = true;
+            if ($suscrito) {
+                $mostrarEstadisticas = true;
 
-            // 🔹 Contar los eventos después del 1 de septiembre de 2025
-            $bladerData = DB::table('assist_user_event')
-                ->join('events', 'assist_user_event.event_id', '=', 'events.id')
-                ->where('assist_user_event.user_id', $user->id)
-                ->where('events.date', '>', '2025-09-01')
-                ->select('assist_user_event.puesto')
-                ->get();
+                // 🔹 Contar los eventos después del 1 de septiembre de 2025
+                $bladerData = DB::table('assist_user_event')
+                    ->join('events', 'assist_user_event.event_id', '=', 'events.id')
+                    ->where('assist_user_event.user_id', $user->id)
+                    ->where('events.date', '>', '2025-09-01')
+                    ->select('assist_user_event.puesto')
+                    ->get();
 
-            $torneosJugados = $bladerData->count();
-            $primeros = $bladerData->where('puesto', 'primero')->count();
-            $segundos = $bladerData->where('puesto', 'segundo')->count();
-            $terceros = $bladerData->where('puesto', 'tercero')->count();
+                $torneosJugados = $bladerData->count();
+                $primeros = $bladerData->where('puesto', 'primero')->count();
+                $segundos = $bladerData->where('puesto', 'segundo')->count();
+                $terceros = $bladerData->where('puesto', 'tercero')->count();
 
-            $bladerData_x1 = DB::table('assist_user_event')
-                ->join('events', 'assist_user_event.event_id', '=', 'events.id')
-                ->where('assist_user_event.user_id', $user->id)
-                ->where('events.date', '>', '2024-06-01')
-                ->where('events.date', '<', '2025-06-23')
-                ->select('assist_user_event.puesto')
-                ->get();
+                $bladerData_x1 = DB::table('assist_user_event')
+                    ->join('events', 'assist_user_event.event_id', '=', 'events.id')
+                    ->where('assist_user_event.user_id', $user->id)
+                    ->where('events.date', '>', '2024-06-01')
+                    ->where('events.date', '<', '2025-06-23')
+                    ->select('assist_user_event.puesto')
+                    ->get();
 
-            $torneosJugados_x1 = $bladerData_x1->count();
-            $primeros_x1 = $bladerData_x1->where('puesto', 'primero')->count();
-            $segundos_x1 = $bladerData_x1->where('puesto', 'segundo')->count();
-            $terceros_x1 = $bladerData_x1->where('puesto', 'tercero')->count();
-        }
+                $torneosJugados_x1 = $bladerData_x1->count();
+                $primeros_x1 = $bladerData_x1->where('puesto', 'primero')->count();
+                $segundos_x1 = $bladerData_x1->where('puesto', 'segundo')->count();
+                $terceros_x1 = $bladerData_x1->where('puesto', 'tercero')->count();
+            }
 
-        // 🔹 Datos del equipo
-        $teamData = DB::table('team_user')
-                    ->where('user_id', $user->id)
-                    ->select('team_id')
-                    ->first();
+            // 🔹 Datos del equipo
+            $teamData = DB::table('team_user')
+                        ->where('user_id', $user->id)
+                        ->select('team_id')
+                        ->first();
 
-        if ($teamData) {
-            $team = DB::table('teams')
-                    ->where('id', $teamData->team_id)
-                    ->first();
+            if ($teamData) {
+                $team = DB::table('teams')
+                        ->where('id', $teamData->team_id)
+                        ->first();
 
-            if ($team) {
-                $teamName = $team->name;
-                $teamLogoData = $team->logo;
-                $teamPoints = $team->points_x2;
+                if ($team) {
+                    $teamName = $team->name;
+                    $teamLogoData = $team->logo;
+                    $teamPoints = $team->points_x2;
+                }
             }
         }
+
+        return response()->json([
+            'nombre' => $blader->user->name,
+            'region' => $blader->region->name ?? 'No definida',
+            'puntos_x1' => $blader->points_x1 ?? 0,
+            'puntos_x2' => $blader->points_x2 ?? 0,
+            'subtitulo' => $blader->subtitulo,
+            'imagen' => asset('storage/' . ($blader->imagen ?? 'upload-profiles/Base/DranDagger.webp')),
+            'marco' => asset('storage/' . ($blader->marco ?? 'upload-profiles/Marcos/BaseBlue.png')),
+            'free_agent' => $blader->free_agent ? 'Sí' : 'No',
+            'equipo_nombre' => $teamName,
+            'equipo_logo_b64' => $teamLogoData,
+            'equipo_puntos' => $teamPoints,
+
+            // 🔹 Solo si está suscrito
+            'mostrar_estadisticas' => $mostrarEstadisticas,
+            'torneos_jugados' => $torneosJugados,
+            'primeros' => $primeros,
+            'segundos' => $segundos,
+            'terceros' => $terceros,
+            'torneos_jugados_x1' => $torneosJugados_x1,
+            'primeros_x1' => $primeros_x1,
+            'segundos_x1' => $segundos_x1,
+            'terceros_x1' => $terceros_x1,
+            'is_subscribed' => Auth::user()->activeSubscription ? true : false,
+        ]);
     }
 
-    return response()->json([
-        'nombre' => $blader->user->name,
-        'region' => $blader->region->name ?? 'No definida',
-        'puntos_x1' => $blader->points_x1 ?? 0,
-        'puntos_x2' => $blader->points_x2 ?? 0,
-        'subtitulo' => $blader->subtitulo,
-        'imagen' => asset('storage/' . ($blader->imagen ?? 'upload-profiles/Base/DranDagger.webp')),
-        'marco' => asset('storage/' . ($blader->marco ?? 'upload-profiles/Marcos/BaseBlue.png')),
-        'free_agent' => $blader->free_agent ? 'Sí' : 'No',
-        'equipo_nombre' => $teamName,
-        'equipo_logo_b64' => $teamLogoData,
-        'equipo_puntos' => $teamPoints,
+    private function getImagesFromFolder($folderName)
+    {
+        // 1. Ruta específica de TU SERVIDOR (La que has confirmado que funciona)
+        $pathServer = "/home/sbbleso/www/storage/upload-profiles/{$folderName}";
 
-        // 🔹 Solo si está suscrito
-        'mostrar_estadisticas' => $mostrarEstadisticas,
-        'torneos_jugados' => $torneosJugados,
-        'primeros' => $primeros,
-        'segundos' => $segundos,
-        'terceros' => $terceros,
-        'torneos_jugados_x1' => $torneosJugados_x1,
-        'primeros_x1' => $primeros_x1,
-        'segundos_x1' => $segundos_x1,
-        'terceros_x1' => $terceros_x1,
-        'is_subscribed' => Auth::user()->activeSubscription ? true : false,
-    ]);
-}
+        // 2. Ruta estándar de Laravel (Para que te siga funcionando en Local/XAMPP)
+        $pathLocal = public_path("storage/upload-profiles/{$folderName}");
 
+        $pathFinal = null;
+        $urlPrefix = '';
 
+        // Lógica de decisión:
+        if (File::exists($pathServer)) {
+            // Estamos en el SERVIDOR
+            $pathFinal = $pathServer;
+            $urlPrefix = 'storage/upload-profiles/';
+        } elseif (File::exists($pathLocal)) {
+            // Estamos en LOCAL
+            $pathFinal = $pathLocal;
+            $urlPrefix = 'storage/upload-profiles/';
+        } else {
+            // Intento final: buscar en carpeta pública normal (sin storage)
+            $pathFinal = public_path("upload-profiles/{$folderName}");
+            if (File::exists($pathFinal)) {
+                $urlPrefix = 'upload-profiles/';
+            } else {
+                return []; // No existe
+            }
+        }
+
+        // Leemos los archivos
+        $files = File::files($pathFinal);
+        $options = [];
+
+        foreach ($files as $file) {
+            if (in_array(strtolower($file->getExtension()), ['webp', 'png', 'gif', 'jpg', 'jpeg'])) {
+
+                $filename = $file->getFilename();
+
+                // Key para BD
+                $key = $folderName . '/' . $filename;
+
+                // Value para el navegador (usando el prefijo correcto)
+                $value = $urlPrefix . $folderName . '/' . $filename;
+
+                $options[$key] = $value;
+            }
+        }
+
+        ksort($options);
+
+        return $options;
+    }
 
 }

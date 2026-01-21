@@ -330,6 +330,7 @@
                         {{-- FIN BLOQUE LIMITES DE ESTADIO --}}
 
                         @if (!$isUserInscribed)
+                            {{-- MENSAJE DE AVISO (Ya lo tenías) --}}
                             @if(isset($isRegistered) && $isRegistered && in_array($event->beys, ['ranking', 'rankingplus']))
                                 <div class="alert alert-warning text-dark small mb-3">
                                     <i class="fas fa-exclamation-triangle me-1"></i> Ya estás inscrito en otro torneo de ranking esta semana.
@@ -351,9 +352,19 @@
                             @else
                                 <form method="POST" action="{{ route('events.assist', ['event' => $event->id]) }}">
                                     @csrf
+                                    {{--
+                                        AQUÍ ESTÁ EL CAMBIO:
+                                        Hemos añadido la condición || (isset($isRegistered) && $isRegistered)
+                                        para que el botón se desactive también en ese caso.
+                                    --}}
                                     <button type="submit" class="btn btn-success w-100 fw-bold py-3 text-uppercase shadow-lg"
-                                        @if(in_array($event->beys, ['ranking', 'rankingplus']) && isset($rankingTournamentsLeft) && $rankingTournamentsLeft == 0) disabled @endif>
+                                        @if(in_array($event->beys, ['ranking', 'rankingplus']) &&
+                                        ((isset($rankingTournamentsLeft) && $rankingTournamentsLeft == 0) || (isset($isRegistered) && $isRegistered)))
+                                        disabled
+                                        @endif>
+
                                         <i class="fas fa-user-plus me-2"></i> Inscribirse Ahora
+
                                         @if(in_array($event->beys, ['ranking', 'rankingplus']) && isset($rankingTournamentsLeft))
                                             <span class="badge bg-white text-success ms-2 shadow-sm">Restantes: {{ $rankingTournamentsLeft }}</span>
                                         @endif
@@ -433,9 +444,25 @@
                                                 <input type="hidden" name="participantes[{{ $assist->id }}][id]" value="{{ $assist->id }}">
                                                 <select class="form-select form-select-sm" style="width: 130px;" name="participantes[{{ $assist->id }}][puesto]">
                                                     <option value="participante" {{ $assist->pivot->puesto == 'participante' ? 'selected' : '' }}>Participante</option>
-                                                    <option value="primero" {{ $assist->pivot->puesto == 'primero' ? 'selected' : '' }}>1º Lugar</option>
-                                                    <option value="segundo" {{ $assist->pivot->puesto == 'segundo' ? 'selected' : '' }}>2º Lugar</option>
-                                                    <option value="tercero" {{ $assist->pivot->puesto == 'tercero' ? 'selected' : '' }}>3º Lugar</option>
+                                                    @if($totalParticipantes >= 4)
+                                                        <option value="primero" {{ $assist->pivot->puesto == 'primero' ? 'selected' : '' }}>1º Lugar</option>
+                                                    @endif
+                                                    @if($totalParticipantes >= 6)
+                                                        <option value="segundo" {{ $assist->pivot->puesto == 'segundo' ? 'selected' : '' }}>2º Lugar</option>
+                                                    @endif
+                                                    @if($totalParticipantes >= 9)
+                                                        <option value="tercero" {{ $assist->pivot->puesto == 'tercero' ? 'selected' : '' }}>3º Lugar</option>
+                                                    @endif
+                                                    @if($totalParticipantes >= 17)
+                                                        <option value="cuarto" {{ $assist->pivot->puesto == 'cuarto' ? 'selected' : '' }}>4º Lugar</option>
+                                                    @endif
+
+                                                    @if($totalParticipantes >= 25)
+                                                        <option value="quinto" {{ $assist->pivot->puesto == 'quinto' ? 'selected' : '' }}>5º Lugar</option>
+                                                    @endif
+                                                    @if($totalParticipantes >= 33)
+                                                        <option value="septimo" {{ $assist->pivot->puesto == 'septimo' ? 'selected' : '' }}>7º Lugar</option>
+                                                    @endif
                                                     <option value="nopresentado" {{ $assist->pivot->puesto == 'nopresentado' ? 'selected' : '' }}>No Pres.</option>
                                                 </select>
                                             @endif
