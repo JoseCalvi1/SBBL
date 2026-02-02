@@ -10,52 +10,6 @@
 
     <title>@yield('title', config('app.name', 'Laravel'))</title>
 
-    <!--<meta http-equiv="Content-Security-Policy"
-  content="
-    default-src 'self';
-    base-uri 'self';
-    object-src 'none';
-    frame-ancestors 'self';
-    img-src 'self' data: https:;
-    font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://use.fontawesome.com;
-    style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdn.jsdelivr.net https://cdnjs.cloudflare.com;
-    script-src 'self' 'unsafe-inline' 'unsafe-eval'
-      https://code.jquery.com
-      https://cdn.jsdelivr.net
-      https://cdnjs.cloudflare.com
-      https://www.googletagmanager.com
-      https://www.google-analytics.com
-      https://pagead2.googlesyndication.com
-      https://www.paypal.com
-      https://*.paypal.com
-      https://*.paypalobjects.com;
-    script-src-elem 'self' 'unsafe-inline' 'unsafe-eval'
-      https://code.jquery.com
-      https://cdn.jsdelivr.net
-      https://cdnjs.cloudflare.com
-      https://www.googletagmanager.com
-      https://pagead2.googlesyndication.com
-      https://www.paypal.com
-      https://*.paypal.com
-      https://*.paypalobjects.com;
-    connect-src 'self'
-      https://api-m.paypal.com
-      https://api-m.sandbox.paypal.com
-      https://www.paypal.com
-      https://*.paypal.com
-      https://www.google-analytics.com
-      https://stats.g.doubleclick.net
-      https://pagead2.googlesyndication.com
-      https://cdn.jsdelivr.net
-      https://cdnjs.cloudflare.com;
-    frame-src https://www.paypal.com https://*.paypal.com;
-    child-src https://www.paypal.com https://*.paypal.com;
-  ">-->
-
-
-
-
-
     <link rel="shortcut icon" type="image/png" href="{{ asset('/images/sbbl.png') }}">
 
     @yield('styles')
@@ -348,6 +302,91 @@
             font-size: 0.8em;
             margin-top: 5px;
         }
+        /* --- FOOTER DE MANDO --- */
+.command-footer {
+    background: #0b0c10; /* Fondo muy oscuro */
+    border-top: 3px solid #1f2833; /* Línea separadora */
+    color: #c5c6c7;
+    padding-top: 3rem;
+    padding-bottom: 1.5rem;
+    font-family: 'Segoe UI', sans-serif;
+    position: relative;
+}
+
+/* Efecto de "scanline" sutil en el borde superior */
+.command-footer::before {
+    content: '';
+    position: absolute; top: -3px; left: 0; width: 100%; height: 3px;
+    background: linear-gradient(90deg, #0b0c10 0%, #45a29e 50%, #0b0c10 100%);
+    opacity: 0.7;
+}
+
+.footer-heading {
+    color: #66fcf1; /* Cian neón suave */
+    text-transform: uppercase;
+    font-weight: 700;
+    margin-bottom: 1.2rem;
+    font-size: 1rem;
+    letter-spacing: 1px;
+}
+
+.footer-desc {
+    font-size: 0.9rem;
+    line-height: 1.6;
+    color: #9fa1a6;
+    margin-bottom: 1.5rem;
+}
+
+.footer-links {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.footer-links li {
+    margin-bottom: 0.6rem;
+}
+
+.footer-links a {
+    color: #c5c6c7;
+    text-decoration: none;
+    transition: all 0.2s ease;
+    font-size: 0.95rem;
+}
+
+.footer-links a:hover {
+    color: #66fcf1;
+    padding-left: 5px; /* Pequeño desplazamiento al hacer hover */
+}
+
+.social-icons-footer a {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px; height: 40px;
+    background: rgba(255,255,255,0.05);
+    border-radius: 50%;
+    margin-right: 10px;
+    color: #fff;
+    transition: 0.3s;
+    font-size: 1.1rem;
+    text-decoration: none;
+}
+
+.social-icons-footer a:hover {
+    background: #66fcf1;
+    color: #0b0c10;
+    transform: translateY(-3px);
+}
+
+.copyright-bar {
+    border-top: 1px solid rgba(255,255,255,0.05);
+    margin-top: 3rem;
+    padding-top: 1.5rem;
+    font-size: 0.85rem;
+    color: #666;
+    text-align: center;
+}
     </style>
 
     <!-- Styles -->
@@ -668,86 +707,75 @@
         </main>
 
         <!-- Footer -->
-        <footer style="background-color:rgb(119, 120, 120)">
-            <div class="container">
-                <div class="row text-white">
-                    <div class="col-md-6 col-sm-12 p-5">
-                        <h3>Sobre nosotros</h3>
-                        <p>Bienvenidos a la Spanish BeyBattle League, o más sencillo, la SBBL.</p>
-                        <p>La SBBL es una liga/organización creada con el objetivo de reunir a todos los bladers residentes en España dentro de una comunidad más grande y fuerte.</p>
-                        <p>Con esto intentaríamos conseguir llevar a cabo mayor número de eventos, quedadas y torneos en todo nuestro país.</p>
-                        <p>Si eres blader, resides en España y buscas una liga donde competir y disfrutar del beyblade con otr@s como tú, este es tu sitio.</p>
-                        <p>¡Únete a la SBBL!</p>
-                    </div>
-                    <div class="col-md-3 col-sm-12 p-5">
-                        <h3>Categorías</h3>
-                        <ul class="navbar-nav ml-auto">
-                            <li class="nav-item">
-                                <a class="nav-link text-white" href="{{ route('inicio.events') }}">
-                                    {{ 'Eventos' }}
-                                </a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link text-white" href="{{ route('profiles.index') }}">
-                                    {{ 'Bladers' }}
-                                </a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link text-white" href="{{ route('versus.all') }}">
-                                    {{ 'Duelos' }}
-                                </a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link text-white" href="{{ route('equipos.index') }}">
-                                    {{ 'Equipos' }}
-                                </a>
-                            </li>
-                        </ul>
-                    </div>
-                    <div class="col-md-3 col-sm-12 p-5">
-                        <h3>Links útiles</h3>
-                        <ul class="navbar-nav ml-auto">
-                            <li class="nav-item">
-                                <a class="nav-link text-white" href="{{ route('inicio.rules') }}">
-                                    {{ 'Reglamento' }}
-                                </a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link text-white" href="{{ route('inicio.contact') }}">
-                                    {{ 'Contacta con nosotros' }}
-                                </a>
-                            </li>
-                        </ul>
-                    </div>
-                    <div class="col-md-12 text-center pt-4 pb-2 border-top">
-                        <div class="row">
-                            <div class="col-md-6 col-sm-12 font-weight-bold">
-                                Copyright 2022 - Spanish BeyBattle League
-                            </div>
-                            <div class="col-md-6 col-sm-12">
-                                <div class="row">
-                                    <div class="col-md-4">
-                                        <div class="rrss text-center">
-                                            <a style="display: inline-block; font-size:1.2em; font-weight: bold; text-decoration:none; color: white;" target="_blank" href="https://discord.gg/JCtAHfJ8Ht">Discord <i class="fab fa-discord" style="font-size:1em;"></i></a>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-4">
-                                        <div class="rrss text-center">
-                                            <a style="display: inline-block; font-size:1.2em; font-weight: bold; text-decoration:none; color: white;" target="_blank" href="https://www.instagram.com/sbbl_oficial/">Instagram <i class="fab fa-instagram" style="font-size:1em;"></i></a>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-4">
-                                        <div class="rrss text-center">
-                                            <a style="display: inline-block; font-size:1.2em; font-weight: bold; text-decoration:none; color: white;" target="_blank" href="https://www.youtube.com/@sbbl_oficial">Youtube <i class="fab fa-youtube" style="font-size:1em;"></i></a>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+        <footer class="command-footer">
+    <div class="container">
+        <div class="row gy-4">
+
+            {{-- COLUMNA 1: SOBRE NOSOTROS (MISIÓN) --}}
+            <div class="col-lg-4 col-md-6 pe-lg-5">
+                <h5 class="footer-heading">Misión SBBL</h5>
+                <p class="footer-desc">
+                    La <strong>Spanish BeyBattle League</strong> es la organización central para todos los bladers en España.
+                    Nuestro objetivo es unificar la comunidad, organizar torneos oficiales y crear un entorno competitivo y divertido para todos.
+                </p>
+                <div class="social-icons-footer mt-3">
+                    <a href="https://discord.gg/JCtAHfJ8Ht" target="_blank" title="Discord"><i class="fab fa-discord"></i></a>
+                    <a href="https://www.instagram.com/sbbl_oficial/" target="_blank" title="Instagram"><i class="fab fa-instagram"></i></a>
+                    <a href="https://www.youtube.com/@sbbl_oficial" target="_blank" title="Youtube"><i class="fab fa-youtube"></i></a>
+                    <a href="https://x.com/SBBLOficial" target="_blank" title="X (Twitter)"><i class="fab fa-twitter"></i></a>
                 </div>
             </div>
-        </footer>
+
+            {{-- COLUMNA 2: NAVEGACIÓN PRINCIPAL --}}
+            <div class="col-lg-2 col-md-3 col-6">
+                <h5 class="footer-heading">Navegación</h5>
+                <ul class="footer-links">
+                    <li><a href="{{ url('/') }}">Inicio</a></li>
+                    <li><a href="{{ route('profiles.index') }}">Bladers</a></li>
+                    <li><a href="{{ route('equipos.index') }}">Equipos</a></li>
+                    <li><a href="{{ route('blog.index') }}">Noticias</a></li>
+                    <li><a href="{{ route('inicio.contact') }}">Contacto</a></li>
+                </ul>
+            </div>
+
+            {{-- COLUMNA 3: COMPETITIVO --}}
+            <div class="col-lg-3 col-md-3 col-6">
+                <h5 class="footer-heading">Competitivo</h5>
+                <ul class="footer-links">
+                    <li><a href="{{ route('inicio.events') }}">Calendario de Eventos</a></li>
+                    <li><a href="{{ route('profiles.ranking') }}">Rankings Oficiales</a></li>
+                    <li><a href="{{ route('profiles.splits') }}">Splits & Temporadas</a></li>
+                    <li><a href="{{ route('versus.all') }}">Historial de Duelos</a></li>
+                    <li><a href="{{ route('inicio.rules') }}">Reglamento Oficial</a></li>
+                </ul>
+            </div>
+
+            {{-- COLUMNA 4: ENLACES RÁPIDOS (Lo que me pasaste extra) --}}
+            <div class="col-lg-3 col-md-12">
+                <h5 class="footer-heading">Accesos Directos</h5>
+                <ul class="footer-links">
+                    <li><a href="{{ route('inicio.halloffame') }}" class="text-warning"><i class="fas fa-trophy me-1"></i> Salón de la Fama</a></li>
+                    <li><a href="{{ route('inicio.resumen_semanal') }}"><i class="fas fa-bullseye me-1"></i> Resumen Semanal</a></li>
+                    <li><a href="{{ route('inicio.stats') }}"><i class="fas fa-chart-bar me-1"></i> Estadísticas Globales</a></li>
+                    @guest
+                        <li class="mt-2"><a href="{{ route('register') }}" class="btn btn-outline-light btn-sm rounded-pill px-3">Únete a la Batalla</a></li>
+                    @endguest
+                </ul>
+            </div>
+
+        </div>
+
+        {{-- BARRA DE COPYRIGHT --}}
+        <div class="copyright-bar row align-items-center">
+            <div class="col-md-6 text-center text-md-start">
+                &copy; {{ date('Y') }} <strong>Spanish BeyBattle League</strong>. Todos los derechos reservados.
+            </div>
+            <div class="col-md-6 text-center text-md-end mt-2 mt-md-0">
+                <small>Diseñado por la comunidad para la comunidad.</small>
+            </div>
+        </div>
+    </div>
+</footer>
     </div>
 
     <!-- Banner de Cookies Actualizado -->

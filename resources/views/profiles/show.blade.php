@@ -2,130 +2,120 @@
 
 {{--
 |--------------------------------------------------------------------------
-| ESTILOS (Mantenidos en el @section('styles') para simplificar)
+| ESTILOS (GAMIFICACIÓN / PUESTO DE MANDO)
 |--------------------------------------------------------------------------
 --}}
 @section('styles')
 <style>
-/* Estilos para el card de duelo */
-.duel-card {
-    position: relative;
-    border: 2px solid #343a40;
-    border-radius: 10px;
-    padding: 20px;
-    margin-bottom: 20px;
-    color: white;
-    background-size: cover;
-    background-position: center;
-    overflow: hidden;
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-    min-height: 250px;
-}
+    /* --- ESTRUCTURA DE PANELES (Command Center) --- */
+    .command-panel {
+        background-color: #1e1e2f; /* Tu color base original */
+        background: linear-gradient(145deg, #1e1e2f 0%, #161625 100%);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 12px;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        overflow: hidden;
+        height: 100%;
+        position: relative;
+    }
 
-.overlay {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(to bottom right, rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.9));
-    z-index: 1;
-}
+    /* Cabeceras de las cajas */
+    .panel-header {
+        background: rgba(0, 0, 0, 0.2);
+        padding: 12px 20px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        color: #adb5bd;
+        font-family: 'Courier New', Courier, monospace; /* Toque técnico */
+        text-transform: uppercase;
+        font-size: 0.85rem;
+        letter-spacing: 1px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
 
-.duel-info, .duel-mode {
-    position: relative;
-    z-index: 2;
-}
+    /* --- STATS (Marcadores) --- */
+    .stat-box {
+        background: rgba(255, 255, 255, 0.03);
+        border: 1px solid rgba(255, 255, 255, 0.05);
+        border-radius: 8px;
+        padding: 15px;
+        text-align: center;
+        transition: transform 0.2s, border-color 0.2s;
+    }
+    .stat-box:hover {
+        transform: translateY(-3px);
+        border-color: rgba(255, 255, 255, 0.2);
+        background: rgba(255, 255, 255, 0.06);
+    }
+    .stat-value {
+        display: block;
+        font-size: 1.8rem;
+        font-weight: 800;
+        line-height: 1.2;
+    }
+    .stat-label {
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        color: #888;
+        letter-spacing: 0.5px;
+    }
 
-.duel-info {
-    display: flex;
-    align-items: center;
-    justify-content: space-around;
-    flex: 1;
-    flex-wrap: wrap;
-}
+    /* --- AVATAR Y MARCO (Ajustado para el panel) --- */
+    .profile-avatar-container {
+        position: relative;
+        width: 160px;
+        height: 160px;
+        margin: -80px auto 15px auto; /* Margen negativo para subirlo sobre el fondo */
+        z-index: 10;
+    }
+    .profile-img-base, .profile-img-frame {
+        position: absolute;
+        top: 0; left: 0;
+        width: 100%; height: 100%;
+        object-fit: cover;
+    }
 
-.duel-player {
-    text-align: center;
-}
+    /* --- ESTILOS DE SUSCRIPCIÓN --- */
+    .suscripcion-nivel-3 { color: gold !important; }
+    .suscripcion-nivel-2 { color: #c0e5fb !important; }
+    .suscripcion-nivel-1 { color: #CD7F32 !important; }
 
-.player-name {
-    font-size: 1.25rem;
-    font-weight: bold;
-}
+    .sub-badge {
+        font-size: 0.75rem;
+        padding: 4px 8px;
+        border-radius: 4px;
+        border: 1px solid currentColor;
+        background: rgba(0,0,0,0.2);
+    }
 
-.player-score {
-    font-size: 1.125rem;
-    margin-top: 5px;
-}
+    /* --- NAV TEMPORAL (Meses) --- */
+    .time-nav {
+        background: #101018;
+        border: 1px solid #343a40;
+        border-radius: 50px;
+        padding: 5px 15px;
+        display: inline-flex;
+        align-items: center;
+        gap: 15px;
+    }
+    .pilot-name {
+        /* Tamaño dinámico: se hace pequeño en móviles (1rem) y crece hasta 1.6rem máximo */
+        font-size: clamp(1rem, 5vw, 1.6rem);
 
-.vs {
-    font-size: 1.5rem;
-    text-align: center;
-    margin: 0 10px;
-    flex-basis: 100%;
-}
+        font-weight: 900;
+        letter-spacing: -0.5px;
 
-.duel-mode {
-    background-color: #343a40;
-    color: #ffffff;
-    padding: 0.5rem 1rem;
-    border-radius: 5px;
-    margin-bottom: 1rem;
-    align-self: flex-start;
-}
+        /* AJUSTES PARA QUE NO SE CORTE */
+        white-space: normal; /* Permite que baje de línea si no cabe */
+        word-wrap: break-word; /* Rompe la palabra si es más ancha que la caja */
+        line-height: 1; /* Altura de línea compacta por si ocupa dos renglones */
 
-.mode {
-    font-size: 1rem;
-}
-
-/* Estilos para el card de suscripción */
-.suscripcion-card {
-    background-color: #1e1e2f !important;
-    border-radius: 12px;
-    padding: 1.5rem;
-    border: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-/* Colores y Badges */
-.suscripcion-nivel-3 { color: gold; font-weight: bold; }
-.suscripcion-nivel-2 { color: #c0e5fb; font-weight: bold; }
-.suscripcion-nivel-1 { color: #CD7F32; font-weight: bold; }
-
-.badge.suscripcion-nivel-3 { background: rgba(255, 215, 0, 0.1); border: 1px solid gold; }
-.badge.suscripcion-nivel-2 { background: rgba(192, 229, 251, 0.1); border: 1px solid #c0e5fb; }
-.badge.suscripcion-nivel-1 { background: rgba(205, 127, 50, 0.1); border: 1px solid #CD7F32; }
-
-/* Estilo para el contenedor de la imagen de perfil para evitar solapamientos con margen negativo */
-.profile-avatar-container {
-    margin-top: -80px;
-    position: relative;
-    z-index: 10;
-    width: 200px;
-    height: 200px;
-}
-
-.profile-img-base {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    z-index: 1;
-}
-
-.profile-img-frame {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    z-index: 2;
-}
+        /* Centrado y márgenes */
+        text-align: center;
+        width: 100%;
+        display: block;
+    }
 </style>
 @endsection
 
@@ -136,316 +126,250 @@
 --}}
 @section('content')
 @if (Auth::check() && (Auth::user()->profile->id == $profile->id || Auth::user()->is_admin))
-<div class="container pb-4">
-        {{-- 🏆 SECCIÓN DE CABECERA Y PERFIL --}}
-        <div class="row">
-            {{-- Fondo del perfil --}}
-            <div class="col-12 p-0">
-                {{-- FONDO: Usamos la nueva variable mágica del modelo --}}
-                <div class="profile-header-background"
-                    style="background-image: url('{{ $profile->fondo_url }}');
-                            {{ $profile->fondo ? 'background-size: cover; background-repeat: no-repeat;' : 'background-repeat: repeat;' }}
-                            background-position: center; height: 160px; border-radius: 10px 10px 0 0;">
+<div class="container py-2">
+
+    {{-- 1. MENSAJES DEL SISTEMA (Alertas) --}}
+    @if(session('success') || session('error'))
+        <div class="mb-4">
+            @if(session('success'))
+                <div class="alert alert-success bg-dark border-success text-success d-flex align-items-center shadow">
+                    <i class="fa fa-check-circle me-2"></i> {{ session('success') }}
                 </div>
-            </div>
-
-            <div class="col-md-4 d-flex justify-content-center justify-content-md-start">
-                <div class="profile-avatar-container">
-
-                    {{-- AVATAR: Usamos $profile->avatar_url --}}
-                    @php
-                        // Solo dejamos esta pequeña lógica del GIF si es visual, o podrías llevarla al modelo también
-                        $imgPadding = strpos($profile->avatar_url, '.gif') !== false ? 'padding: 20px;' : '';
-                    @endphp
-
-                    <img src="{{ $profile->avatar_url }}"
-                        class="rounded-circle profile-img-base"
-                        width="200" height="200"
-                        style="{{ $imgPadding }}"
-                        loading="lazy">
-
-                    {{-- MARCO: Usamos $profile->marco_url --}}
-                    <img src="{{ $profile->marco_url }}"
-                        class="rounded-circle profile-img-frame"
-                        width="200" height="200"
-                        loading="lazy">
-                </div>
-            </div>
-
-        {{-- Información Principal del Usuario --}}
-        <div class="col-md-8 pt-4 pt-md-0 d-flex flex-column justify-content-center">
-            <h1 class="text-center text-md-start mb-2 mt-md-0 text-white display-5">
-                {{ $profile->user->name }}
-            </h1>
-
-            {{-- Lógica de las Lagartos (Coins) --}}
-            @php
-                $coinCount = 0;
-                if (Auth::check()) {
-                    $trophy = DB::table('trophies')->where('name', 'SBBL Coin')->first();
-                    if ($trophy) {
-                        $coinCount = DB::table('profilestrophies')
-                            ->where('trophies_id', $trophy->id)
-                            ->where('profiles_id', Auth::user()->id)
-                            ->value('count') ?? 0;
-                    }
-                }
-            @endphp
-            <div class="d-flex flex-wrap align-items-center gap-3">
-                <div class="bg-dark rounded-pill px-3 py-2 shadow-sm d-inline-flex">
-                    <span class="fw-bold text-warning h5 mb-0">
-                        Lagartos: {{ number_format($coinCount) }} <span class="ms-1">🦎</span>
-                    </span>
-                </div>
-
-                <h3 class="text-white h5 mb-0">Región:
-                    <span class="fw-normal">{{ $profile->region->name ?? 'Por definir' }}</span>
-                </h3>
-
-                <h3 class="text-white h5 mb-0">Puntos:
-                    <span class="badge text-bg-secondary">X: {{ $profile->points_x2 }}</span>
-                </h3>
-            </div>
-
-            @if (Auth::user()->profile->id == $profile->id)
-                <div class="mt-3">
-                    <a href="{{ route('profiles.edit', ['profile' => Auth::user()->id]) }}" class="btn btn-outline-info text-uppercase font-weight-bold w-100 w-md-50">
-                        Editar perfil
-                    </a>
-                </div>
-            @endif
-            @if($subscription)
-                <div class="mt-3">
-                    <a href="{{ route('collection.index') }}" class="btn btn-warning text-uppercase font-weight-bold w-100 w-md-50">
-                        Ver mi colección
-                    </a>
+            @elseif(session('error'))
+                <div class="alert alert-danger bg-dark border-danger text-danger d-flex align-items-center shadow">
+                    <i class="fa fa-exclamation-triangle me-2"></i> {{ session('error') }}
                 </div>
             @endif
         </div>
-    </div>
+    @endif
 
-    <hr class="border-secondary my-4">
+    {{-- GRID PRINCIPAL --}}
+    <div class="row g-4">
 
-    {{-- 🌟 SECCIÓN DE SUSCRIPCIÓN (Lógica IF/ELSEIF/ELSE) --}}
-    @if($subscription)
-        @php
-            // Obtener el slug del plan en minúsculas
-            $planName = strtolower($subscription->plan->slug);
-
-            // Inicializar variables
-            $badgeClass = '';
-            $mensaje = '';
-
-            // Asignar clases y mensajes usando la estructura IF/ELSEIF tradicional
-            if ($planName === 'oro') {
-                $badgeClass = 'suscripcion-nivel-3';
-                $mensaje = '¡Gracias por apoyar al máximo nivel! 🎉';
-            } elseif ($planName === 'plata') {
-                $badgeClass = 'suscripcion-nivel-2';
-                $mensaje = 'Disfruta de tus beneficios Plata ⚡';
-            } elseif ($planName === 'bronce') {
-                $badgeClass = 'suscripcion-nivel-1';
-                $mensaje = 'Estás en el plan Bronce 🪙';
-            } else {
-                $badgeClass = 'bg-dark';
-                $mensaje = '';
-            }
-
-            // Determinar el período
-            $periodo = $subscription->period === 'monthly' ? 'Mensual' : 'Anual';
-        @endphp
-
-        <div class="card suscripcion-card text-light shadow-lg border-0 mb-4">
-            <div class="card-body p-4">
-                <div class="d-flex align-items-center mb-3">
-                    <span class="badge {{ $badgeClass }} fs-6 py-2 px-3 me-3">{{ ucfirst($planName) }}</span>
-                    <h5 class="card-title mb-0 fs-5">Suscripción {{ $periodo }}</h5>
+        {{-- COLUMNA IZQUIERDA: IDENTIFICACIÓN DEL PILOTO --}}
+        <div class="col-lg-4">
+            <div class="command-panel">
+                {{-- Fondo de cabecera --}}
+                <div style="background-image: url('{{ $profile->fondo_url }}');
+                            height: 140px;
+                            background-size: cover;
+                            background-position: center;
+                            opacity: 0.9;">
                 </div>
 
-                <p class="card-text mb-2">
-                    ✅ Activa desde: <strong class="text-white">{{ $subscription->started_at->format('d/m/Y') }}</strong>
-                </p>
-                <p class="card-text">
-                    📅 Expira el: <strong class="text-white">{{ $subscription->ended_at->format('d/m/Y') }}</strong>
-                </p>
-
-                @if($mensaje)
-                    <p class="fw-bold mt-3 mb-0 {{ $badgeClass }}">{{ $mensaje }}</p>
-                @endif
-            </div>
-        </div>
-    @endif
-
-    {{-- 🔔 ALERTAS Y MENSAJES --}}
-    <div class="mt-3">
-        @if(session('success'))
-            <div class="alert alert-success" role="alert">{{ session('success') }}</div>
-        @elseif(session('error'))
-            <div class="alert alert-danger" role="alert">{{ session('error') }}</div>
-        @endif
-    </div>
-
-    {{-- 📨 INVITACIONES PENDIENTES --}}
-    @if(!$invitacionesPendientes->isEmpty())
-    <div class="card bg-dark text-white mb-4 shadow">
-        <div class="card-body">
-            <h2 class="card-title border-bottom border-white pb-2 mb-3">Invitaciones Pendientes</h2>
-            <ul class="list-group list-group-flush">
-                @foreach ($invitacionesPendientes as $invitacion)
-                    <li class="list-group-item bg-dark border-secondary border-bottom p-3">
-                        <div class="d-flex flex-column flex-sm-row justify-content-between align-items-start align-items-sm-center text-white">
-                            <span class="mb-2 mb-sm-0">Equipo: <strong>{{ $invitacion->team->name }}</strong></span>
-                            <div class="btn-group" role="group">
-                                <form action="{{ route('invitations.accept', $invitacion) }}" method="POST" class="me-2">
-                                    @csrf
-                                    <button type="submit" class="btn btn-success btn-sm">Aceptar</button>
-                                </form>
-                                <form action="{{ route('invitations.reject', $invitacion) }}" method="POST">
-                                    @csrf
-                                    <button type="submit" class="btn btn-danger btn-sm">Rechazar</button>
-                                </form>
-                            </div>
-                        </div>
-                    </li>
-                @endforeach
-            </ul>
-        </div>
-    </div>
-    @endif
-
-    {{-- 📅 NAVEGACIÓN DE MESES --}}
-    <div class="d-flex justify-content-between align-items-center mt-5 mb-4 p-3 bg-dark rounded shadow-sm">
-        @php
-            $prevMonthUrl = route('profiles.show', ['profile' => $profile->id, 'month' => $currentMonth == 1 ? 12 : $currentMonth - 1, 'year' => $currentMonth == 1 ? $currentYear - 1 : $currentYear]);
-            $nextMonthUrl = route('profiles.show', ['profile' => $profile->id, 'month' => $currentMonth == 12 ? 1 : $currentMonth + 1, 'year' => $currentMonth == 12 ? $currentYear + 1 : $currentYear]);
-            $monthName = \Carbon\Carbon::create($currentYear, $currentMonth)->translatedFormat('F Y');
-        @endphp
-        <a href="{{ $prevMonthUrl }}" class="btn btn-outline-light">
-            ← Mes Anterior
-        </a>
-        <h3 class="text-white h4 mb-0">{{ $monthName }}</h3>
-        <a href="{{ $nextMonthUrl }}" class="btn btn-outline-light">
-            Mes Siguiente →
-        </a>
-    </div>
-
-    {{-- ⚔️ DUELOS MENSUALES --}}
-    <!--<h2 class="titulo-categoria text-uppercase mb-4 mt-4 text-white border-bottom pb-2">Duelos Mensuales</h2>
-    <div class="row mt-2">
-        @forelse ($versus as $duelo)
-            <div class="col-sm-6 col-md-4 col-lg-3 mb-4">
-                <div class="duel-card" style="background-image: url('/storage/{{ $duelo->result_1 > $duelo->result_2 ? $duelo->versus_1->profile->fondo : $duelo->versus_2->profile->fondo }}');">
-                    <div class="overlay"></div>
-
-                    @php
-                        $mode = $duelo->matchup == "beybladex" ? "Beyblade X" : "Beyblade Burst";
-                        // Lógica del status del duelo con IF/ELSEIF/ELSE
-                        if ($duelo->status == "CLOSED") {
-                            $statusText = 'Válido';
-                        } elseif ($duelo->status == "INVALID") {
-                            $statusText = 'Inválido';
-                        } elseif ($duelo->status == "OPEN" && $duelo->url) {
-                            $statusText = 'Pendiente';
-                        } else {
-                            $statusText = 'Enviado';
-                        }
-                    @endphp
-
-                    <div class="duel-mode">
-                        <span class="mode">{{ $mode }} - **{{ $statusText }}**</span>
+                <div class="p-4 text-center">
+                    {{-- Avatar --}}
+                    <div class="profile-avatar-container">
+                        @php
+                            $imgPadding = strpos($profile->avatar_url, '.gif') !== false ? 'padding: 15px;' : '';
+                        @endphp
+                        <img src="{{ $profile->avatar_url }}" class="rounded-circle profile-img-base" style="{{ $imgPadding }}" loading="lazy">
+                        <img src="{{ $profile->marco_url }}" class="rounded-circle profile-img-frame" loading="lazy">
                     </div>
 
-                    <div class="duel-info d-flex align-items-center justify-content-around flex-grow-1">
-                        <div class="duel-player">
-                            <span class="player-name">{{ $duelo->versus_1->name }}</span>
-                        </div>
+                    {{-- Datos Usuario --}}
+                    <h2 class="text-white pilot-name mb-1" title="{{ $profile->user->name }}">
+                        {{ $profile->user->name }}
+                    </h2>
+                    <div class="mb-4">
+                        <span class="badge bg-secondary text-uppercase" style="letter-spacing: 1px;">
+                            {{ $profile->region->name ?? 'SIN ASIGNAR' }}
+                        </span>
+                    </div>
 
-                        <div class="vs d-flex flex-column align-items-center mx-3">
-                            <span class="player-score h2 mb-0">{{ $duelo->result_1 }}</span>
-                            <span class="h4 my-1">VS</span>
-                            <span class="player-score h2 mb-0">{{ $duelo->result_2 }}</span>
-                        </div>
-
-                        <div class="duel-player">
-                            <span class="player-name">{{ $duelo->versus_2->name }}</span>
-                        </div>
-
-                        {{-- Botones de Acción --}}
-                        @if (Auth::check() && ($duelo->user_id_1 == Auth::user()->id || $duelo->user_id_2 == Auth::user()->id))
-                            <div class="w-100 d-grid gap-2 mt-3">
-                                <a href="{{ route('versus.versusdeck', ['duel' => $duelo->id, 'deck' => Auth::user()->id]) }}" class="btn btn-warning fw-bold">
-                                    Introducir Deck
+                    {{-- Botones de Acción --}}
+                    @if (Auth::user()->profile->id == $profile->id)
+                        <div class="d-grid gap-2">
+                            <a href="{{ route('profiles.edit', ['profile' => Auth::user()->id]) }}" class="btn btn-outline-info text-uppercase fw-bold btn-sm">
+                                <i class="fas fa-cog me-1"></i> Ajustes de Perfil
+                            </a>
+                            @if($subscription)
+                                <a href="{{ route('collection.index') }}" class="btn btn-outline-warning text-uppercase fw-bold btn-sm">
+                                    <i class="fas fa-box-open me-1"></i> Mi Colección
                                 </a>
-                                <button type="button" class="btn btn-outline-light" data-bs-toggle="modal" data-bs-target="#modalDeck{{ $duelo->id }}">
-                                    Vídeo
-                                </button>
-                            </div>
-                        @endif
-                    </div>
-                </div>
-            </div>
-
-            {{-- Modal: Usando Bootstrap 5 data-bs-toggle --}}
-            @auth
-            <div class="modal fade" id="modalDeck{{ $duelo->id }}" tabindex="-1" aria-labelledby="modalDeckLabel{{ $duelo->id }}" aria-hidden="true">
-                <div class="modal-dialog modal-dialog-centered">
-                    <div class="modal-content bg-dark text-white">
-                        <div class="modal-header">
-                            <h5 class="modal-title" id="modalDeckLabel{{ $duelo->id }}">Actualizar video</h5>
-                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                            @endif
                         </div>
-                        <form method="POST" action="{{ route('versus.updateVideo', ['versus' => $duelo->id]) }}" class="p-4">
-                            @csrf
-                            @method('PUT')
-                            <div class="mb-3">
-                                <label for="url{{ $duelo->id }}" class="form-label">Link al video del duelo:</label>
-                                <input type="url" name="url" id="url{{ $duelo->id }}" class="form-control bg-secondary text-white border-0"
-                                    placeholder="https://www.youtube.com/embed/tu-video"
-                                    value="{{ old('url', $duelo->url ?? '') }}" required>
-                            </div>
-                            <div class="d-grid">
-                                <button type="submit" class="btn btn-outline-success text-uppercase fw-bold">Enviar datos</button>
-                            </div>
-                        </form>
-                    </div>
+                    @endif
                 </div>
             </div>
-            @endauth
-        @empty
-            <p class="col-md-12 text-white">No has participado en ningún duelo este mes</p>
-        @endforelse
-    </div>-->
+        </div>
 
-    {{-- 🗓️ EVENTOS MENSUALES --}}
-    <h2 class="titulo-categoria text-uppercase mb-4 mt-2 text-white border-bottom pb-2">Eventos Mensuales</h2>
-    <div class="row mt-2">
-        @forelse ($eventos as $evento)
-            <div class="col-sm-6 col-md-4 col-lg-3 mb-4">
-                <div class="card h-100 d-flex flex-column text-center border-3 shadow-lg" style="background-color: #283b63; color: white; border-color: #ffffff !important;">
+        {{-- COLUMNA DERECHA: DASHBOARD DE ESTADO --}}
+        <div class="col-lg-8">
+            <div class="row g-4 h-100">
 
-                    {{-- Imagen del Evento --}}
-                    @php
-                        $eventImageUrl = $evento->image_mod ? 'data:image/png;base64,' . $evento->image_mod : "/storage/{$evento->imagen}";
-                    @endphp
-                    <div class="event-image-container" style="height: 180px; background: url('{{ $eventImageUrl }}') center center no-repeat; background-size: cover; border-bottom: 2px solid #ffffff;"></div>
-
-                    <div class="card-body d-flex flex-column justify-content-between p-3 flex-grow-1">
-                        <div>
-                            <h3 class="h5 fw-bold mb-1">{{ $evento->name }}</h3>
-                            <p class="mb-2">{{ $evento->region->name }}</p>
-                            <p class="text-secondary mb-3"><event-date fecha="{{ $evento->date }}"></event-date></p>
+                {{-- A. SECCIÓN DE RECURSOS (Métricas) --}}
+                <div class="col-12">
+                    <div class="command-panel p-0">
+                        <div class="panel-header">
+                            <span><i class="fas fa-chart-line me-2"></i>Métricas de Combate</span>
+                            <span class="badge bg-success bg-opacity-25 text-success border border-success">ONLINE</span>
                         </div>
 
-                        <a href="{{ route('events.show', ['event' => $evento->id]) }}" class="btn btn-outline-light fw-bold text-uppercase mt-auto">
-                            Ver evento
-                        </a>
+                        <div class="p-4">
+                            @php
+                                $coinCount = 0;
+                                if (Auth::check()) {
+                                    $trophy = DB::table('trophies')->where('name', 'SBBL Coin')->first();
+                                    if ($trophy) {
+                                        $coinCount = DB::table('profilestrophies')
+                                            ->where('trophies_id', $trophy->id)
+                                            ->where('profiles_id', Auth::user()->id)
+                                            ->value('count') ?? 0;
+                                    }
+                                }
+                            @endphp
+
+                            <div class="row g-3">
+                                <div class="col-sm-6">
+                                    <div class="stat-box">
+                                        <span class="stat-value text-warning">{{ number_format($coinCount) }}</span>
+                                        <span class="stat-label">Lagartos (Coins) 🦎</span>
+                                    </div>
+                                </div>
+                                <div class="col-sm-6">
+                                    <div class="stat-box">
+                                        <span class="stat-value text-info">{{ $profile->points_x2 }}</span>
+                                        <span class="stat-label">Puntos de Rango</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
+
+                {{-- B. LICENCIA Y COMUNICACIONES --}}
+                <div class="col-12">
+                    <div class="command-panel p-0">
+                        <div class="panel-header">
+                            <span><i class="fas fa-id-card me-2"></i>Estado & Comunicaciones</span>
+                        </div>
+
+                        <div class="p-4">
+                            {{-- Suscripción --}}
+                            @if($subscription)
+                                @php
+                                    $planName = strtolower($subscription->plan->slug);
+
+                                    // Valor por defecto (equivalente al 'default' del match)
+                                    $claseNivel = 'text-white';
+
+                                    // Lógica tradicional compatible con todas las versiones de PHP
+                                    if ($planName == 'oro') {
+                                        $claseNivel = 'suscripcion-nivel-3';
+                                    } elseif ($planName == 'plata') {
+                                        $claseNivel = 'suscripcion-nivel-2';
+                                    } elseif ($planName == 'bronce') {
+                                        $claseNivel = 'suscripcion-nivel-1';
+                                    }
+
+                                    $periodo = $subscription->period === 'monthly' ? 'Mensual' : 'Anual';
+                                @endphp
+                                <div class="d-flex flex-wrap align-items-center justify-content-between p-3 rounded mb-3" style="background: rgba(255,255,255,0.03); border: 1px dashed rgba(255,255,255,0.1);">
+                                    <div>
+                                        <h5 class="mb-1 text-uppercase fw-bold {{ $claseNivel }}">
+                                            Licencia {{ ucfirst($planName) }}
+                                        </h5>
+                                        <small class="text-white">
+                                            Válida hasta: <span class="text-white">{{ $subscription->ended_at->format('d/m/Y') }}</span>
+                                        </small>
+                                    </div>
+                                    <span class="sub-badge {{ $claseNivel }}">{{ $periodo }}</span>
+                                </div>
+                            @else
+                                <div class="alert alert-dark border-secondary text-center mb-3">
+                                    <small class="text-white">No se detecta licencia activa.</small>
+                                </div>
+                            @endif
+
+                            {{-- Invitaciones Pendientes --}}
+                            @if(!$invitacionesPendientes->isEmpty())
+                                <div class="mt-4">
+                                    <h6 class="text-danger text-uppercase fs-6 mb-3 border-bottom border-danger pb-2" style="font-family: monospace;">
+                                        ⚠ Solicitudes de Reclutamiento
+                                    </h6>
+                                    @foreach ($invitacionesPendientes as $invitacion)
+                                        <div class="d-flex justify-content-between align-items-center bg-dark p-2 rounded border border-secondary mb-2">
+                                            <span class="text-white small">Equipo: <strong>{{ $invitacion->team->name }}</strong></span>
+                                            <div>
+                                                <form action="{{ route('invitations.accept', $invitacion) }}" method="POST" class="d-inline">
+                                                    @csrf <button class="btn btn-success btn-sm py-0 px-2">✓</button>
+                                                </form>
+                                                <form action="{{ route('invitations.reject', $invitacion) }}" method="POST" class="d-inline">
+                                                    @csrf <button class="btn btn-danger btn-sm py-0 px-2">✕</button>
+                                                </form>
+                                            </div>
+                                        </div>
+                                    @endforeach
+                                </div>
+                            @endif
+                        </div>
+                    </div>
+                </div>
+
             </div>
-        @empty
-            <p class="col-md-12 text-white">No has participado en ningún evento este mes</p>
-        @endforelse
+        </div>
+
+    </div> {{-- Fin Grid Principal --}}
+
+    {{-- 3. SECCIÓN INFERIOR: HISTORIAL DE MISIONES (Eventos) --}}
+    <div class="mt-5">
+        <div class="command-panel p-4">
+
+            {{-- Header con Navegación --}}
+            <div class="d-flex flex-column flex-md-row justify-content-between align-items-center mb-4 pb-3 border-bottom border-secondary">
+                <h3 class="h5 text-white text-uppercase mb-3 mb-md-0" style="font-family: monospace;">
+                    <i class="fas fa-calendar-alt me-2"></i>Registro de Eventos
+                </h3>
+
+                {{-- Navegación Meses --}}
+                @php
+                    $prevMonthUrl = route('profiles.show', ['profile' => $profile->id, 'month' => $currentMonth == 1 ? 12 : $currentMonth - 1, 'year' => $currentMonth == 1 ? $currentYear - 1 : $currentYear]);
+                    $nextMonthUrl = route('profiles.show', ['profile' => $profile->id, 'month' => $currentMonth == 12 ? 1 : $currentMonth + 1, 'year' => $currentMonth == 12 ? $currentYear + 1 : $currentYear]);
+                    $monthName = \Carbon\Carbon::create($currentYear, $currentMonth)->translatedFormat('F Y');
+                @endphp
+                <div class="time-nav">
+                    <a href="{{ $prevMonthUrl }}" class="text-secondary text-decoration-none fs-5 hover-white"><i class="fas fa-chevron-left"></i></a>
+                    <span class="text-info fw-bold text-uppercase" style="min-width: 120px; text-align: center;">{{ $monthName }}</span>
+                    <a href="{{ $nextMonthUrl }}" class="text-secondary text-decoration-none fs-5 hover-white"><i class="fas fa-chevron-right"></i></a>
+                </div>
+            </div>
+
+            {{-- Grid de Eventos --}}
+            <div class="row">
+                @forelse ($eventos as $evento)
+                    <div class="col-sm-6 col-md-4 col-lg-3 mb-4">
+                        <div class="card h-100 bg-dark text-white border border-secondary shadow-sm" style="transition: transform 0.2s;">
+                            {{-- Imagen Evento --}}
+                            @php
+                                $eventImageUrl = $evento->image_mod ? 'data:image/png;base64,' . $evento->image_mod : "/storage/{$evento->imagen}";
+                            @endphp
+                            <div style="height: 150px; background: url('{{ $eventImageUrl }}') center center no-repeat; background-size: cover; border-bottom: 1px solid rgba(255,255,255,0.1);"></div>
+
+                            <div class="card-body d-flex flex-column p-3">
+                                <h6 class="fw-bold text-truncate mb-1">{{ $evento->name }}</h6>
+                                <p class="small text-secondary mb-2">{{ $evento->region->name }}</p>
+                                <div class="mt-auto">
+                                    <p class="small text-info mb-2"><event-date fecha="{{ $evento->date }}"></event-date></p>
+                                    <a href="{{ route('events.show', ['event' => $evento->id]) }}" class="btn btn-outline-light btn-sm w-100 text-uppercase fw-bold" style="font-size: 0.7rem;">
+                                        Ver Informe
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                @empty
+                    <div class="col-12 py-5 text-center">
+                        <div class="text-white" style="font-family: monospace;">
+                            -- NO HAY ACTIVIDAD REGISTRADA EN ESTE SECTOR TEMPORAL --
+                        </div>
+                    </div>
+                @endforelse
+            </div>
+
+        </div>
     </div>
+
 </div>
 @endif
 @endsection

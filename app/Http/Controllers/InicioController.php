@@ -127,7 +127,7 @@ class InicioController extends Controller
             4 => 'Co-Fundador',
         ];
 
-        $usuarios = User::whereIn('id', [1, 3, 4, 182, 13, 215, 310])->get()->map(function ($usuario) use ($subtitulos) {
+        $usuarios = User::whereIn('id', [1, 3, 4, 182, 13, 215, 310, 766, 886])->get()->map(function ($usuario) use ($subtitulos) {
             // Asignar el subtítulo personalizado desde el arreglo
             $usuario->titulo = $subtitulos[$usuario->id] ?? 'Staff';
             return $usuario;

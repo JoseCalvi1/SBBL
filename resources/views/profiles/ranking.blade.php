@@ -2,9 +2,133 @@
 
 @section('title', 'Ranking Beyblade X')
 
+@section('styles')
+<style>
+    /* --- AJUSTES GENERALES --- */
+    body { background:#121212; color:#e0e0e0 !important; }
+
+    /* Tabs */
+    .nav-tabs { border-bottom: 1px solid #444; }
+    .nav-tabs .nav-link { background:rgba(255,255,255,0.05); color:#aaa; border:none; margin-right: 2px; }
+    .nav-tabs .nav-link:hover { color: #fff; background: rgba(255,255,255,0.1); }
+    .nav-tabs .nav-link.active { background:#ffca28; color:#121212; font-weight:bold; }
+
+    /* --- ESTRUCTURA DE TABLA (SOLUCIÓN AL TEXTO JUNTO) --- */
+    .clasificacion {
+        padding: 15px;
+        border-radius: 10px;
+    }
+
+    /* Convertimos las filas en una GRID para que no se monten */
+    .item {
+        display: grid;
+        /* Definición de columnas:
+           1. Ranking (pequeño)
+           2. Avatar (fijo)
+           3. Nombre (flexible)
+           4. Región (flexible)
+           5. Puntos (fijo derecha)
+        */
+        grid-template-columns: 50px 70px 1.5fr 1fr 80px;
+        align-items: center;
+        gap: 15px;
+        padding: 12px;
+        margin-bottom: 8px;
+        border-radius: 6px;
+    }
+
+    /* Ajuste para móvil: Ocultamos región y ajustamos tamaños */
+    @media (max-width: 576px) {
+        .item {
+            grid-template-columns: 40px 60px 1fr 70px;
+            font-size: 0.9rem;
+            gap: 10px;
+        }
+        /* Ocultar la columna de región (la 4ª columna) en móvil */
+        .item > span:nth-child(4) { display: none; }
+        /* En el encabezado también */
+        .encabezado > span:nth-child(4) { display: none; }
+    }
+
+    /* Estilos de texto */
+    .encabezado {
+        font-weight: bold;
+        color: #ffca28; /* Color dorado para títulos */
+        text-transform: uppercase;
+        font-size: 0.85rem;
+        letter-spacing: 1px;
+        border-bottom: 1px solid rgba(255,255,255,0.1);
+        margin-bottom: 15px !important;
+    }
+
+    .posicion { text-align: center; font-weight: bold; color: #888; }
+    .resaltado .posicion { color: #fff; text-shadow: 0 0 5px rgba(255,255,255,0.5); }
+
+    /* Avatares */
+    .profile-container { width: 50px; height: 50px; position: relative; margin: 0 auto; }
+    .blader-image, .blader-frame { width: 100%; height: 100%; position: absolute; top: 0; left: 0; border-radius: 50%; object-fit: cover; }
+    .blader-frame { z-index: 2; transform: scale(1.1); } /* El marco un poco más grande */
+
+    /* Textos más legibles (Reemplaza al text-muted) */
+    .text-dim { color: #bbb; font-size: 0.9em; }
+
+    /* --- TUS COLORES DE DIVISIÓN ORIGINALES --- */
+    .division-block { margin-bottom: 40px; border-radius: 12px; padding: 15px; }
+    .division-title { text-align: center; font-weight: bold; letter-spacing: 2px; margin-bottom: 15px; }
+
+    /* XTREME (Tu código original) */
+    .division-xtreme {
+        position: relative;
+        background: linear-gradient(135deg, rgba(104, 0, 165, .35), rgba(180, 0, 255, .18));
+        border-radius: 14px;
+        box-shadow: 0 0 25px rgba(104, 0, 165, .45), inset 0 0 30px rgba(180, 0, 255, .15);
+        overflow: hidden;
+    }
+    .division-xtreme::before {
+        content: ""; position: absolute; inset: 0;
+        background: linear-gradient(120deg, transparent 30%, rgba(195, 0, 255, .35), transparent 70%);
+        animation: xtremeGlow 6s linear infinite; pointer-events: none;
+    }
+    .division-xtreme .division-title {
+        color: #e4b3ff; text-shadow: 0 0 8px rgba(195, 0, 255, .8), 0 0 18px rgba(104, 0, 165, .9); letter-spacing: 4px;
+    }
+    .division-xtreme .item {
+        background: linear-gradient(90deg, rgba(104, 0, 165, .35), rgba(180, 0, 255, .18));
+        border: 1px solid rgba(195, 0, 255, .55); box-shadow: 0 0 12px rgba(104, 0, 165, .4);
+    }
+    .division-xtreme .item.resaltado {
+        box-shadow: 0 0 18px rgba(195, 0, 255, .85), inset 0 0 12px rgba(255, 255, 255, .15);
+    }
+    @keyframes xtremeGlow { 0% { transform: translateX(-100%); } 100% { transform: translateX(100%); } }
+
+    /* RESTO DE DIVISIONES (Tus colores originales) */
+    .division-maestro { background: rgba(221, 8, 0, .18); }
+    .division-maestro .division-title { color: #dd0800; }
+    .division-maestro .item { background: rgba(221, 8, 0, .12); border: 1px solid rgba(221, 8, 0, .35); }
+
+    .division-platino { background: rgba(0, 153, 127, .18); }
+    .division-platino .division-title { color: #00997f; }
+    .division-platino .item { background: rgba(0, 153, 127, .12); border: 1px solid rgba(0, 153, 127, .35); }
+
+    .division-oro { background: rgba(221, 179, 0, .18); }
+    .division-oro .division-title { color: #ddb300; }
+    .division-oro .item { background: rgba(221, 179, 0, .12); border: 1px solid rgba(221, 179, 0, .35); }
+
+    .division-plata { background: rgba(162, 168, 192, .18); }
+    .division-plata .division-title { color: #a2a8c0; }
+    .division-plata .item { background: rgba(162, 168, 192, .12); border: 1px solid rgba(162, 168, 192, .35); }
+
+    .division-bronce { background: rgba(177, 86, 15, .18); }
+    .division-bronce .division-title { color: #b1560f; }
+    .division-bronce .item { background: rgba(177, 86, 15, .12); border: 1px solid rgba(177, 86, 15, .35); }
+
+    /* Fallback para items sin división específica */
+    .item-default { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); }
+</style>
+@endsection
+
 @section('content')
 @php
-    // Divisiones Beyblade X S2
     function divisionBX2($points) {
         if ($points >= 95) return 'Xtreme';
         if ($points >= 79) return 'Maestro';
@@ -23,24 +147,20 @@
             'Maestro' => '79 - 94',
             'Xtreme'  => '≥95',
         ];
-
         return $rangos[$division] ?? '';
     }
 
-$divisionOrder = ['Xtreme', 'Maestro', 'Platino', 'Oro', 'Plata', 'Bronce'];
-
-    // Obtener filtros actuales
+    $divisionOrder = ['Xtreme', 'Maestro', 'Platino', 'Oro', 'Plata', 'Bronce'];
     $filterRegion = request('region', '');
     $limit = request('limit', 'all');
 @endphp
 
-<div class="container">
+<div class="container py-4">
 
-    <!-- Filtros -->
-    <div class="row justify-content-center mb-4">
-        <div class="col-md-6">
-            <label class="text-white">Mostrar:</label>
-            <select id="limitSelect" class="form-control bg-dark text-white" onchange="applyFilters()">
+    <div class="row justify-content-center mb-5">
+        <div class="col-md-5 mb-3 mb-md-0">
+            <label class="text-white small text-uppercase mb-1 fw-bold">Mostrar:</label>
+            <select id="limitSelect" class="form-control bg-dark text-white border-secondary" onchange="applyFilters()">
                 @foreach([25,50,200,500,1000,'all'] as $val)
                     <option value="{{ $val }}" {{ $limit == $val ? 'selected' : '' }}>
                         {{ $val == 'all' ? 'Todos' : $val }}
@@ -48,9 +168,9 @@ $divisionOrder = ['Xtreme', 'Maestro', 'Platino', 'Oro', 'Plata', 'Bronce'];
                 @endforeach
             </select>
         </div>
-        <div class="col-md-6">
-            <label class="text-white">Filtrar por región:</label>
-            <select id="regionSelect" class="form-control bg-dark text-white" onchange="applyFilters()">
+        <div class="col-md-5">
+            <label class="text-white small text-uppercase mb-1 fw-bold">Filtrar por región:</label>
+            <select id="regionSelect" class="form-control bg-dark text-white border-secondary" onchange="applyFilters()">
                 <option value="">Todas las regiones</option>
                 @foreach ($regions as $regionOption)
                     <option value="{{ $regionOption }}" {{ $filterRegion == $regionOption ? 'selected' : '' }}>
@@ -61,8 +181,7 @@ $divisionOrder = ['Xtreme', 'Maestro', 'Platino', 'Oro', 'Plata', 'Bronce'];
         </div>
     </div>
 
-    <!-- Tabs -->
-    <ul class="nav nav-tabs mb-4">
+    <ul class="nav nav-tabs justify-content-center border-0 mb-4">
         @php
             $tabs = [
                 'points' => 'Burst S1',
@@ -74,7 +193,7 @@ $divisionOrder = ['Xtreme', 'Maestro', 'Platino', 'Oro', 'Plata', 'Bronce'];
         @endphp
         @foreach ($tabs as $key => $label)
             <li class="nav-item">
-                <button class="nav-link {{ $loop->last ? 'active' : '' }}"
+                <button class="nav-link px-4 py-2 {{ $loop->last ? 'active' : '' }}"
                         data-bs-toggle="tab"
                         data-bs-target="#{{ $key }}">
                     {{ $label }}
@@ -83,7 +202,6 @@ $divisionOrder = ['Xtreme', 'Maestro', 'Platino', 'Oro', 'Plata', 'Bronce'];
         @endforeach
     </ul>
 
-    <!-- Contenido -->
     <div class="tab-content">
         @foreach ($tabs as $key => $label)
             <div class="tab-pane fade {{ $loop->last ? 'show active' : '' }}" id="{{ $key }}">
@@ -92,17 +210,10 @@ $divisionOrder = ['Xtreme', 'Maestro', 'Platino', 'Oro', 'Plata', 'Bronce'];
             @if ($key === 'points_x2')
 
                 @foreach ($divisionOrder as $divisionName)
-
                     @php
                         $filtered = collect($bladers_points_x2 ?? [])
-                            ->filter(function ($b) use ($divisionName) {
-                                return divisionBX2($b->points_x2) === $divisionName;
-                            })
-                            ->when($filterRegion, function ($c) use ($filterRegion) {
-                                return $c->filter(function ($b) use ($filterRegion) {
-                                    return optional($b->region)->name === $filterRegion;
-                                });
-                            })
+                            ->filter(fn($b) => divisionBX2($b->points_x2) === $divisionName)
+                            ->when($filterRegion, fn($c) => $c->filter(fn($b) => optional($b->region)->name === $filterRegion))
                             ->values();
 
                         if ($limit != 'all') {
@@ -110,50 +221,43 @@ $divisionOrder = ['Xtreme', 'Maestro', 'Platino', 'Oro', 'Plata', 'Bronce'];
                         }
                     @endphp
 
-
                     <div class="division-block division-{{ strtolower($divisionName) }}">
                         <h4 class="division-title">
-                            {{ $divisionName }} ({{ rangoPuntos($divisionName) }} pts)
+                            {{ $divisionName }} <span style="opacity: 0.6; font-size: 0.8em">({{ rangoPuntos($divisionName) }} pts)</span>
                         </h4>
 
                         <div class="clasificacion">
+                            {{-- HEADER (Grid) --}}
                             <div class="item encabezado">
                                 <span class="posicion">#</span>
-                                <span></span>
+                                <span>Avatar</span>
                                 <span>Blader</span>
                                 <span>Región</span>
-                                <span>Puntos</span>
+                                <span class="text-end">Puntos</span>
                             </div>
 
                             @forelse ($filtered as $index => $blader)
+                                {{-- ROW (Grid) --}}
                                 <div class="item {{ $index < 3 ? 'resaltado' : '' }}">
                                     <span class="posicion">{{ $index + 1 }}</span>
 
-                                    <span class="profile-container">
-                                        <div class="blader-avatar d-none d-sm-block">
-                                            {{-- AVATAR: Usando el Accessor del modelo --}}
-                                            <img src="{{ $blader->avatar_url }}"
-                                                class="blader-image"
-                                                loading="lazy"
-                                                alt="Avatar">
+                                    <div class="profile-container">
+                                         @if($blader->avatar_url)
+                                            <img src="{{ $blader->avatar_url }}" class="blader-image" loading="lazy">
+                                            <img src="{{ $blader->marco_url }}" class="blader-frame" loading="lazy">
+                                         @endif
+                                    </div>
 
-                                            {{-- MARCO: Usando el Accessor del modelo --}}
-                                            <img src="{{ $blader->marco_url }}"
-                                                class="blader-frame"
-                                                loading="lazy"
-                                                alt="Marco">
-                                        </div>
-                                    </span>
+                                    <span class="fw-bold text-white text-truncate">{{ $blader->user->name }}</span>
 
-                                    <span>{{ $blader->user->name }}</span>
-                                    <span>{{ optional($blader->region)->name ?? 'Región desconocida' }}</span>
-                                    <span>{{ $blader->points_x2 }} pts</span>
+                                    {{-- Usamos clase text-dim en vez de text-muted --}}
+                                    <span class="text-dim text-truncate">{{ optional($blader->region)->name ?? '---' }}</span>
+
+                                    <span class="text-end fw-bold text-white">{{ $blader->points_x2 }} pts</span>
                                 </div>
                             @empty
-                                <div class="item">
-                                    <span style="width:100%; text-align:center; opacity:.6">
-                                        No hay jugadores en esta división
-                                    </span>
+                                <div class="text-center py-4 text-white-50">
+                                    No hay jugadores en esta división
                                 </div>
                             @endforelse
                         </div>
@@ -166,18 +270,27 @@ $divisionOrder = ['Xtreme', 'Maestro', 'Platino', 'Oro', 'Plata', 'Bronce'];
                 <div class="clasificacion mb-4">
                     <div class="item encabezado">
                         <span class="posicion">#</span>
+                        <span>Avatar</span>
                         <span>Blader</span>
                         <span>Región</span>
-                        <span>Puntos</span>
+                        <span class="text-end">Puntos</span>
                     </div>
 
                     @foreach (${'bladers_' . $key} ?? [] as $index => $blader)
-                        <div class="item {{ $index < 4 ? 'resaltado' : '' }}">
+                         @if($limit == 'all' || $index < (int)$limit)
+                        <div class="item item-default {{ $index < 3 ? 'resaltado' : '' }}">
                             <span class="posicion">{{ $index + 1 }}</span>
-                            <span>{{ $blader->user->name }}</span>
-                            <span>{{ $blader->region->name ?? 'Región desconocida' }}</span>
-                            <span>{{ $blader->{$key} }} pts</span>
+                             <div class="profile-container">
+                                 @if(isset($blader->avatar_url))
+                                    <img src="{{ $blader->avatar_url }}" class="blader-image" loading="lazy">
+                                    <img src="{{ $blader->marco_url }}" class="blader-frame" loading="lazy">
+                                 @endif
+                            </div>
+                            <span class="fw-bold text-white text-truncate">{{ $blader->user->name }}</span>
+                            <span class="text-dim text-truncate">{{ $blader->region->name ?? '---' }}</span>
+                            <span class="text-end fw-bold text-white">{{ $blader->{$key} }} pts</span>
                         </div>
+                        @endif
                     @endforeach
                 </div>
             @endif
@@ -196,154 +309,4 @@ function applyFilters() {
     window.location.href = `?limit=${limit}&region=${region}`;
 }
 </script>
-@endsection
-
-@section('styles')
-<style>
-body { background:#121212; color:#e0e0e0 !important; }
-.nav-tabs .nav-link { background:#333; color:#e0e0e0; border:none; }
-.nav-tabs .nav-link.active { background:#ffca28; color:#121212; font-weight:bold; }
-
-.clasificacion { padding:15px; border-radius:10px; }
-.item { display:flex; align-items:center; justify-content:space-between; padding:10px; margin-bottom:8px; border-radius:6px; }
-.encabezado { font-weight:bold; opacity:.85; }
-.posicion { width:40px; text-align:center; font-weight:bold; }
-.resaltado { box-shadow: 0 0 10px rgba(255,255,255,.05); }
-.profile-container { width:50px; height:50px; }
-.blader-avatar { position:relative; width:50px; height:50px; }
-.blader-image, .blader-frame { width:50px; height:50px; border-radius:50%; position:absolute; }
-
-/* Bloques por división */
-.division-block { margin-bottom:40px; border-radius:12px; padding:15px; }
-.division-title { text-align:center; font-weight:bold; letter-spacing:2px; margin-bottom:15px; }
-
-/* ===== XTREME ===== */
-.division-xtreme {
-    position: relative;
-    background:
-        linear-gradient(
-            135deg,
-            rgba(104, 0, 165, .35),
-            rgba(180, 0, 255, .18)
-        );
-    border-radius: 14px;
-    box-shadow:
-        0 0 25px rgba(104, 0, 165, .45),
-        inset 0 0 30px rgba(180, 0, 255, .15);
-    overflow: hidden;
-}
-
-/* Aura animada */
-.division-xtreme::before {
-    content: "";
-    position: absolute;
-    inset: 0;
-    background:
-        linear-gradient(
-            120deg,
-            transparent 30%,
-            rgba(195, 0, 255, .35),
-            transparent 70%
-        );
-    animation: xtremeGlow 6s linear infinite;
-    pointer-events: none;
-}
-
-/* Título */
-.division-xtreme .division-title {
-    color: #e4b3ff;
-    text-shadow:
-        0 0 8px rgba(195, 0, 255, .8),
-        0 0 18px rgba(104, 0, 165, .9);
-    letter-spacing: 4px;
-}
-
-/* Items */
-.division-xtreme .item {
-    background:
-        linear-gradient(
-            90deg,
-            rgba(104, 0, 165, .35),
-            rgba(180, 0, 255, .18)
-        );
-    border: 1px solid rgba(195, 0, 255, .55);
-    box-shadow:
-        0 0 12px rgba(104, 0, 165, .4);
-}
-
-/* TOP 3 aún más pro */
-.division-xtreme .item.resaltado {
-    box-shadow:
-        0 0 18px rgba(195, 0, 255, .85),
-        inset 0 0 12px rgba(255, 255, 255, .15);
-}
-
-/* Animación */
-@keyframes xtremeGlow {
-    0%   { transform: translateX(-100%); }
-    100% { transform: translateX(100%); }
-}
-
-
-/* Maestro */
-.division-maestro {
-    background: rgba(221, 8, 0, .18);
-}
-.division-maestro .division-title {
-    color: #dd0800;
-}
-.division-maestro .item {
-    background: rgba(221, 8, 0, .12);
-    border: 1px solid rgba(221, 8, 0, .35);
-}
-
-/* Platino */
-.division-platino {
-    background: rgba(0, 153, 127, .18);
-}
-.division-platino .division-title {
-    color: #00997f;
-}
-.division-platino .item {
-    background: rgba(0, 153, 127, .12);
-    border: 1px solid rgba(0, 153, 127, .35);
-}
-
-/* Oro */
-.division-oro {
-    background: rgba(221, 179, 0, .18);
-}
-.division-oro .division-title {
-    color: #ddb300;
-}
-.division-oro .item {
-    background: rgba(221, 179, 0, .12);
-    border: 1px solid rgba(221, 179, 0, .35);
-}
-
-/* Plata */
-.division-plata {
-    background: rgba(162, 168, 192, .18);
-}
-.division-plata .division-title {
-    color: #a2a8c0;
-}
-.division-plata .item {
-    background: rgba(162, 168, 192, .12);
-    border: 1px solid rgba(162, 168, 192, .35);
-}
-
-/* Bronce */
-.division-bronce {
-    background: rgba(177, 86, 15, .18);
-}
-.division-bronce .division-title {
-    color: #b1560f;
-}
-.division-bronce .item {
-    background: rgba(177, 86, 15, .12);
-    border: 1px solid rgba(177, 86, 15, .35);
-}
-
-</style>
 @endsection

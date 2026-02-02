@@ -345,8 +345,8 @@
                             @endif
 
                             @if($event->beys === "grancopa" || $event->beys === "copapaypal")
-                                <div class="text-center bg-white p-3 rounded">
-                                    <p class="text-dark fw-bold mb-2">Inscripción Requerida: {{ $event->beys === "grancopa" ? '5€' : '2€' }}</p>
+                                <div class="text-center p-3 rounded">
+                                    <p class="text-white fw-bold mb-2">Inscripción Requerida: {{ $event->beys === "grancopa" ? '5€' : '2€' }}</p>
                                     <div id="paypal-button-container" class="d-flex justify-content-center"></div>
                                 </div>
                             @else
@@ -432,7 +432,9 @@
                                                 {{ substr($assist->name, 0, 1) }}
                                             </div>
                                             <div>
-                                                <div class="fw-bold text-white">{{ $assist->name }}</div>
+                                                <div class="fw-bold text-white">
+                                                    {{ $assist->name }}
+                                                </div>
                                                 @if(!empty($assist->pivot->puesto) && $assist->pivot->puesto !== 'participante')
                                                     <span class="badge bg-info text-dark rounded-pill">{{ $assist->pivot->puesto }}</span>
                                                 @endif
@@ -514,7 +516,10 @@
 
     </div>
 </div>
+</div>
+@endsection
 
+@section('scripts')
 <div class="modal fade" id="imageModal" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered modal-xl">
     <div class="modal-content">
@@ -525,10 +530,6 @@
     </div>
   </div>
 </div>
-</div>
-@endsection
-
-@section('scripts')
 @include('events.partials.deck_modal')
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
