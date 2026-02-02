@@ -90,64 +90,129 @@ class EventController extends Controller
      */
     public function store(Request $request)
     {
-        // 1. Generar nombre por defecto si no viene
+        // 1. GENERAR NOMBRE POR DEFECTO SI ES NECESARIO
+        // Es mejor hacerlo antes de validar para que 'name' tenga valor
         if (empty($request->name)) {
             $request->merge(['name' => $this->generateDefaultName($request)]);
         }
 
-        // 2. Validación
+        // 2. VALIDACIÓN ROBUSTA (Incluyendo imagen)
         $data = $request->validate([
-            'name' => 'required|min:6',
-            'mode' => 'required',
-            'city' => 'required',
-            'location' => 'required',
-            'region_id' => 'required',
-            'event_date' => 'required|date',
-            'event_time' => 'required',
-            'deck' => 'nullable',
-            'configuration' => 'nullable',
-            'note' => 'nullable',
-            'stadiums' => 'required|integer|min:1',
-            'has_stadium_limit' => 'nullable|boolean',
+            'name'            => 'required|min:6|max:255',
+            'mode'            => 'required|string',
+            'city'            => 'required|string|max:100',
+            'location'        => 'required|string|max:255',
+            'region_id'       => 'required|integer',
+            'event_date'      => 'required|date',
+            'event_time'      => 'required',
+            'imagen'          => 'required|string', // Categoría (ranking, quedada...)
+            'deck'            => 'required|string',
+            'configuration'   => 'required|string',
+            'note'            => 'nullable|string',
+            'stadiums'        => 'required|integer|min:1',
+            'has_stadium_limit' => 'nullable',
+            // CRÍTICO: Limitar la imagen a 5MB (5120 KB) para evitar error 500
+            'image_mod'       => 'nullable|image|mimes:jpeg,png,jpg,webp|max:5120',
         ]);
 
-        // 3. Procesar imagen subida
-        $imageData = $request->hasFile('image_mod')
-            ? base64_encode(file_get_contents($request->file('image_mod')))
-            : null;
+        try {
+            // 3. PROCESAMIENTO DE IMAGEN (Redimensión para ahorrar memoria)
+            $imageData = null;
+            if ($request->hasFile('image_mod')) {
+                $file = $request->file('image_mod');
+                // Usamos una función auxiliar para redimensionar y no guardar 10MB en la BD
+                $imageData = $this->resizeAndEncodeImage($file);
+            }
 
-        // 4. Determinar imagen base
-        $rutaImagen = $this->resolveImage($request->region_id, $request->imagen);
+            // 4. DETERMINAR RUTA DE IMAGEN BASE
+            $rutaImagen = $this->resolveImage($data['region_id'], $request->imagen);
 
-        // 5. Crear evento usando Eloquent (más limpio)
-        $event = Event::create([
-            'name' => $data['name'],
-            'mode' => $data['mode'],
-            'city' => $data['city'],
-            'location' => $data['location'],
-            'created_by' => Auth::id(),
-            'status' => 'OPEN',
-            'region_id' => $data['region_id'],
-            'date' => $data['event_date'],
-            'time' => $data['event_time'],
-            'imagen' => $rutaImagen,
-            'beys' => $request->imagen,
-            'image_mod' => $imageData,
-            'deck' => $request->deck,
-            'configuration' => $request->configuration,
-            'note' => $request->note,
-            'has_stadium_limit' => $request->has('has_stadium_limit'),
-        ]);
+            // 5. CREAR EVENTO
+            $event = Event::create([
+                'name'              => $data['name'],
+                'mode'              => $data['mode'],
+                'city'              => $data['city'],
+                'location'          => $data['location'],
+                'region_id'         => $data['region_id'],
+                'date'              => $data['event_date'],
+                'time'              => $data['event_time'],
+                'imagen'            => $rutaImagen,
+                'beys'              => $request->imagen, // 'beys' guarda la categoría
+                'image_mod'         => $imageData,       // Imagen en Base64 optimizada
+                'deck'              => $data['deck'],
+                'configuration'     => $data['configuration'],
+                'note'              => $data['note'],
+                'stadiums'          => $data['stadiums'],
+                'has_stadium_limit' => $request->has('has_stadium_limit'), // Checkbox devuelve true/false
+                'created_by'        => Auth::id(),
+                'status'            => 'OPEN',
+            ]);
 
-        // 6. Notificación a Discord
-        $this->sendDiscordNotification($event, false);
+            // 6. NOTIFICACIÓN A DISCORD (Envuelto en try/catch para no romper si falla discord)
+            try {
+                $this->sendDiscordNotification($event, false);
+            } catch (\Exception $e) {
+                Log::error("Error enviando a Discord: " . $e->getMessage());
+            }
 
-        // Retorno a la vista
-        $events = Event::with('region')->get();
-        $createEvent = Event::where('created_by', Auth::id())->where('date', '>', Carbon::now())->get();
-        $countEvents = count($createEvent);
+            // 7. REDIRECCIÓN (Patrón PRG - Post/Redirect/Get)
+            // No devuelvas la vista directamente, redirige al índice o al evento creado
+            return redirect()->route('inicio.events')->with('success', 'Evento creado correctamente.');
 
-        return view('inicio.events', compact('events', 'countEvents'));
+        } catch (\Exception $e) {
+            // Si hay error, liberamos memoria y volvemos atrás con los datos
+            Log::error("Error creando evento: " . $e->getMessage());
+            return back()->withInput()->with('error', 'Ocurrió un error al guardar el evento. Inténtalo de nuevo.');
+        }
+    }
+
+    /**
+     * Función auxiliar para redimensionar imágenes usando PHP nativo (GD).
+     * Esto evita que la BD explote con strings Base64 gigantes.
+     */
+    private function resizeAndEncodeImage($file)
+    {
+        // Cargar imagen en memoria
+        $sourceImage = imagecreatefromstring(file_get_contents($file));
+        if (!$sourceImage) return null;
+
+        // Obtener dimensiones originales
+        $width = imagesx($sourceImage);
+        $height = imagesy($sourceImage);
+
+        // Definir nuevo ancho máximo (ej. 800px)
+        $maxWidth = 800;
+
+        // Calcular nuevas dimensiones manteniendo aspecto
+        if ($width > $maxWidth) {
+            $newWidth = $maxWidth;
+            $newHeight = floor($height * ($maxWidth / $width));
+
+            // Crear lienzo nuevo y redimensionar
+            $thumb = imagecreatetruecolor($newWidth, $newHeight);
+
+            // Mantener transparencia si es PNG/WEBP
+            imagealphablending($thumb, false);
+            imagesavealpha($thumb, true);
+
+            imagecopyresampled($thumb, $sourceImage, 0, 0, 0, 0, $newWidth, $newHeight, $width, $height);
+            $finalImage = $thumb;
+        } else {
+            $finalImage = $sourceImage;
+        }
+
+        // Capturar salida en buffer
+        ob_start();
+        // Guardar como JPEG con calidad 75 para reducir peso (o PNG si prefieres)
+        imagejpeg($finalImage, null, 75);
+        $imageData = ob_get_contents();
+        ob_end_clean();
+
+        // Liberar memoria
+        imagedestroy($sourceImage);
+        if (isset($thumb)) imagedestroy($thumb);
+
+        return base64_encode($imageData);
     }
 
     public function show(Event $event)
@@ -218,41 +283,72 @@ class EventController extends Controller
 
     public function update(Request $request, Event $event)
     {
+        // 1. VALIDACIÓN (Asegúrate de incluir max:5120 para la imagen)
         $data = $request->validate([
-            'name' => 'required|min:6',
+            'name' => 'required|min:6|max:255',
             'mode' => 'required',
-            'city' => 'required',
-            'location' => 'required',
-            'region_id' => 'required',
-            'event_date' => 'required',
+            'city' => 'required|max:255',
+            'location' => 'required|max:255',
+            'region_id' => 'required|exists:regions,id',
+            'event_date' => 'required|date',
             'event_time' => 'required',
             'stadiums' => 'required|integer|min:1',
-            'has_stadium_limit' => 'nullable|boolean',
+            'has_stadium_limit' => 'nullable', // Puede venir como "on", "1" o null
+            'image_mod' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:5120', // Límite 5MB
+            // Campos opcionales que no estaban en tu validate original pero se usan
+            'imagen' => 'required', // Categoría
+            'deck' => 'required',
+            'configuration' => 'required',
+            'note' => 'nullable|string',
+            'iframe' => 'nullable|url',
         ]);
 
-        // Imagen personalizada
-        if ($request->hasFile('image_mod')) {
-            $event->image_mod = base64_encode(file_get_contents($request->file('image_mod')));
+        try {
+            // 2. PROCESAMIENTO DE IMAGEN (Redimensión)
+            if ($request->hasFile('image_mod')) {
+                $file = $request->file('image_mod');
+                // Reutilizamos la función auxiliar resizeAndEncodeImage que te pasé antes
+                // Si no la tienes en este controlador, cópiala del método store
+                $event->image_mod = $this->resizeAndEncodeImage($file);
+            }
+
+            // 3. IMAGEN BASE
+            // Si cambian la categoría, actualizamos la imagen base
+            $rutaImagen = $this->resolveImage($request->region_id, $request->imagen);
+
+            // 4. ACTUALIZACIÓN MASIVA Y MANUAL
+            // Actualizamos los campos directos validados
+            $event->fill([
+                'name' => $data['name'],
+                'mode' => $data['mode'],
+                'city' => $data['city'],
+                'location' => $data['location'],
+                'region_id' => $data['region_id'],
+                'date' => $data['event_date'],
+                'time' => $data['event_time'],
+                'stadiums' => $data['stadiums'],
+                // El checkbox solo envía valor si está marcado
+                'has_stadium_limit' => $request->has('has_stadium_limit'),
+                'imagen' => $rutaImagen,
+                'beys' => $request->imagen, // Categoría
+                'deck' => $request->deck,
+                'configuration' => $request->configuration,
+                'note' => $request->note,
+                'iframe' => $request->iframe,
+            ]);
+
+            $event->save();
+
+            // 5. NOTIFICACIÓN (Opcional, solo si quieres notificar ediciones)
+            // $this->sendDiscordNotification($event, true);
+
+            return redirect()->route('events.show', ['event' => $event->id])
+                             ->with('success', 'Evento actualizado correctamente.');
+
+        } catch (\Exception $e) {
+            Log::error("Error actualizando evento: " . $e->getMessage());
+            return back()->withInput()->with('error', 'Error al actualizar el evento.');
         }
-
-        // Imagen base según región/tipo
-        $rutaImagen = $this->resolveImage($request->region_id, $request->imagen);
-
-        // Asignación manual para mantener lógica original de campos que no están en $data
-        $event->fill($data);
-        $event->imagen = $rutaImagen;
-        $event->beys = $request->imagen;
-        $event->deck = $request['deck'];
-        $event->configuration = $request['configuration'];
-        $event->iframe = $request['iframe'];
-        $event->note = $request['note'];
-        $event->has_stadium_limit = $request->has('has_stadium_limit');
-
-        $event->save();
-
-        $this->sendDiscordNotification($event, true);
-
-        return redirect()->action('App\Http\Controllers\EventController@show', ['event' => $event->id])->with('event', $event);
     }
 
     public function destroy(Event $event)

@@ -12,15 +12,16 @@ use Carbon\Carbon;
 class ResolveGameTurn extends Command
 {
     protected $signature = 'game:resolve';
-    protected $description = 'Resuelve el turno: Defensa Global con MVP x2 (Solo Defensivo)';
+    protected $description = 'Resuelve el turno: Defensa Global, MVP Defensivo y Reportes Detallados';
 
     private $eventParticipantsCache = [];
 
     public function handle()
     {
-        // 1. CONTROL DE SEMANA TODO Cambiar para el final
+        // 1. CONTROL DE FECHAS (Semanas PARES)
+        // Por tanto, si la semana es IMPAR, detenemos el script (Mantenimiento).
         if (Carbon::now()->weekOfYear % 2 != 0) {
-            $this->info("📅 Semana IMPAR (Mantenimiento).");
+            $this->info("📅 Semana IMPAR (Mantenimiento). El turno continúa.");
             return;
         }
 
@@ -30,21 +31,22 @@ class ResolveGameTurn extends Command
         $teamsCache = Team::all()->keyBy('id');
         $changesCount = 0;
 
+        // Rango de fechas para buscar eventos (Últimas 2 semanas)
         $startOfPeriod = Carbon::now()->subWeek()->startOfWeek()->format('Y-m-d');
         $endOfPeriod   = Carbon::now()->endOfWeek()->format('Y-m-d');
 
-        // Cargar Buffs de Mercado
+        // 2. CARGAR BUFFS DE MERCADO
         $activeBuffs = DB::table('team_active_buffs')
             ->where('expires_at', '>', now())
             ->get()
             ->groupBy('team_id');
 
-        // 3. OBTENER TODOS LOS VOTOS Y SELECCIONAR MVP
+        // 3. OBTENER VOTOS Y SELECCIONAR MVP (ALEATORIO)
         $allVotes = DB::table('conquest_votes')->get();
-        $teamGlobalDefense = [];
-        $zoneAttacks = [];
+        $teamGlobalDefense = []; // Bolsa de vida del equipo
+        $zoneAttacks = [];       // Ataques específicos por zona
 
-        // --- SELECCIÓN DEL MIEMBRO ALEATORIO (MVP) POR EQUIPO ---
+        // Agrupar votantes por equipo para sacar el MVP
         $teamVoters = [];
         foreach ($allVotes as $vote) {
             $teamVoters[$vote->team_id][] = $vote->user_id;
@@ -58,16 +60,16 @@ class ResolveGameTurn extends Command
             }
         }
 
-        // 4. CALCULAR PODER (Separando Ataque y Defensa)
+        // 4. CALCULAR PODER DE CADA VOTO
         foreach ($allVotes as $vote) {
             $teamId = $vote->team_id;
             $userId = $vote->user_id;
             $zoneId = $vote->zone_id;
 
-            // A. Calcular Base (Igual para todos)
+            // A. Calcular Base: (10 + Eventos) * (1 + Rango/100)
             $basePower = $this->calculateBasePower($userId, $teamId, $startOfPeriod, $endOfPeriod, $teamsCache);
 
-            // B. Calcular Multiplicadores de Mercado
+            // B. Multiplicadores de Mercado
             $attackMult = 1.0;
             $defenseMult = 1.0;
 
@@ -78,20 +80,20 @@ class ResolveGameTurn extends Command
                 }
             }
 
-            // --- LÓGICA DE ATAQUE (SIN x2) ---
+            // --- C. SUMAR AL ATAQUE (Específico de la zona) ---
+            // Nota: El MVP NO aplica al ataque, solo defensa.
             $finalAttackPower = $basePower * $attackMult;
 
             if (!isset($zoneAttacks[$zoneId][$teamId])) $zoneAttacks[$zoneId][$teamId] = 0;
             $zoneAttacks[$zoneId][$teamId] += $finalAttackPower;
 
-
-            // --- LÓGICA DE DEFENSA (CON x2 MVP) ---
-            // El MVP cuenta doble SOLAMENTE para la "bolsa de vida" del equipo
+            // --- D. SUMAR A DEFENSA GLOBAL (Cuenta para TODAS sus zonas) ---
             $defenseBasePower = $basePower;
 
+            // Aplicar MVP x2 solo en defensa
             if (isset($luckyMembers[$teamId]) && $luckyMembers[$teamId] == $userId) {
                 $defenseBasePower *= 2;
-                // $this->line("🛡️ MVP Defensivo detectado en Equipo $teamId");
+                // $this->info("   🍀 MVP Defensivo en equipo $teamId (User $userId)");
             }
 
             $finalDefensePower = $defenseBasePower * $defenseMult;
@@ -100,29 +102,29 @@ class ResolveGameTurn extends Command
             $teamGlobalDefense[$teamId] += $finalDefensePower;
         }
 
-        // 5. RESOLVER BATALLAS
+        // 5. RESOLVER BATALLAS POR ZONA
         foreach ($zones as $zone) {
             $this->line("--- Analizando {$zone->name} ---");
 
-            // --- PODER DEL DEFENSOR (Dueño Actual) ---
+            // --- DEFENSOR (Dueño Actual) ---
             $currentOwnerId = $zone->team_id;
-
-            // Su "Vida" es la Defensa Global acumulada
+            // Su defensa es la suma global de actividad de su equipo
             $defensePower = isset($teamGlobalDefense[$currentOwnerId]) ? round($teamGlobalDefense[$currentOwnerId]) : 0;
             $ownerName = $zone->team ? $zone->team->name : 'Zona Neutral';
 
-            // --- PODER DE LOS ATACANTES ---
+            // --- ATACANTES ---
             $attackers = $zoneAttacks[$zone->id] ?? [];
 
-            // Quitar al dueño de los atacantes (auto-ataque)
+            // Eliminar fuego amigo (si el dueño se atacó a sí mismo por error)
             if (isset($attackers[$currentOwnerId])) unset($attackers[$currentOwnerId]);
 
-            // Si no hay ataques y hay dueño, siguiente
+            // Si no hay ataques y ya tiene dueño, no pasa nada
             if (empty($attackers) && $currentOwnerId) continue;
 
-            // Ordenar atacantes
+            // Ordenar atacantes por fuerza
             arsort($attackers);
 
+            // Mejor Atacante
             $bestAttackerId = array_key_first($attackers);
             $bestAttackerPower = 0;
             $bestAttackerName = "Nadie";
@@ -132,33 +134,23 @@ class ResolveGameTurn extends Command
                 $bestAttackerName = $teamsCache[$bestAttackerId]->name;
             }
 
-            // --- INFO RIVALES (Noticias) ---
-            $rivalsText = "";
+            // Datos para el Desglose (Los 3 siguientes mejores atacantes)
             $otherAttackers = $attackers;
             unset($otherAttackers[$bestAttackerId]);
-            $topOthers = array_slice($otherAttackers, 0, 2, true);
-
-            if (!empty($topOthers)) {
-                $parts = [];
-                foreach ($topOthers as $tId => $dmg) {
-                    $tName = $teamsCache[$tId]->name ?? 'Unknown';
-                    $parts[] = "$tName (" . round($dmg) . ")";
-                }
-                $rivalsText = "\n⚔️ Otros frentes: " . implode(" | ", $parts);
-            }
+            $topOthers = array_slice($otherAttackers, 0, 3, true);
 
             // --- RESULTADO DEL COMBATE ---
             if ($bestAttackerPower > $defensePower) {
-                // CONQUISTA 🚩
+                // === CONQUISTA ===
                 $diff = $bestAttackerPower - $defensePower;
-                $oldOwnerName = $currentOwnerId ? $ownerName : 'Nadie';
+                $oldOwnerName = $currentOwnerId ? $ownerName : 'Zona Neutral';
 
                 // Actualizar DB
                 $zone->team_id = $bestAttackerId;
                 $zone->save();
                 $changesCount++;
 
-                // Generar Narrativa Épica
+                // 1. Generar Narrativa
                 $narrative = $this->generateNarrative('conquest', [
                     'winner' => $bestAttackerName,
                     'loser'  => $oldOwnerName,
@@ -167,8 +159,19 @@ class ResolveGameTurn extends Command
                     'diff'   => $diff
                 ]);
 
-                // Añadir info de rivales si existe
-                if ($rivalsText) $narrative['content'] .= "\n\n" . $rivalsText;
+                // 2. Añadir Desglose de Puntos
+                $breakdown = "\n\n📊 **REPORTE DE BATALLA:**";
+                $breakdown .= "\n• 👑 **{$bestAttackerName}** (Ataque): **{$bestAttackerPower}** pts";
+                $breakdown .= "\n• 🛡️ {$oldOwnerName} (Defensa): {$defensePower} pts";
+
+                if (!empty($topOthers)) {
+                    foreach ($topOthers as $tId => $dmg) {
+                        $tName = $teamsCache[$tId]->name ?? 'Desconocido';
+                        $breakdown .= "\n• ⚔️ {$tName}: " . round($dmg) . " pts";
+                    }
+                }
+
+                $narrative['content'] .= $breakdown;
 
                 WarNews::create([
                     'title'   => $narrative['title'],
@@ -176,31 +179,41 @@ class ResolveGameTurn extends Command
                     'type'    => 'conquest'
                 ]);
 
-                $this->info("🚩 {$zone->name}: GANA {$bestAttackerName}");
+                $this->info("🚩 {$zone->name}: GANA {$bestAttackerName} ($bestAttackerPower) vs $oldOwnerName ($defensePower)");
 
             } else {
-                // DEFENSA 🛡️
+                // === DEFENSA EXITOSA ===
                 if ($bestAttackerPower > 0) {
                     $diff = $defensePower - $bestAttackerPower;
 
-                    // Generar Narrativa de Defensa
+                    // Solo generamos noticia en consola, pero si quieres guardarla en BD, descomenta abajo:
                     $narrative = $this->generateNarrative('defense', [
-                        'winner' => $ownerName, // El ganador es el dueño
-                        'loser'  => $bestAttackerName, // El perdedor es el atacante
+                        'winner' => $ownerName,
+                        'loser'  => $bestAttackerName,
                         'zone'   => $zone->name,
                         'power'  => $defensePower,
                         'diff'   => $diff
                     ]);
 
-                    if ($rivalsText) $narrative['content'] .= "\n\n" . $rivalsText;
+                    $breakdown = "\n\n📊 **REPORTE DE BATALLA:**";
+                    $breakdown .= "\n• 🛡️ **{$ownerName}** (Defensa): **{$defensePower}** pts";
+                    $breakdown .= "\n• 💥 {$bestAttackerName} (Ataque): {$bestAttackerPower} pts";
+
+                    if (!empty($topOthers)) {
+                        foreach ($topOthers as $tId => $dmg) {
+                            $tName = $teamsCache[$tId]->name ?? 'Desconocido';
+                            $breakdown .= "\n• ⚔️ {$tName}: " . round($dmg) . " pts";
+                        }
+                    }
+                    $narrative['content'] .= $breakdown;
 
                     WarNews::create([
-                        'title'   => $narrative['title'],
+                        'title' => $narrative['title'],
                         'content' => $narrative['content'],
-                        'type'    => 'defense'
+                        'type' => 'defense'
                     ]);
 
-                    $this->line("🛡️ {$zone->name}: DEFIENDE $ownerName");
+                    $this->line("🛡️ {$zone->name}: DEFIENDE $ownerName ($defensePower) vs $bestAttackerName ($bestAttackerPower)");
                 }
             }
         }
@@ -215,7 +228,7 @@ class ResolveGameTurn extends Command
         $this->info("✅ TURNO FINALIZADO. Zonas cambiadas: $changesCount");
     }
 
-    // --- CÁLCULO DE PODER BASE ---
+    // --- CÁLCULO DE PODER ---
     private function calculateBasePower($userId, $teamId, $start, $end, $teamsCache)
     {
         $participations = DB::table('assist_user_event')
@@ -241,6 +254,7 @@ class ResolveGameTurn extends Command
             $userPoints += $pointsTable[$index] ?? 1;
         }
 
+        // Fórmula de Rango: Dividir entre 100 para que se note más
         $teamPoints = $teamsCache[$teamId]->points_x2 ?? 0;
         $rankMultiplier = 1 + ($teamPoints / 100);
 
@@ -257,48 +271,36 @@ class ResolveGameTurn extends Command
         return [2, 1, 1, 1, 1, 1, 1];
     }
 
-    // ==========================================
-    // 🎭 EL CEREBRO DE LA PERSONALIDAD
-    // ==========================================
+    // --- GENERADOR DE NARRATIVA ---
     private function generateNarrative($type, $data)
     {
         $titles = [];
         $contents = [];
 
         if ($type === 'conquest') {
-            // Títulos variados
             $titles = [
                 "CAÍDA DE " . strtoupper($data['zone']),
                 "NUEVO ORDEN EN " . strtoupper($data['zone']),
                 "INCURSIÓN EXITOSA: " . strtoupper($data['winner']),
                 "CAMBIO DE BANDERA EN " . strtoupper($data['zone']),
-                "REPORTE DE ZONA: " . strtoupper($data['zone']) . " PERDIDA",
             ];
-
-            // Contenidos con "sabor"
             $contents = [
-                "Las defensas de **{$data['loser']}** han colapsado. Las tropas de **{$data['winner']}** marchan victoriosas sobre las ruinas con un poder devastador de **{$data['power']}**.",
-                "¡Brutalidad táctica! **{$data['winner']}** ha expulsado a **{$data['loser']}** de la región. La diferencia de poder ({$data['diff']}) no dejó lugar a dudas.",
-                "Se ha detectado una firma de energía masiva. **{$data['winner']}** reclama el control absoluto de la zona, dejando a **{$data['loser']}** sin opciones.",
-                "Informe de Batalla #".rand(1000,9999).": **{$data['winner']}** toma el sector. La resistencia de **{$data['loser']}** fue inútil ante una ofensiva de **{$data['power']}** puntos.",
-                "El mapa se reescribe. **{$data['winner']}** planta su estandarte sobre lo que antes pertenecía a **{$data['loser']}**."
+                "Las defensas de **{$data['loser']}** han colapsado. Las tropas de **{$data['winner']}** marchan victoriosas sobre las ruinas.",
+                "¡Brutalidad táctica! **{$data['winner']}** ha expulsado a **{$data['loser']}** de la región con una diferencia de {$data['diff']} puntos.",
+                "Se ha detectado una firma de energía masiva. **{$data['winner']}** reclama el control absoluto de la zona.",
             ];
         }
         elseif ($type === 'defense') {
             $titles = [
                 "MURALLA IMPENETRABLE EN " . strtoupper($data['zone']),
                 "ATAQUE REPELIDO: " . strtoupper($data['zone']),
-                "RESISTENCIA HEROICA DE " . strtoupper($data['winner']),
             ];
-
             $contents = [
-                "**{$data['winner']}** se mantiene firme. El asalto de **{$data['loser']}** se estrelló contra una defensa global de **{$data['power']}** puntos.",
-                "A pesar de los intentos de **{$data['loser']}**, la zona sigue bajo el estricto control de **{$data['winner']}**. Diferencia táctica: {$data['diff']}.",
-                "Sistemas defensivos al 100%. **{$data['winner']}** niega el acceso a **{$data['loser']}** y mantiene la soberanía del territorio."
+                "**{$data['winner']}** se mantiene firme. El asalto de **{$data['loser']}** se estrelló contra sus defensas.",
+                "A pesar de los intentos de **{$data['loser']}**, la zona sigue bajo el control de **{$data['winner']}**.",
             ];
         }
 
-        // Elegir aleatoriamente
         return [
             'title'   => $titles[array_rand($titles)],
             'content' => $contents[array_rand($contents)]
