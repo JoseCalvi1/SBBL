@@ -7,6 +7,8 @@ use Illuminate\Console\Command;
 use App\Models\Zone;
 use App\Models\WarNews;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Http; // <--- IMPORTANTE
+use Illuminate\Support\Facades\Log;  // <--- IMPORTANTE
 use Carbon\Carbon;
 
 class ResolveGameTurn extends Command
@@ -18,8 +20,7 @@ class ResolveGameTurn extends Command
 
     public function handle()
     {
-        // 1. CONTROL DE FECHAS (Semanas PARES)
-        // Por tanto, si la semana es IMPAR, detenemos el script (Mantenimiento).
+        // 1. CONTROL DE CICLO (SEMANAS PARES)
         if (Carbon::now()->weekOfYear % 2 != 0) {
             $this->info("📅 Semana IMPAR (Mantenimiento). El turno continúa.");
             return;
@@ -31,28 +32,35 @@ class ResolveGameTurn extends Command
         $teamsCache = Team::all()->keyBy('id');
         $changesCount = 0;
 
-        // Rango de fechas para buscar eventos (Últimas 2 semanas)
-        $startOfPeriod = Carbon::now()->subWeek()->startOfWeek()->format('Y-m-d');
-        $endOfPeriod   = Carbon::now()->endOfWeek()->format('Y-m-d');
+        // Variables para el reporte de Discord
+        $discordConquests = []; // Array para guardar conquistas importantes
 
-        // 2. CARGAR BUFFS DE MERCADO
+        // Rango de fechas INTELIGENTE
+        $lastTurn = WarNews::latest()->first();
+        if ($lastTurn) {
+            $startOfPeriod = $lastTurn->created_at->addDay()->format('Y-m-d');
+        } else {
+            $startOfPeriod = Carbon::now()->subWeek()->startOfWeek()->format('Y-m-d');
+        }
+        $endOfPeriod = Carbon::now()->endOfWeek()->format('Y-m-d');
+
+        // 2. CARGAR BUFFS
         $activeBuffs = DB::table('team_active_buffs')
             ->where('expires_at', '>', now())
             ->get()
             ->groupBy('team_id');
 
-        // 3. OBTENER VOTOS Y SELECCIONAR MVP (ALEATORIO)
+        // 3. OBTENER VOTOS Y MVP
         $allVotes = DB::table('conquest_votes')->get();
-        $teamGlobalDefense = []; // Bolsa de vida del equipo
-        $zoneAttacks = [];       // Ataques específicos por zona
+        $teamGlobalDefense = [];
+        $zoneAttacks = [];
 
-        // Agrupar votantes por equipo para sacar el MVP
         $teamVoters = [];
         foreach ($allVotes as $vote) {
             $teamVoters[$vote->team_id][] = $vote->user_id;
         }
 
-        $luckyMembers = []; // [team_id => user_id]
+        $luckyMembers = [];
         foreach ($teamVoters as $tId => $userIds) {
             $uniqueUsers = array_unique($userIds);
             if (!empty($uniqueUsers)) {
@@ -60,16 +68,14 @@ class ResolveGameTurn extends Command
             }
         }
 
-        // 4. CALCULAR PODER DE CADA VOTO
+        // 4. CALCULAR PODER
         foreach ($allVotes as $vote) {
             $teamId = $vote->team_id;
             $userId = $vote->user_id;
             $zoneId = $vote->zone_id;
 
-            // A. Calcular Base: (10 + Eventos) * (1 + Rango/100)
             $basePower = $this->calculateBasePower($userId, $teamId, $startOfPeriod, $endOfPeriod, $teamsCache);
 
-            // B. Multiplicadores de Mercado
             $attackMult = 1.0;
             $defenseMult = 1.0;
 
@@ -80,51 +86,34 @@ class ResolveGameTurn extends Command
                 }
             }
 
-            // --- C. SUMAR AL ATAQUE (Específico de la zona) ---
-            // Nota: El MVP NO aplica al ataque, solo defensa.
             $finalAttackPower = $basePower * $attackMult;
-
             if (!isset($zoneAttacks[$zoneId][$teamId])) $zoneAttacks[$zoneId][$teamId] = 0;
             $zoneAttacks[$zoneId][$teamId] += $finalAttackPower;
 
-            // --- D. SUMAR A DEFENSA GLOBAL (Cuenta para TODAS sus zonas) ---
             $defenseBasePower = $basePower;
-
-            // Aplicar MVP x2 solo en defensa
             if (isset($luckyMembers[$teamId]) && $luckyMembers[$teamId] == $userId) {
                 $defenseBasePower *= 2;
-                // $this->info("   🍀 MVP Defensivo en equipo $teamId (User $userId)");
             }
-
             $finalDefensePower = $defenseBasePower * $defenseMult;
 
             if (!isset($teamGlobalDefense[$teamId])) $teamGlobalDefense[$teamId] = 0;
             $teamGlobalDefense[$teamId] += $finalDefensePower;
         }
 
-        // 5. RESOLVER BATALLAS POR ZONA
+        // 5. RESOLVER BATALLAS
         foreach ($zones as $zone) {
             $this->line("--- Analizando {$zone->name} ---");
 
-            // --- DEFENSOR (Dueño Actual) ---
             $currentOwnerId = $zone->team_id;
-            // Su defensa es la suma global de actividad de su equipo
             $defensePower = isset($teamGlobalDefense[$currentOwnerId]) ? round($teamGlobalDefense[$currentOwnerId]) : 0;
             $ownerName = $zone->team ? $zone->team->name : 'Zona Neutral';
 
-            // --- ATACANTES ---
             $attackers = $zoneAttacks[$zone->id] ?? [];
-
-            // Eliminar fuego amigo (si el dueño se atacó a sí mismo por error)
             if (isset($attackers[$currentOwnerId])) unset($attackers[$currentOwnerId]);
 
-            // Si no hay ataques y ya tiene dueño, no pasa nada
             if (empty($attackers) && $currentOwnerId) continue;
 
-            // Ordenar atacantes por fuerza
             arsort($attackers);
-
-            // Mejor Atacante
             $bestAttackerId = array_key_first($attackers);
             $bestAttackerPower = 0;
             $bestAttackerName = "Nadie";
@@ -134,23 +123,24 @@ class ResolveGameTurn extends Command
                 $bestAttackerName = $teamsCache[$bestAttackerId]->name;
             }
 
-            // Datos para el Desglose (Los 3 siguientes mejores atacantes)
             $otherAttackers = $attackers;
             unset($otherAttackers[$bestAttackerId]);
             $topOthers = array_slice($otherAttackers, 0, 3, true);
 
-            // --- RESULTADO DEL COMBATE ---
+            // --- COMBATE ---
             if ($bestAttackerPower > $defensePower) {
-                // === CONQUISTA ===
+                // CONQUISTA
                 $diff = $bestAttackerPower - $defensePower;
                 $oldOwnerName = $currentOwnerId ? $ownerName : 'Zona Neutral';
 
-                // Actualizar DB
                 $zone->team_id = $bestAttackerId;
                 $zone->save();
                 $changesCount++;
 
-                // 1. Generar Narrativa
+                // Guardar para Discord
+                $discordConquests[] = "🚩 **{$zone->name}**: {$oldOwnerName} ➔ **{$bestAttackerName}**";
+
+                // Narrativa
                 $narrative = $this->generateNarrative('conquest', [
                     'winner' => $bestAttackerName,
                     'loser'  => $oldOwnerName,
@@ -159,7 +149,7 @@ class ResolveGameTurn extends Command
                     'diff'   => $diff
                 ]);
 
-                // 2. Añadir Desglose de Puntos
+                // Desglose
                 $breakdown = "\n\n📊 **REPORTE DE BATALLA:**";
                 $breakdown .= "\n• 👑 **{$bestAttackerName}** (Ataque): **{$bestAttackerPower}** pts";
                 $breakdown .= "\n• 🛡️ {$oldOwnerName} (Defensa): {$defensePower} pts";
@@ -170,7 +160,6 @@ class ResolveGameTurn extends Command
                         $breakdown .= "\n• ⚔️ {$tName}: " . round($dmg) . " pts";
                     }
                 }
-
                 $narrative['content'] .= $breakdown;
 
                 WarNews::create([
@@ -179,46 +168,20 @@ class ResolveGameTurn extends Command
                     'type'    => 'conquest'
                 ]);
 
-                $this->info("🚩 {$zone->name}: GANA {$bestAttackerName} ($bestAttackerPower) vs $oldOwnerName ($defensePower)");
+                $this->info("🚩 {$zone->name}: GANA {$bestAttackerName}");
 
             } else {
-                // === DEFENSA EXITOSA ===
+                // DEFENSA EXITOSA
                 if ($bestAttackerPower > 0) {
-                    $diff = $defensePower - $bestAttackerPower;
-
-                    // Solo generamos noticia en consola, pero si quieres guardarla en BD, descomenta abajo:
-                    $narrative = $this->generateNarrative('defense', [
-                        'winner' => $ownerName,
-                        'loser'  => $bestAttackerName,
-                        'zone'   => $zone->name,
-                        'power'  => $defensePower,
-                        'diff'   => $diff
-                    ]);
-
-                    $breakdown = "\n\n📊 **REPORTE DE BATALLA:**";
-                    $breakdown .= "\n• 🛡️ **{$ownerName}** (Defensa): **{$defensePower}** pts";
-                    $breakdown .= "\n• 💥 {$bestAttackerName} (Ataque): {$bestAttackerPower} pts";
-
-                    if (!empty($topOthers)) {
-                        foreach ($topOthers as $tId => $dmg) {
-                            $tName = $teamsCache[$tId]->name ?? 'Desconocido';
-                            $breakdown .= "\n• ⚔️ {$tName}: " . round($dmg) . " pts";
-                        }
-                    }
-                    $narrative['content'] .= $breakdown;
-
-                    WarNews::create([
-                        'title' => $narrative['title'],
-                        'content' => $narrative['content'],
-                        'type' => 'defense'
-                    ]);
-
-                    $this->line("🛡️ {$zone->name}: DEFIENDE $ownerName ($defensePower) vs $bestAttackerName ($bestAttackerPower)");
+                    $this->line("🛡️ {$zone->name}: DEFIENDE $ownerName ($defensePower)");
                 }
             }
         }
 
-        // 6. LIMPIEZA
+        // 6. ENVIAR REPORTE A DISCORD
+        $this->sendDiscordReport($changesCount, $discordConquests);
+
+        // 7. LIMPIEZA
         $this->info("🧹 Limpiando tablas...");
         DB::table('conquest_votes')->truncate();
         DB::table('team_chat_messages')->truncate();
@@ -250,11 +213,9 @@ class ResolveGameTurn extends Command
 
             $pointsTable = $this->getPointsTable($this->eventParticipantsCache[$eventId]);
             $index = ((int)$part->puesto) - 1;
-
             $userPoints += $pointsTable[$index] ?? 1;
         }
 
-        // Fórmula de Rango: Dividir entre 100 para que se note más
         $teamPoints = $teamsCache[$teamId]->points_x2 ?? 0;
         $rankMultiplier = 1 + ($teamPoints / 100);
 
@@ -291,19 +252,61 @@ class ResolveGameTurn extends Command
             ];
         }
         elseif ($type === 'defense') {
-            $titles = [
-                "MURALLA IMPENETRABLE EN " . strtoupper($data['zone']),
-                "ATAQUE REPELIDO: " . strtoupper($data['zone']),
-            ];
-            $contents = [
-                "**{$data['winner']}** se mantiene firme. El asalto de **{$data['loser']}** se estrelló contra sus defensas.",
-                "A pesar de los intentos de **{$data['loser']}**, la zona sigue bajo el control de **{$data['winner']}**.",
-            ];
+            $titles = [ "MURALLA EN " . strtoupper($data['zone']) ];
+            $contents = [ "**{$data['winner']}** se mantiene firme." ];
         }
 
         return [
             'title'   => $titles[array_rand($titles)],
             'content' => $contents[array_rand($contents)]
         ];
+    }
+
+    // --- 🚀 ENVIAR A DISCORD ---
+    private function sendDiscordReport($changesCount, $conquests)
+    {
+        // Asegúrate de usar la misma config que en tu controlador ('announcements' o 'warfeed')
+        $webhookUrl = config('services.discord.warfeed');
+
+        if (!$webhookUrl) {
+            $this->warn('⚠️ No hay Webhook de Discord configurado.');
+            return;
+        }
+
+        // Construcción del mensaje del Embed
+        $embedDescription = "El ciclo de guerra ha terminado. Se han registrado **{$changesCount} cambios de territorio**.";
+
+        if (!empty($conquests)) {
+            $embedDescription .= "\n\n**🔥 CONQUISTAS DESTACADAS:**\n" . implode("\n", $conquests);
+        } else {
+            $embedDescription .= "\n\n💤 *El mapa se mantiene estable. Ninguna zona ha cambiado de manos.*";
+        }
+
+        $embedDescription .= "\n\n📡 [Ver Reporte Completo en la Web](conquista.sbbl.es)";
+
+        try {
+            Http::post($webhookUrl, [
+                // 1. Aquí ponemos el string literal @everyone, igual que hace tu controlador cuando detecta el ID
+                'content' => "@everyone 📢 **RESULTADOS DEL TURNO**",
+
+                'embeds' => [[
+                    'title' => '🌍 Actualización del Mapa Táctico',
+                    'description' => $embedDescription,
+                    'color' => hexdec('ff0000'), // Rojo
+                    'timestamp' => now()->toIso8601String(),
+                    'footer' => ['text' => 'Sistema WAR-NET AI v2.0']
+                ]],
+
+                // 2. ESTA ES LA CLAVE: Forzamos a Discord a parsear el 'everyone'
+                // Sin esto, el texto sale pero no notifica.
+                'allowed_mentions' => [
+                    'parse' => ['everyone'],
+                ],
+            ]);
+
+            $this->info("✅ Reporte enviado a Discord.");
+        } catch (\Exception $e) {
+            Log::error("Error enviando reporte a Discord: " . $e->getMessage());
+        }
     }
 }

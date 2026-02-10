@@ -31,6 +31,7 @@ return [
     ],
     'discord' => [
         'announcements' => env('DISCORD_ANNOUNCEMENTS_WEBHOOK'),
+        'warfeed' => env('DISCORD_WARFEED_WEBHOOK'),
     ],
     'mailjet' => [
         'key' => env('MAILJET_APIKEY'),

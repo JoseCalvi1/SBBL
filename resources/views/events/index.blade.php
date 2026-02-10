@@ -374,19 +374,21 @@
     @foreach ($events as $event)
         @if (!in_array($event->status, ['INVALID', 'CLOSE']))
             <!-- Modal de revisión para cada evento -->
-            <div class="modal fade" id="reviewModal{{ $event->id }}" tabindex="-1" aria-labelledby="reviewModalLabel{{ $event->id }}" aria-hidden="true">
+            <div class="modal fade" id="reviewModal{{ $event->id }}" tabindex="-1" aria-hidden="true">
                 <div class="modal-dialog">
-                    <form method="POST" action="{{ route('event.review', $event->id) }}">
+                    <form class="ajax-review-form" action="{{ route('event.review', $event->id) }}" method="POST" data-event-id="{{ $event->id }}">
                         @csrf
                         <div class="modal-content">
                             <div class="modal-header">
-                                <h5 class="modal-title" id="reviewModalLabel{{ $event->id }}">Revisión del Árbitro - {{ $event->name }}</h5>
+                                <h5 class="modal-title">Revisión - {{ $event->name }}</h5>
                                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
                             </div>
                             <div class="modal-body">
+                                <div id="msg-container-{{ $event->id }}" class="alert d-none"></div>
+
                                 <div class="mb-3">
-                                    <label for="status{{ $event->id }}" class="form-label">Resultado</label>
-                                    <select name="status" id="status{{ $event->id }}" class="form-select" required>
+                                    <label class="form-label">Resultado</label>
+                                    <select name="status" class="form-select" required>
                                         <option value="">Selecciona una opción</option>
                                         <option value="approved">Aprobar</option>
                                         <option value="rejected">Rechazar</option>
@@ -394,13 +396,13 @@
                                 </div>
 
                                 <div class="mb-3">
-                                    <label for="comment{{ $event->id }}" class="form-label">Comentario</label>
-                                    <textarea name="comment" id="comment{{ $event->id }}" class="form-control" rows="3" required></textarea>
+                                    <label class="form-label">Comentario</label>
+                                    <textarea name="comment" class="form-control" rows="3" required></textarea>
                                 </div>
                             </div>
                             <div class="modal-footer">
                                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                                <button type="submit" class="btn btn-success">Enviar revisión</button>
+                                <button type="submit" class="btn btn-success btn-submit">Enviar revisión</button>
                             </div>
                         </div>
                     </form>
@@ -410,37 +412,119 @@
     @endforeach
 
     <script>
-        document.querySelectorAll('.review-button').forEach(button => {
+document.addEventListener('DOMContentLoaded', function () {
+
+    // Capturamos todos los formularios con la clase .ajax-review-form
+    const forms = document.querySelectorAll('.ajax-review-form');
+
+    forms.forEach(form => {
+        form.addEventListener('submit', async function (e) {
+            e.preventDefault(); // Detener envío normal
+
+            const eventId = this.dataset.eventId;
+            const msgContainer = document.getElementById(`msg-container-${eventId}`);
+            const btnSubmit = this.querySelector('.btn-submit');
+            const originalBtnText = btnSubmit.innerHTML;
+
+            // UX: Limpiar mensajes previos y poner estado de carga
+            msgContainer.classList.add('d-none');
+            msgContainer.className = 'alert d-none'; // reset clases
+            btnSubmit.disabled = true;
+            btnSubmit.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Enviando...';
+
+            try {
+                const formData = new FormData(this);
+
+                // Forzamos cabecera Accept para que Laravel sepa que queremos JSON
+                const response = await fetch(this.action, {
+                    method: 'POST',
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'Accept': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                    },
+                    body: formData
+                });
+
+                // MANEJO DE ERRORES HTTP ESPECÍFICOS
+                if (response.status === 413) {
+                    throw new Error('El comentario es demasiado largo o contiene demasiados datos (Error 413). Por favor reduce el contenido.');
+                }
+
+                if (response.status === 500) {
+                     // Intentamos leer el JSON de error si el backend lo mandó, sino mensaje genérico
+                    const errorData = await response.json().catch(() => ({}));
+                    throw new Error(errorData.message || 'Error interno del servidor (500). Contacta al administrador.');
+                }
+
+                if (response.status === 422) {
+                    // Errores de validación de Laravel
+                    const data = await response.json();
+                    throw new Error(data.message || 'Datos inválidos. Revisa los campos.');
+                }
+
+                if (!response.ok) {
+                    throw new Error(`Error inesperado: ${response.status}`);
+                }
+
+                // ÉXITO
+                const data = await response.json();
+
+                msgContainer.textContent = data.message || 'Revisión enviada con éxito.';
+                msgContainer.classList.remove('d-none', 'alert-danger');
+                msgContainer.classList.add('alert', 'alert-success');
+
+                // Recargar página tras breve pausa para ver el mensaje
+                setTimeout(() => {
+                    location.reload();
+                }, 1500);
+
+            } catch (error) {
+                console.error(error);
+                // UX: Mostrar error al usuario
+                msgContainer.textContent = error.message;
+                msgContainer.classList.remove('d-none', 'alert-success');
+                msgContainer.classList.add('alert', 'alert-danger');
+
+                // Restaurar botón
+                btnSubmit.disabled = false;
+                btnSubmit.innerHTML = originalBtnText;
+            }
+        });
+    });
+
+    // MANTENER TU LÓGICA DE BOTONES RÁPIDOS (Si la usas)
+    // He adaptado esto para usar la misma lógica de manejo de errores
+    document.querySelectorAll('.review-button').forEach(button => {
         button.addEventListener('click', async function () {
             const eventId = this.dataset.eventId;
             const status = this.dataset.status;
             const comment = prompt('Comentario sobre la revisión:');
 
-            if (comment === null) return; // Usuario canceló
+            if (comment === null) return;
 
             try {
-            const response = await fetch(`/events/${eventId}/review`, {
-                method: 'POST',
-                headers: {
-                'Content-Type': 'application/json',
-                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
-                },
-                body: JSON.stringify({ status, comment })
-            });
+                const response = await fetch(`/events/${eventId}/review`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json', // Importante para recibir JSON de Laravel
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                    },
+                    body: JSON.stringify({ status, comment })
+                });
 
-            if (response.ok) {
+                if (response.status === 413) throw new Error('Texto demasiado largo (413).');
+                if (!response.ok) throw new Error('Error al procesar la solicitud.');
+
                 alert('Revisión enviada correctamente.');
-                location.reload(); // O actualiza solo esa parte
-            } else {
-                alert('Error al enviar la revisión.');
-            }
+                location.reload();
             } catch (error) {
-            console.error(error);
-            alert('Error de red o del servidor.');
+                alert(error.message);
             }
         });
-        });
-
-    </script>
+    });
+});
+</script>
 @endsection
 

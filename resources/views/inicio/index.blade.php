@@ -492,7 +492,7 @@
                             @foreach ($bladers->slice(3, 2) as $index => $blader)
                                 <div class="d-flex align-items-center justify-content-between p-2 border-bottom border-secondary">
                                     <div class="d-flex align-items-center">
-                                        <span class="text-white fw-bold me-3">#{{ $index + 4 }}</span>
+                                        <span class="text-white fw-bold me-3">#{{ $index + 1 }}</span>
                                         <img src="{{ $blader->avatar_url }}" class="rounded-circle me-2" width="30" height="30">
                                         <span class="text-white">{{ $blader->user->name }}</span>
                                     </div>

@@ -11,9 +11,52 @@
     </div>
 
     <div class="row justify-content-center">
-        <div class="col-12 col-xl-10">
+<div class="col-12 col-xl-10">
 
-            <div class="wizard-header mb-5 p-4">
+    {{-- ======================================================= --}}
+    {{-- BLOQUE NUEVO: VISUALIZACIÓN DE ERRORES --}}
+    {{-- ======================================================= --}}
+
+    {{-- 1. Errores de Validación (Campos obligatorios, formato incorrecto, etc.) --}}
+    @if ($errors->any())
+        <div class="alert alert-danger border-danger bg-danger bg-opacity-10 text-white mb-4 p-4 rounded-3 shadow-sm">
+            <div class="d-flex align-items-start">
+                <i class="fas fa-exclamation-triangle fs-3 me-3 mt-1"></i>
+                <div>
+                    <h4 class="fw-bold mb-2">No se pudo crear el evento</h4>
+                    <ul class="mb-0 ps-3">
+                        @foreach ($errors->all() as $error)
+                            <li>{{ $error }}</li>
+                        @endforeach
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        {{-- Script simple para asegurar que si hay error, el usuario lo vea --}}
+        <script>
+            document.addEventListener("DOMContentLoaded", function() {
+                window.scrollTo(0, 0); // Sube al inicio para ver la alerta
+            });
+        </script>
+    @endif
+
+    {{-- 2. Errores de Lógica (Capturados por el try/catch del controlador) --}}
+    @if (session('error'))
+        <div class="alert alert-danger border-danger bg-danger bg-opacity-10 text-white mb-4 p-4 rounded-3 shadow-sm">
+            <div class="d-flex align-items-center">
+                <i class="fas fa-times-circle fs-3 me-3"></i>
+                <div>
+                    <h5 class="fw-bold m-0">Error del Servidor</h5>
+                    <p class="m-0">{{ session('error') }}</p>
+                </div>
+            </div>
+        </div>
+    @endif
+    {{-- ======================================================= --}}
+
+    <div class="wizard-header mb-5 p-4">
+    {{-- ... el resto de tu código sigue igual ... --}}
                 <div class="wizard-progress position-relative mt-2 mx-auto" style="max-width: 800px;">
                     <div class="progress" style="height: 3px; background-color: #1e293b;">
                         <div class="progress-bar bg-info" id="progressBarFill" role="progressbar" style="width: 0%"></div>

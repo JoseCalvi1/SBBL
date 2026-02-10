@@ -363,15 +363,68 @@ class EventController extends Controller
     {
         $userId = Auth::id();
 
-        // syncWithoutDetaching previene duplicados y es más limpio que DB::insert con comprobación
-        $attached = $event->users()->syncWithoutDetaching([$userId]);
+        // Iniciamos una transacción para evitar que 3 pestañas abiertas pasen la validación a la vez
+        return DB::transaction(function () use ($request, $event, $userId) {
 
-        if ($request->wantsJson()) {
-            // Si ya estaba inscrito (no se adjuntó nada nuevo)
+            // --- 1. VALIDACIÓN DE SEGURIDAD (Solo para Ranking/RankingPlus) ---
+            if (in_array($event->beys, ['ranking', 'rankingplus'])) {
+
+                // Bloqueamos la lectura para este usuario momentáneamente para asegurar el conteo real
+                // (Esto evita el truco de las pestañas múltiples)
+                DB::table('assist_user_event')->where('user_id', $userId)->lockForUpdate()->get();
+
+                $date = Carbon::parse($event->date);
+
+                // A. Comprobar límite semanal (Ya inscrito esta semana?)
+                $registeredThisWeek = DB::table('assist_user_event')
+                    ->join('events', 'assist_user_event.event_id', '=', 'events.id')
+                    ->where('assist_user_event.user_id', $userId)
+                    ->whereBetween('events.date', [$date->copy()->startOfWeek(), $date->copy()->endOfWeek()])
+                    ->whereIn('events.beys', ['ranking', 'rankingplus'])
+                    ->where('events.id', '!=', $event->id) // Ignorar si es el mismo evento
+                    ->exists();
+
+                if ($registeredThisWeek) {
+                    return $this->assistResponse($request, 'Error: Ya tienes un torneo de ranking esta semana.', 422);
+                }
+
+                // B. Comprobar límite mensual (Máximo 2)
+                $monthlyCount = DB::table('assist_user_event')
+                    ->join('events', 'assist_user_event.event_id', '=', 'events.id')
+                    ->where('assist_user_event.user_id', $userId)
+                    ->whereBetween('events.date', [$date->copy()->startOfMonth(), $date->copy()->endOfMonth()])
+                    ->whereIn('events.beys', ['ranking', 'rankingplus'])
+                    ->count();
+
+                // Si ya tiene 2 (o más por algún error anterior), bloqueamos
+                if ($monthlyCount >= 2) {
+                    return $this->assistResponse($request, 'Error: Has alcanzado el límite de 2 torneos este mes.', 422);
+                }
+            }
+
+            // --- 2. INSCRIPCIÓN ---
+            // syncWithoutDetaching ya maneja si el usuario intenta inscribirse dos veces al MISMO evento
+            $attached = $event->users()->syncWithoutDetaching([$userId]);
+
+            // --- 3. RESPUESTA ---
             $msg = (count($attached['attached']) > 0) ? 'Inscripción exitosa' : 'Ya estabas inscrito';
-            return response()->json(['message' => $msg], 200);
+
+            return $this->assistResponse($request, $msg, 200);
+        });
+    }
+
+    // Función auxiliar para manejar la respuesta JSON o Redirect limpiamente
+    private function assistResponse($request, $message, $status)
+    {
+        if ($request->wantsJson()) {
+            return response()->json(['message' => $message], $status);
         }
-        return redirect()->back();
+
+        if ($status !== 200) {
+            return redirect()->back()->with('error', $message);
+        }
+
+        return redirect()->back()->with('success', $message);
     }
 
     public function addAssist(Request $request, Event $event)
@@ -517,17 +570,28 @@ class EventController extends Controller
     }
 
     public function submitReview(Request $request, $eventId)
-    {
+{
+    // 1. Validación previa para evitar errores 500 por datos nulos
+    $request->validate([
+        'status' => 'required|in:approved,rejected',
+        'comment' => 'required|string|max:10000', // max:10000 ayuda a prevenir ataques de payload excesivo
+    ]);
+
+    try {
         $user = Auth::user();
         $event = Event::findOrFail($eventId);
 
         if ($user->is_referee) {
             $review = $event->reviews()->where('referee_id', $user->id)->first();
-            if (!$review) return back()->with('error', 'No has iniciado una revisión.');
+
+            // Retornamos error JSON si es petición AJAX, sino redirigimos
+            if (!$review) {
+                return $this->sendResponse('error', 'No has iniciado una revisión.', $request);
+            }
 
             $review->update(['status' => $request->status, 'comment' => $request->comment]);
 
-            // Lógica de 3 revisiones
+            // Lógica de 3 revisiones (MANTENIDA INTACATA)
             if ($event->reviews->count() == 3) {
                 if ($event->reviews->every(fn($r) => $r->status === 'approved')) {
                     $event->update(['status' => 'approved']);
@@ -545,8 +609,29 @@ class EventController extends Controller
             $event->update(['status' => ($request->final_status === 'approved' ? 'approved' : 'rejected')]);
         }
 
-        return back()->with('success', 'Revisión registrada.');
+        return $this->sendResponse('success', 'Revisión registrada correctamente.', $request);
+
+    } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+        // Error 404 controlado
+        return $this->sendResponse('error', 'El evento no existe.', $request, 404);
+    } catch (\Exception $e) {
+        // Error 500 controlado: Logueamos el error real y mostramos mensaje genérico al usuario
+        Log::error("Error en submitReview: " . $e->getMessage());
+        return $this->sendResponse('error', 'Ocurrió un error inesperado en el servidor. Intenta de nuevo.', $request, 500);
     }
+}
+
+// Helper privado para responder según si es AJAX o Normal
+private function sendResponse($type, $message, $request, $code = 200)
+{
+    if ($request->ajax() || $request->wantsJson()) {
+        return response()->json([
+            'status' => $type,
+            'message' => $message
+        ], $type === 'success' ? 200 : $code);
+    }
+    return back()->with($type, $message);
+}
 
     public function destroyReview($eventId, $userId)
     {

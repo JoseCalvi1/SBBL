@@ -296,12 +296,12 @@
                                 $currentCount = $assists->count();
 
                                 if ($event->stadiums == 1) {
-                                    $limit = 19;
-                                    $limitText = "Aforo asegurado: 19 participantes (1 Estadio)";
+                                    $limit = 20;
+                                    $limitText = "Aforo asegurado: 20 participantes (1 Estadio)";
                                     $alertColor = ($currentCount >= $limit) ? 'danger' : 'success';
                                 } elseif ($event->stadiums == 2) {
-                                    $limit = 29;
-                                    $limitText = "Aforo asegurado: 29 participantes (2 Estadios)";
+                                    $limit = 30;
+                                    $limitText = "Aforo asegurado: 30 participantes (2 Estadios)";
                                     $alertColor = ($currentCount >= $limit) ? 'danger' : 'info';
                                 }
                             @endphp
@@ -424,76 +424,88 @@
                     <form method="POST" action="{{ route('events.updatePuestos', ['event' => $event->id]) }}">
                         @csrf @method('PUT')
                         <div class="list-group list-group-flush rounded overflow-hidden">
-                            @foreach ($assists as $assist)
-                                <div class="list-group-item">
-                                    <div class="d-flex align-items-center justify-content-between flex-wrap">
-                                        <div class="d-flex align-items-center gap-3">
-                                            <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center fw-bold shadow-sm" style="width: 35px; height: 35px; font-size: 0.9rem;">
-                                                {{ substr($assist->name, 0, 1) }}
-                                            </div>
-                                            <div>
-                                                <div class="fw-bold text-white">
-                                                    {{ $assist->name }}
-                                                </div>
-                                                @if(!empty($assist->pivot->puesto) && $assist->pivot->puesto !== 'participante')
-                                                    <span class="badge bg-info text-dark rounded-pill">{{ $assist->pivot->puesto }}</span>
-                                                @endif
-                                            </div>
-                                        </div>
+                            {{-- LÓGICA DE LÍMITE --}}
+                                        @php
+                                            $limit = 9999;
+                                            if ($event->has_stadium_limit) {
+                                                if ($event->stadiums == 1) $limit = 20; // Límite 1 estadio
+                                                elseif ($event->stadiums == 2) $limit = 30; // Límite 2 estadios
+                                            }
+                                        @endphp
 
-                                        <div class="d-flex align-items-center gap-2 mt-2 mt-md-0">
-                                            @if (($event->status != "CLOSE" && $event->status != "INVALID") && Auth::user()->is_referee || ($event->status == "OPEN" && $event->created_by == Auth::user()->id))
-                                                <input type="hidden" name="participantes[{{ $assist->id }}][id]" value="{{ $assist->id }}">
-                                                <select class="form-select form-select-sm" style="width: 130px;" name="participantes[{{ $assist->id }}][puesto]">
-                                                    <option value="participante" {{ $assist->pivot->puesto == 'participante' ? 'selected' : '' }}>Participante</option>
-                                                    @if($totalParticipantes >= 4)
-                                                        <option value="primero" {{ $assist->pivot->puesto == 'primero' ? 'selected' : '' }}>1º Lugar</option>
-                                                    @endif
-                                                    @if($totalParticipantes >= 6)
-                                                        <option value="segundo" {{ $assist->pivot->puesto == 'segundo' ? 'selected' : '' }}>2º Lugar</option>
-                                                    @endif
-                                                    @if($totalParticipantes >= 9)
-                                                        <option value="tercero" {{ $assist->pivot->puesto == 'tercero' ? 'selected' : '' }}>3º Lugar</option>
-                                                    @endif
-                                                    @if($totalParticipantes >= 17)
-                                                        <option value="cuarto" {{ $assist->pivot->puesto == 'cuarto' ? 'selected' : '' }}>4º Lugar</option>
-                                                    @endif
-
-                                                    @if($totalParticipantes >= 25)
-                                                        <option value="quinto" {{ $assist->pivot->puesto == 'quinto' ? 'selected' : '' }}>5º Lugar</option>
-                                                    @endif
-                                                    @if($totalParticipantes >= 33)
-                                                        <option value="septimo" {{ $assist->pivot->puesto == 'septimo' ? 'selected' : '' }}>7º Lugar</option>
-                                                    @endif
-                                                    <option value="nopresentado" {{ $assist->pivot->puesto == 'nopresentado' ? 'selected' : '' }}>No Pres.</option>
-                                                </select>
-                                            @endif
-
+                                        @foreach ($assists as $assist)
+                                            {{-- Calculamos si este usuario está fuera del límite (Reserva) --}}
                                             @php
-                                                $hasRes = isset($resultsByParticipant[$assist->id]) && count($resultsByParticipant[$assist->id]) > 0;
+                                                $isReserve = ($loop->iteration > $limit);
                                             @endphp
-                                            @if($hasRes)
-                                                <button type="button" class="btn btn-sm btn-outline-info" data-bs-toggle="collapse" data-bs-target="#res-{{ $assist->id }}">
-                                                    <i class="fas fa-eye"></i>
-                                                </button>
-                                            @endif
-                                        </div>
-                                    </div>
 
-                                    <div class="collapse mt-2" id="res-{{ $assist->id }}">
-                                        <div class="card card-body p-2 small border-0" style="background-color: rgba(0,0,0,0.3);">
-                                            @if($hasRes)
-                                                @foreach($resultsByParticipant[$assist->id] as $res)
-                                                    <div class="d-flex gap-2 border-bottom border-secondary border-opacity-25 py-1">
-                                                        <span class="text-white fw-bold">{{ $res->blade }}</span>
-                                                        <span>{{ $res->assist_blade }} {{ $res->ratchet }}  {{ $res->bit }}</span>
+                                            <div class="list-group-item {{ $isReserve ? 'bg-danger bg-opacity-25 border-danger' : '' }}">
+                                                <div class="d-flex align-items-center justify-content-between flex-wrap">
+                                                    <div class="d-flex align-items-center gap-3">
+                                                        <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center fw-bold shadow-sm" style="width: 35px; height: 35px; font-size: 0.9rem;">
+                                                            {{ substr($assist->name, 0, 1) }}
+                                                        </div>
+                                                        <div>
+                                                            <div class="fw-bold text-white d-flex align-items-center gap-2">
+                                                                {{ $assist->name }}
+
+                                                                {{-- ETIQUETA DE RESERVA --}}
+                                                                @if($isReserve)
+                                                                    <span class="badge bg-danger text-white border border-light">RESERVA #{{ $loop->iteration - $limit }}</span>
+                                                                @else
+                                                                    <span class="badge bg-secondary text-white-50" style="font-size: 0.7rem;">#{{ $loop->iteration }}</span>
+                                                                @endif
+                                                            </div>
+
+                                                            @if(!empty($assist->pivot->puesto) && $assist->pivot->puesto !== 'participante')
+                                                                <span class="badge bg-info text-dark rounded-pill">{{ $assist->pivot->puesto }}</span>
+                                                            @endif
+                                                        </div>
                                                     </div>
-                                                @endforeach
-                                            @endif
-                                        </div>
-                                    </div>
-                                </div>
-                            @endforeach
+
+                                                    <div class="d-flex align-items-center gap-2 mt-2 mt-md-0">
+                                                        @if (($event->status != "CLOSE" && $event->status != "INVALID") && Auth::user()->is_referee || ($event->status == "OPEN" && $event->created_by == Auth::user()->id))
+                                                            <input type="hidden" name="participantes[{{ $assist->id }}][id]" value="{{ $assist->id }}">
+                                                            <select class="form-select form-select-sm" style="width: 130px;" name="participantes[{{ $assist->id }}][puesto]">
+                                                                <option value="participante" {{ $assist->pivot->puesto == 'participante' ? 'selected' : '' }}>Participante</option>
+
+                                                                @php $totalParticipantes = $assists->count(); @endphp
+                                                                @if($totalParticipantes >= 4) <option value="primero" {{ $assist->pivot->puesto == 'primero' ? 'selected' : '' }}>1º Lugar</option> @endif
+                                                                @if($totalParticipantes >= 6) <option value="segundo" {{ $assist->pivot->puesto == 'segundo' ? 'selected' : '' }}>2º Lugar</option> @endif
+                                                                @if($totalParticipantes >= 9) <option value="tercero" {{ $assist->pivot->puesto == 'tercero' ? 'selected' : '' }}>3º Lugar</option> @endif
+                                                                @if($totalParticipantes >= 17) <option value="cuarto" {{ $assist->pivot->puesto == 'cuarto' ? 'selected' : '' }}>4º Lugar</option> @endif
+                                                                @if($totalParticipantes >= 25) <option value="quinto" {{ $assist->pivot->puesto == 'quinto' ? 'selected' : '' }}>5º Lugar</option> @endif
+                                                                @if($totalParticipantes >= 33) <option value="septimo" {{ $assist->pivot->puesto == 'septimo' ? 'selected' : '' }}>7º Lugar</option> @endif
+
+                                                                <option value="nopresentado" {{ $assist->pivot->puesto == 'nopresentado' ? 'selected' : '' }}>No Pres.</option>
+                                                            </select>
+                                                        @endif
+
+                                                        @php
+                                                            $hasRes = isset($resultsByParticipant[$assist->id]) && count($resultsByParticipant[$assist->id]) > 0;
+                                                        @endphp
+                                                        @if($hasRes)
+                                                            <button type="button" class="btn btn-sm btn-outline-info" data-bs-toggle="collapse" data-bs-target="#res-{{ $assist->id }}">
+                                                                <i class="fas fa-eye"></i>
+                                                            </button>
+                                                        @endif
+                                                    </div>
+                                                </div>
+
+                                                <div class="collapse mt-2" id="res-{{ $assist->id }}">
+                                                    <div class="card card-body p-2 small border-0" style="background-color: rgba(0,0,0,0.3);">
+                                                        @if($hasRes)
+                                                            @foreach($resultsByParticipant[$assist->id] as $res)
+                                                                <div class="d-flex gap-2 border-bottom border-secondary border-opacity-25 py-1">
+                                                                    <span class="text-white fw-bold">{{ $res->blade }}</span>
+                                                                    <span>{{ $res->assist_blade }} {{ $res->ratchet }}  {{ $res->bit }}</span>
+                                                                </div>
+                                                            @endforeach
+                                                        @endif
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        @endforeach
                         </div>
 
                         @if (($event->status != "CLOSE" && $event->status != "INVALID") && Auth::user()->is_referee || ($event->status == "OPEN" && $event->created_by == Auth::user()->id))

@@ -138,7 +138,7 @@
                             🚨 Activar Límite Automático
                         </label>
                         <p class="form-text text-white">
-                            Si se activa: 1 estadio = 19 jug. | 2 estadios = 29 jug.
+                            Si se activa: 1 estadio = 20 jug. | 2 estadios = 30 jug.
                         </p>
                     </div>
                 </div>

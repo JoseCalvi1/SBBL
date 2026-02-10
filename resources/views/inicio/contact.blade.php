@@ -31,6 +31,20 @@
     .btn-enviar:hover {
         background-color: #e0a800;
     }
+
+    /* Oculta el campo trampa visualmente (Honeypot) */
+    .honey-pot {
+        display: none;
+        visibility: hidden;
+    }
+
+    /* Centrar el contenedor del Captcha */
+    .captcha-wrapper {
+        display: flex;
+        justify-content: center;
+        margin-bottom: 20px;
+        margin-top: 10px;
+    }
 </style>
 @endsection
 
@@ -45,23 +59,43 @@
             <div class="contact-form">
                 <h2 class="text-center mb-4">Contacto</h2>
 
+                {{-- MENSJES DE ÉXITO --}}
                 @if(session('success'))
                     <div class="alert alert-success">
                         {{ session('success') }}
                     </div>
                 @endif
 
+                {{-- MENSAJES DE ERROR (Validación y Captcha) --}}
+                @if ($errors->any())
+                    <div class="alert alert-danger">
+                        <ul class="mb-0 pl-3">
+                            @foreach ($errors->all() as $error)
+                                <li>{{ $error }}</li>
+                            @endforeach
+                        </ul>
+                    </div>
+                @endif
+
                 <form method="POST" action="{{ route('contacto.enviar') }}">
                     @csrf
 
+                    {{-- --- TRAMPA PARA BOTS (HONEYPOT) --- --}}
+                    {{-- Si un bot rellena esto, lo bloqueamos en el controlador --}}
+                    <div class="honey-pot">
+                        <label for="website_check">Si eres humano, deja este campo vacío</label>
+                        <input type="text" name="website_check" id="website_check" tabindex="-1" autocomplete="off">
+                    </div>
+                    {{-- ----------------------------------- --}}
+
                     <div class="form-group mb-3">
                         <label for="nombre">Nombre</label>
-                        <input type="text" name="nombre" id="nombre" class="form-control" required>
+                        <input type="text" name="nombre" id="nombre" class="form-control" value="{{ old('nombre') }}" required>
                     </div>
 
                     <div class="form-group mb-3">
                         <label for="email">Correo electrónico</label>
-                        <input type="email" name="email" id="email" class="form-control" required>
+                        <input type="email" name="email" id="email" class="form-control" value="{{ old('email') }}" required>
                     </div>
 
                     <div class="form-group mb-3">
@@ -78,7 +112,13 @@
 
                     <div class="form-group mb-3">
                         <label for="mensaje">Mensaje</label>
-                        <textarea name="mensaje" id="mensaje" rows="6" class="form-control" required></textarea>
+                        <textarea name="mensaje" id="mensaje" rows="6" class="form-control" required>{{ old('mensaje') }}</textarea>
+                    </div>
+
+                    {{-- GOOGLE RECAPTCHA V2 --}}
+                    <div class="captcha-wrapper">
+                        {{-- Tu clave de sitio --}}
+                        <div class="g-recaptcha" data-sitekey="6LcShF8sAAAAAHSqGNgrFi3wuChEq64RN2Pmi-EN"></div>
                     </div>
 
                     <div class="text-center">
@@ -92,6 +132,10 @@
 @endsection
 
 @section('scripts')
+    {{-- LIBRERÍAS DE BOOTSTRAP/JQUERY --}}
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
-	<script src="//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/js/bootstrap.min.js"></script>
+    <script src="//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/js/bootstrap.min.js"></script>
+
+    {{-- SCRIPT OBLIGATORIO DE GOOGLE RECAPTCHA --}}
+    <script src="https://www.google.com/recaptcha/api.js" async defer></script>
 @endsection

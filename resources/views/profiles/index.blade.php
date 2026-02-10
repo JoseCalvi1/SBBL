@@ -68,7 +68,11 @@
                     ->whereRaw('LOWER(events.name) LIKE ?', ['%let it%'])
                     ->exists();
 
-                $hasGranCopaSantaKlaw = $blader->trophies->contains('name', 'Gran Copa Santa Klaw');
+                $hasGranCopaSantaKlaw = DB::table('assist_user_event')
+                    ->join('events', 'assist_user_event.event_id', '=', 'events.id')
+                    ->where('assist_user_event.user_id', $userId)
+                    ->whereRaw('LOWER(events.name) LIKE ?', ['%xmas%'])
+                    ->exists();
 
                 // 3. ¡VARIABLES DE IMAGEN ELIMINADAS! Usaremos los atributos mágicos abajo.
             @endphp
@@ -108,7 +112,7 @@
                         <i class="fas fa-ghost text-warning me-2" title="Gran Copa Let It R.I.P."></i>
                     @endif
                     @if ($hasGranCopaSantaKlaw)
-                        <i class="fas fa-snowflake text-info" title="Gran Copa Santa Klaw"></i>
+                        <i class="fas fa-snowflake text-info" title="Gran Copa XMAS"></i>
                     @endif
                 </div>
             </div>

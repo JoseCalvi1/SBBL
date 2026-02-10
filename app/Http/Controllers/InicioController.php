@@ -135,7 +135,7 @@ class InicioController extends Controller
 
 
         $teams = Team::orderBy('points_x2', 'desc')
-             ->take(3)
+             ->take(5)
              ->get();
 
         // Últimos 5 artículos (excepto borradores)
@@ -194,7 +194,7 @@ class InicioController extends Controller
                 ->with(['region:id,name'])
                 ->whereYear('date', $year)
                 ->whereMonth('date', $month)
-                ->where('status', '!=', 'INVALID') // Opcional: Filtrar inválidos
+                //->where('status', '!=', 'INVALID') // Opcional: Filtrar inválidos
                 ->orderBy('date', 'asc')
                 ->get();
 
@@ -214,16 +214,38 @@ class InicioController extends Controller
 
     public function enviar(Request $request)
     {
-        $datos = $request->validate([
-            'nombre' => 'required|string|max:255',
+        // 1. VALIDACIÓN BÁSICA
+        $request->validate([
+            'nombre' => 'required|string',
             'email' => 'required|email',
             'motivo' => 'required|string',
             'mensaje' => 'required|string',
+            'g-recaptcha-response' => 'required' // El campo que envía Google se llama así
+        ], [
+            'g-recaptcha-response.required' => 'Por favor, marca la casilla "No soy un robot".'
         ]);
+
+        // 2. VERIFICACIÓN MANUAL DEL CAPTCHA CON GOOGLE
+        $response = Http::asForm()->post('https://www.google.com/recaptcha/api/siteverify', [
+            'secret' => '6LcShF8sAAAAAC7Ey93Nb3FpGHhUiiQmzjYhr6AQ', // <--- TU CLAVE SECRETA (Empieza por 6L...)
+            'response' => $request->input('g-recaptcha-response'),
+            'remoteip' => $request->ip() // Opcional, pero recomendado
+        ]);
+
+        // Convertimos la respuesta de Google a array/json
+        $captchaResult = $response->json();
+
+        // Si 'success' es false, es un bot o falló la verificación
+        if (!$captchaResult['success']) {
+            return back()->withInput()->withErrors(['g-recaptcha-response' => 'Verificación fallida. ¿Eres un robot?']);
+        }
+
+        // 3. SI PASA EL CAPTCHA, ENVIAMOS EL CORREO
+        $datos = $request->only('nombre', 'email', 'motivo', 'mensaje');
 
         Mail::send([], [], function ($message) use ($datos) {
             $message->to('info@sbbl.es')
-                ->subject($datos['motivo']) // 👉 El motivo como asunto
+                ->subject($datos['motivo'])
                 ->setBody("
                     <h3>Nuevo mensaje de contacto</h3>
                     <p><strong>Nombre:</strong> {$datos['nombre']}</p>
