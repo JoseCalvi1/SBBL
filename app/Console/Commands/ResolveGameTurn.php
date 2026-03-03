@@ -3,18 +3,19 @@
 namespace App\Console\Commands;
 
 use App\Models\Team;
+use App\Models\User; // <--- IMPORTANTE: Importamos el modelo User
 use Illuminate\Console\Command;
 use App\Models\Zone;
 use App\Models\WarNews;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Http; // <--- IMPORTANTE
-use Illuminate\Support\Facades\Log;  // <--- IMPORTANTE
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 use Carbon\Carbon;
 
 class ResolveGameTurn extends Command
 {
     protected $signature = 'game:resolve';
-    protected $description = 'Resuelve el turno: Defensa Global, MVP Defensivo y Reportes Detallados';
+    protected $description = 'Resuelve el turno: Defensa Global, MVP Defensivo y Reportes Detallados con Facciones';
 
     private $eventParticipantsCache = [];
 
@@ -26,14 +27,13 @@ class ResolveGameTurn extends Command
             return;
         }
 
-        $this->info('⚔️  INICIANDO RESOLUCIÓN DEL TURNO...');
+        $this->info('⚔️  INICIANDO RESOLUCIÓN DEL TURNO (ANIVERSARIO)...');
 
         $zones = Zone::all();
         $teamsCache = Team::all()->keyBy('id');
         $changesCount = 0;
 
-        // Variables para el reporte de Discord
-        $discordConquests = []; // Array para guardar conquistas importantes
+        $discordConquests = [];
 
         // Rango de fechas INTELIGENTE
         $lastTurn = WarNews::latest()->first();
@@ -68,13 +68,22 @@ class ResolveGameTurn extends Command
             }
         }
 
-        // 4. CALCULAR PODER
+        // 4. CALCULAR PODER CON FACCIONES
         foreach ($allVotes as $vote) {
             $teamId = $vote->team_id;
             $userId = $vote->user_id;
             $zoneId = $vote->zone_id;
 
+            // Buscamos la facción del usuario
+            $user = User::find($userId);
+            $faction = $user ? $user->faction : null;
+
             $basePower = $this->calculateBasePower($userId, $teamId, $startOfPeriod, $endOfPeriod, $teamsCache);
+
+            // --- BUFF BAKUTEN: +2 Poder Base Fijo ---
+            if ($faction === 'bakuten') {
+                $basePower += 2;
+            }
 
             $attackMult = 1.0;
             $defenseMult = 1.0;
@@ -86,14 +95,30 @@ class ResolveGameTurn extends Command
                 }
             }
 
+            // --- LÓGICA DE ATAQUE ---
             $finalAttackPower = $basePower * $attackMult;
+
+            // --- BUFF BURST: 20% de probabilidad de x1.2 en ataque ---
+            if ($faction === 'burst' && rand(1, 100) <= 20) {
+                $finalAttackPower *= 1.2;
+            }
+
             if (!isset($zoneAttacks[$zoneId][$teamId])) $zoneAttacks[$zoneId][$teamId] = 0;
             $zoneAttacks[$zoneId][$teamId] += $finalAttackPower;
 
+            // --- LÓGICA DE DEFENSA ---
             $defenseBasePower = $basePower;
+
+            // MVP Defensivo (x2)
             if (isset($luckyMembers[$teamId]) && $luckyMembers[$teamId] == $userId) {
                 $defenseBasePower *= 2;
             }
+
+            // --- BUFF METAL: 33% de probabilidad de x1.1 en defensa ---
+            if ($faction === 'metal' && rand(1, 100) <= 33) {
+                $defenseBasePower *= 1.1;
+            }
+
             $finalDefensePower = $defenseBasePower * $defenseMult;
 
             if (!isset($teamGlobalDefense[$teamId])) $teamGlobalDefense[$teamId] = 0;
@@ -127,9 +152,7 @@ class ResolveGameTurn extends Command
             unset($otherAttackers[$bestAttackerId]);
             $topOthers = array_slice($otherAttackers, 0, 3, true);
 
-            // --- COMBATE ---
             if ($bestAttackerPower > $defensePower) {
-                // CONQUISTA
                 $diff = $bestAttackerPower - $defensePower;
                 $oldOwnerName = $currentOwnerId ? $ownerName : 'Zona Neutral';
 
@@ -137,10 +160,8 @@ class ResolveGameTurn extends Command
                 $zone->save();
                 $changesCount++;
 
-                // Guardar para Discord
                 $discordConquests[] = "🚩 **{$zone->name}**: {$oldOwnerName} ➔ **{$bestAttackerName}**";
 
-                // Narrativa
                 $narrative = $this->generateNarrative('conquest', [
                     'winner' => $bestAttackerName,
                     'loser'  => $oldOwnerName,
@@ -149,7 +170,6 @@ class ResolveGameTurn extends Command
                     'diff'   => $diff
                 ]);
 
-                // Desglose
                 $breakdown = "\n\n📊 **REPORTE DE BATALLA:**";
                 $breakdown .= "\n• 👑 **{$bestAttackerName}** (Ataque): **{$bestAttackerPower}** pts";
                 $breakdown .= "\n• 🛡️ {$oldOwnerName} (Defensa): {$defensePower} pts";
@@ -171,7 +191,6 @@ class ResolveGameTurn extends Command
                 $this->info("🚩 {$zone->name}: GANA {$bestAttackerName}");
 
             } else {
-                // DEFENSA EXITOSA
                 if ($bestAttackerPower > 0) {
                     $this->line("🛡️ {$zone->name}: DEFIENDE $ownerName ($defensePower)");
                 }
@@ -191,7 +210,6 @@ class ResolveGameTurn extends Command
         $this->info("✅ TURNO FINALIZADO. Zonas cambiadas: $changesCount");
     }
 
-    // --- CÁLCULO DE PODER ---
     private function calculateBasePower($userId, $teamId, $start, $end, $teamsCache)
     {
         $participations = DB::table('assist_user_event')
@@ -203,7 +221,6 @@ class ResolveGameTurn extends Command
             ->get();
 
         $userPoints = 0;
-
         foreach ($participations as $part) {
             $eventId = $part->event_id;
             if (!isset($this->eventParticipantsCache[$eventId])) {
@@ -232,79 +249,47 @@ class ResolveGameTurn extends Command
         return [2, 1, 1, 1, 1, 1, 1];
     }
 
-    // --- GENERADOR DE NARRATIVA ---
     private function generateNarrative($type, $data)
     {
         $titles = [];
         $contents = [];
 
         if ($type === 'conquest') {
-            $titles = [
-                "CAÍDA DE " . strtoupper($data['zone']),
-                "NUEVO ORDEN EN " . strtoupper($data['zone']),
-                "INCURSIÓN EXITOSA: " . strtoupper($data['winner']),
-                "CAMBIO DE BANDERA EN " . strtoupper($data['zone']),
-            ];
-            $contents = [
-                "Las defensas de **{$data['loser']}** han colapsado. Las tropas de **{$data['winner']}** marchan victoriosas sobre las ruinas.",
-                "¡Brutalidad táctica! **{$data['winner']}** ha expulsado a **{$data['loser']}** de la región con una diferencia de {$data['diff']} puntos.",
-                "Se ha detectado una firma de energía masiva. **{$data['winner']}** reclama el control absoluto de la zona.",
-            ];
-        }
-        elseif ($type === 'defense') {
-            $titles = [ "MURALLA EN " . strtoupper($data['zone']) ];
-            $contents = [ "**{$data['winner']}** se mantiene firme." ];
+            $titles = ["CAÍDA DE " . strtoupper($data['zone']), "NUEVO ORDEN EN " . strtoupper($data['zone']), "INCURSIÓN EXITOSA: " . strtoupper($data['winner']), "CAMBIO DE BANDERA EN " . strtoupper($data['zone'])];
+            $contents = ["Las defensas de **{$data['loser']}** han colapsado. Las tropas de **{$data['winner']}** marchan victoriosas sobre las ruinas.", "¡Brutalidad táctica! **{$data['winner']}** ha expulsado a **{$data['loser']}** de la región con una diferencia de {$data['diff']} puntos.", "Se ha detectado una firma de energía masiva. **{$data['winner']}** reclama el control absoluto de la zona."];
+        } else {
+            $titles = ["MURALLA EN " . strtoupper($data['zone'])];
+            $contents = ["**{$data['winner']}** se mantiene firme."];
         }
 
-        return [
-            'title'   => $titles[array_rand($titles)],
-            'content' => $contents[array_rand($contents)]
-        ];
+        return ['title' => $titles[array_rand($titles)], 'content' => $contents[array_rand($contents)]];
     }
 
-    // --- 🚀 ENVIAR A DISCORD ---
     private function sendDiscordReport($changesCount, $conquests)
     {
-        // Asegúrate de usar la misma config que en tu controlador ('announcements' o 'warfeed')
         $webhookUrl = config('services.discord.warfeed');
+        if (!$webhookUrl) return;
 
-        if (!$webhookUrl) {
-            $this->warn('⚠️ No hay Webhook de Discord configurado.');
-            return;
-        }
-
-        // Construcción del mensaje del Embed
         $embedDescription = "El ciclo de guerra ha terminado. Se han registrado **{$changesCount} cambios de territorio**.";
-
         if (!empty($conquests)) {
             $embedDescription .= "\n\n**🔥 CONQUISTAS DESTACADAS:**\n" . implode("\n", $conquests);
         } else {
             $embedDescription .= "\n\n💤 *El mapa se mantiene estable. Ninguna zona ha cambiado de manos.*";
         }
-
-        $embedDescription .= "\n\n📡 [Ver Reporte Completo en la Web](conquista.sbbl.es)";
+        $embedDescription .= "\n\n📡 [Ver Reporte Completo en la Web](https://conquista.sbbl.es)";
 
         try {
             Http::post($webhookUrl, [
-                // 1. Aquí ponemos el string literal @everyone, igual que hace tu controlador cuando detecta el ID
                 'content' => "@everyone 📢 **RESULTADOS DEL TURNO**",
-
                 'embeds' => [[
                     'title' => '🌍 Actualización del Mapa Táctico',
                     'description' => $embedDescription,
-                    'color' => hexdec('ff0000'), // Rojo
+                    'color' => hexdec('ff0000'),
                     'timestamp' => now()->toIso8601String(),
                     'footer' => ['text' => 'Sistema WAR-NET AI v2.0']
                 ]],
-
-                // 2. ESTA ES LA CLAVE: Forzamos a Discord a parsear el 'everyone'
-                // Sin esto, el texto sale pero no notifica.
-                'allowed_mentions' => [
-                    'parse' => ['everyone'],
-                ],
+                'allowed_mentions' => ['parse' => ['everyone']],
             ]);
-
-            $this->info("✅ Reporte enviado a Discord.");
         } catch (\Exception $e) {
             Log::error("Error enviando reporte a Discord: " . $e->getMessage());
         }

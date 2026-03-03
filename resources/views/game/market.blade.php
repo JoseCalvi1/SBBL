@@ -33,6 +33,30 @@
             🦎 FONDOS: <span id="user-coins" class="text-white">{{ Auth::user()->coins }}</span> <span class="text-xs text-gray-400">LAGARTOS</span>
         </div>
 
+        {{-- Botón para abrir Wordle / Gestión --}}
+        @if(Auth::user()->is_editor == 1)
+            {{-- Si es editor, el botón SIEMPRE abre el modal --}}
+            <button onclick="openWordle()" class="bg-yellow-600 hover:bg-yellow-500 text-black font-bold py-3 px-8 rounded-full shadow-[0_0_20px_rgba(234,179,8,0.4)] border border-black/20 transition-all flex items-center gap-2">
+                ⚙️ GESTIONAR CÓDIGOS
+                @if($alreadyWon) <span class="text-[10px] bg-black/20 px-2 py-0.5 rounded text-black/70 uppercase">Completado</span> @endif
+            </button>
+        @else
+            {{-- Lógica normal para usuarios que NO son editores --}}
+            @if($alreadyWon)
+                <button disabled class="bg-gray-800 text-green-500 font-bold py-3 px-8 rounded-full border border-green-500/30 opacity-70 cursor-not-allowed">
+                    ✅ CÓDIGO DESCIFRADO (HOY)
+                </button>
+            @elseif(!$todayWord)
+                <button onclick="openWordle()" class="bg-gray-900 text-yellow-700 font-bold py-3 px-8 rounded-full border border-yellow-900/50 animate-pulse">
+                    📡 ESPERANDO TRANSMISIÓN...
+                </button>
+            @else
+                <button onclick="openWordle()" class="bg-cyan-600 hover:bg-cyan-500 text-white font-bold py-3 px-8 rounded-full shadow-[0_0_20px_rgba(6,182,212,0.5)] border border-white/20 transition-all">
+                    ⌨️ DESCIFRAR CÓDIGO
+                </button>
+            @endif
+        @endif
+
         @if($canSpin)
             <button onclick="spinRoulette()" id="btn-spin" class="bg-gradient-to-r from-purple-700 to-pink-600 hover:from-purple-600 hover:to-pink-500 text-white font-bold py-3 px-8 rounded-full shadow-[0_0_20px_purple] animate-pulse border border-white/20 transition-all transform hover:scale-105">
                 🎡 GIRAR RULETA DIARIA
@@ -252,6 +276,89 @@
     </div>
 </div>
 
+{{-- MODAL WORDLE --}}
+<div id="wordle-modal" class="fixed inset-0 bg-black/95 z-[60] hidden flex items-center justify-center backdrop-blur-md p-4">
+    <div class="bg-gray-900 border-2 border-cyan-500 w-full max-w-lg p-6 rounded-lg shadow-[0_0_50px_rgba(6,182,212,0.3)] relative overflow-y-auto max-h-[90vh]">
+        <button onclick="closeWordle()" class="absolute top-4 right-4 text-gray-500 hover:text-white z-10">✕</button>
+
+        <h3 class="text-2xl text-cyan-400 font-bold mb-2 uppercase text-center">Protocolo de Desencriptación</h3>
+
+        {{-- Contenedor dinámico para el juego o mensajes --}}
+        <div id="wordle-game-container">
+            <p id="wordle-status-msg" class="text-gray-500 text-xs text-center mb-6 uppercase tracking-widest">Adivina la palabra para obtener fondos extra</p>
+
+            <div id="wordle-grid" class="grid gap-2 mb-6 justify-center"></div>
+
+            {{-- Input invisible para disparar el teclado en móviles --}}
+            <input type="text" id="wordle-mobile-input"
+                style="opacity: 0; position: absolute; z-index: -1; left: -9999px;"
+                autocapitalize="none" autocomplete="off" spellcheck="false">
+
+            <div id="wordle-keyboard" class="flex flex-wrap gap-1 justify-center mt-4"></div>
+        </div>
+
+        {{-- PANEL DE EDITOR (Visible siempre para is_editor) --}}
+        @if(Auth::user()->is_editor == 1)
+        <div class="mt-8 pt-6 border-t border-gray-800">
+            <h4 class="text-yellow-500 text-xs font-bold mb-3 uppercase flex items-center gap-2">
+                <span>⚙️</span> CONFIGURACIÓN DE FRECUENCIAS
+            </h4>
+
+            <form action="{{ route('market.wordle.store') }}" method="POST" class="flex flex-col gap-2 mb-6">
+                @csrf
+                <div class="flex gap-2">
+                    <input type="text" name="word" placeholder="PALABRA" required class="bg-black border border-gray-700 text-white p-2 rounded text-xs flex-1 uppercase font-mono">
+                    <input type="date" name="date" value="{{ date('Y-m-d') }}" required class="bg-black border border-gray-700 text-white p-2 rounded text-xs flex-1">
+                </div>
+                <button type="submit" class="bg-yellow-600 hover:bg-yellow-500 text-black font-bold py-2 rounded text-xs uppercase transition-colors">
+                    PROGRAMAR TRANSMISIÓN
+                </button>
+            </form>
+
+            {{-- Lista de próximas palabras con Desplegable --}}
+            <div class="mt-4">
+                <details class="group border border-gray-800 rounded bg-black/20 overflow-hidden">
+                    <summary class="flex justify-between items-center p-3 cursor-pointer hover:bg-gray-800/50 transition-colors list-none">
+                        <span class="text-[10px] text-gray-400 uppercase font-bold tracking-widest flex items-center gap-2">
+                            <i class="fas fa-database text-yellow-600"></i> Ver Buffer de Frecuencias
+                        </span>
+                        {{-- Icono que rota al abrir --}}
+                        <span class="text-gray-500 transition-transform group-open:rotate-180">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                            </svg>
+                        </span>
+                    </summary>
+
+                    <div class="p-3 pt-0 space-y-2 max-h-48 overflow-y-auto custom-scrollbar border-t border-gray-800">
+                        @forelse($upcomingWords as $w)
+                            <div class="flex justify-between items-center bg-black/40 p-2 rounded border border-gray-800 group/item hover:border-yellow-500/30 transition-colors">
+                                <div class="flex flex-col">
+                                    <span class="text-[9px] text-yellow-600 font-mono">{{ \Carbon\Carbon::parse($w->scheduled_for)->format('d/m/Y') }}</span>
+                                    <span class="text-xs text-white font-bold tracking-widest uppercase">{{ $w->word }}</span>
+                                </div>
+
+                                <form action="{{ route('market.wordle.delete', $w->id) }}" method="POST" onsubmit="return confirm('¿Eliminar esta palabra?');">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button type="submit" class="text-gray-600 hover:text-red-500 transition-colors">
+                                        <i class="fas fa-trash-alt"></i>
+                                    </button>
+                                </form>
+                            </div>
+                        @empty
+                            <p class="text-[10px] text-gray-600 italic text-center py-4 uppercase tracking-tighter">
+                                Sin transmisiones programadas
+                            </p>
+                        @endforelse
+                    </div>
+                </details>
+            </div>
+        </div>
+        @endif
+    </div>
+</div>
+
 {{-- SCRIPT: LÓGICA RADAR --}}
 <script>
     let reloadOnClose = false;
@@ -389,5 +496,200 @@
         // Efecto simple de escritura o inserción directa
         document.getElementById('lgrt-quote').innerText = '"' + randomQuote + '"';
     });
+</script>
+
+{{-- SCRIPT: WORDLE (COMPLETO Y OPTIMIZADO PARA MÓVILES) --}}
+<script>
+    let targetWord = "{{ $todayWord->word ?? '' }}";
+    let attemptsLimit = targetWord.length;
+    let currentAttempt = 0;
+    let currentGuess = "";
+    let gameOver = false;
+    let alreadyWon = {{ $alreadyWon ? 'true' : 'false' }};
+    let isEditor = {{ Auth::user()->is_editor == 1 ? 'true' : 'false' }};
+
+    // Referencia al input invisible para móviles
+    const mobileInput = document.getElementById('wordle-mobile-input');
+
+    function openWordle() {
+        const grid = document.getElementById('wordle-grid');
+        const statusMsg = document.getElementById('wordle-status-msg');
+        const keyboard = document.getElementById('wordle-keyboard');
+
+        document.getElementById('wordle-modal').classList.remove('hidden');
+
+        // CASO 1: YA HA GANADO HOY
+        if (alreadyWon) {
+            gameOver = true;
+            grid.innerHTML = `
+                <div class="text-center p-8 border border-green-500/30 bg-green-900/10 rounded my-4">
+                    <p class="text-green-400 font-bold uppercase tracking-widest">SISTEMA VULNERADO</p>
+                    <p class="text-gray-500 text-xs mt-2 italic">La recompensa diaria ya ha sido transferida a tu cuenta.</p>
+                    <span class="text-4xl mt-4 block">🔓</span>
+                </div>`;
+            statusMsg.innerText = "ACCESO COMPLETADO";
+            keyboard.innerHTML = "";
+            return;
+        }
+
+        // CASO 2: NO HAY PALABRA PARA HOY
+        if (!targetWord) {
+            grid.innerHTML = `
+                <div class="text-center p-8 border border-yellow-500/30 bg-yellow-900/10 rounded my-4">
+                    <p class="text-yellow-500 font-bold animate-pulse">📡 BUSCANDO TRANSMISIÓN...</p>
+                    <p class="text-gray-500 text-[10px] mt-2 uppercase">Frecuencia diaria no actualizada en el satélite.</p>
+                </div>`;
+            statusMsg.innerText = "ERROR DE SEÑAL";
+            keyboard.innerHTML = "";
+            return;
+        }
+
+        // CASO 3: JUEGO NORMAL
+        statusMsg.innerText = "Adivina la palabra para obtener fondos extra";
+        initGrid();
+
+        // Enfocar automáticamente el input para móviles (si el navegador lo permite)
+        setTimeout(() => {
+            if(!gameOver) mobileInput.focus();
+        }, 500);
+    }
+
+    function closeWordle() {
+        document.getElementById('wordle-modal').classList.add('hidden');
+    }
+
+    // --- LÓGICA DE INPUT (MÓVIL Y ESCRITORIO) ---
+
+    // Al tocar el grid, forzar foco en el input invisible
+    function focusMobileInput() {
+        if (!gameOver) mobileInput.focus();
+    }
+
+    // Añadir listener al grid para que al hacer clic se abra el teclado
+    document.addEventListener('DOMContentLoaded', () => {
+        const gridElement = document.getElementById('wordle-grid');
+        if(gridElement) {
+            gridElement.addEventListener('click', focusMobileInput);
+        }
+    });
+
+    // 1. Evento 'input' para móviles (más fiable que keydown)
+    mobileInput.addEventListener('input', (e) => {
+        if(gameOver) return;
+
+        // Si hay datos (letra escrita)
+        if (e.data) {
+            handleInput(e.data);
+            mobileInput.value = ""; // Limpiar input
+        }
+        // Si el evento input se dispara sin data pero el value cambió (a veces pasa en Android al borrar)
+        else if (e.inputType === 'deleteContentBackward') {
+             handleInput('Backspace');
+        }
+    });
+
+    // 2. Evento 'keydown' para teclas especiales en móvil (Enter/Backspace) y escritorio
+    // Nota: En móviles modernos, a veces Backspace no dispara keydown, por eso el 'input' handler arriba ayuda.
+    mobileInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Backspace' || e.key === 'Enter') {
+            handleInput(e.key);
+        }
+    });
+
+    // 3. Evento 'keydown' global para escritorio
+    document.addEventListener('keydown', (e) => {
+        if (document.getElementById('wordle-modal').classList.contains('hidden') || gameOver) return;
+
+        // Si el foco no está en el input invisible, enviarlo allí o procesar aquí
+        // Para evitar duplicados, solo procesamos si NO viene del input invisible (que ya tiene su listener)
+        if (e.target !== mobileInput) {
+            handleInput(e.key);
+            mobileInput.focus(); // Mantener foco
+        }
+    });
+
+    // Lógica centralizada de entrada
+    function handleInput(key) {
+        if (gameOver) return;
+
+        if (key === 'Enter') {
+            submitGuess();
+        } else if (key === 'Backspace') {
+            currentGuess = currentGuess.slice(0, -1);
+            updateView();
+        } else if (key.length === 1 && /^[a-zñA-ZÑ]$/.test(key) && currentGuess.length < targetWord.length) {
+            currentGuess += normalizeText(key);
+            updateView();
+        }
+    }
+
+    function normalizeText(text) {
+        return text.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toUpperCase();
+    }
+
+    function initGrid() {
+        const grid = document.getElementById('wordle-grid');
+        grid.innerHTML = "";
+        grid.style.gridTemplateColumns = `repeat(${targetWord.length}, minmax(0, 1fr))`;
+
+        for (let i = 0; i < attemptsLimit * targetWord.length; i++) {
+            const box = document.createElement('div');
+            box.className = "w-10 h-10 md:w-12 md:h-12 border-2 border-gray-800 flex items-center justify-center text-xl font-bold text-white transition-all duration-500 uppercase font-mono select-none"; // select-none evita selección de texto al tocar
+            box.id = "box-" + i;
+            grid.appendChild(box);
+        }
+    }
+
+    function updateView() {
+        for (let i = 0; i < targetWord.length; i++) {
+            const box = document.getElementById(`box-${(currentAttempt * targetWord.length) + i}`);
+            box.innerText = currentGuess[i] || "";
+            box.classList.toggle('border-cyan-500', !!currentGuess[i]);
+        }
+    }
+
+    function submitGuess() {
+        if (currentGuess.length !== targetWord.length) return;
+
+        const rowStart = currentAttempt * targetWord.length;
+        let tempTarget = targetWord.split('');
+        let results = new Array(targetWord.length).fill('absent');
+
+        // Primero: Verdes (Correctos)
+        for (let i = 0; i < targetWord.length; i++) {
+            if (currentGuess[i] === targetWord[i]) {
+                results[i] = 'correct';
+                tempTarget[i] = null;
+                const box = document.getElementById(`box-${rowStart + i}`);
+                box.classList.add('bg-green-600', 'border-green-600');
+            }
+        }
+
+        // Segundo: Amarillos (Presentes)
+        for (let i = 0; i < targetWord.length; i++) {
+            if (results[i] !== 'correct' && tempTarget.includes(currentGuess[i])) {
+                results[i] = 'present';
+                tempTarget[tempTarget.indexOf(currentGuess[i])] = null;
+                const box = document.getElementById(`box-${rowStart + i}`);
+                box.classList.add('bg-yellow-600', 'border-yellow-600');
+            } else if (results[i] === 'absent') {
+                const box = document.getElementById(`box-${rowStart + i}`);
+                box.classList.add('bg-gray-800', 'border-gray-800');
+            }
+        }
+
+        if (currentGuess === targetWord) {
+            gameOver = true;
+            fetch("{{ route('market.wordle.win') }}", { method: 'POST', headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}' } })
+            .then(r => r.json()).then(data => alert("¡SISTEMA HACKEADO! " + data.message));
+        } else {
+            currentAttempt++;
+            currentGuess = "";
+            if (currentAttempt >= attemptsLimit) {
+                gameOver = true;
+                alert("CONEXIÓN PERDIDA. La palabra era: " + targetWord);
+            }
+        }
+    }
 </script>
 @endsection

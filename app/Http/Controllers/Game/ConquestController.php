@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Game;
 use App\Http\Controllers\Controller;
 use App\Models\Team;
 use App\Models\TeamChatMessage;
+use App\Models\User;
 use App\Models\WarNews;
 use App\Models\Zone;
 use Carbon\Carbon;
@@ -170,10 +171,19 @@ class ConquestController extends Controller
         $zonesCount = $zones->where('team_id', '!=', null)->count();
         $bladersCount = \App\Models\User::count();
 
+        // --- 📊 ESTADÍSTICAS DE FACCIÓN (ANIVERSARIO) ---
+        $factionStats = \App\Models\User::whereNotNull('faction')
+            ->select('faction', DB::raw('count(*) as total'))
+            ->groupBy('faction')
+            ->get();
+
+        $totalFactions = $factionStats->sum('total') ?: 1; // Evitar división por cero
+
         return view('game.map', compact(
             'zones', 'teamAttackStats', 'myPower', 'globalLeaderboard',
             'nextClose', 'teamActivity', 'currentRound', 'nextRound',
-            'phaseName', 'phaseColor', 'votingEnabled', 'zonesCount', 'bladersCount'
+            'phaseName', 'phaseColor', 'votingEnabled', 'zonesCount', 'bladersCount',
+            'factionStats', 'totalFactions' // <-- ¡Añadimos estas dos variables al compact!
         ));
     }
 
@@ -423,5 +433,27 @@ class ConquestController extends Controller
         } catch (\Exception $e) {
             return back()->with('error', 'Error al ejecutar: ' . $e->getMessage());
         }
+    }
+
+    public function choose(Request $request)
+    {
+        $user = Auth::user();
+        if ($user->faction) return back()->with('error', 'Ya tienes facción.');
+
+        $request->validate(['faction' => 'required|in:bakuten,metal,burst,x']);
+
+        $user->faction = $request->faction;
+        $user->save();
+
+        return redirect()->route('conquest.map')->with('success', '¡Te has unido a la facción!');
+    }
+
+    public function stats()
+    {
+        $stats = User::whereNotNull('faction')
+            ->select('faction', DB::raw('count(*) as total'))
+            ->groupBy('faction')
+            ->get();
+        return view('game.faction_stats', compact('stats'));
     }
 }

@@ -9,6 +9,8 @@ use Illuminate\Support\Facades\DB;   // <--- ¡IMPORTANTE! Sin esto, falla.
 use App\Models\Item;
 use App\Models\TeamActiveBuff;
 use App\Models\TeamInventory;        // <--- ¡IMPORTANTE!
+use App\Models\WordleWinner;
+use App\Models\WordleWord;
 use App\Models\Zone;
 use Carbon\Carbon;
 
@@ -49,7 +51,17 @@ class MarketController extends Controller
             $item->stock_owned = $dynamicData['stock'];           // Cuántos tienen ya
         }
 
-        return view('game.market', compact('items', 'canSpin', 'zones', 'intendantQuote'));
+        $todayWord = WordleWord::where('scheduled_for', today())->first();
+        // Comprobamos si el usuario ya ganó hoy
+        $alreadyWon = WordleWinner::where('user_id', $user->id)
+                        ->where('won_at', today())
+                        ->exists();
+        $upcomingWords = \App\Models\WordleWord::where('scheduled_for', '>=', today())
+            ->orderBy('scheduled_for', 'asc')
+            ->take(6) // Hoy + 5 días
+            ->get();
+
+        return view('game.market', compact('items', 'canSpin', 'zones', 'intendantQuote', 'todayWord', 'alreadyWon', 'upcomingWords'));
     }
 
     public function buy(Request $request)
@@ -114,21 +126,37 @@ class MarketController extends Controller
         $reward = 0;
         $message = "";
 
-        // LÓGICA DE MENSAJES PERSONALIZADOS
-        if ($rand <= 30) {
-            $reward = 0;
-            $message = "Parece que la incursión no ha salido bien.";
-        } elseif ($rand <= 60) {
-            $reward = 50;
-            $message = "Has encontrado una billetera perdida: +50 COINS.";
-        }
-        elseif ($rand <= 95) {
-            $reward = 100;
-            $message = "¡Buen trabajo mercenario! Recompensa estándar: +100 COINS.";
-        }
-        else {
-            $reward = 500;
-            $message = "¡JACKPOT! Has hackeado una cuenta corporativa: +500 COINS.";
+        // LÓGICA DE FACCIONES Y PROBABILIDADES
+        if ($user->faction === 'x') {
+            // --- TABLA VIP: FACCIÓN X ---
+            if ($rand <= 40) {
+                $reward = 50;
+                $message = "[Bonus X] Has encontrado suministros abandonados: +50 COINS.";
+            } elseif ($rand <= 80) {
+                $reward = 100;
+                $message = "[Bonus X] ¡Extracción limpia! Recompensa asegurada: +100 COINS.";
+            } elseif ($rand <= 90) {
+                $reward = 250;
+                $message = "[Bonus X] ¡Xtreme Dash! Has interceptado un convoy: +250 COINS.";
+            } else {
+                $reward = 500;
+                $message = "[Bonus X] ¡JACKPOT! Has hackeado la cuenta de ThuBerni15: +500 COINS.";
+            }
+        } else {
+            // --- TABLA ESTÁNDAR: RESTO DE FACCIONES ---
+            if ($rand <= 30) {
+                $reward = 0;
+                $message = "Parece que la incursión no ha salido bien.";
+            } elseif ($rand <= 60) {
+                $reward = 50;
+                $message = "Has encontrado una billetera perdida: +50 COINS.";
+            } elseif ($rand <= 95) {
+                $reward = 100;
+                $message = "¡Buen trabajo mercenario! Recompensa estándar: +100 COINS.";
+            } else {
+                $reward = 500;
+                $message = "¡JACKPOT! Has hackeado la cuenta de ThuBerni15: +500 COINS.";
+            }
         }
 
         $user->addCoins($reward);
@@ -310,5 +338,50 @@ class MarketController extends Controller
             'inflation' => ($stock * $inflationRate) * 100, // Para mostrar porcentaje (ej: 30%)
             'stock' => $stock
         ];
+    }
+
+    public function storeWordle(Request $request) {
+        if (Auth::user()->is_editor != 1) return abort(403);
+
+        $request->validate([
+            'word' => 'required|alpha|min:3',
+            'date' => 'required|date|after_or_equal:today'
+        ]);
+
+        WordleWord::updateOrCreate(
+            ['scheduled_for' => $request->date],
+            ['word' => strtoupper($request->word)]
+        );
+
+        return back()->with('success', 'Palabra del día programada.');
+    }
+
+    public function winWordle() {
+        $user = Auth::user();
+
+        // Doble comprobación de seguridad
+        $exists = WordleWinner::where('user_id', $user->id)
+                    ->where('won_at', today())
+                    ->exists();
+
+        if ($exists) return response()->json(['success' => false, 'message' => 'Ya has reclamado este código.']);
+
+        // Registrar victoria y dar monedas
+        WordleWinner::create([
+            'user_id' => $user->id,
+            'won_at' => today()
+        ]);
+
+        $user->addCoins(150);
+        return response()->json(['success' => true, 'message' => '150 Lagartos añadidos.']);
+    }
+
+    public function deleteWordle($id) {
+        if (Auth::user()->is_editor != 1) return abort(403);
+
+        $word = \App\Models\WordleWord::findOrFail($id);
+        $word->delete();
+
+        return back()->with('success', 'Frecuencia de cifrado eliminada del buffer.');
     }
 }

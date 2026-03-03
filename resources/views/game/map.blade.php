@@ -19,14 +19,14 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
     {{-- Header: Ajustado padding y flex para móviles --}}
-    <div class="mb-6 mt-5 flex flex-col md:flex-row justify-between items-end border-b border-cyan-500/30 pb-4 w-full">
+  <div class="mb-6 mt-5 flex flex-col md:flex-row justify-between items-end border-b border-cyan-500/30 pb-4 w-full">
         <div class="text-left w-full md:w-auto">
             <h2 class="text-3xl font-bold neon-text text-white">MAPA TÁCTICO</h2>
-            <div class="flex gap-4 items-center flex-wrap"> {{-- Añadido flex-wrap por si hay muchos botones en móvil --}}
+            <div class="flex gap-4 items-center flex-wrap">
 
                 <p class="text-cyan-400 text-sm tracking-widest mr-2">SISTEMA ACTIVO</p>
 
-                {{-- ✅ NUEVO BOTÓN: VOLVER AL INICIO --}}
+                {{-- BOTÓN INICIO --}}
                 <a href="{{ route('conquest.index') }}"
                    class="flex items-center gap-1 text-[10px] bg-gray-800/40 text-gray-400 px-2 py-1 border border-gray-600/30 hover:bg-gray-700 hover:text-white transition-colors">
                     <span>↩️</span> INICIO
@@ -37,7 +37,7 @@
                     <span>📰</span> REPORTES
                 </a>
 
-                {{-- BOTÓN MERCADO NEGRO --}}
+                {{-- BOTÓN MERCADO --}}
                 <a href="{{ route('market.index') }}"
                 class="flex items-center gap-2 text-[10px] bg-purple-900/30 text-purple-300 px-3 py-1 border border-purple-500/50 hover:bg-purple-800/60 hover:text-white transition-all shadow-[0_0_10px_rgba(168,85,247,0.3)] group">
                     <span class="text-lg group-hover:rotate-12 transition-transform">🛒</span>
@@ -48,6 +48,17 @@
                         </span>
                     </div>
                 </a>
+
+                {{-- ✨ NUEVO BOTÓN: ESTADÍSTICAS DE FACCIÓN ✨ --}}
+                <button onclick="toggleFactionStats()"
+                class="flex items-center gap-2 text-[10px] bg-blue-900/30 text-blue-300 px-3 py-1 border border-blue-500/50 hover:bg-blue-800/60 hover:text-white transition-all shadow-[0_0_10px_rgba(59,130,246,0.3)] group">
+                    <span class="text-lg group-hover:scale-110 transition-transform">📊</span>
+                    <div class="flex flex-col leading-none text-left">
+                        <span class="font-bold tracking-widest uppercase text-yellow-500">Eras</span>
+                        <span class="text-[8px] text-blue-400">ANIVERSARIO</span>
+                    </div>
+                </button>
+
             </div>
         </div>
 
@@ -70,7 +81,75 @@
          - Añadimos 'pb-20' para dar espacio al scroll final.
     --}}
     <div class="flex flex-col xl:flex-row gap-6 items-start relative justify-center w-full pb-20">
+@if(Auth::check() && !Auth::user()->faction)
+<div class="fixed inset-0 z-[9999] bg-black/95 flex items-center justify-center p-4">
+    <div class="max-w-4xl w-full text-center">
 
+        <h2 class="text-3xl font-black text-yellow-500 mb-4 italic uppercase drop-shadow-[0_0_10px_rgba(234,179,8,0.5)]">
+             ELIGE TU ERA - ANIVERSARIO BEYBLADE
+        </h2>
+
+        {{-- 📜 TEXTO EXPLICATIVO DEL EVENTO --}}
+        <div class="bg-gray-900/50 border border-cyan-500/30 p-4 md:p-6 mb-8 rounded-lg text-sm md:text-base text-gray-300 leading-relaxed shadow-lg">
+            <p class="mb-3">
+                Para celebrar el <strong class="text-white">mes aniversario de Beyblade</strong>, hemos activado este evento temporal durante marzo. Únete a una de las cuatro eras históricas para obtener <strong class="text-cyan-400">bonificaciones tácticas exclusivas</strong> en el Mapa Táctico.
+            </p>
+            <p class="mb-4">
+                🏆 Al finalizar el mes, la facción con más agentes reclutados se alzará con la victoria y <strong class="text-yellow-400">desbloqueará un fondo especial para la web</strong> tematizado con su generación.
+            </p>
+            <div class="inline-block bg-red-900/30 border border-red-500/50 px-4 py-2 rounded text-red-300 text-xs md:text-sm uppercase tracking-widest font-bold animate-pulse">
+                ⚠️ Lee bien los bonus: Solo tienes una oportunidad y la decisión es irreversible.
+            </div>
+        </div>
+
+        {{-- BOTONES DE FACCIÓN CON CONFIRMACIÓN --}}
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+
+            <form action="{{ route('faction.choose') }}" method="POST" onsubmit="return confirm('¿Estás 100% seguro de unirte a la era BAKUTEN? Esta decisión no se puede cambiar en todo el mes.');">
+                @csrf
+                <input type="hidden" name="faction" value="bakuten">
+                <button type="submit" class="w-full p-4 border border-blue-500 bg-blue-900/20 hover:bg-blue-600 transition-all group">
+                    <span class="text-4xl block mb-2">🐉</span>
+                    <span class="font-bold block text-blue-400 group-hover:text-white">BAKUTEN</span>
+                    <span class="text-[10px] text-gray-400">+2 ATK Fijo</span>
+                </button>
+            </form>
+
+            <form action="{{ route('faction.choose') }}" method="POST" onsubmit="return confirm('¿Estás 100% seguro de unirte a la era METAL FIGHT? Esta decisión no se puede cambiar en todo el mes.');">
+                @csrf
+                <input type="hidden" name="faction" value="metal">
+                <button type="submit" class="w-full p-4 border border-red-500 bg-red-900/20 hover:bg-red-600 transition-all group">
+                    <span class="text-4xl block mb-2">⚙️</span>
+                    <span class="font-bold block text-red-400 group-hover:text-white">METAL FIGHT</span>
+                    <span class="text-[10px] text-gray-400">33% DEF x1.1</span>
+                </button>
+            </form>
+
+            <form action="{{ route('faction.choose') }}" method="POST" onsubmit="return confirm('¿Estás 100% seguro de unirte a la era BURST? Esta decisión no se puede cambiar en todo el mes.');">
+                @csrf
+                <input type="hidden" name="faction" value="burst">
+                <button type="submit" class="w-full p-4 border border-yellow-500 bg-yellow-900/20 hover:bg-yellow-600 transition-all group">
+                    <span class="text-4xl block mb-2">💥</span>
+                    <span class="font-bold block text-yellow-400 group-hover:text-white">BURST</span>
+                    <span class="text-[10px] text-gray-400">20% ATK x1.2</span>
+                </button>
+            </form>
+
+            <form action="{{ route('faction.choose') }}" method="POST" onsubmit="return confirm('¿Estás 100% seguro de unirte a la era BEYBLADE X? Esta decisión no se puede cambiar en todo el mes.');">
+                @csrf
+                <input type="hidden" name="faction" value="x">
+                <button type="submit" class="w-full p-4 border border-green-500 bg-green-900/20 hover:bg-green-600 transition-all group">
+                    <span class="text-4xl block mb-2">❌</span>
+                    <span class="font-bold block text-green-400 group-hover:text-white">BEYBLADE X</span>
+                    <span class="text-[10px] text-gray-400">Ruleta VIP</span>
+                </button>
+            </form>
+
+        </div>
+
+    </div>
+</div>
+@endif
         {{-- COLUMNA IZQUIERDA: Logs --}}
         @if(Auth::user()->active_team)
         {{-- He cambiado 'hidden xl:block' por 'w-full xl:w-64'.
@@ -226,6 +305,98 @@
 </div>
 
 @section('scripts')
+{{-- ================================================= --}}
+    {{-- 📊 MODAL DE ESTADÍSTICAS DE FACCIONES (ANIVERSARIO) --}}
+    {{-- ================================================= --}}
+    <div id="faction-stats-modal" class="fixed inset-0 z-[9999] bg-black/90 backdrop-blur-sm flex items-center justify-center p-4 hidden opacity-0 transition-opacity duration-300">
+        <div class="bg-gray-900 w-full max-w-2xl rounded border border-yellow-500 shadow-[0_0_30px_rgba(234,179,8,0.2)] p-1 relative">
+
+            {{-- Decoración Cyberpunk Esquinas --}}
+            <div class="absolute top-0 left-0 w-3 h-3 border-t-2 border-l-2 border-yellow-500"></div>
+            <div class="absolute top-0 right-0 w-3 h-3 border-t-2 border-r-2 border-yellow-500"></div>
+            <div class="absolute bottom-0 left-0 w-3 h-3 border-b-2 border-l-2 border-yellow-500"></div>
+            <div class="absolute bottom-0 right-0 w-3 h-3 border-b-2 border-r-2 border-yellow-500"></div>
+
+            <div class="bg-black p-6 md:p-8">
+
+                {{-- Header Modal --}}
+                <div class="flex justify-between items-start mb-8 border-b border-gray-800 pb-4">
+                    <div>
+                        <h3 class="text-2xl font-black text-white italic uppercase tracking-widest">
+                            <span class="text-yellow-500">CENSO GLOBAL:</span> GUERRA DE ERAS
+                        </h3>
+                        <p class="text-xs text-gray-400 uppercase mt-1">Distribución de Agentes por Facción</p>
+                    </div>
+                    <button onclick="toggleFactionStats()" class="text-gray-500 hover:text-white text-3xl font-bold leading-none">&times;</button>
+                </div>
+
+                {{-- Contenido Gráficas --}}
+                <div class="space-y-6">
+                    @php
+                        // Configuramos colores e iconos para cada facción
+                        $factionConfig = [
+                            'bakuten' => ['color' => 'bg-blue-500', 'shadow' => 'shadow-[0_0_10px_rgba(59,130,246,0.8)]', 'icon' => '🐉', 'label' => 'BAKUTEN'],
+                            'metal'   => ['color' => 'bg-red-500', 'shadow' => 'shadow-[0_0_10px_rgba(239,68,68,0.8)]', 'icon' => '⚙️', 'label' => 'METAL FIGHT'],
+                            'burst'   => ['color' => 'bg-yellow-500', 'shadow' => 'shadow-[0_0_10px_rgba(234,179,8,0.8)]', 'icon' => '💥', 'label' => 'BURST'],
+                            'x'       => ['color' => 'bg-green-500', 'shadow' => 'shadow-[0_0_10px_rgba(34,197,94,0.8)]', 'icon' => '❌', 'label' => 'BEYBLADE X']
+                        ];
+                    @endphp
+
+                    @if($factionStats->count() == 0)
+                        <div class="text-center text-gray-500 py-10 font-mono text-sm">ESPERANDO REGISTROS EN LA BASE DE DATOS...</div>
+                    @else
+                        @foreach(['bakuten', 'metal', 'burst', 'x'] as $fac)
+                            @php
+                                // Buscamos si hay gente en esta facción
+                                $stat = $factionStats->firstWhere('faction', $fac);
+                                $count = $stat ? $stat->total : 0;
+                                $percent = ($count / $totalFactions) * 100;
+                                $config = $factionConfig[$fac];
+                            @endphp
+
+                            <div>
+                                <div class="flex justify-between items-end mb-1">
+                                    <div class="flex items-center gap-2">
+                                        <span class="text-xl">{{ $config['icon'] }}</span>
+                                        <span class="text-white font-bold uppercase tracking-widest text-sm">{{ $config['label'] }}</span>
+                                    </div>
+                                    <div class="text-right">
+                                        <span class="text-xs font-mono text-gray-400">{{ $count }} Agentes</span>
+                                        <span class="text-xs font-bold text-white ml-2">{{ number_format($percent, 1) }}%</span>
+                                    </div>
+                                </div>
+                                <div class="w-full bg-gray-900 h-3 rounded-sm overflow-hidden border border-gray-800">
+                                    <div class="h-full {{ $config['color'] }} {{ $config['shadow'] }} transition-all duration-1000 ease-out"
+                                         style="width: {{ $percent }}%"></div>
+                                </div>
+                            </div>
+                        @endforeach
+                    @endif
+                </div>
+
+                {{-- Footer Modal --}}
+                <div class="mt-8 text-center pt-4 border-t border-gray-800">
+                    <p class="text-[10px] text-gray-500 font-mono">Los porcentajes reflejan el número total de participantes registrados ({{ $totalFactions }}).</p>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    {{-- Script de apertura/cierre --}}
+    <script>
+        function toggleFactionStats() {
+            const modal = document.getElementById('faction-stats-modal');
+            if (modal.classList.contains('hidden')) {
+                modal.classList.remove('hidden');
+                // Pequeño delay para que la transición de opacidad funcione
+                setTimeout(() => modal.classList.remove('opacity-0'), 10);
+            } else {
+                modal.classList.add('opacity-0');
+                setTimeout(() => modal.classList.add('hidden'), 300);
+            }
+        }
+    </script>
 <script>
     // --- VARIABLES GLOBALES ---
     const zonesData = @json($zones);

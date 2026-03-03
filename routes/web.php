@@ -55,6 +55,10 @@ Route::domain('conquista.' . env('APP_DOMAIN', 'sbbl.es'))->group(function () {
 
     // Si decidiste mover la ruleta al MarketController (Recomendado):
     Route::post('/roulette/spin', [MarketController::class, 'spinRoulette'])->name('market.spin');
+    // Worldle
+    Route::post('/market/wordle/store', [MarketController::class, 'storeWordle'])->name('market.wordle.store');
+    Route::post('/market/wordle/win', [MarketController::class, 'winWordle'])->name('market.wordle.win');
+    Route::delete('/market/wordle/{id}', [App\Http\Controllers\Game\MarketController::class, 'deleteWordle'])->name('market.wordle.delete');
 
     // Usar items
     Route::post('/market/use-radar', [MarketController::class, 'useRadar'])->name('market.use_radar');
