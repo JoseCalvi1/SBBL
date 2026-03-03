@@ -176,6 +176,7 @@ class ProfileController extends Controller
             $query->where('is_admin', 1)
                 ->orWhere('is_jury', 1)
                 ->orWhere('is_referee', 1)
+                ->orWhere('is_reviewer', 1)
                 ->orWhere('is_editor', 1);
         })->with('user', 'region')->get();
 
@@ -204,6 +205,7 @@ class ProfileController extends Controller
         $user->is_jury = $request->has('is_jury');
         $user->is_referee = $request->has('is_referee');
         $user->is_editor = $request->has('is_editor');
+        $user->is_reviewer = $request->has('is_reviewer');
         $user->save();
 
     return back()->with('success', 'Roles actualizados correctamente.');

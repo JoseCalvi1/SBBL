@@ -4,7 +4,6 @@
 <div class="py-4">
     <h2 class="text-center mb-4 text-white">Gestión de Usuarios</h2>
 
-    <!-- Nav Tabs -->
     <ul class="nav nav-tabs m-3" id="userTabs" role="tablist">
         <li class="nav-item">
             <a class="nav-link active" id="roles-tab" data-bs-toggle="tab" href="#roles" role="tab">Roles</a>
@@ -16,9 +15,7 @@
 
     <div class="tab-content" id="userTabsContent">
 
-        <!-- Pestaña Roles -->
         <div class="tab-pane fade show active" id="roles" role="tabpanel" aria-labelledby="roles-tab">
-            <!-- Asignar roles -->
             <div class="col-md-10 mx-auto bg-white p-3 mb-4" style="background-color:transparent !important">
                 <h4 class="text-white">Asignar roles a un usuario existente</h4>
                 <form action="{{ route('profiles.updateRoles', ['user' => 0]) }}" method="POST">
@@ -51,13 +48,16 @@
                             <input class="form-check-input" type="checkbox" name="is_editor" value="1">
                             <label class="form-check-label text-white">Editor</label>
                         </div>
+                        <div class="form-check form-check-inline">
+                            <input class="form-check-input" type="checkbox" name="is_reviewer" value="1">
+                            <label class="form-check-label text-white">Reviewer</label>
+                        </div>
                     </div>
 
                     <button type="submit" class="btn btn-success mt-2">Asignar Roles</button>
                 </form>
             </div>
 
-            <!-- Tabla roles -->
             <div class="col-md-12 mx-auto bg-white p-3" style="background-color:transparent !important">
                 <div class="table-responsive">
                     <table class="table" style="color: white !important">
@@ -84,6 +84,8 @@
                                             if($profile->user->is_jury) $roles[] = 'Jury';
                                             if($profile->user->is_referee) $roles[] = 'Referee';
                                             if($profile->user->is_editor) $roles[] = 'Editor';
+                                            /* NUEVO: Reviewer string */
+                                            if($profile->user->is_reviewer) $roles[] = 'Reviewer';
                                         @endphp
                                         {{ implode(', ', $roles) }}
                                     </td>
@@ -108,6 +110,10 @@
                                                     <input class="form-check-input" type="checkbox" name="is_editor" value="1" {{ $profile->user->is_editor ? 'checked' : '' }}>
                                                     <label class="form-check-label text-white">Editor</label>
                                                 </div>
+                                                <div class="form-check form-check-inline">
+                                                    <input class="form-check-input" type="checkbox" name="is_reviewer" value="1" {{ $profile->user->is_reviewer ? 'checked' : '' }}>
+                                                    <label class="form-check-label text-white">Reviewer</label>
+                                                </div>
                                             </div>
                                             <button type="submit" class="btn btn-sm btn-primary mt-2">Guardar</button>
                                         </form>
@@ -120,7 +126,6 @@
             </div>
         </div>
 
-        <!-- Pestaña Suscripciones -->
         <div class="tab-pane fade" id="subs" role="tabpanel" aria-labelledby="subs-tab">
             <div class="col-md-12 mx-auto bg-white p-3" style="background-color:transparent !important">
                 <div class="table-responsive">

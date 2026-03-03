@@ -74,6 +74,12 @@
                     ->whereRaw('LOWER(events.name) LIKE ?', ['%xmas%'])
                     ->exists();
 
+                $hasGranCopaLigeraRevival = DB::table('assist_user_event')
+                    ->join('events', 'assist_user_event.event_id', '=', 'events.id')
+                    ->where('assist_user_event.user_id', $userId)
+                    ->whereRaw('LOWER(events.name) LIKE ?', ['%revival%'])
+                    ->exists();
+
                 // 3. ¡VARIABLES DE IMAGEN ELIMINADAS! Usaremos los atributos mágicos abajo.
             @endphp
 
@@ -96,7 +102,7 @@
                 <div class="text-overlay">
                     <div class="info text-center">
                         <h5 class="fw-bold {{ $subscriptionClass }}">{{ $blader->user->name }}</h5>
-                        <p class="mb-1">{{ $blader->subtitulo }}</p>
+                        <p class="mb-1 texto-limitado" title="{{ $blader->subtitulo }}">{{ $blader->subtitulo }}</p>
                         <p class="fw-semibold">{{ $blader->region->name ?? 'No definida' }}</p>
                     </div>
                 </div>
@@ -109,10 +115,13 @@
 
                 <div class="iconos">
                     @if ($hasGranCopaHalloween)
-                        <i class="fas fa-ghost text-warning me-2" title="Gran Copa Let It R.I.P."></i>
+                        <i class="fas fa-ghost text-warning me-1" title="Gran Copa Let It R.I.P."></i>
                     @endif
                     @if ($hasGranCopaSantaKlaw)
-                        <i class="fas fa-snowflake text-info" title="Gran Copa XMAS"></i>
+                        <i class="fas fa-snowflake text-info me-1" title="Gran Copa XMAS"></i>
+                    @endif
+                    @if ($hasGranCopaLigeraRevival)
+                        <i class="fas fa-feather-alt text-success me-1" title="Gran Copa Ligera Revival"></i>
                     @endif
                 </div>
             </div>
@@ -302,11 +311,6 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 </script>
 
----
-
-## 🎨 Estilos CSS (Incluye la mejora de visibilidad)
-
-```css
 <style>
 /* Estilos generales */
 body { background-color: #0b0b0b; color: #eee; }
@@ -337,17 +341,17 @@ body { background-color: #0b0b0b; color: #eee; }
 }
 .tarjeta:hover .efecto-hover { opacity: 1; }
 
-/* 🔑 NUEVO: Contenedor para mejorar la visibilidad del texto */
 .text-overlay {
     position: absolute;
     bottom: 0;
     left: 0;
     right: 0;
-    height: 130px; /* Altura que cubre el texto */
+    /* height: 130px; ELIMINADO: La altura fija rompe el layout */
     z-index: 3;
-    /* Degradado de negro semitransparente a transparente */
-    background: linear-gradient(to top, rgba(0, 0, 0, 0.85) 0%, rgba(0, 0, 0, 0.7) 50%, transparent 100%);
-    padding-top: 20px;
+    /* Degradado ligeramente ajustado para cubrir bien el texto */
+    background: linear-gradient(to top, rgba(0, 0, 0, 0.95) 0%, rgba(0, 0, 0, 0.7) 60%, transparent 100%);
+    padding-top: 40px;
+    padding-bottom: 45px; /* COLCHÓN EXACTO Y OBLIGATORIO PARA LOS ICONOS */
 }
 
 /* Contenedor de Avatar */
@@ -373,7 +377,7 @@ body { background-color: #0b0b0b; color: #eee; }
 .marco-blader { z-index: 2; }
 .img-blader { z-index: 1; }
 .info {
-    margin-top: 0px;
+    top: 20px;
     position: relative; /* Para que el texto se posicione dentro del overlay */
     z-index: 4;
 }
@@ -395,10 +399,21 @@ body { background-color: #0b0b0b; color: #eee; }
 .free-agent-label:hover { background: #ffc107; color: black; }
 .iconos {
     position: absolute;
-    bottom: 10px;
-    left: 10px;
-    font-size: 1.2rem;
-    z-index: 5;
+    bottom: 10px; /* Distancia desde abajo */
+    left: 10px;   /* Distancia desde la izquierda */
+    z-index: 10;
+    display: flex;
+    gap: 5px;
+}
+
+/* Limita el subtítulo a 2 líneas como máximo */
+.texto-limitado {
+    display: -webkit-box;
+    -webkit-line-clamp: 2; /* Cambia a 1 si prefieres que solo ocupe una línea */
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    min-height: 2.5em; /* Mantiene la altura uniforme aunque tengan 1 sola línea */
 }
 
 /* Estilos de Suscripción */

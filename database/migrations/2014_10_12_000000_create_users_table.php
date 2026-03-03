@@ -20,7 +20,9 @@ class CreateUsersTable extends Migration
             $table->boolean('is_jury')->default(false);
             $table->boolean('is_referee')->default(false);
             $table->boolean('is_editor')->default(false);
+            $table->boolean('is_reviewer')->default(false);
             $table->string('email')->unique();
+            $table->string('faction')->nullable();
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
             $table->rememberToken();

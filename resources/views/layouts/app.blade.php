@@ -506,7 +506,7 @@
                     </li>
 
                     @auth
-                        @if (Auth::user()->is_referee || Auth::user()->is_admin)
+                        @if (Auth::user()->is_referee || Auth::user()->is_reviewer || Auth::user()->is_admin)
                             <li class="nav-item">
                                 <a id="navbarAdmin" style="color: white;" class="nav-link" href="{{ route('admin.dashboard') }}" target="_blank">
                                     {{ 'ADMIN' }}

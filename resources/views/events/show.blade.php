@@ -373,15 +373,10 @@
                             @endif
 
                         @else
-                            <div class="d-flex align-items-center justify-content-between">
-                                <div class="text-success fw-bold">
-                                    <i class="fas fa-check-circle me-2 fs-4"></i> Estás inscrito en este evento.
-                                </div>
-                                <form method="POST" action="{{ route('events.noassist', ['event' => $event->id]) }}">
-                                    @method('DELETE') @csrf
-                                    <button type="submit" class="btn btn-outline-danger btn-sm">Cancelar asistencia</button>
-                                </form>
-                            </div>
+                            <button type="button" class="btn btn-outline-danger btn-sm" data-bs-toggle="modal" data-bs-target="#confirmModal">
+                                Cancelar asistencia
+                            </button>
+
                         @endif
 
                     @elseif($event->status != "OPEN")
@@ -530,7 +525,26 @@
 </div>
 </div>
 @endsection
-
+<div class="modal fade" id="confirmModal" tabindex="-1" aria-hidden="true">
+                                <div class="modal-dialog modal-dialog-centered">
+                                    <div class="modal-content bg-dark text-white border-danger">
+                                    <div class="modal-header border-secondary">
+                                        <h5 class="modal-title">Confirmar acción</h5>
+                                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                                    </div>
+                                    <div class="modal-body">
+                                        ¿Realmente quieres cancelar tu asistencia al evento?
+                                    </div>
+                                    <div class="modal-footer border-secondary">
+                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">No, mantener</button>
+                                        <form method="POST" action="{{ route('events.noassist', ['event' => $event->id]) }}">
+                                            @method('DELETE') @csrf
+                                            <button type="submit" class="btn btn-danger">Sí, cancelar asistencia</button>
+                                        </form>
+                                    </div>
+                                    </div>
+                                </div>
+                            </div>
 @section('scripts')
 <div class="modal fade" id="imageModal" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered modal-xl">

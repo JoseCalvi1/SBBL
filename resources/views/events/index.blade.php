@@ -1,7 +1,7 @@
 @extends('layouts.app')
 
 @section('content')
-@if (Auth::user()->is_jury || Auth::user()->is_admin || Auth::user()->is_referee)
+@if (Auth::user()->is_jury || Auth::user()->is_admin || Auth::user()->is_referee || Auth::user()->is_reviewer)
 <div class="py-4">
     <h2 class="text-center mb-2 text-white">Administra los eventos</h2>
 
@@ -10,7 +10,6 @@
             Crear evento
         </a>
 
-        <!-- Formulario de filtros -->
         <form method="GET" action="{{ route('events.indexAdmin') }}" class="mb-4">
             <div class="row">
                 <div class="col-md-4 mt-2">
@@ -38,7 +37,6 @@
             </div>
         </form>
 
-
 <div class="list-group">
   @foreach ($events as $event)
 
@@ -54,7 +52,6 @@
         {{ $hasRejected && !in_array($event->status, ['INVALID', 'CLOSE']) ? 'border border-danger border-5' : '' }}">
 
 
-      <!-- INFORMACIÓN DEL EVENTO -->
       <div class="flex-grow-1" style="width: 100%">
         <div class="d-flex justify-content-between align-items-center flex-wrap">
           <h5 class="mb-1 me-2">{{ $event->name }}</h5>
@@ -67,7 +64,6 @@
           <event-date fecha="{{ $event->date }}"></event-date> • {{ $event->mode }}
         </p>
 
-        <!-- ESTADO -->
         <div class="mb-1">
           @switch($event->status)
             @case('OPEN')
@@ -90,7 +86,6 @@
           @endswitch
         </div>
 
-        <!-- ENLACES OPCIONALES -->
         <div class="mb-1 d-flex gap-2 flex-wrap">
           @if ($event->iframe)
             @foreach (explode(';', $event->iframe) as $index => $link)
@@ -116,10 +111,16 @@
 
     $isReferee = $user->is_referee;
     $isJury = $user->is_jury;
+    $isReviewer = $user->is_reviewer; // NUEVO ROL
 
     // ¿El evento ya tiene una revisión de jurado?
     $hasJuryReview = $event->reviews->contains(function ($review) {
         return optional($review->referee)->is_jury;
+    });
+
+    // ¿El evento ya tiene una revisión de un reviewer?
+    $hasReviewerReview = $event->reviews->contains(function ($review) {
+        return optional($review->referee)->is_reviewer;
     });
 
     // Máximo de revisiones del evento
@@ -134,8 +135,17 @@
         // Si hay jurado, solo él puede tener revisión
         $canReview = $isJury && !$userReview && $reviewsCount === 0;
     } else {
-        // Sin jurado: solo árbitros, hasta 3
-        $canReview = $isReferee && !$userReview && $reviewsCount < 3;
+        // Sin jurado aún: evaluamos los otros roles
+        if ($isJury) {
+            // Un jurado puede ser el primero en tomarlo
+            $canReview = !$userReview;
+        } elseif ($isReferee) {
+            // Un árbitro normal puede revisar siempre que no haya llegado a 3
+            $canReview = !$userReview && $reviewsCount < 3;
+        } elseif ($isReviewer) {
+            // Un reviewer solo puede revisar si NO hay ya otro reviewer y no se ha llegado a 3
+            $canReview = !$userReview && !$hasReviewerReview && $reviewsCount < 3;
+        }
     }
 @endphp
 
@@ -191,7 +201,6 @@
 )
     <div class="d-flex flex-wrap gap-2 mt-2">
 
-        <!-- BOTÓN VALIDAR -->
         <button type="button"
                 class="btn btn-success btn-sm"
                 data-bs-toggle="modal"
@@ -199,7 +208,6 @@
             ✅ Validar evento
         </button>
 
-        <!-- BOTÓN INVALIDAR -->
         <button type="button"
                 class="btn btn-danger btn-sm"
                 data-bs-toggle="modal"
@@ -214,14 +222,12 @@
 
 
         @if (in_array($event->beys, ['ranking', 'rankingplus']) && (in_array($event->status, ['INVALID', 'CLOSE']) || auth()->user()->is_admin))
-<!-- BOTÓN PARA MOSTRAR VALIDADORES -->
-        <button class="btn btn-danger btn-sm mb-1 mt-2" type="button"
+<button class="btn btn-danger btn-sm mb-1 mt-2" type="button"
                 data-bs-toggle="collapse" data-bs-target="#reviewCollapse{{ $event->id }}"
                 aria-expanded="false" aria-controls="reviewCollapse{{ $event->id }}">
           Mostrar validadores y comentarios
         </button>
 
-        <!-- SECCIÓN DESPLEGABLE DE VALIDADORES -->
         <div class="collapse mt-2" id="reviewCollapse{{ $event->id }}">
         <div class="card card-body bg-light text-dark p-2" style="font-size: 0.85rem;">
             <strong>Validadores y comentarios:</strong>
@@ -232,8 +238,8 @@
                 @foreach($event->reviews as $review)
                 <li class="mb-1">
                     <strong>
-                    @if(auth()->user()->is_admin || Auth::user()->name == $review->referee->name)
-                        {{ $review->referee->name ?? 'Árbitro desconocido' }}
+                    @if(auth()->user()->is_admin || Auth::user()->name == optional($review->referee)->name)
+                        {{ optional($review->referee)->name ?? 'Árbitro desconocido' }}
                     @else
                         Árbitro {{ $loop->iteration }}
                     @endif
@@ -256,7 +262,6 @@
 @endif
 
       </div>
-      <!-- ACCIONES: Ver, Editar, Eliminar -->
       <div class="d-flex flex-column flex-shrink-0 me-md-3 mt-3 mb-3 mb-md-0" style="min-width: 140px;">
         <a href="{{ route('events.show', $event->id) }}" class="btn btn-success btn-sm mb-1">Ver</a>
         @if (auth()->user()->is_admin || auth()->user()->is_jury)
@@ -282,7 +287,6 @@
 @section('scripts')
     @foreach ($events as $event)
         @if (!in_array($event->status, ['INVALID', 'CLOSE', 'OPEN']))
-            <!-- Modal Validar -->
             <div class="modal fade" id="validarModal{{ $event->id }}" tabindex="-1" aria-labelledby="validarModalLabel{{ $event->id }}" aria-hidden="true">
               <div class="modal-dialog modal-dialog-centered">
                 <div class="modal-content">
@@ -294,7 +298,6 @@
                   <div class="modal-body">
                     <p>¿Cómo deseas validar el evento <strong>{{ $event->name }}</strong>?</p>
 
-                    <!-- Formulario con comentario (oculto por defecto, se muestra al pulsar botón correspondiente) -->
                     <form method="POST" action="{{ route('events.actualizarPuntuaciones', ['event' => $event->id, 'mode' => $event->mode]) }}"
                           id="form-validar-comentario-{{ $event->id }}" style="display: none;">
                         @method('PUT')
@@ -308,20 +311,17 @@
                   </div>
 
                   <div class="modal-footer d-flex flex-column gap-2">
-                    <!-- Validar sin comentario -->
                     <form method="POST" action="{{ route('events.actualizarPuntuaciones', ['event' => $event->id, 'mode' => $event->mode]) }}" class="w-100">
                       @method('PUT')
                       @csrf
                       <button type="submit" class="btn btn-success w-100">Validar sin comentario</button>
                     </form>
 
-                    <!-- Botón que activa el textarea -->
                     <button type="button" class="btn btn-primary w-100"
                         onclick="document.getElementById('form-validar-comentario-{{ $event->id }}').style.display='block'; this.style.display='none';">
                         Validar con comentario
                     </button>
 
-                    <!-- Cancelar -->
                     <button type="button" class="btn btn-secondary w-100" data-bs-dismiss="modal">Cancelar</button>
                   </div>
                 </div>
@@ -329,8 +329,7 @@
             </div>
         @endif
 
-                <!-- Modal Invalidar -->
-        <div class="modal fade" id="invalidarModal{{ $event->id }}" tabindex="-1" aria-labelledby="invalidarModalLabel{{ $event->id }}" aria-hidden="true">
+                <div class="modal fade" id="invalidarModal{{ $event->id }}" tabindex="-1" aria-labelledby="invalidarModalLabel{{ $event->id }}" aria-hidden="true">
           <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
               <div class="modal-header">
@@ -373,8 +372,7 @@
 
     @foreach ($events as $event)
         @if (!in_array($event->status, ['INVALID', 'CLOSE']))
-            <!-- Modal de revisión para cada evento -->
-            <div class="modal fade" id="reviewModal{{ $event->id }}" tabindex="-1" aria-hidden="true">
+            <div class="modal fade" id="reviewModal{{ $event->id }}" tabindex="-1" aria-hidden="true" style="z-index: 9999;">
                 <div class="modal-dialog">
                     <form class="ajax-review-form" action="{{ route('event.review', $event->id) }}" method="POST" data-event-id="{{ $event->id }}">
                         @csrf
@@ -411,120 +409,118 @@
         @endif
     @endforeach
 
-    <script>
-document.addEventListener('DOMContentLoaded', function () {
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
 
-    // Capturamos todos los formularios con la clase .ajax-review-form
-    const forms = document.querySelectorAll('.ajax-review-form');
+        // Capturamos todos los formularios con la clase .ajax-review-form
+        const forms = document.querySelectorAll('.ajax-review-form');
 
-    forms.forEach(form => {
-        form.addEventListener('submit', async function (e) {
-            e.preventDefault(); // Detener envío normal
+        forms.forEach(form => {
+            form.addEventListener('submit', async function (e) {
+                e.preventDefault(); // Detener envío normal
 
-            const eventId = this.dataset.eventId;
-            const msgContainer = document.getElementById(`msg-container-${eventId}`);
-            const btnSubmit = this.querySelector('.btn-submit');
-            const originalBtnText = btnSubmit.innerHTML;
+                const eventId = this.dataset.eventId;
+                const msgContainer = document.getElementById(`msg-container-${eventId}`);
+                const btnSubmit = this.querySelector('.btn-submit');
+                const originalBtnText = btnSubmit.innerHTML;
 
-            // UX: Limpiar mensajes previos y poner estado de carga
-            msgContainer.classList.add('d-none');
-            msgContainer.className = 'alert d-none'; // reset clases
-            btnSubmit.disabled = true;
-            btnSubmit.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Enviando...';
+                // UX: Limpiar mensajes previos y poner estado de carga
+                msgContainer.classList.add('d-none');
+                msgContainer.className = 'alert d-none'; // reset clases
+                btnSubmit.disabled = true;
+                btnSubmit.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Enviando...';
 
-            try {
-                const formData = new FormData(this);
+                try {
+                    const formData = new FormData(this);
 
-                // Forzamos cabecera Accept para que Laravel sepa que queremos JSON
-                const response = await fetch(this.action, {
-                    method: 'POST',
-                    headers: {
-                        'X-Requested-With': 'XMLHttpRequest',
-                        'Accept': 'application/json',
-                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
-                    },
-                    body: formData
-                });
+                    // Forzamos cabecera Accept para que Laravel sepa que queremos JSON
+                    const response = await fetch(this.action, {
+                        method: 'POST',
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest',
+                            'Accept': 'application/json',
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                        },
+                        body: formData
+                    });
 
-                // MANEJO DE ERRORES HTTP ESPECÍFICOS
-                if (response.status === 413) {
-                    throw new Error('El comentario es demasiado largo o contiene demasiados datos (Error 413). Por favor reduce el contenido.');
-                }
+                    // MANEJO DE ERRORES HTTP ESPECÍFICOS
+                    if (response.status === 413) {
+                        throw new Error('El comentario es demasiado largo o contiene demasiados datos (Error 413). Por favor reduce el contenido.');
+                    }
 
-                if (response.status === 500) {
-                     // Intentamos leer el JSON de error si el backend lo mandó, sino mensaje genérico
-                    const errorData = await response.json().catch(() => ({}));
-                    throw new Error(errorData.message || 'Error interno del servidor (500). Contacta al administrador.');
-                }
+                    if (response.status === 500) {
+                        // Intentamos leer el JSON de error si el backend lo mandó, sino mensaje genérico
+                        const errorData = await response.json().catch(() => ({}));
+                        throw new Error(errorData.message || 'Error interno del servidor (500). Contacta al administrador.');
+                    }
 
-                if (response.status === 422) {
-                    // Errores de validación de Laravel
+                    if (response.status === 422) {
+                        // Errores de validación de Laravel
+                        const data = await response.json();
+                        throw new Error(data.message || 'Datos inválidos. Revisa los campos.');
+                    }
+
+                    if (!response.ok) {
+                        throw new Error(`Error inesperado: ${response.status}`);
+                    }
+
+                    // ÉXITO
                     const data = await response.json();
-                    throw new Error(data.message || 'Datos inválidos. Revisa los campos.');
+
+                    msgContainer.textContent = data.message || 'Revisión enviada con éxito.';
+                    msgContainer.classList.remove('d-none', 'alert-danger');
+                    msgContainer.classList.add('alert', 'alert-success');
+
+                    // Recargar página tras breve pausa para ver el mensaje
+                    setTimeout(() => {
+                        location.reload();
+                    }, 1500);
+
+                } catch (error) {
+                    console.error(error);
+                    // UX: Mostrar error al usuario
+                    msgContainer.textContent = error.message;
+                    msgContainer.classList.remove('d-none', 'alert-success');
+                    msgContainer.classList.add('alert', 'alert-danger');
+
+                    // Restaurar botón
+                    btnSubmit.disabled = false;
+                    btnSubmit.innerHTML = originalBtnText;
                 }
+            });
+        });
 
-                if (!response.ok) {
-                    throw new Error(`Error inesperado: ${response.status}`);
-                }
+        // MANTENER TU LÓGICA DE BOTONES RÁPIDOS (Si la usas)
+        document.querySelectorAll('.review-button').forEach(button => {
+            button.addEventListener('click', async function () {
+                const eventId = this.dataset.eventId;
+                const status = this.dataset.status;
+                const comment = prompt('Comentario sobre la revisión:');
 
-                // ÉXITO
-                const data = await response.json();
+                if (comment === null) return;
 
-                msgContainer.textContent = data.message || 'Revisión enviada con éxito.';
-                msgContainer.classList.remove('d-none', 'alert-danger');
-                msgContainer.classList.add('alert', 'alert-success');
+                try {
+                    const response = await fetch(`/events/${eventId}/review`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Accept': 'application/json', // Importante para recibir JSON de Laravel
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                        },
+                        body: JSON.stringify({ status, comment })
+                    });
 
-                // Recargar página tras breve pausa para ver el mensaje
-                setTimeout(() => {
+                    if (response.status === 413) throw new Error('Texto demasiado largo (413).');
+                    if (!response.ok) throw new Error('Error al procesar la solicitud.');
+
+                    alert('Revisión enviada correctamente.');
                     location.reload();
-                }, 1500);
-
-            } catch (error) {
-                console.error(error);
-                // UX: Mostrar error al usuario
-                msgContainer.textContent = error.message;
-                msgContainer.classList.remove('d-none', 'alert-success');
-                msgContainer.classList.add('alert', 'alert-danger');
-
-                // Restaurar botón
-                btnSubmit.disabled = false;
-                btnSubmit.innerHTML = originalBtnText;
-            }
+                } catch (error) {
+                    alert(error.message);
+                }
+            });
         });
     });
-
-    // MANTENER TU LÓGICA DE BOTONES RÁPIDOS (Si la usas)
-    // He adaptado esto para usar la misma lógica de manejo de errores
-    document.querySelectorAll('.review-button').forEach(button => {
-        button.addEventListener('click', async function () {
-            const eventId = this.dataset.eventId;
-            const status = this.dataset.status;
-            const comment = prompt('Comentario sobre la revisión:');
-
-            if (comment === null) return;
-
-            try {
-                const response = await fetch(`/events/${eventId}/review`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Accept': 'application/json', // Importante para recibir JSON de Laravel
-                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
-                    },
-                    body: JSON.stringify({ status, comment })
-                });
-
-                if (response.status === 413) throw new Error('Texto demasiado largo (413).');
-                if (!response.ok) throw new Error('Error al procesar la solicitud.');
-
-                alert('Revisión enviada correctamente.');
-                location.reload();
-            } catch (error) {
-                alert(error.message);
-            }
-        });
-    });
-});
 </script>
 @endsection
-

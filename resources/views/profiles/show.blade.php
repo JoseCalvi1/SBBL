@@ -169,7 +169,7 @@
 
                     {{-- Datos Usuario --}}
                     <h2 class="text-white pilot-name mb-1" title="{{ $profile->user->name }}">
-                        {{ $profile->user->name }}
+                        {{ $profile->user->name }} #{{ str_pad($profile->user->id, 4, '0', STR_PAD_LEFT) }}
                     </h2>
                     <div class="mb-4">
                         <span class="badge bg-secondary text-uppercase" style="letter-spacing: 1px;">
