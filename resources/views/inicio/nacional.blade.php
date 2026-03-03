@@ -1,333 +1,361 @@
-    @extends('layouts.app')
+@extends('layouts.app')
 
-    @section('title', 'Nacional Beyblade X España')
+@section('title', 'BeyCon España 2026 - Nacional SBBL')
 
-    @section('styles')
-    <style>
-        body {
-            background-color: #121212;
-            color: white;
-        }
-        .hero {
-            position: relative;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            padding: 100px 20px;
-            color: white;
-            text-align: center;
-            width: 100%;
-            min-height: 400px;
-            background-image: url('/../images/fondo_banner_nacional.webp') !important;
-            background-size: cover;
-            background-position: bottom;
-            background-repeat: no-repeat;
-            overflow: hidden; /* Para evitar que la capa negra sobresalga */
-        }
-
-        .hero::before {
-            content: "";
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.5); /* Ajusta la opacidad (0.5 = 50%) */
-            z-index: 1;
-        }
-
-        .hero * {
-            position: relative;
-            z-index: 2; /* Asegura que el contenido esté sobre la capa oscura */
-        }
-
-
-        #countdown {
-            font-size: 3rem;
-            font-weight: bold;
-            font-family: 'Courier New', monospace;
-            color: #0f0;
-            border-radius: 5px;
-            text-shadow: 0 0 10px #0f0;
-            margin-top: 10px; /* Espacio superior */
-        }
-
-
-        .sponsors {
-            text-align: center;
-            padding: 50px 20px;
-            color: white;
-        }
-
-        .sponsors .row {
-            display: flex;
-            justify-content: center; /* Centra horizontalmente */
-            align-items: center; /* Centra verticalmente */
-            height: 100%; /* Asegura que la fila ocupe toda la altura disponible */
-        }
-        .event-info {
-            padding: 50px 20px;
-            text-align: center;
-            color: white;
-        }
-        .btn-register {
-            background-color: #ffcc00;
-            color: #121212;
-            font-weight: bold;
-            padding: 10px 20px;
-            border-radius: 5px;
-        }
-        .requirements-container {
-            background-color: #1e1e1e;
-            padding: 30px;
-            border-radius: 10px;
-            margin: 40px auto;
-            max-width: 800px;
-            color: white;
-        }
-        @media (max-width: 576px) {
-        h2 {
-            font-size: 1.5rem; /* Ajusta el tamaño en móviles */
-            word-break: break-word; /* Permite cortar palabras largas si es necesario */
-        }
-
-
+@section('styles')
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700;900&family=Inter:wght@300;400;600&family=Roboto+Mono:wght@500&display=swap" rel="stylesheet">
+<style>
+    :root {
+        --bg-deep-blue: #0a192f;
+        --neon-cyan: #00f2fe;
+        --neon-magenta: #ff0055;
+        --neon-gold: #ffd500;
+        --glass-bg: rgba(255, 255, 255, 0.07);
+        --text-bright: #ffffff;
+        --text-soft: #ccd6f6;
+        --text-accent: #00f2fe;
     }
-.inscripcion-btn {
-  margin-top: 40px;
-  display: inline-block;
-  padding: 12px 24px;
-  background: linear-gradient(135deg, #4f46e5, #3b82f6); /* Indigo to Blue */
-  color: white;
-  font-weight: 600;
-  font-size: 1rem;
-  text-decoration: none;
-  border-radius: 9999px;
-  box-shadow: 0 4px 14px rgba(59, 130, 246, 0.4);
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
-}
 
-.inscripcion-btn:hover {
-  transform: scale(1.05);
-  box-shadow: 0 6px 20px rgba(59, 130, 246, 0.6);
-  color: white;
-}
-    </style>
-    @endsection
+    body {
+        background-color: var(--bg-deep-blue);
+        color: var(--text-soft);
+        font-family: 'Inter', sans-serif;
+        line-height: 1.6;
+    }
 
-    @section('content')
-    <div class="hero">
-        <h1>Gran Copa Nacional de Beyblade X</h1>
-        <h2 class="countdown mt-4" id="countdown"></h2>
-        <h4>¡Únete a la batalla definitiva el 7 de julio!</h4>
+    .hero {
+        position: relative;
+        padding: 120px 20px;
+        text-align: center;
+        background: linear-gradient(to bottom, rgba(10, 25, 47, 0.4), var(--bg-deep-blue)),
+                    url('/../images/fondo_banner_nacional.webp');
+        background-size: cover;
+        background-position: center;
+        border-bottom: 1px solid rgba(0, 242, 254, 0.3);
+    }
 
-    <!--<a href="https://docs.google.com/forms/d/1N0QPoLmWTGSVcbvAF8_LBEmGDoEUQ9aHPt-P443USWs/preview" target="_blank" class="inscripcion-btn">
-       ¡Inscribirme!
-    </a>-->
+    .hero-title {
+        font-family: 'Orbitron', sans-serif;
+        font-size: clamp(2.5rem, 8vw, 5rem);
+        font-weight: 900;
+        color: var(--text-bright);
+        text-transform: uppercase;
+        letter-spacing: 2px;
+        filter: drop-shadow(0 0 15px rgba(0, 242, 254, 0.6));
+    }
 
+    #countdown {
+        font-family: 'Roboto Mono', monospace;
+        font-size: clamp(1.5rem, 5vw, 3.5rem);
+        color: var(--neon-cyan);
+        background: rgba(0, 0, 0, 0.4);
+        display: inline-block;
+        padding: 10px 30px;
+        border-radius: 8px;
+        border: 1px solid rgba(0, 242, 254, 0.5);
+        margin: 25px 0;
+    }
 
-    </div>
+    .section-container {
+        max-width: 1000px;
+        margin: 60px auto;
+        padding: 0 20px;
+    }
 
-    <div class="event-info" id="nacional">
-        <div class="col-md-12 text-white text-center p-4" style="border: 1px solid #1e2a47; border-radius: 5px; background:#1e2a47; box-shadow: 0px 0px 10px rgba(255, 255, 255, 0.5)">
-            <h2 class="text-lg font-bold mb-2">OBJETIVO NACIONAL SBBL</h2>
-            <div class="relative w-full h-6 rounded-full" style="height: 20px; border: 2px solid">
-                <div class=" bg-white h-full rounded-full" style="width: 98%; height: 18px"></div>
-            </div>
-            <p class="text-sm mt-2">2980€ / 3000€</p>
+    .cyber-card {
+        background: var(--glass-bg);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        padding: 40px;
+        border-radius: 15px;
+    }
 
-            <div class="mt-2">
-                <p><strong>¿Aún no tienes una suscripción?</strong> Consíguela fácilmente haciendo clic en
-                    <a href="https://sbbl.es/subscriptions" style="color: #007bff; font-weight: bold;">este enlace</a>.</p>
+    .sec-title {
+        font-family: 'Orbitron', sans-serif;
+        color: var(--text-bright);
+        font-size: 1.8rem;
+        margin-bottom: 30px;
+        border-left: 4px solid var(--neon-cyan);
+        padding-left: 15px;
+    }
 
-                <p>También puedes <strong>regalar una suscripción</strong> a un amigo, indicando su nombre de usuario y el nivel que deseas obsequiar.</p>
+    .info-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 20px;
+    }
 
-                <p>Si prefieres <strong>apoyar esta iniciativa</strong>, puedes contribuir directamente
-                    <a href="https://www.paypal.com/paypalme/sbbloficial" style="color: #28a745; font-weight: bold;">aquí</a>.</p>
-            </div>
+    .stat-module {
+        background: rgba(0, 242, 254, 0.05);
+        border: 1px solid rgba(0, 242, 254, 0.2);
+        padding: 25px;
+        border-radius: 12px;
+    }
 
-            <div class="mt-4">
-                <h3 class="text-md font-semibold">Aclaraciones</h3>
-                <div class="w-full h-24 bg-gray-100 flex items-center justify-center text-gray-500">
-                    <p>El objetivo es para crear el nacional en las instalaciones de Movistar KOI en Madrid con todo tipo de ayudas y herramientas, premios sorprendentes y mucho más con lo que se ha recaudado íntegramente de las suscripciones a la web, el merchandising y otras cosas que iremos anunciando.</p>
-                    <p>En el caso de no llegar al objetivo se barajarían diferentes opciones para el desarrollo del torneo pudiendo incluso no ser en Madrid ya que tenemos otras ofertas más asequibles pero también muy buenas.</p>
-                    <p>Con todo esto lo que queremos hacer es crear el mayor torneo que llevamos hasta la fecha y que sea una experiencia inolvidable para todos.</p>
-                </div>
-            </div>
-        </div>
-    </div>
+    .stat-header {
+        font-family: 'Roboto Mono', monospace;
+        color: var(--neon-cyan);
+        font-size: 0.85rem;
+        text-transform: uppercase;
+        margin-bottom: 10px;
+        display: block;
+    }
 
-    <div class="requirements-container">
-        <h2 class="mb-4 text-center">Requisitos y plazas para la Gran Copa Nacional 2025</h2>
-        <p class="text-justify">
-            El próximo 7 de julio se celebrará la Gran Copa Nacional 2025 de la SBBL en las instalaciones de Movistar KOI con motivo del cierre de temporada. Contaremos con una realización profesional y de alto nivel para todo el evento, junto a nuestro propio equipo de comentaristas. La financiación de este torneo nace de vuestras aportaciones a la liga, todo lo recaudado hasta ahora y hasta la realización del evento irá destinado al pago del mismo así como premios muy especiales para los participantes. Contamos con la ayuda de todos, cualquier aportación es bienvenida, por pequeña que sea.
+    .stat-value {
+        font-family: 'Orbitron', sans-serif;
+        font-size: 2.2rem;
+        color: #fff;
+        display: block;
+    }
+
+    .btn-cyber {
+        font-family: 'Orbitron', sans-serif;
+        background: var(--neon-cyan);
+        color: #0a192f;
+        padding: 18px 45px;
+        border-radius: 50px;
+        font-weight: 900;
+        text-decoration: none;
+        display: inline-block;
+        transition: all 0.3s;
+        box-shadow: 0 0 20px rgba(0, 242, 254, 0.4);
+        margin-top: 20px;
+    }
+
+    .btn-cyber:hover {
+        transform: scale(1.05);
+        box-shadow: 0 0 40px rgba(0, 242, 254, 0.7);
+    }
+
+    /* Nueva clase para botones secundarios (Contacto) */
+    .btn-cyber-magenta {
+        background: var(--neon-magenta);
+        color: white;
+        box-shadow: 0 0 20px rgba(255, 0, 85, 0.4);
+    }
+    .btn-cyber-magenta:hover {
+        color: white;
+        box-shadow: 0 0 40px rgba(255, 0, 85, 0.7);
+    }
+
+    .protocol-item {
+        background: rgba(255, 255, 255, 0.03);
+        border-radius: 10px;
+        padding: 20px;
+        margin-bottom: 15px;
+    }
+
+    .protocol-item strong {
+        color: var(--neon-cyan);
+        display: block;
+        margin-bottom: 8px;
+    }
+
+    .placeholder-module {
+        text-align: center;
+        padding: 30px;
+        border: 2px dashed rgba(255, 255, 255, 0.2);
+        border-radius: 12px;
+    }
+    .stat-desc {
+        color: white;
+    }
+
+    .price-tag {
+        font-family: 'Orbitron', sans-serif;
+        font-size: 1.5rem;
+        color: var(--neon-cyan);
+        display: block;
+        margin-top: 10px;
+    }
+</style>
+@endsection
+
+@section('content')
+<div class="hero">
+    <h1 class="hero-title">BeyCon España</h1>
+    <div id="countdown">00D : 00H : 00M : 00S</div>
+
+    <div style="margin-top: 10px;">
+        <p style="font-size: 1.2rem; color: var(--text-bright); font-weight: 600;">
+            Sevilla | 18 de Julio | 09:00 AM
         </p>
-
-        <p class="text-justify">
-            Como entenderéis, el número de plazas es limitado, así que se abrirá el día 5 de mayo el formulario de solicitud de participación para la Gran Copa Nacional. Todas las inscripciones se tendrán en cuenta, eligiéndose 80 clasificados bajo los criterios listados en los siguientes puntos. El periodo de inscripción terminará el día 2 de junio.
-        </p>
-
-        <h3 class="mt-4">Requisitos mínimos para participar en la Gran Copa Nacional 2025</h3>
-        <p>Es necesario cumplir AL MENOS uno de ellos</p>
-        <ul>
-            <li>Participación mínima en 4 torneos ranking validados en esta temporada</li>
-            <li>Realización mínima de 10 duelos validados en esta temporada</li>
-            <li>Ser suscriptor de la SBBL</li>
-        </ul>
-
-        <h3>Orden de prioridad</h3>
-        <p>Debido al límite de 80 plazas, una vez cumplido alguno de los requisitos mínimos se establece el siguiente orden de prioridad:</p>
-        <ul>
-            <li>Suscripción de la liga (cualquier nivel)</li>
-            <li>Realización de algún pedido de merch de la liga o donación</li>
-            <li>Número de participaciones en torneos ranking validados esta temporada</li>
-            <li>Número de duelos realizados y validados esta temporada</li>
-            <li>Antigüedad de la cuenta de SBBL</li>
-        </ul>
-
-        <h3>Plazas reservadas para menores de 18</h3>
-        <p>Somos conscientes de que muchos participantes menores de edad no pueden colaborar económicamente con la liga. Por ello, se reservarán el 20% de las plazas (16) para aquellos menores de 18 años que hayan quedado fuera de la criba anterior, siguiendo el siguiente orden de prioridad:</p>
-            <ul>
-                <li>Número de participaciones en torneos ranking validados esta temporada</li>
-                <li>Número de duelos realizados y validados esta temporada</li>
-                <li>Antigüedad de la cuenta de SBBL</li>
-            </ul>
-
-        <p>A los participantes que obtengan su plaza por este medio se les podrá solicitar un documento identificatorio el día del evento para comprobar su edad.</p>
-
-            <h3>Menores de 15 años</h3>
-            <p>Los menores de 15 años clasificados tendrán que venir acompañados por un responsable mayor de edad.</p>
-
+        <p style="color: var(--neon-cyan); font-family: 'Roboto Mono';">HOTEL VÉRTICE ALJARAFE - SEDE OFICIAL NACIONAL</p>
     </div>
 
-    <div class="sponsors">
-        <h2>Patrocinadores</h2>
-        <p>Gracias a nuestros patrocinadores por hacer posible este evento.</p>
-        <div class="row justify-content-center">
-            <div class="col-md-3">
-                <img src="/../images/Movistar_KOIlogo_square.webp" class="img-fluid" alt="Tierra Media">
-            </div>
-            <div class="col-md-3">
-                <img src="/../images/MahouLogo.svg" class="img-fluid" alt="Tierra Media">
-            </div>
-            <div class="col-md-3">
-                <img src="/../images/logotierramedia.png" class="img-fluid" alt="Tierra Media">
-            </div>
-        </div>
-    </div>
-    <div class="container my-4" style="color: white">
-  <h2>Participantes - Adultos</h2>
-  <div class="row m-1 p-2" style="border: 5px solid white; border-radius: 5px;">
-    <div class="col-12 col-sm-6 col-md-4 col-lg-3">A.LOU13</div>
-    <div class="col-12 col-sm-6 col-md-4 col-lg-3">ALX_EJEM</div>
-    <div class="col-12 col-sm-6 col-md-4 col-lg-3">Androide</div>
-    <div class="col-12 col-sm-6 col-md-4 col-lg-3">Arlen</div>
-    <div class="col-12 col-sm-6 col-md-4 col-lg-3">Asefron</div>
-    <div class="col-12 col-sm-6 col-md-4 col-lg-3">Blader V</div>
-    <div class="col-12 col-sm-6 col-md-4 col-lg-3">Calcifer</div>
-    <div class="col-12 col-sm-6 col-md-4 col-lg-3">Chapuzas</div>
-    <div class="col-12 col-sm-6 col-md-4 col-lg-3">Chistes_7r</div>
-    <div class="col-12 col-sm-6 col-md-4 col-lg-3">Cobalto-60</div>
-    <div class="col-12 col-sm-6 col-md-4 col-lg-3">CRISBROWN</div>
-    <div class="col-12 col-sm-6 col-md-4 col-lg-3">Ekumi</div>
-    <div class="col-12 col-sm-6 col-md-4 col-lg-3">El Hechicero</div>
-    <div class="col-12 col-sm-6 col-md-4 col-lg-3">ElKenja</div>
-    <div class="col-12 col-sm-6 col-md-4 col-lg-3">Emperador</div>
-    <div class="col-12 col-sm-6 col-md-4 col-lg-3">Entukara Tomy</div>
-    <div class="col-12 col-sm-6 col-md-4 col-lg-3">Erubita</div>
-    <div class="col-12 col-sm-6 col-md-4 col-lg-3">evapgg28</div>
-    <div class="col-12 col-sm-6 col-md-4 col-lg-3">EXTINTOR</div>
-    <div class="col-12 col-sm-6 col-md-4 col-lg-3">Fernandofrd</div>
-    <div class="col-12 col-sm-6 col-md-4 col-lg-3">Fujen</div>
-    <div class="col-12 col-sm-6 col-md-4 col-lg-3">Gadilongo</div>
-    <div class="col-12 col-sm-6 col-md-4 col-lg-3">Ghlimk</div>
-    <div class="col-12 col-sm-6 col-md-4 col-lg-3">Hell</div>
-    <div class="col-12 col-sm-6 col-md-4 col-lg-3">Hyliandwolf</div>
-    <div class="col-12 col-sm-6 col-md-4 col-lg-3">Jabalí táctico</div>
-    <div class="col-12 col-sm-6 col-md-4 col-lg-3">Jaickote</div>
-    <div class="col-12 col-sm-6 col-md-4 col-lg-3">jellboi</div>
-    <div class="col-12 col-sm-6 col-md-4 col-lg-3">Jivox</div>
-    <div class="col-12 col-sm-6 col-md-4 col-lg-3">Johan</div>
-    <div class="col-12 col-sm-6 col-md-4 col-lg-3">JoseCalvi1</div>
-    <div class="col-12 col-sm-6 col-md-4 col-lg-3">juancho69</div>
-    <div class="col-12 col-sm-6 col-md-4 col-lg-3">KA0S CØR3</div>
-    <div class="col-12 col-sm-6 col-md-4 col-lg-3">KaW</div>
-    <div class="col-12 col-sm-6 col-md-4 col-lg-3">Lana del Bey</div>
-    <div class="col-12 col-sm-6 col-md-4 col-lg-3">Lanza</div>
-    <div class="col-12 col-sm-6 col-md-4 col-lg-3">Lestat</div>
-    <div class="col-12 col-sm-6 col-md-4 col-lg-3">Lil Fruto Seco</div>
-    <div class="col-12 col-sm-6 col-md-4 col-lg-3">Lorz</div>
-    <div class="col-12 col-sm-6 col-md-4 col-lg-3">Lycanpower</div>
-    <div class="col-12 col-sm-6 col-md-4 col-lg-3">Maikelor</div>
-    <div class="col-12 col-sm-6 col-md-4 col-lg-3">MaMeiko</div>
-    <div class="col-12 col-sm-6 col-md-4 col-lg-3">Maverick</div>
-    <div class="col-12 col-sm-6 col-md-4 col-lg-3">Monarch</div>
-    <div class="col-12 col-sm-6 col-md-4 col-lg-3">Oliver Martinez</div>
-    <div class="col-12 col-sm-6 col-md-4 col-lg-3">Oni-sama</div>
-    <div class="col-12 col-sm-6 col-md-4 col-lg-3">PAULA X</div>
-    <div class="col-12 col-sm-6 col-md-4 col-lg-3">Pedro Menezes</div>
-    <div class="col-12 col-sm-6 col-md-4 col-lg-3">Peroxk</div>
-    <div class="col-12 col-sm-6 col-md-4 col-lg-3">Phaze0N</div>
-    <div class="col-12 col-sm-6 col-md-4 col-lg-3">Pinwinazo</div>
-    <div class="col-12 col-sm-6 col-md-4 col-lg-3">Quijote</div>
-    <div class="col-12 col-sm-6 col-md-4 col-lg-3">RedClaw</div>
-    <div class="col-12 col-sm-6 col-md-4 col-lg-3">Ricardo St</div>
-    <div class="col-12 col-sm-6 col-md-4 col-lg-3">SAMU X</div>
-    <div class="col-12 col-sm-6 col-md-4 col-lg-3">Sesiomaru</div>
-    <div class="col-12 col-sm-6 col-md-4 col-lg-3">Shirk</div>
-    <div class="col-12 col-sm-6 col-md-4 col-lg-3">Shurmiky</div>
-    <div class="col-12 col-sm-6 col-md-4 col-lg-3">ThuBerni15x</div>
-    <div class="col-12 col-sm-6 col-md-4 col-lg-3">Thunone</div>
-    <div class="col-12 col-sm-6 col-md-4 col-lg-3">Tragabuche</div>
-    <div class="col-12 col-sm-6 col-md-4 col-lg-3">Wildbyt</div>
-    <div class="col-12 col-sm-6 col-md-4 col-lg-3">XzO</div>
-    <div class="col-12 col-sm-6 col-md-4 col-lg-3">Zaiko</div>
-  </div>
-
-  <h2 class="mt-5">Participantes - Menores</h2>
-  <div class="row m-1 p-2" style="border: 5px solid white; border-radius: 5px;">
-    <div class="col-12 col-sm-6 col-md-4 col-lg-3">Alexkorbo</div>
-    <div class="col-12 col-sm-6 col-md-4 col-lg-3">Arqueos</div>
-    <div class="col-12 col-sm-6 col-md-4 col-lg-3">Darwin</div>
-    <div class="col-12 col-sm-6 col-md-4 col-lg-3">Hyuga</div>
-    <div class="col-12 col-sm-6 col-md-4 col-lg-3">Joel08</div>
-    <div class="col-12 col-sm-6 col-md-4 col-lg-3">Littencito</div>
-    <div class="col-12 col-sm-6 col-md-4 col-lg-3">Lukenix</div>
-    <div class="col-12 col-sm-6 col-md-4 col-lg-3">Megalodon</div>
-    <div class="col-12 col-sm-6 col-md-4 col-lg-3">Mr. H</div>
-    <div class="col-12 col-sm-6 col-md-4 col-lg-3">Nikkito</div>
-    <div class="col-12 col-sm-6 col-md-4 col-lg-3">OmegaManu</div>
-    <div class="col-12 col-sm-6 col-md-4 col-lg-3">Pabluto Moyija</div>
-    <div class="col-12 col-sm-6 col-md-4 col-lg-3">Ritsu</div>
-    <div class="col-12 col-sm-6 col-md-4 col-lg-3">SergioX</div>
-    <div class="col-12 col-sm-6 col-md-4 col-lg-3">Sertryek</div>
-    <div class="col-12 col-sm-6 col-md-4 col-lg-3">Vladimir</div>
-    <div class="col-12 col-sm-6 col-md-4 col-lg-3">XShu_Beyblade</div>
-  </div>
+    <a href="https://forms.gle/ZWugRhfrr9vLAavQ6" target="_blank" class="btn-cyber">
+       REGISTRO DE BLADERS
+    </a>
 </div>
 
+<div class="section-container">
+    <div class="cyber-card">
+        <h2 class="sec-title">Detalles de la Competición</h2>
+        <p style="font-size: 1.1rem; color: var(--text-bright);">
+            ¡La cita definitiva de Beyblade X en España! La BeyCon acogerá los torneos más importantes de la temporada SBBL'26 en un espacio de **800m²** diseñado para la máxima experiencia Blader.
+        </p>
 
-    <!--<div class="hero" style="background: red !important">
-        <h1>Esta página ha sido aprobada por EXTINTOC</h1>
-    </div>-->
-    @endsection
+        <div class="info-grid mt-4">
+            <div class="stat-module">
+                <span class="stat-header">Nacional Individual</span>
+                <span class="stat-value">96</span>
+                <span class="stat-desc">Bladers en formato Suizo G16 + Top 24.</span>
+            </div>
+            <div class="stat-module">
+                <span class="stat-header">Nacional Equipos</span>
+                <span class="stat-value">TOP 16</span>
+                <span class="stat-desc">Los mejores equipos del ranking nacional.</span>
+            </div>
+            <div class="stat-module">
+                <span class="stat-header">Side Events</span>
+                <span class="stat-value">3</span>
+                <span class="stat-desc">Torneos paralelos con premios exclusivos.</span>
+            </div>
+        </div>
+    </div>
+</div>
 
-    @section('scripts')
-    <script>
-        function updateCountdown() {
-            const eventDate = new Date('2025-07-07T00:00:00').getTime();
-            const now = new Date().getTime();
-            const diff = eventDate - now;
+<div class="section-container">
+    <h2 class="sec-title">Pases de Acceso</h2>
+    <div class="row g-4">
+        <div class="col-md-6">
+            <div class="cyber-card text-center h-100" style="border-color: rgba(255,255,255,0.2);">
+                <h4 style="color: #fff;">PASE ASISTENTE</h4>
+                <p class="stat-desc">Acceso al recinto para no participantes de los Nacionales. Incluye acceso a tiendas y Side Events.</p>
+                <span class="price-tag">5€</span>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="cyber-card text-center h-100" style="border-color: var(--neon-gold);">
+                <h4 style="color: var(--neon-gold);">PACK VIP SBBL</h4>
+                <p class="stat-desc">Pase de acceso completo + Pack de Merchandising oficial de la SBBL.</p>
+                <span class="price-tag" style="color: var(--neon-gold);">15€</span>
+            </div>
+        </div>
+    </div>
+</div>
 
-            const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-            const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-            const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-            const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+<div class="section-container">
+    <h2 class="sec-title">Sistema de Clasificación SBBL Individual</h2>
+    <div class="row">
+        <div class="col-md-6 mb-3">
+            <div class="cyber-card h-100">
+                <h4 style="color: var(--neon-cyan);">Nivel 1: Compromiso</h4>
+                <p class="stat-desc">Prioridad según inscripción en Grandes Copas de la temporada:</p>
+                <ul style="color: var(--text-bright);">
+                    <li>Grupo A: 4 Copas (Prioridad absoluta)</li>
+                    <li>Grupo B: 3 Copas</li>
+                    <li>Grupo C: 2 Copas</li>
+                    <li>Grupo D: 1 Copa</li>
+                </ul>
+            </div>
+        </div>
+        <div class="col-md-6 mb-3">
+            <div class="cyber-card h-100">
+                <h4 style="color: var(--neon-magenta);">Nivel 2: Desempates</h4>
+                <p class="stat-desc">Puntos por rendimiento y fidelidad:</p>
+                <ul style="color: var(--text-bright);">
+                    <li><strong>Factor Campeón:</strong> Medallas conseguidas.</li>
+                    <li><strong>Suscripción:</strong> Nivel de sub activa.</li>
+                    <li><strong>Ranking:</strong> Posición actual en la liga.</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
 
-            document.getElementById('countdown').innerText = `${days}d ${hours}h ${minutes}m ${seconds}s`;
+<div class="section-container">
+    <div class="row g-4">
+        <div class="col-md-4">
+            <div class="placeholder-module">
+                <h5 style="color: #fff;">TIENDAS</h5>
+                <p style="color: var(--neon-cyan);">¿¿ ??</p>
+                <p class="stat-desc">Próximamente</p>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="placeholder-module">
+                <h5 style="color: #fff;">SIDE EVENTS</h5>
+                <p style="color: var(--neon-magenta);">¿¿ ??</p>
+                <p class="stat-desc">Próximamente</p>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="placeholder-module">
+                <h5 style="color: #fff;">COLABORADORES</h5>
+                <p style="color: var(--text-soft);">¿¿ ??</p>
+                <p class="stat-desc">Próximamente</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="section-container">
+    <div class="cyber-card text-center" style="border-left: 4px solid var(--neon-magenta);">
+        <h2 class="sec-title" style="border: none; padding-left: 0; margin-bottom: 15px;">¿Quieres Colaborar con la SBBL?</h2>
+        <p style="font-size: 1.1rem; color: var(--text-bright);">
+            Estamos buscando marcas, tiendas y patrocinadores que quieran formar parte del mayor evento de Beyblade en España.
+        </p>
+        <p class="stat-desc mb-4">
+            Si tienes una propuesta comercial o quieres montar un stand en nuestra zona de tiendas, ponte en coctacto con la organización.
+        </p>
+        <a href="mailto:info@sbbl.es" class="btn-cyber btn-cyber-magenta">
+            [ CONTACTAR: info@sbbl.es ]
+        </a>
+    </div>
+</div>
+
+<div class="section-container">
+    <h2 class="sec-title">Preguntas Frecuentes</h2>
+
+    <div class="protocol-item">
+        <strong>¿Cuál es el precio de la entrada si no compito en el Nacional?</strong>
+        <p class="stat-desc">La entrada general de asistente tiene un coste de 5€. Si quieres llevarte el Merch oficial de la liga, puedes adquirir el Pack VIP por 15€.</p>
+    </div>
+
+    <div class="protocol-item">
+        <strong>¿Qué requisitos tiene el torneo por equipos?</strong>
+        <p class="stat-desc">Estar entre los 16 mejores equipos del ranking y que al menos 3 miembros del equipo estén presentes en la BeyCon.</p>
+    </div>
+
+    <div class="protocol-item">
+        <strong>¿Hay límite de edad para los Bladers?</strong>
+        <p class="stat-desc">No, es un evento para toda la comunidad. Los menores de 15 años deberán ir acompañados por un responsable.</p>
+    </div>
+</div>
+
+<div class="section-container text-center" style="padding-bottom: 100px;">
+    <h2 class="sec-title" style="border:none;">Lista de Bladers Seleccionados</h2>
+    <div class="cyber-card" style="border: 2px solid var(--neon-cyan);">
+        <p style="font-family: 'Roboto Mono'; font-size: 1.2rem; color: var(--neon-cyan);">[ SINCRONIZANDO RANKING ]</p>
+        <p style="color: var(--text-bright);">La lista oficial de los 96 Bladers clasificados se publicará tras el cierre del formulario.</p>
+    </div>
+</div>
+@endsection
+
+@section('scripts')
+<script>
+    function updateCountdown() {
+        const eventDate = new Date('2026-07-18T09:00:00').getTime();
+        const now = new Date().getTime();
+        const diff = eventDate - now;
+
+        const countdownEl = document.getElementById('countdown');
+
+        if (diff <= 0) {
+            countdownEl.innerText = "¡3, 2, 1... GO SHOOT!";
+            return;
         }
-        setInterval(updateCountdown, 1000);
-        updateCountdown();
-    </script>
-    @endsection
+
+        const days = Math.floor(diff / (1000 * 60 * 60 * 24)).toString().padStart(2, '0');
+        const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)).toString().padStart(2, '0');
+        const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60)).toString().padStart(2, '0');
+        const seconds = Math.floor((diff % (1000 * 60)) / 1000).toString().padStart(2, '0');
+
+        countdownEl.innerText = `${days}D : ${hours}H : ${minutes}M : ${seconds}S`;
+    }
+    setInterval(updateCountdown, 1000);
+    updateCountdown();
+</script>
+@endsection

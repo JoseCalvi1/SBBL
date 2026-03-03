@@ -64,6 +64,11 @@ Route::domain('conquista.' . env('APP_DOMAIN', 'sbbl.es'))->group(function () {
     Route::post('/market/use-radar', [MarketController::class, 'useRadar'])->name('market.use_radar');
     Route::post('/market/activate', [MarketController::class, 'activate'])->name('market.activate');
 
+    // Ruta para guardar la elección
+    Route::post('/faction/choose', [ConquestController::class, 'choose'])->name('faction.choose');
+    // Ruta para ver las estadísticas (el diagrama)
+    Route::get('/faction/stats', [ConquestController::class, 'stats'])->name('faction.stats');
+
     // Forzar turno
     Route::post('/admin/force-turn', [ConquestController::class, 'forceResolve'])
     ->name('admin.force_resolve')
@@ -91,7 +96,7 @@ Route::get('/policy-privacy', [App\Http\Controllers\InicioController::class, 'pr
 Route::get('/contact-us', [App\Http\Controllers\InicioController::class, 'contact'])->name('inicio.contact');
 Route::post('/contacto', [InicioController::class, 'enviar'])->name('contacto.enviar');
 Route::get('/entrevistas', [App\Http\Controllers\InicioController::class, 'entrevistas'])->name('inicio.entrevistas');
-Route::get('/beyblade-nacional-sbbl-temporada-uno', [App\Http\Controllers\InicioController::class, 'nacional'])->name('inicio.nacional');
+Route::get('/beycon-españa-beyblade-nacional', [App\Http\Controllers\InicioController::class, 'nacional'])->name('inicio.nacional');
 Route::get('/politica-cookies', function () {
     return view('inicio.cookies');
 })->name('politica.cookies');

@@ -94,19 +94,21 @@ public function store(Request $request)
     $data = $request->validate([
         'team_id_1' => 'required',
         'team_id_2' => 'required',
-        'result_1' => 'required',
-        'result_2' => 'required',
+        'result_1'  => 'required',
+        'result_2'  => 'required',
+        'url'       => Auth::user()->is_jury ? 'nullable|url' : 'required|url',
         'modalidad' => 'required',
     ]);
 
     DB::table('teams_versus')->insert([
-        'team_id_1' => $data['team_id_1'],
-        'team_id_2' => $data['team_id_2'],
-        'result_1' => $data['result_1'],
-        'result_2' => $data['result_2'],
-        'matchup' => $data['modalidad'],
-        'status' => 'OPEN',
-        'created_at' => Carbon::now(),
+        'team_id_1'  => $data['team_id_1'],
+        'team_id_2'  => $data['team_id_2'],
+        'result_1'   => $data['result_1'],
+        'result_2'   => $data['result_2'],
+        'matchup'    => $data['modalidad'],
+        'url'        => $data['url'] ?? null,
+        'status'     => 'OPEN',
+        'created_at' => \Carbon\Carbon::now(),
     ]);
 
     // 🔁 Redirige en lugar de renderizar

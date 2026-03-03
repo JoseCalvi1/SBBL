@@ -33,6 +33,11 @@
                             <td>{{ $duel->matchup }}</td>
                             <td>{{ $duel->created_at }}</td>
                             <td>
+                                @if(!empty($duel->url))
+                                    <a href="{{ $duel->url }}" target="_blank" class="btn btn-danger mb-2 d-block">
+                                        Ver Vídeo
+                                    </a>
+                                @endif
                                 <a href="{{ route('teams_versus.edit', ['duel' => $duel->id]) }}" class="btn btn-dark mb-2 d-block">Editar</a>
                                 @if ($duel->status == 'OPEN')
                                     <form method="POST" action="{{ route('teams_versus.puntuarDuelo', ['duel' => $duel->id, 'mode' => $duel->matchup, 'winner' => $duel->team_id_1]) }}" style="display: contents; text-align: center;">

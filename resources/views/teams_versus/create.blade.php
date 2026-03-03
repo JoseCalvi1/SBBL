@@ -81,6 +81,22 @@
             </div>
 
             <div class="form-group">
+                <label for="url">Enlace</label>
+                <input type="url"
+                       name="url"
+                       class="form-control @error('url') is-invalid @enderror"
+                       id="url"
+                       placeholder="https://www.youtube.com/watch?v=..."
+                       value="{{ old('url') }}"
+                />
+                @error('url')
+                    <span class="invalid-feedback d-block" role="alert">
+                        <strong>{{$message}}</strong>
+                    </span>
+                @enderror
+            </div>
+
+            <div class="form-group">
                 <label for="modalidad">Modalidad</label>
                 <select name="modalidad" id="modalidad" class="form-control @error('modalidad') is-invalid @enderror">
                     <option selected value="beybladex">Beyblade X</option>

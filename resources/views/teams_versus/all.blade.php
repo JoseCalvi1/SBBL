@@ -97,6 +97,41 @@
         text-shadow: 0 0 5px black;
     }
 
+    /* NUEVOS ESTILOS PARA FECHA Y VÍDEO */
+    .duel-footer {
+        position: absolute;
+        bottom: 10px;
+        left: 15px;
+        right: 15px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        z-index: 2;
+        font-size: 0.8rem;
+        color: rgba(255, 255, 255, 0.7);
+    }
+
+    .duel-date {
+        font-weight: 500;
+    }
+
+    .duel-video-btn {
+        color: #ff0000;
+        background-color: rgba(255, 255, 255, 0.1);
+        padding: 4px 10px;
+        border-radius: 12px;
+        text-decoration: none;
+        font-weight: bold;
+        transition: background-color 0.2s;
+        border: 1px solid rgba(255, 0, 0, 0.5);
+    }
+
+    .duel-video-btn:hover {
+        background-color: rgba(255, 0, 0, 0.2);
+        color: #ff4d4d;
+        text-decoration: none;
+    }
+
     @keyframes pulseGlow {
         0%, 100% { transform: scale(1); text-shadow: 0 0 5px #ffc107; }
         50% { transform: scale(1.2); text-shadow: 0 0 15px #fff700; }
@@ -144,9 +179,11 @@
         <div class="col-md-4 mb-3">
             <div class="duel-card" style="background-image: url(data:image/png;base64,{{ $duelo->result_1 > $duelo->result_2 ? $duelo->versus_1->image : $duelo->versus_2->image }});">
                 <div class="overlay"></div>
+
                 <div class="duel-mode">
                     {{ $duelo->matchup == "beybladex" ? "Beyblade X" : "Beyblade Burst" }}
                 </div>
+
                 <div class="duel-info mt-3">
                     <div class="duel-player">
                         @if ($duelo->versus_1->logo)
@@ -157,7 +194,9 @@
                         <span class="player-name">{{ $duelo->versus_1->name }}</span>
                         <span class="player-score">{{ $duelo->result_1 }}</span>
                     </div>
+
                     <div class="vs">VS</div>
+
                     <div class="duel-player">
                         <span class="player-score">{{ $duelo->result_2 }}</span>
                         <span class="player-name">{{ $duelo->versus_2->name }}</span>
@@ -167,6 +206,17 @@
                             <img src="/images/logo_new.png" alt="Logo 1" class="player-logo">
                         @endif
                     </div>
+                </div>
+
+                <div class="duel-footer">
+                    <div class="duel-date">
+                        {{ \Carbon\Carbon::parse($duelo->created_at)->format('d/m/Y') }}
+                    </div>
+                    @if(!empty($duelo->url))
+                        <a href="{{ $duelo->url }}" target="_blank" class="duel-video-btn">
+                            ▶ Ver Vídeo
+                        </a>
+                    @endif
                 </div>
             </div>
         </div>
