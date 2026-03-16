@@ -745,7 +745,7 @@
                     <li><a href="{{ route('inicio.events') }}">Calendario de Eventos</a></li>
                     <li><a href="{{ route('profiles.ranking') }}">Rankings Oficiales</a></li>
                     <li><a href="{{ route('profiles.splits') }}">Splits & Temporadas</a></li>
-                    <li><a href="{{ route('versus.all') }}">Historial de Duelos</a></li>
+                    <!--<li><a href="{{ route('versus.all') }}">Historial de Duelos</a></li>-->
                     <li><a href="{{ route('inicio.rules') }}">Reglamento Oficial</a></li>
                 </ul>
             </div>

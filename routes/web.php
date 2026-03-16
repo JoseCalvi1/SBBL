@@ -96,7 +96,7 @@ Route::get('/policy-privacy', [App\Http\Controllers\InicioController::class, 'pr
 Route::get('/contact-us', [App\Http\Controllers\InicioController::class, 'contact'])->name('inicio.contact');
 Route::post('/contacto', [InicioController::class, 'enviar'])->name('contacto.enviar');
 Route::get('/entrevistas', [App\Http\Controllers\InicioController::class, 'entrevistas'])->name('inicio.entrevistas');
-Route::get('/beycon-españa-beyblade-nacional', [App\Http\Controllers\InicioController::class, 'nacional'])->name('inicio.nacional');
+Route::get('/beyblade-nacional-españa', [App\Http\Controllers\InicioController::class, 'nacional'])->name('inicio.nacional');
 Route::get('/politica-cookies', function () {
     return view('inicio.cookies');
 })->name('politica.cookies');

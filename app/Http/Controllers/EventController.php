@@ -260,18 +260,32 @@ class EventController extends Controller
 
         $participantes = User::all();
 
-        $assists = $event->users()->withPivot('puesto')->get();
+        // 1. Cargar asistencias con los equipos
+        $assists = $event->users()->with(['teams'])->withPivot('puesto')->get();
 
-        // CALCULAR NÚMERO DE PARTICIPANTES
-        $totalParticipantes = $assists->count(); // <--- AÑADIR ESTA VARIABLE
+        // 2. Calcular los equipos asistentes
+        $equiposAsistentes = $assists->filter(function ($user) {
+            return $user->active_team;
+        })->groupBy(function ($user) {
+            return $user->active_team->name;
+        })->map(function ($teamMembers, $teamName) {
+            return [
+                'name' => $teamName,
+                'count' => $teamMembers->count(),
+                'color' => $teamMembers->first()->active_team->color ?? '#38bdf8',
+                'members' => $teamMembers->pluck('name')->toArray()
+            ];
+        })->sortByDesc('count');
 
-        // ... (resto de tu código) ...
+        // 3. AQUÍ ESTÁ LA SOLUCIÓN: Definir la variable que daba el error
+        $totalParticipantes = $assists->count();
 
+        // 4. Retornar la vista con todas las variables en el compact
         return view('events.show', array_merge(compact(
             'event', 'videos', 'assists', 'suscribe', 'hoy',
             'bladeOptions', 'assistBladeOptions', 'ratchetOptions', 'bitOptions',
             'results', 'extraLines', 'resultsByParticipant', 'participantes',
-            'totalParticipantes' // <--- AÑADIR AL COMPACT
+            'totalParticipantes', 'equiposAsistentes'
         ), $limits));
     }
 

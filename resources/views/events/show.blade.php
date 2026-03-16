@@ -263,6 +263,7 @@
                             Participantes <span class="badge bg-info text-dark rounded-pill ms-2">{{ $assists->count() }}</span>
                         </h4>
 
+
                         <div class="d-flex gap-2">
                             @if (($event->status == "OPEN") && (Auth::user()->is_admin || Auth::user()->is_referee) && ($diffInHours <= 24 && $diffInHours >= 0))
                                 <form method="POST" action="{{ route('events.estado', ['event' => $event->id, 'estado' => 'inscripcion']) }}">
@@ -281,6 +282,13 @@
                                 </button>
                             @endif
                         </div>
+                    @if(isset($equiposAsistentes) && $equiposAsistentes->isNotEmpty())
+                        <div>
+                            <button type="button" class="btn btn-outline-info btn-sm w-100 fw-bold shadow-sm" data-bs-toggle="modal" data-bs-target="#teamsModal">
+                                <i class="fas fa-users me-2"></i> Ver Equipos Representados ({{ $equiposAsistentes->count() }})
+                            </button>
+                        </div>
+                    @endif
                     </div>
 
                     <div class="p-3 rounded-3 mb-4" style="background-color: rgba(2, 6, 23, 0.5); border: 1px solid #334155;">
@@ -302,6 +310,10 @@
                                 } elseif ($event->stadiums == 2) {
                                     $limit = 30;
                                     $limitText = "Aforo asegurado: 30 participantes (2 Estadios)";
+                                    $alertColor = ($currentCount >= $limit) ? 'danger' : 'info';
+                                } elseif ($event->stadiums == 4) {
+                                    $limit = 45;
+                                    $limitText = "Aforo asegurado: 45 participantes (4 Estadios)";
                                     $alertColor = ($currentCount >= $limit) ? 'danger' : 'info';
                                 }
                             @endphp
@@ -338,7 +350,7 @@
                             @endif
 
                             @php $creator = \App\Models\User::find($event->created_by); @endphp
-                            @if ($creator && !($creator->is_jury || $creator->is_referee))
+                            @if ($creator && !($creator->is_jury || $creator->is_referee || $creator->is_reviewer))
                                 <div class="alert alert-info text-dark small mb-3">
                                     Evento creado por fan. Material no garantizado.
                                 </div>
@@ -425,6 +437,7 @@
                                             if ($event->has_stadium_limit) {
                                                 if ($event->stadiums == 1) $limit = 20; // Límite 1 estadio
                                                 elseif ($event->stadiums == 2) $limit = 30; // Límite 2 estadios
+                                                elseif ($event->stadiums == 4) $limit = 45;
                                             }
                                         @endphp
 
@@ -443,6 +456,13 @@
                                                         <div>
                                                             <div class="fw-bold text-white d-flex align-items-center gap-2">
                                                                 {{ $assist->name }}
+
+                                                                {{-- ETIQUETA DE EQUIPO DEL USUARIO --}}
+                                                                @if($assist->active_team)
+                                                                    <span class="badge" style="background-color: {{ $assist->active_team->color ?? '#475569' }}; font-size: 0.7rem; border: 1px solid rgba(255,255,255,0.2);">
+                                                                        <i class="fas fa-shield-alt me-1"></i>{{ $assist->active_team->name }}
+                                                                    </span>
+                                                                @endif
 
                                                                 {{-- ETIQUETA DE RESERVA --}}
                                                                 @if($isReserve)
@@ -506,9 +526,24 @@
                         @if (($event->status != "CLOSE" && $event->status != "INVALID") && Auth::user()->is_referee || ($event->status == "OPEN" && $event->created_by == Auth::user()->id))
                             <div class="card-footer mt-3 border rounded p-3">
                                 <h6 class="text-warning mb-2 small text-uppercase fw-bold">Cierre de Torneo</h6>
-                                <input type="url" name="iframe" class="form-control form-control-sm mb-2" placeholder="Link YouTube" value="{{ old('iframe', $event->iframe) }}" required>
-                                <input type="url" name="challonge" class="form-control form-control-sm mb-2" placeholder="Link Challonge" value="{{ old('challonge', $event->challonge) }}" required>
-                                <button type="submit" onclick="return confirm('¿Confirmar?');" class="btn btn-primary w-100 btn-sm fw-bold">GUARDAR RESULTADOS</button>
+
+                                <input type="url" name="iframe" autocomplete="off" class="form-control form-control-sm mb-2" style="background-color: rgb(103, 134, 162) !important; color: white !important;" placeholder="Link YouTube" value="{{ old('iframe', $event->iframe) }}" required>
+
+                                <input type="url" name="challonge" autocomplete="off" class="form-control form-control-sm mb-2" style="background-color: rgb(103, 134, 162) !important; color: white !important;" placeholder="Link Challonge" value="{{ old('challonge', $event->challonge) }}" required>
+
+                                <div class="form-check mb-3 mt-2">
+                                    <input class="form-check-input" type="checkbox" id="podioCheck" required>
+                                    <label class="form-check-label small text-white fw-bold" for="podioCheck">
+                                        Confirmar que el Podio ha sido seleccionado correctamente
+                                    </label>
+                                    <div class="invalid-feedback">Debes confirmar el podio antes de guardar.</div>
+                                </div>
+
+                                <button type="submit"
+                                    onclick="if(!document.getElementById('podioCheck').checked) { document.getElementById('podioCheck').reportValidity(); return false; } return confirm('¿Estás seguro de que quieres guardar los resultados?');"
+                                    class="btn btn-primary w-100 btn-sm fw-bold">
+                                    GUARDAR RESULTADOS
+                                </button>
                             </div>
                         @endif
                     </form>
@@ -555,6 +590,46 @@
       </div>
     </div>
   </div>
+</div>
+<div class="modal fade" id="teamsModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content" style="background-color: var(--bg-card); border: 1px solid var(--border-color);">
+            <div class="modal-header border-secondary border-opacity-50">
+                <h5 class="modal-title fw-bold text-white"><i class="fas fa-shield-alt me-2 text-info"></i>Equipos en el evento</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-4">
+                <div class="row g-4">
+                    @foreach($equiposAsistentes as $equipo)
+                        <div class="col-md-6 col-lg-4">
+                            <div class="card h-100 border-0 shadow-sm" style="background-color: var(--bg-body); border-top: 4px solid {{ $equipo['color'] }} !important;">
+                                <div class="card-header border-0 pb-0" style="background-color: transparent;">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <strong class="text-white text-truncate">{{ $equipo['name'] }}</strong>
+                                        <span class="badge bg-light text-dark rounded-circle">{{ $equipo['count'] }}</span>
+                                    </div>
+                                    <hr class="border-secondary mt-2 mb-2">
+                                </div>
+                                <div class="card-body pt-0">
+                                    <ul class="list-unstyled mb-0 small">
+                                        @foreach($equipo['members'] as $member)
+                                            <li class="py-1 text-light d-flex align-items-center gap-2">
+                                                <i class="fas fa-user-circle" style="color: {{ $equipo['color'] }}; opacity: 0.8;"></i>
+                                                {{ $member }}
+                                            </li>
+                                        @endforeach
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    @endforeach
+                </div>
+            </div>
+            <div class="modal-footer border-secondary border-opacity-50">
+                <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cerrar</button>
+            </div>
+        </div>
+    </div>
 </div>
 @include('events.partials.deck_modal')
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>

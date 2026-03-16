@@ -259,6 +259,61 @@
     margin-right: 5px;
     font-family: monospace;
 }
+/* --- BANNER EVENTO ESPECIAL --- */
+    .evento-banner {
+        background: linear-gradient(90deg, rgba(0, 242, 254, 0.1) 0%, rgba(255, 0, 85, 0.1) 100%);
+        border: 1px solid var(--neon-blue);
+        border-left: 4px solid var(--neon-magenta);
+        border-radius: 8px;
+        padding: 10px 20px;
+        margin-top: 15px; /* Separación de la alerta si la hay */
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        text-decoration: none;
+        transition: all 0.3s ease;
+        box-shadow: 0 0 15px rgba(0, 242, 254, 0.1);
+    }
+
+    .evento-banner:hover {
+        background: linear-gradient(90deg, rgba(0, 242, 254, 0.15) 0%, rgba(255, 0, 85, 0.15) 100%);
+        border-color: var(--neon-magenta);
+        box-shadow: 0 0 25px rgba(255, 0, 85, 0.2);
+        transform: translateY(-2px);
+    }
+
+    .evento-banner-text {
+        color: var(--text-bright);
+        font-family: 'Orbitron', sans-serif;
+        font-size: 1.1rem;
+        margin: 0;
+        letter-spacing: 1px;
+    }
+
+    .evento-banner-highlight {
+        color: var(--neon-cyan);
+        font-weight: bold;
+        text-shadow: 0 0 8px rgba(0, 242, 254, 0.4);
+    }
+
+    .evento-banner-btn {
+        background: var(--neon-magenta);
+        color: white;
+        padding: 5px 15px;
+        border-radius: 4px;
+        font-size: 0.9rem;
+        font-family: monospace;
+        font-weight: bold;
+        text-transform: uppercase;
+        border: none;
+        transition: 0.3s;
+    }
+
+    .evento-banner:hover .evento-banner-btn {
+        background: var(--text-bright);
+        color: var(--neon-magenta);
+        box-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+    }
 </style>
 @include('database.partials.mainmenu-styles')
 @endsection
@@ -273,6 +328,19 @@
                 <i class="fas fa-exclamation-triangle"></i> ATENCIÓN: REGIÓN NO ASIGNADA. <a href="{{ route('profiles.edit', ['profile' => Auth::user()->id]) }}" class="text-white fw-bold text-decoration-underline">CONFIGURAR AHORA</a>
             </div>
         @endif
+
+        {{-- BANNER DE EVENTO NACIONAL --}}
+        <div class="container pt-2">
+            <a href="{{ route('inicio.nacional') }}" class="evento-banner">
+                <div class="d-flex align-items-center">
+                    <i class="fas fa-lock text-danger me-3 fs-4" style="animation: pulse-red 2s infinite;"></i>
+                    <p class="evento-banner-text">
+                        Descubre los detalles del <span class="evento-banner-highlight">Gran Nacional SBBL'26</span>
+                    </p>
+                </div>
+                <span class="evento-banner-btn">Ver Detalles <i class="fas fa-chevron-right ms-1"></i></span>
+            </a>
+        </div>
 
         {{-- 2. HERO DASHBOARD: Estado de Temporada + Video Destacado --}}
         <div class="container mt-4">
@@ -299,22 +367,26 @@
                         <div class="timeline-dates">
                             <span>22 JUN 2025</span>
                             <span class="text-center">TEMP. 2</span>
-                            <span>30 JUN 2026</span>
+                            <span>31 MAY 2026</span>
                         </div>
 
                         <hr class="border-secondary my-4">
 
-                        <div class="d-flex justify-content-between align-items-center">
-                            <span class="text-white text-uppercase small" style="letter-spacing: 1px;">Canales de Comunicación</span>
-                            <div class="social-hub">
-                                <a href="https://discord.gg/JCtAHfJ8Ht" target="_blank" title="Discord"><i class="fab fa-discord"></i></a>
-                                <a href="https://www.youtube.com/@sbbl_oficial" target="_blank" title="YouTube"><i class="fab fa-youtube"></i></a>
-                                <a href="https://www.twitch.tv/sbbl_oficial" target="_blank" title="Twitch"><i class="fab fa-twitch"></i></a>
-                                <a href="https://www.instagram.com/sbbl_oficial/" target="_blank" title="Instagram"><i class="fab fa-instagram"></i></a>
-                                <a href="https://x.com/SBBLOficial" target="_blank" title="Twitter"><i class="fab fa-twitter"></i></a>
-                                <!--<a href="https://bsky.app/profile/sbbloficial.bsky.social" target="_blank" title="Bluesky">
-                                     <svg viewBox="0 0 600 600"><path d="m135.72 44.03c66.496 49.921 138.02 151.14 164.28 205.46 26.262-54.316 97.782-155.54 164.28-205.46 47.98-36.021 125.72-63.892 125.72 24.795 0 17.712-10.155 148.79-16.111 170.07-20.703 73.984-96.144 92.854-163.25 81.433 117.3 19.964 147.14 86.092 82.697 152.22-122.39 125.59-175.91-31.511-189.63-71.766-2.514-7.3797-3.6904-10.832-3.7077-7.8964-0.0174-2.9357-1.1937 0.51669-3.7077 7.8964-13.714 40.255-67.233 197.36-189.63 71.766-64.444-66.128-34.605-132.26 82.697-152.22-67.108 11.421-142.55-7.4491-163.25-81.433-5.9562-21.282-16.111-152.36-16.111-170.07 0-88.687 77.742-60.816 125.72-24.795z"/></svg>
-                                </a>-->
+                        <div>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span class="text-white text-uppercase small" style="letter-spacing: 1px;">Canales de Comunicación</span>
+                                <div class="social-hub">
+                                    <a href="https://discord.gg/JCtAHfJ8Ht" target="_blank" title="Discord"><i class="fab fa-discord"></i></a>
+                                    <a href="https://www.youtube.com/@sbbl_oficial" target="_blank" title="YouTube"><i class="fab fa-youtube"></i></a>
+                                    <a href="https://www.twitch.tv/sbbl_oficial" target="_blank" title="Twitch"><i class="fab fa-twitch"></i></a>
+                                    <a href="https://www.instagram.com/sbbl_oficial/" target="_blank" title="Instagram"><i class="fab fa-instagram"></i></a>
+                                    <a href="https://x.com/SBBLOficial" target="_blank" title="Twitter"><i class="fab fa-twitter"></i></a>
+                                    </div>
+                            </div>
+                            <div class="mt-2 text-end">
+                                <small style="color: rgba(255, 255, 255, 0.5); font-size: 0.75rem; font-style: italic;">
+                                    * Nota: Ningún grupo en servicios de mensajería (WhatsApp, Telegram, LINE, etc.) es oficial. Solo los enlaces mostrados aquí.
+                                </small>
                             </div>
                         </div>
                     </div>
@@ -551,11 +623,29 @@
                             <span class="badge bg-secondary">{{ $bestUserProfile->profile->region->name ?? '' }}</span>
                         </div>
 
-                        <div class="mvp-stats d-flex flex-wrap gap-2 text-info font-monospace">
-                            <span><i class="fas fa-star text-warning"></i> {{ $bestUser->total_puntos ?? '0' }} Pts</span>
-                            <span><i class="fas fa-trophy"></i> {{ $bestUserRecord->victorias ?? '0' }} Victorias</span>
-                            <span><i class="fas fa-cog"></i> {{ $bestUserRecord->blade ?? '?' }}/{{ $bestUserRecord->ratchet ?? '?' }}/{{ $bestUserRecord->bit ?? '?' }}</span>
-                        </div>
+<div class="mvp-stats d-flex flex-wrap gap-2 text-info font-monospace">
+    {{-- Puntos totales del mes --}}
+    <span>
+        <i class="fas fa-star text-warning"></i>
+        {{ $bestUser->total_puntos ?? '0' }} Pts
+    </span>
+
+    {{-- Victorias totales del mes --}}
+    <span>
+        <i class="fas fa-trophy"></i>
+        {{ $bestUserRecord->total_victorias_combo ?? '0' }} Victorias
+    </span>
+
+    {{-- Combo con más victorias (las piezas se muestran si existen) --}}
+    <span>
+        <i class="fas fa-cog"></i>
+        @if($bestUserRecord)
+            {{ $bestUserRecord->blade }}/{{ $bestUserRecord->ratchet }}/{{ $bestUserRecord->bit }}
+        @else
+            Sin datos
+        @endif
+    </span>
+</div>
                     </div>
 
                     <div class="col-md-4 text-center mt-4 mt-md-0">
@@ -710,7 +800,7 @@
         const today = new Date();
         const startPre = new Date("2025-06-22");
         const startSeason = new Date("2025-09-01");
-        const endSeason = new Date("2026-06-30");
+        const endSeason = new Date("2026-05-31");
 
         const totalDuration = (endSeason - startPre) / (1000 * 60 * 60 * 24);
         const elapsedDays = (today - startPre) / (1000 * 60 * 60 * 24);

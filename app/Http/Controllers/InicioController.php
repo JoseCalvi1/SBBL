@@ -92,30 +92,47 @@ class InicioController extends Controller
         $bestUserProfile = User::find($bestUser->user_id ?? 1);
 
         if ($bestUser) {
-            $bestUserRecord = TournamentResult::select(
-                    'tournament_results.*',
-                    DB::raw("
-                        CASE
-                            WHEN tournament_results.event_id IS NOT NULL THEN events.date
-                            WHEN tournament_results.versus_id IS NOT NULL THEN versus.created_at
-                            ELSE NULL
-                        END as real_date
-                    ")
-                )
-                ->leftJoin('events', 'tournament_results.event_id', '=', 'events.id')
-                ->leftJoin('versus', 'tournament_results.versus_id', '=', 'versus.id')
-                ->where('tournament_results.user_id', $bestUser->user_id)
-                ->where(function($query) use ($startOfLastMonth, $endOfLastMonth) {
-                    $query->where(function($q) use ($startOfLastMonth, $endOfLastMonth) {
-                        $q->whereNotNull('tournament_results.event_id')
-                        ->whereBetween('events.date', [$startOfLastMonth, $endOfLastMonth]);
-                    })->orWhere(function($q) use ($startOfLastMonth, $endOfLastMonth) {
-                        $q->whereNotNull('tournament_results.versus_id')
-                        ->whereBetween('versus.created_at', [$startOfLastMonth, $endOfLastMonth]);
-                    });
-                })
-                ->orderBy(DB::raw('puntos_ganados / puntos_perdidos'), 'desc')
-                ->first();
+    // 1. Calculamos el TOTAL de victorias globales del usuario en el mes
+    $totalMonthWins = TournamentResult::leftJoin('events', 'tournament_results.event_id', '=', 'events.id')
+        ->leftJoin('versus', 'tournament_results.versus_id', '=', 'versus.id')
+        ->where('tournament_results.user_id', $bestUser->user_id)
+        ->where(function($query) use ($startOfLastMonth, $endOfLastMonth) {
+            $query->where(function($q) use ($startOfLastMonth, $endOfLastMonth) {
+                $q->whereNotNull('tournament_results.event_id')
+                  ->whereBetween('events.date', [$startOfLastMonth, $endOfLastMonth]);
+            })->orWhere(function($q) use ($startOfLastMonth, $endOfLastMonth) {
+                $q->whereNotNull('tournament_results.versus_id')
+                  ->whereBetween('versus.created_at', [$startOfLastMonth, $endOfLastMonth]);
+            });
+        })
+        ->sum('victorias');
+
+    // 2. Buscamos el COMBO (Blade+Ratchet+Bit) con MÁS VICTORIAS ACUMULADAS en el mes
+    $bestUserRecord = TournamentResult::select(
+            'blade', 'ratchet', 'bit',
+            DB::raw('SUM(victorias) as total_victorias_combo')
+        )
+        ->leftJoin('events', 'tournament_results.event_id', '=', 'events.id')
+        ->leftJoin('versus', 'tournament_results.versus_id', '=', 'versus.id')
+        ->where('tournament_results.user_id', $bestUser->user_id)
+        ->where(function($query) use ($startOfLastMonth, $endOfLastMonth) {
+            $query->where(function($q) use ($startOfLastMonth, $endOfLastMonth) {
+                $q->whereNotNull('tournament_results.event_id')
+                  ->whereBetween('events.date', [$startOfLastMonth, $endOfLastMonth]);
+            })->orWhere(function($q) use ($startOfLastMonth, $endOfLastMonth) {
+                $q->whereNotNull('tournament_results.versus_id')
+                  ->whereBetween('versus.created_at', [$startOfLastMonth, $endOfLastMonth]);
+            });
+        })
+        ->groupBy('blade', 'ratchet', 'bit')
+        ->orderByDesc('total_victorias_combo') // Ordenamos por el que más victorias sumó
+        ->first();
+
+    // Añadimos el dato global al objeto para usarlo en la vista
+    if ($bestUserRecord) {
+        $bestUserRecord->total_victorias_mes = $totalMonthWins;
+    }
+
         } else {
             $bestUserRecord = null;
         }
