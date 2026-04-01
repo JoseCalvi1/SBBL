@@ -1,121 +1,102 @@
 @extends('layouts.app')
 
+@section('title', 'Perfil de Piloto - SBBL')
+
 {{--
 |--------------------------------------------------------------------------
-| ESTILOS (GAMIFICACIÓN / PUESTO DE MANDO)
+| ESTILOS ESPECÍFICOS DEL PERFIL
 |--------------------------------------------------------------------------
 --}}
 @section('styles')
 <style>
-    /* --- ESTRUCTURA DE PANELES (Command Center) --- */
-    .command-panel {
-        background-color: #1e1e2f; /* Tu color base original */
-        background: linear-gradient(145deg, #1e1e2f 0%, #161625 100%);
-        border: 1px solid rgba(255, 255, 255, 0.1);
-        border-radius: 12px;
-        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-        overflow: hidden;
-        height: 100%;
-        position: relative;
-    }
-
-    /* Cabeceras de las cajas */
-    .panel-header {
-        background: rgba(0, 0, 0, 0.2);
-        padding: 12px 20px;
-        border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-        color: #adb5bd;
-        font-family: 'Courier New', Courier, monospace; /* Toque técnico */
-        text-transform: uppercase;
-        font-size: 0.85rem;
-        letter-spacing: 1px;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-    }
-
-    /* --- STATS (Marcadores) --- */
-    .stat-box {
-        background: rgba(255, 255, 255, 0.03);
-        border: 1px solid rgba(255, 255, 255, 0.05);
-        border-radius: 8px;
-        padding: 15px;
-        text-align: center;
-        transition: transform 0.2s, border-color 0.2s;
-    }
-    .stat-box:hover {
-        transform: translateY(-3px);
-        border-color: rgba(255, 255, 255, 0.2);
-        background: rgba(255, 255, 255, 0.06);
-    }
-    .stat-value {
-        display: block;
-        font-size: 1.8rem;
-        font-weight: 800;
-        line-height: 1.2;
-    }
-    .stat-label {
-        font-size: 0.75rem;
-        text-transform: uppercase;
-        color: #888;
-        letter-spacing: 0.5px;
-    }
-
-    /* --- AVATAR Y MARCO (Ajustado para el panel) --- */
+    /* --- AVATAR Y MARCO (100% Circulares y Limpios) --- */
     .profile-avatar-container {
         position: relative;
         width: 160px;
         height: 160px;
-        margin: -80px auto 15px auto; /* Margen negativo para subirlo sobre el fondo */
+        margin: -80px auto 15px auto;
         z-index: 10;
+        border-radius: 50%;
     }
-    .profile-img-base, .profile-img-frame {
+    .profile-img-base {
         position: absolute;
         top: 0; left: 0;
         width: 100%; height: 100%;
         object-fit: cover;
+        border-radius: 50% !important;
+        border: 4px solid var(--sbbl-gold);
+        background: var(--sbbl-blue-1); /* Fondo base por si es un gif transparente */
+        box-shadow: 0 4px 15px rgba(0,0,0,0.8);
+    }
+    .profile-img-frame {
+        position: absolute;
+        top: 0; left: 0;
+        width: 100%; height: 100%;
+        object-fit: cover;
+        border-radius: 50% !important;
+        z-index: 2;
     }
 
-    /* --- ESTILOS DE SUSCRIPCIÓN --- */
-    .suscripcion-nivel-3 { color: gold !important; }
-    .suscripcion-nivel-2 { color: #c0e5fb !important; }
-    .suscripcion-nivel-1 { color: #CD7F32 !important; }
-
+    /* --- ETIQUETAS DE SUSCRIPCIÓN --- */
     .sub-badge {
-        font-size: 0.75rem;
-        padding: 4px 8px;
-        border-radius: 4px;
-        border: 1px solid currentColor;
-        background: rgba(0,0,0,0.2);
+        font-family: 'Bangers', cursive;
+        font-size: 1.2rem;
+        padding: 5px 15px;
+        border-radius: 0;
+        border: 2px solid #000;
+        background: #000;
+        letter-spacing: 1px;
+        box-shadow: 3px 3px 0 var(--sbbl-blue-3);
+        transform: skewX(-5deg);
+        display: inline-block;
     }
+    .sub-badge > span { display: block; transform: skewX(5deg); }
 
     /* --- NAV TEMPORAL (Meses) --- */
     .time-nav {
-        background: #101018;
-        border: 1px solid #343a40;
-        border-radius: 50px;
+        background: #000;
+        border: 3px solid var(--sbbl-gold);
+        border-radius: 0;
         padding: 5px 15px;
         display: inline-flex;
         align-items: center;
         gap: 15px;
+        box-shadow: 4px 4px 0 #000;
+        transform: skewX(-5deg);
     }
+    .time-nav > * { transform: skewX(5deg); }
+    .time-nav a { transition: 0.2s; color: #fff; }
+    .time-nav a:hover { color: var(--shonen-cyan) !important; transform: scale(1.2) skewX(5deg); }
+
+    /* --- NOMBRE DEL PILOTO --- */
     .pilot-name {
-        /* Tamaño dinámico: se hace pequeño en móviles (1rem) y crece hasta 1.6rem máximo */
-        font-size: clamp(1rem, 5vw, 1.6rem);
-
-        font-weight: 900;
-        letter-spacing: -0.5px;
-
-        /* AJUSTES PARA QUE NO SE CORTE */
-        white-space: normal; /* Permite que baje de línea si no cabe */
-        word-wrap: break-word; /* Rompe la palabra si es más ancha que la caja */
-        line-height: 1; /* Altura de línea compacta por si ocupa dos renglones */
-
-        /* Centrado y márgenes */
+        font-family: 'Bangers', cursive;
+        font-size: clamp(2.5rem, 5vw, 3.5rem);
+        color: var(--sbbl-gold);
+        text-shadow: 3px 3px 0px #000, 6px 6px 0px var(--sbbl-blue-3);
+        letter-spacing: 2px;
+        white-space: normal;
+        word-wrap: break-word;
+        line-height: 1;
         text-align: center;
         width: 100%;
         display: block;
     }
+
+    /* --- TARJETAS DE EVENTOS (Historial) --- */
+    .event-card-shonen {
+        background: var(--sbbl-blue-2);
+        border: 3px solid #000;
+        border-radius: 0;
+        transition: 0.2s;
+        box-shadow: 5px 5px 0 #000;
+    }
+    .event-card-shonen:hover {
+        border-color: var(--sbbl-gold);
+        box-shadow: 6px 6px 0 var(--shonen-red);
+        transform: translate(-3px, -3px);
+    }
+    .event-card-shonen img { border-bottom: 3px solid #000; }
 </style>
 @endsection
 
@@ -126,18 +107,18 @@
 --}}
 @section('content')
 @if (Auth::check() && (Auth::user()->profile->id == $profile->id || Auth::user()->is_admin))
-<div class="container py-2">
+<div class="container py-4">
 
-    {{-- 1. MENSAJES DEL SISTEMA (Alertas) --}}
+    {{-- 1. MENSAJES DEL SISTEMA (Alertas Globales Heredadas) --}}
     @if(session('success') || session('error'))
         <div class="mb-4">
             @if(session('success'))
-                <div class="alert alert-success bg-dark border-success text-success d-flex align-items-center shadow">
-                    <i class="fa fa-check-circle me-2"></i> {{ session('success') }}
+                <div class="alert alert-shonen alert-shonen-success d-flex align-items-center">
+                    <div><i class="fa fa-check-circle me-2"></i> {{ session('success') }}</div>
                 </div>
             @elseif(session('error'))
-                <div class="alert alert-danger bg-dark border-danger text-danger d-flex align-items-center shadow">
-                    <i class="fa fa-exclamation-triangle me-2"></i> {{ session('error') }}
+                <div class="alert alert-shonen alert-shonen-danger d-flex align-items-center">
+                    <div><i class="fa fa-exclamation-triangle me-2"></i> {{ session('error') }}</div>
                 </div>
             @endif
         </div>
@@ -154,38 +135,45 @@
                             height: 140px;
                             background-size: cover;
                             background-position: center;
-                            opacity: 0.9;">
+                            border-bottom: 4px solid #000;
+                            filter: contrast(1.1) brightness(0.8);">
                 </div>
 
                 <div class="p-4 text-center">
-                    {{-- Avatar --}}
+                    {{-- Avatar Circular --}}
                     <div class="profile-avatar-container">
                         @php
                             $imgPadding = strpos($profile->avatar_url, '.gif') !== false ? 'padding: 15px;' : '';
                         @endphp
-                        <img src="{{ $profile->avatar_url }}" class="rounded-circle profile-img-base" style="{{ $imgPadding }}" loading="lazy">
-                        <img src="{{ $profile->marco_url }}" class="rounded-circle profile-img-frame" loading="lazy">
+                        <img src="{{ $profile->avatar_url }}" class="profile-img-base" style="{{ $imgPadding }}" loading="lazy">
+                        @if($profile->marco_url)
+                            <img src="{{ $profile->marco_url }}" class="profile-img-frame" loading="lazy">
+                        @endif
                     </div>
 
                     {{-- Datos Usuario --}}
-                    <h2 class="text-white pilot-name mb-1" title="{{ $profile->user->name }}">
-                        {{ $profile->user->name }} #{{ str_pad($profile->user->id, 4, '0', STR_PAD_LEFT) }}
+                    <h2 class="pilot-name mb-2" title="{{ $profile->user->name }}">
+                        {{ $profile->user->name }}
+                        <span style="font-size:0.4em; color: #fff; text-shadow: 1px 1px 0 #000; font-family: 'Montserrat', sans-serif; font-weight: 900; display: block; margin-top: 10px;">
+                            #{{ str_pad($profile->user->id, 4, '0', STR_PAD_LEFT) }}
+                        </span>
                     </h2>
-                    <div class="mb-4">
-                        <span class="badge bg-secondary text-uppercase" style="letter-spacing: 1px;">
-                            {{ $profile->region->name ?? 'SIN ASIGNAR' }}
+
+                    <div class="mb-4 mt-3">
+                        <span class="badge bg-black border border-white text-uppercase py-2 px-3 text-white" style="font-family: 'Bangers', cursive; font-size: 1.2rem; letter-spacing: 1px; box-shadow: 3px 3px 0 var(--sbbl-blue-3); transform: skewX(-5deg); display: inline-block;">
+                            <span style="transform: skewX(5deg); display: block;">{{ $profile->region->name ?? 'ZONA DESCONOCIDA' }}</span>
                         </span>
                     </div>
 
                     {{-- Botones de Acción --}}
                     @if (Auth::user()->profile->id == $profile->id)
-                        <div class="d-grid gap-2">
-                            <a href="{{ route('profiles.edit', ['profile' => Auth::user()->id]) }}" class="btn btn-outline-info text-uppercase fw-bold btn-sm">
-                                <i class="fas fa-cog me-1"></i> Ajustes de Perfil
+                        <div class="d-grid gap-3 mt-4">
+                            <a href="{{ route('profiles.edit', ['profile' => Auth::user()->id]) }}" class="btn-shonen btn-shonen-info text-center w-100">
+                                <span><i class="fas fa-cog me-1"></i> CALIBRAR ARMADURA</span>
                             </a>
                             @if($subscription)
-                                <a href="{{ route('collection.index') }}" class="btn btn-outline-warning text-uppercase fw-bold btn-sm">
-                                    <i class="fas fa-box-open me-1"></i> Mi Colección
+                                <a href="{{ route('collection.index') }}" class="btn-shonen btn-shonen-warning text-center w-100">
+                                    <span><i class="fas fa-box-open me-1"></i> ARSENAL (COLECCIÓN)</span>
                                 </a>
                             @endif
                         </div>
@@ -202,11 +190,11 @@
                 <div class="col-12">
                     <div class="command-panel p-0">
                         <div class="panel-header">
-                            <span><i class="fas fa-chart-line me-2"></i>Métricas de Combate</span>
-                            <span class="badge bg-success bg-opacity-25 text-success border border-success">ONLINE</span>
+                            <span><i class="fas fa-chart-line me-2" style="color: var(--sbbl-gold);"></i> Nivel de Poder</span>
+                            <span class="badge bg-white text-dark border border-dark" style="font-family: 'Bangers', cursive; font-size: 1.1rem; transform: skewX(-5deg);"><span style="display:block; transform:skewX(5deg);">ONLINE</span></span>
                         </div>
 
-                        <div class="p-4">
+                        <div class="p-4" style="background: var(--sbbl-blue-1);">
                             @php
                                 $coinCount = 0;
                                 if (Auth::check()) {
@@ -222,15 +210,15 @@
 
                             <div class="row g-3">
                                 <div class="col-sm-6">
-                                    <div class="stat-box">
-                                        <span class="stat-value text-warning">{{ number_format($coinCount) }}</span>
-                                        <span class="stat-label">Lagartos (Coins) 🦎</span>
+                                    <div class="stat-box border-secondary">
+                                        <span class="stat-value" style="color: var(--sbbl-gold);">{{ number_format($coinCount) }}</span>
+                                        <span class="stat-label text-white">Lagartos (Coins) 🦎</span>
                                     </div>
                                 </div>
                                 <div class="col-sm-6">
-                                    <div class="stat-box">
-                                        <span class="stat-value text-info">{{ $profile->points_x2 }}</span>
-                                        <span class="stat-label">Puntos de Rango</span>
+                                    <div class="stat-box border-secondary">
+                                        <span class="stat-value" style="color: var(--shonen-cyan);">{{ $profile->points_x2 }}</span>
+                                        <span class="stat-label text-white">Puntos de Rango</span>
                                     </div>
                                 </div>
                             </div>
@@ -241,62 +229,53 @@
                 {{-- B. LICENCIA Y COMUNICACIONES --}}
                 <div class="col-12">
                     <div class="command-panel p-0">
-                        <div class="panel-header">
-                            <span><i class="fas fa-id-card me-2"></i>Estado & Comunicaciones</span>
+                        <div class="panel-header" style="border-bottom-color: var(--shonen-red);">
+                            <span><i class="fas fa-id-card me-2" style="color: var(--shonen-red);"></i> Estado & Reclutamiento</span>
                         </div>
 
-                        <div class="p-4">
+                        <div class="p-4" style="background: var(--sbbl-blue-1);">
                             {{-- Suscripción --}}
                             @if($subscription)
                                 @php
                                     $planName = strtolower($subscription->plan->slug);
-
-                                    // Valor por defecto (equivalente al 'default' del match)
                                     $claseNivel = 'text-white';
-
-                                    // Lógica tradicional compatible con todas las versiones de PHP
-                                    if ($planName == 'oro') {
-                                        $claseNivel = 'suscripcion-nivel-3';
-                                    } elseif ($planName == 'plata') {
-                                        $claseNivel = 'suscripcion-nivel-2';
-                                    } elseif ($planName == 'bronce') {
-                                        $claseNivel = 'suscripcion-nivel-1';
-                                    }
-
+                                    if ($planName == 'oro') $claseNivel = 'suscripcion-nivel-3';
+                                    elseif ($planName == 'plata') $claseNivel = 'suscripcion-nivel-2';
+                                    elseif ($planName == 'bronce') $claseNivel = 'suscripcion-nivel-1';
                                     $periodo = $subscription->period === 'monthly' ? 'Mensual' : 'Anual';
                                 @endphp
-                                <div class="d-flex flex-wrap align-items-center justify-content-between p-3 rounded mb-3" style="background: rgba(255,255,255,0.03); border: 1px dashed rgba(255,255,255,0.1);">
-                                    <div>
-                                        <h5 class="mb-1 text-uppercase fw-bold {{ $claseNivel }}">
+                                <div class="d-flex flex-wrap align-items-center justify-content-between p-3 mb-3 bg-black border border-secondary" style="transform: skewX(-2deg);">
+                                    <div style="transform: skewX(2deg);">
+                                        <h5 class="mb-1 text-uppercase font-bangers fs-3 {{ $claseNivel }}">
                                             Licencia {{ ucfirst($planName) }}
                                         </h5>
-                                        <small class="text-white">
-                                            Válida hasta: <span class="text-white">{{ $subscription->ended_at->format('d/m/Y') }}</span>
+                                        <small class="text-white fw-bold">
+                                            Válida hasta: <span style="color: var(--shonen-cyan);">{{ $subscription->ended_at->format('d/m/Y') }}</span>
                                         </small>
                                     </div>
-                                    <span class="sub-badge {{ $claseNivel }}">{{ $periodo }}</span>
+                                    <span class="sub-badge {{ $claseNivel }}"><span>{{ $periodo }}</span></span>
                                 </div>
                             @else
-                                <div class="alert alert-dark border-secondary text-center mb-3">
-                                    <small class="text-white">No se detecta licencia activa.</small>
+                                <div class="alert bg-black border border-secondary text-center mb-3" style="border-radius: 0;">
+                                    <span class="text-white fw-bold font-bangers fs-4">NO SE DETECTA AURA ACTIVA.</span>
                                 </div>
                             @endif
 
                             {{-- Invitaciones Pendientes --}}
                             @if(!$invitacionesPendientes->isEmpty())
-                                <div class="mt-4">
-                                    <h6 class="text-danger text-uppercase fs-6 mb-3 border-bottom border-danger pb-2" style="font-family: monospace;">
-                                        ⚠ Solicitudes de Reclutamiento
+                                <div class="mt-4 p-3" style="background: rgba(255, 42, 42, 0.1); border: 2px solid var(--shonen-red);">
+                                    <h6 class="text-danger text-uppercase fs-4 mb-3 font-bangers" style="text-shadow: 1px 1px 0 #000;">
+                                        <i class="fas fa-exclamation-triangle me-2"></i> ¡SOLICITUDES DE FACCIÓN!
                                     </h6>
                                     @foreach ($invitacionesPendientes as $invitacion)
-                                        <div class="d-flex justify-content-between align-items-center bg-dark p-2 rounded border border-secondary mb-2">
-                                            <span class="text-white small">Equipo: <strong>{{ $invitacion->team->name }}</strong></span>
-                                            <div>
+                                        <div class="d-flex justify-content-between align-items-center bg-black p-2 border border-danger mb-2" style="transform: skewX(-5deg);">
+                                            <span class="text-white fw-bold small ms-2" style="transform: skewX(5deg); font-size: 1rem;">Sindicato: <strong style="color: var(--sbbl-gold); font-family: 'Bangers', cursive; font-size: 1.3rem; letter-spacing: 1px;">{{ $invitacion->team->name }}</strong></span>
+                                            <div style="transform: skewX(5deg);">
                                                 <form action="{{ route('invitations.accept', $invitacion) }}" method="POST" class="d-inline">
-                                                    @csrf <button class="btn btn-success btn-sm py-0 px-2">✓</button>
+                                                    @csrf <button class="btn btn-success btn-sm rounded-0 border-dark fw-bold px-3" style="box-shadow: 2px 2px 0 #000;">ACEPTAR</button>
                                                 </form>
                                                 <form action="{{ route('invitations.reject', $invitacion) }}" method="POST" class="d-inline">
-                                                    @csrf <button class="btn btn-danger btn-sm py-0 px-2">✕</button>
+                                                    @csrf <button class="btn btn-danger btn-sm rounded-0 border-dark fw-bold px-3" style="box-shadow: 2px 2px 0 #000;">RECHAZAR</button>
                                                 </form>
                                             </div>
                                         </div>
@@ -317,9 +296,9 @@
         <div class="command-panel p-4">
 
             {{-- Header con Navegación --}}
-            <div class="d-flex flex-column flex-md-row justify-content-between align-items-center mb-4 pb-3 border-bottom border-secondary">
-                <h3 class="h5 text-white text-uppercase mb-3 mb-md-0" style="font-family: monospace;">
-                    <i class="fas fa-calendar-alt me-2"></i>Registro de Eventos
+            <div class="d-flex flex-column flex-md-row justify-content-between align-items-center mb-4 pb-3 border-bottom border-dark" style="border-width: 4px !important;">
+                <h3 class="font-bangers text-white text-uppercase mb-3 mb-md-0" style="font-size: 2.5rem; text-shadow: 2px 2px 0 #000;">
+                    <i class="fas fa-calendar-alt me-2" style="color: var(--sbbl-gold);"></i> Registro de Batallas
                 </h3>
 
                 {{-- Navegación Meses --}}
@@ -329,9 +308,9 @@
                     $monthName = \Carbon\Carbon::create($currentYear, $currentMonth)->translatedFormat('F Y');
                 @endphp
                 <div class="time-nav">
-                    <a href="{{ $prevMonthUrl }}" class="text-secondary text-decoration-none fs-5 hover-white"><i class="fas fa-chevron-left"></i></a>
-                    <span class="text-info fw-bold text-uppercase" style="min-width: 120px; text-align: center;">{{ $monthName }}</span>
-                    <a href="{{ $nextMonthUrl }}" class="text-secondary text-decoration-none fs-5 hover-white"><i class="fas fa-chevron-right"></i></a>
+                    <a href="{{ $prevMonthUrl }}" class="text-white text-decoration-none fs-5"><span><i class="fas fa-chevron-left"></i></span></a>
+                    <span class="fw-bold text-uppercase font-bangers fs-4 text-white" style="min-width: 120px; text-align: center;"><span>{{ $monthName }}</span></span>
+                    <a href="{{ $nextMonthUrl }}" class="text-white text-decoration-none fs-5"><span><i class="fas fa-chevron-right"></i></span></a>
                 </div>
             </div>
 
@@ -339,29 +318,30 @@
             <div class="row">
                 @forelse ($eventos as $evento)
                     <div class="col-sm-6 col-md-4 col-lg-3 mb-4">
-                        <div class="card h-100 bg-dark text-white border border-secondary shadow-sm" style="transition: transform 0.2s;">
+                        <div class="card h-100 event-card-shonen">
                             {{-- Imagen Evento --}}
                             @php
                                 $eventImageUrl = $evento->image_mod ? 'data:image/png;base64,' . $evento->image_mod : "/storage/{$evento->imagen}";
                             @endphp
-                            <div style="height: 150px; background: url('{{ $eventImageUrl }}') center center no-repeat; background-size: cover; border-bottom: 1px solid rgba(255,255,255,0.1);"></div>
+                            <div style="height: 150px; background: url('{{ $eventImageUrl }}') center center no-repeat; background-size: cover; border-radius: 0;"></div>
 
-                            <div class="card-body d-flex flex-column p-3">
-                                <h6 class="fw-bold text-truncate mb-1">{{ $evento->name }}</h6>
-                                <p class="small text-secondary mb-2">{{ $evento->region->name }}</p>
+                            <div class="card-body d-flex flex-column p-3 bg-transparent">
+                                <h5 class="font-bangers text-white text-truncate mb-1 fs-4" style="letter-spacing: 1px;">{{ $evento->name }}</h5>
+                                <p class="small text-white mb-2 fw-bold text-uppercase opacity-75">{{ $evento->region->name }}</p>
                                 <div class="mt-auto">
-                                    <p class="small text-info mb-2"><event-date fecha="{{ $evento->date }}"></event-date></p>
-                                    <a href="{{ route('events.show', ['event' => $evento->id]) }}" class="btn btn-outline-light btn-sm w-100 text-uppercase fw-bold" style="font-size: 0.7rem;">
-                                        Ver Informe
+                                    <p class="small mb-3 font-bangers text-white fs-5" style="text-shadow: 1px 1px 0 #000;"><event-date fecha="{{ $evento->date }}"></event-date></p>
+                                    <a href="{{ route('events.show', ['event' => $evento->id]) }}" class="btn-shonen btn-shonen-info w-100 text-center" style="padding: 5px;">
+                                        <span>REVISAR LOG</span>
                                     </a>
                                 </div>
                             </div>
                         </div>
                     </div>
                 @empty
-                    <div class="col-12 py-5 text-center">
-                        <div class="text-white" style="font-family: monospace;">
-                            -- NO HAY ACTIVIDAD REGISTRADA EN ESTE SECTOR TEMPORAL --
+                    <div class="col-12 py-5 text-center bg-black" style="border: 3px solid #333;">
+                        <div class="font-bangers text-white opacity-50" style="font-size: 2rem;">
+                            <i class="fas fa-search d-block mb-3" style="font-size: 3rem;"></i>
+                            NO SE DETECTA ACTIVIDAD EN ESTE PERIODO
                         </div>
                     </div>
                 @endforelse

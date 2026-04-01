@@ -557,4 +557,146 @@ class InicioController extends Controller
         return view('inicio.event-stats');
     }
 
+    private function getRankingQuery()
+    {
+        // Centralizamos la consulta para que sea idéntica en ambos métodos
+        return "
+            WITH
+            BaseResultados AS (
+                SELECT a.user_id,
+                    CASE
+                        WHEN e.name LIKE 'COPA LET IT R.I.P.%' THEN 'let_it_rip'
+                        WHEN e.name LIKE 'COPA X-MAS%' THEN 'xmas'
+                        WHEN e.name LIKE 'COPA LIGERA REVIVAL%' THEN 'ligera'
+                        WHEN e.name LIKE 'COPA ONLY ATTACK%' THEN 'attack'
+                        ELSE 'otra'
+                    END AS tipo_copa,
+                    CASE
+                        WHEN a.puesto IN ('primero') THEN 3
+                        WHEN a.puesto IN ('segundo') THEN 2
+                        WHEN a.puesto IN ('tercero') THEN 1
+                        ELSE 0
+                    END AS puntos_partida
+                FROM assist_user_event a
+                JOIN events e ON a.event_id = e.id
+                WHERE e.beys = 'grancopa' AND e.date >= '2025-09-01'
+            ),
+            CupAggregates AS (
+                SELECT user_id, COUNT(DISTINCT tipo_copa) AS copas_inscritas, SUM(max_puntos_copa) AS puntos_campeon
+                FROM (
+                    SELECT user_id, tipo_copa, MAX(puntos_partida) AS max_puntos_copa
+                    FROM BaseResultados WHERE tipo_copa != 'otra'
+                    GROUP BY user_id, tipo_copa
+                ) mejores_resultados
+                GROUP BY user_id
+            ),
+            RankingPoints AS (
+                SELECT user_id, points_x2,
+                    CASE
+                        WHEN points_x2 >= 95 THEN 6
+                        WHEN points_x2 >= 79 THEN 5
+                        WHEN points_x2 >= 59 THEN 4
+                        WHEN points_x2 >= 39 THEN 3
+                        WHEN points_x2 >= 23 THEN 2
+                        ELSE 1
+                    END AS puntos_ranking
+                FROM profiles
+            ),
+            FidelidadPoints AS (
+                SELECT user_id,
+                    MAX(CASE
+                        WHEN plan_id = 3 THEN 3
+                        WHEN plan_id = 2 THEN 2
+                        WHEN plan_id = 1 THEN 1
+                        ELSE 0
+                    END) AS puntos_fidelidad
+                FROM subscriptions
+                WHERE status = 'active'
+                  AND (period = 'annual' OR (period = 'monthly' AND started_at <= DATE_SUB(CURDATE(), INTERVAL 6 MONTH)))
+                GROUP BY user_id
+            )
+            SELECT
+                ROW_NUMBER() OVER (
+                    ORDER BY COALESCE(ca.copas_inscritas, 0) DESC,
+                    (COALESCE(ca.puntos_campeon, 0) + COALESCE(fp.puntos_fidelidad, 0) + COALESCE(rp.puntos_ranking, 1)) DESC
+                ) AS posicion,
+                u.id AS raw_id,
+                CONCAT('#', LPAD(u.id, 4, '0')) AS id_formateado,
+                u.name AS nombre_usuario,
+                COALESCE(ca.copas_inscritas, 0) AS copas_inscritas,
+                CASE
+                    WHEN COALESCE(ca.copas_inscritas, 0) >= 4 THEN 'Grupo A'
+                    WHEN COALESCE(ca.copas_inscritas, 0) = 3  THEN 'Grupo B'
+                    WHEN COALESCE(ca.copas_inscritas, 0) = 2  THEN 'Grupo C'
+                    WHEN COALESCE(ca.copas_inscritas, 0) = 1  THEN 'Grupo D'
+                END AS grupo_prioridad,
+                (COALESCE(ca.puntos_campeon, 0) + COALESCE(fp.puntos_fidelidad, 0) + COALESCE(rp.puntos_ranking, 1)) AS total_desempate,
+                COALESCE(ca.puntos_campeon, 0) AS pt_campeon,
+                COALESCE(fp.puntos_fidelidad, 0) AS pt_fidelidad,
+                COALESCE(rp.puntos_ranking, 1) AS pt_ranking
+            FROM users u
+            JOIN CupAggregates ca ON u.id = ca.user_id
+            LEFT JOIN RankingPoints rp ON u.id = rp.user_id
+            LEFT JOIN FidelidadPoints fp ON u.id = fp.user_id
+            ORDER BY copas_inscritas DESC, total_desempate DESC;
+        ";
+    }
+
+    public function rankingNacional()
+    {
+        $participantes = DB::select($this->getRankingQuery());
+
+        // Enviamos el mismo nombre de variables que usa el proceso del CSV
+        // para que la vista no falle
+        return view('admin.dashboard.rankingNacional', [
+            'listaIndividual' => collect($participantes),
+            'listaEquipos' => collect([]), // Vacío en vista general
+            'esBusquedaCsv' => false
+        ]);
+    }
+
+    public function mostrarFormulario()
+    {
+        return view('admin.dashboard.importar');
+    }
+
+    public function procesarCsv(Request $request)
+    {
+        $request->validate(['archivo_csv' => 'required|file|mimes:csv,txt|max:2048']);
+        $file = $request->file('archivo_csv');
+        $handle = fopen($file->getRealPath(), "r");
+        $solicitudesIndividual = []; $solicitudesEquipos = []; $header = true;
+
+        while (($row = fgetcsv($handle, 1000, ",")) !== FALSE) {
+            if ($header) { $header = false; continue; }
+            $identificador = $row[1] ?? ''; $torneos = $row[2] ?? '';
+            $partes = explode('#', $identificador);
+            $nombreCsv = strtolower(trim($partes[0]));
+            $idCsv = isset($partes[1]) ? (int) trim($partes[1]) : null;
+            $datosBusqueda = ['id' => $idCsv, 'nombre' => $nombreCsv];
+
+            if (strpos($torneos, "NACIONAL'26 Individual") !== false) $solicitudesIndividual[] = $datosBusqueda;
+            if (strpos($torneos, "NACIONAL'26 Equipos") !== false) $solicitudesEquipos[] = $datosBusqueda;
+        }
+        fclose($handle);
+
+        $todosLosParticipantes = DB::select($this->getRankingQuery());
+
+        $filtrar = function($maestro, $solicitudes) {
+            return collect($maestro)->filter(function($jugador) use ($solicitudes) {
+                foreach ($solicitudes as $s) {
+                    if ($s['id'] !== null && $s['id'] === $jugador->raw_id) return true;
+                    if ($s['id'] === null && $s['nombre'] === strtolower(trim($jugador->nombre_usuario))) return true;
+                }
+                return false;
+            })->values();
+        };
+
+        return view('admin.dashboard.rankingNacional', [
+            'listaIndividual' => $filtrar($todosLosParticipantes, $solicitudesIndividual),
+            'listaEquipos' => $filtrar($todosLosParticipantes, $solicitudesEquipos),
+            'esBusquedaCsv' => true
+        ]);
+    }
+
 }

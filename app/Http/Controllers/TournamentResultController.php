@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use Carbon\Carbon;
 use App\Models\TournamentResult;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -74,8 +75,8 @@ public function beybladeStats(Request $request)
     $sort = $request->get('sort', 'percentage_victories');
     $order = $request->get('order', 'desc');
     $minPartidas = $request->get('min_partidas', 10);
-    $fechaInicio = $request->get('fecha_inicio'); // Nuevo: Capturar fecha
-    $fechaFin = $request->get('fecha_fin');       // Nuevo: Capturar fecha
+    $fechaInicio = $request->get('fecha_inicio');
+    $fechaFin = $request->get('fecha_fin');
 
     // 2. Listas para los selects
     $parts = DB::table('tournament_results')
@@ -115,7 +116,7 @@ public function beybladeStats(Request $request)
 
     // 4. Aplicar Filtros
     if ($request->filled('blade')) $query->where('blade', $request->blade);
-    if ($request->filled('assist_blade')) $query->where('assist_blade', $request->assist_blade); // Filtro opcional si quisieras usarlo
+    if ($request->filled('assist_blade')) $query->where('assist_blade', $request->assist_blade);
     if ($request->filled('ratchet')) $query->where('ratchet', $request->ratchet);
     if ($request->filled('bit')) $query->where('bit', $request->bit);
 
@@ -132,10 +133,93 @@ public function beybladeStats(Request $request)
         ->orderBy($sort, $order)
         ->get();
 
+    // ====================================================================
+    // 6. LÓGICA DEL TOP 5 SEMANAL (TENDENCIAS) DE COMBOS
+    // ====================================================================
+    $inicioEstaSemana = Carbon::now()->startOfWeek()->format('Y-m-d');
+    $finEstaSemana = Carbon::now()->endOfWeek()->format('Y-m-d');
+    $inicioSemanaPasada = Carbon::now()->subWeek()->startOfWeek()->format('Y-m-d');
+    $finSemanaPasada = Carbon::now()->subWeek()->endOfWeek()->format('Y-m-d');
+
+    // Función auxiliar para sacar los COMBOS completos más usados
+    $getTopCombos = function($inicio, $fin) {
+        $data = DB::table('tournament_results')
+            ->select(
+                'blade',
+                DB::raw("CASE WHEN assist_blade LIKE '%Selecciona%' OR assist_blade IS NULL THEN '-' ELSE assist_blade END as assist_blade"),
+                'ratchet',
+                'bit',
+                DB::raw('COUNT(*) as usos')
+            )
+            ->whereDate('created_at', '>=', $inicio)
+            ->whereDate('created_at', '<=', $fin)
+            ->where('blade', '!=', '')
+            ->where('blade', 'NOT LIKE', '%Selecciona%')
+            ->groupBy('blade', 'assist_blade', 'ratchet', 'bit')
+            ->orderByDesc('usos')
+            ->get();
+
+        $formateado = [];
+        foreach ($data as $item) {
+            // Construimos el nombre completo del combo
+            $nombreCombo = $item->blade;
+            if ($item->assist_blade !== '-') {
+                $nombreCombo .= ' + ' . $item->assist_blade;
+            }
+            $nombreCombo .= ' | ' . $item->ratchet . ' · ' . $item->bit;
+
+            $formateado[$nombreCombo] = $item->usos;
+        }
+        return $formateado;
+    };
+
+    $combosEstaSemana = $getTopCombos($inicioEstaSemana, $finEstaSemana);
+    $combosSemanaPasada = $getTopCombos($inicioSemanaPasada, $finSemanaPasada);
+
+    $topCombosEstaSemana = array_slice($combosEstaSemana, 0, 5, true); // Tomar solo los 5 primeros
+    $topSemanal = [];
+    $posicionActual = 1;
+
+    foreach ($topCombosEstaSemana as $nombre => $usos) {
+        $tendencia = 'new';
+        $claseTendencia = 'text-info';
+        $iconoTendencia = '✨'; // Nuevo en el top
+
+        $posicionPasada = 1;
+        $encontrado = false;
+        foreach ($combosSemanaPasada as $nombrePasado => $usosPasado) {
+            if ($nombre === $nombrePasado) {
+                $encontrado = true;
+                break;
+            }
+            $posicionPasada++;
+        }
+
+        if ($encontrado) {
+            if ($posicionActual < $posicionPasada) {
+                $claseTendencia = 'text-success'; $iconoTendencia = '⬆️'; // Sube
+            } elseif ($posicionActual > $posicionPasada) {
+                $claseTendencia = 'text-danger'; $iconoTendencia = '⬇️'; // Baja
+            } else {
+                $claseTendencia = 'text-secondary'; $iconoTendencia = '➖'; // Se mantiene
+            }
+        }
+
+        $topSemanal[] = (object)[
+            'posicion' => $posicionActual,
+            'nombre' => $nombre,
+            'usos' => $usos,
+            'tendencia_clase' => $claseTendencia,
+            'tendencia_icono' => $iconoTendencia
+        ];
+        $posicionActual++;
+    }
+    // ====================================================================
+
     return view('inicio.stats', compact(
         'beybladeStats', 'sort', 'order', 'minPartidas',
         'blades', 'assistBlades', 'ratchets', 'bits',
-        'fechaInicio', 'fechaFin' // Pasamos las fechas a la vista
+        'fechaInicio', 'fechaFin', 'topSemanal' // Mantenemos la variable
     ));
 }
 

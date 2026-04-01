@@ -150,6 +150,9 @@ Route::put('/profiles/update-roles/{user}', [ProfileController::class, 'updateRo
 Route::get('/ranking-splits', [ProfileController::class, 'rankingPorSplits'])->name('profiles.splits');
 Route::get('/bladers/{id}/details', [ProfileController::class, 'getDetails'])->name('blader.details');
 Route::get('/rankings', [App\Http\Controllers\ProfileController::class, 'ranking'])->name('profiles.ranking');
+Route::get('/blader/{slug}', [ProfileController::class, 'showPublic'])
+    ->name('blader.public')
+    ->where('slug', '[a-zA-Z0-9._\-]+');
 // Ruta temporal para limpiar caché desde el navegador
 Route::get('/limpiar-cache', function () {
     \Illuminate\Support\Facades\Artisan::call('cache:clear');
@@ -244,7 +247,9 @@ Route::group(['middleware' => 'admin'], function () {
     Route::put('/pedidos/{pedido}', [\App\Http\Controllers\Admin\PedidoController::class, 'update'])->name('admin.pedidos.update');
     Route::delete('/pedidos/{pedido}', [\App\Http\Controllers\Admin\PedidoController::class, 'destroy'])->name('admin.pedidos.destroy');
 });
-
+    Route::get('/nacional/ranking', [InicioController::class, 'rankingNacional'])->name('nacional.ranking');
+    Route::post('/nacional/procesar-csv', [InicioController::class, 'procesarCsv'])->name('nacional.procesar');
+    Route::get('/nacional/importar', [InicioController::class, 'mostrarFormulario'])->name('nacional.importar');
 Route::get('/beyblade-database', [BeybladeDatabaseController::class, 'index'])->name('database.index');
 
 // Rutas de partes admin (blades, ratchets, bits)

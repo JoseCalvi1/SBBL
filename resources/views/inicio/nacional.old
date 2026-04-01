@@ -1,0 +1,431 @@
+
+@extends('layouts.app')
+
+@section('title', 'Evento Clasificado 2026 - Nacional SBBL')
+
+@section('styles')
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700;900&family=Inter:wght@300;400;600&family=Roboto+Mono:wght@500&display=swap" rel="stylesheet">
+<style>
+    :root {
+        --bg-deep-blue: #0a192f;
+        --neon-cyan: #00f2fe;
+        --neon-magenta: #ff0055;
+        --neon-gold: #ffd500;
+        --glass-bg: rgba(255, 255, 255, 0.05);
+        --text-bright: #ffffff;
+        --text-soft: #ccd6f6;
+    }
+
+    body {
+        background-color: var(--bg-deep-blue);
+        /* EFECTO GRID CYBERPUNK EN EL FONDO */
+        background-image:
+            linear-gradient(rgba(0, 242, 254, 0.03) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(0, 242, 254, 0.03) 1px, transparent 1px);
+        background-size: 40px 40px;
+        background-attachment: fixed;
+        color: var(--text-soft);
+        font-family: 'Inter', sans-serif;
+        line-height: 1.6;
+        overflow-x: hidden;
+    }
+
+    .hero {
+        position: relative;
+        padding: 150px 20px 180px 20px;
+        text-align: center;
+        background: linear-gradient(to bottom, rgba(10, 25, 47, 0.4), var(--bg-deep-blue)),
+                    url('/../images/fondo_banner_nacional.webp');
+        background-size: cover;
+        background-position: center;
+        border-bottom: 1px solid rgba(0, 242, 254, 0.3);
+    }
+
+    .hero-title {
+        font-family: 'Orbitron', sans-serif;
+        font-size: clamp(2.5rem, 6vw, 5rem);
+        font-weight: 900;
+        text-transform: uppercase;
+        letter-spacing: 2px;
+        background: linear-gradient(to right, #ffffff, var(--neon-cyan), #ffffff, var(--neon-magenta));
+        background-size: 300% auto;
+        color: var(--text-bright);
+        background-clip: text;
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        animation: textShine 4s linear infinite;
+        filter: drop-shadow(0 0 10px rgba(0, 242, 254, 0.4));
+        margin-bottom: 5px;
+    }
+
+    .hero-subtitle {
+        font-family: 'Roboto Mono', monospace;
+        font-size: 1.5rem;
+        color: var(--neon-magenta);
+        letter-spacing: 5px;
+        margin-bottom: 20px;
+        text-shadow: 0 0 10px rgba(255, 0, 85, 0.5);
+    }
+
+    @keyframes textShine {
+        to { background-position: 300% center; }
+    }
+
+    #countdown {
+        font-family: 'Roboto Mono', monospace;
+        font-size: clamp(1.5rem, 5vw, 3.5rem);
+        color: var(--neon-cyan);
+        background: rgba(0, 0, 0, 0.6);
+        backdrop-filter: blur(5px);
+        display: inline-block;
+        padding: 15px 40px;
+        border-radius: 12px;
+        border: 1px solid rgba(0, 242, 254, 0.5);
+        margin: 10px 0 25px 0;
+        box-shadow: 0 0 20px rgba(0, 242, 254, 0.2);
+    }
+
+    .btn-cyber {
+        font-family: 'Orbitron', sans-serif;
+        background: var(--neon-cyan);
+        color: #0a192f;
+        padding: 18px 45px;
+        border-radius: 50px;
+        font-weight: 900;
+        font-size: 1.1rem;
+        text-decoration: none;
+        display: inline-block;
+        transition: all 0.3s;
+        box-shadow: 0 0 20px rgba(0, 242, 254, 0.4);
+        margin-top: 15px;
+        border: none;
+        cursor: pointer;
+    }
+
+    .btn-cyber:hover {
+        transform: scale(1.05) translateY(-2px);
+        box-shadow: 0 0 40px rgba(0, 242, 254, 0.8);
+        color: #0a192f;
+    }
+
+    .btn-cyber-magenta {
+        background: var(--neon-magenta);
+        color: white;
+        box-shadow: 0 0 20px rgba(255, 0, 85, 0.4);
+    }
+
+    .btn-cyber-magenta:hover {
+        color: white;
+        box-shadow: 0 0 40px rgba(255, 0, 85, 0.8);
+    }
+
+    .teaser-container {
+        max-width: 850px;
+        margin: -80px auto 40px auto;
+        padding: 0 20px;
+        position: relative;
+        z-index: 10;
+    }
+
+    .game-container {
+        max-width: 850px;
+        margin: 0 auto 100px auto;
+        padding: 0 20px;
+    }
+
+    .cyber-card {
+        background: var(--glass-bg);
+        backdrop-filter: blur(15px);
+        -webkit-backdrop-filter: blur(15px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-top: 4px solid var(--neon-magenta);
+        padding: 50px 40px;
+        border-radius: 16px;
+        text-align: center;
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+    }
+
+    .typing-effect {
+        font-family: 'Roboto Mono', monospace;
+        color: var(--neon-cyan);
+        white-space: nowrap;
+        overflow: hidden;
+        border-right: 3px solid var(--neon-cyan);
+        width: fit-content;
+        margin: 0 auto;
+        animation: typing 3s steps(40, end), blink-caret .75s step-end infinite;
+    }
+
+    @keyframes typing { from { width: 0 } to { width: 100% } }
+    @keyframes blink-caret { from, to { border-color: transparent } 50% { border-color: var(--neon-cyan); } }
+
+    /* ESTILOS DEL MINIJUEGO */
+    #minigame-container {
+        border: 2px solid var(--neon-cyan);
+        border-radius: 12px;
+        padding: 30px;
+        background: rgba(0, 0, 0, 0.5);
+        text-align: center;
+        margin-top: 30px;
+        position: relative;
+    }
+
+    #game-level {
+        position: absolute;
+        top: 20px;
+        right: 20px;
+        font-family: 'Orbitron', sans-serif;
+        font-size: 1.3rem;
+        color: var(--neon-cyan);
+        text-shadow: 0 0 10px rgba(0, 242, 254, 0.5);
+        font-weight: bold;
+        transition: color 0.3s, text-shadow 0.3s;
+    }
+
+    #game-record {
+        position: absolute;
+        top: 45px;
+        right: 20px;
+        font-family: 'Orbitron', sans-serif;
+        font-size: 0.9rem;
+        color: var(--neon-magenta);
+        text-shadow: 0 0 5px rgba(255, 0, 85, 0.5);
+        font-weight: bold;
+    }
+
+    #game-bar-bg {
+        width: 100%;
+        height: 40px;
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 20px;
+        position: relative;
+        overflow: hidden;
+        margin: 30px 0;
+        border: 1px solid rgba(255,255,255,0.2);
+    }
+
+    #game-target {
+        position: absolute;
+        height: 100%;
+        width: 12%;
+        background: rgba(0, 255, 136, 0.4);
+        left: 75%;
+        border-left: 2px solid #00ff88;
+        border-right: 2px solid #00ff88;
+        box-shadow: 0 0 15px #00ff88;
+        transition: left 0.5s ease;
+    }
+
+    #game-marker {
+        position: absolute;
+        height: 100%;
+        width: 6px;
+        background: var(--neon-magenta);
+        left: 0%;
+        box-shadow: 0 0 10px var(--neon-magenta);
+        border-radius: 5px;
+    }
+
+    #game-msg {
+        font-family: 'Orbitron', sans-serif;
+        font-size: 1.5rem;
+        min-height: 2.5rem;
+        color: var(--text-bright);
+        margin-bottom: 15px;
+        margin-top: 10px;
+    }
+
+    @media (max-width: 600px) {
+        #game-level, #game-record {
+            position: relative;
+            top: 0;
+            right: 0;
+            display: block;
+        }
+        #game-record { margin-bottom: 15px; }
+    }
+</style>
+@endsection
+
+@section('content')
+<div class="hero">
+    <p class="hero-subtitle">NACIONAL SBBL '26</p>
+    <h1 class="hero-title">[ EVENTO CLASIFICADO ]</h1>
+
+    <div id="countdown">00D : 00H : 00M : 00S</div>
+
+    <div>
+        <p style="font-size: 1.3rem; color: var(--text-bright); font-weight: 600; letter-spacing: 1px; margin-bottom: 5px;">
+            Sevilla | 18 de Julio | 09:00 AM
+        </p>
+        <p style="color: var(--neon-cyan); font-family: 'Roboto Mono'; opacity: 0.9;">HOTEL VÉRTICE ALJARAFE - SALÓN PLENARIO</p>
+    </div>
+
+    <a href="https://forms.gle/ZWugRhfrr9vLAavQ6" target="_blank" class="btn-cyber mt-3">
+       REGISTRO DE BLADERS
+    </a>
+</div>
+
+<div class="teaser-container">
+    <div class="cyber-card">
+        <div style="font-size: 3rem; margin-bottom: 20px; animation: pulse 2s infinite;">🔒</div>
+        <h2 style="font-family: 'Orbitron', sans-serif; color: var(--text-bright); margin-bottom: 20px; text-transform: uppercase;">
+            Evento bloqueado
+        </h2>
+
+        <p style="font-size: 1.1rem; color: var(--text-soft); margin-bottom: 30px; line-height: 1.8;">
+            El acceso principal está asegurado. El nombre clave del evento, la distribución de la arena de 800m², los Side Events y las tiendas se revelarán próximamente.
+        </p>
+
+        <div style="background: rgba(0,0,0,0.5); padding: 15px; border-radius: 8px; border: 1px dashed var(--neon-cyan); display: inline-block; max-width: 100%; overflow: hidden;">
+            <p class="typing-effect mb-0">> DESCIFRANDO DATOS DE LA RED SBBL...</p>
+        </div>
+    </div>
+</div>
+
+<div class="game-container">
+    <div class="cyber-card" style="border-top-color: var(--neon-cyan);">
+        <h2 style="font-family: 'Orbitron', sans-serif; color: var(--text-bright); margin-bottom: 15px;">Entrenamiento en Espera</h2>
+        <p style="color: var(--text-soft);">Mientras el sistema se desbloquea, prepara tus reflejos. Detén el indicador en la zona Xtreme (verde). Encadena aciertos para subir de nivel.</p>
+
+        <div id="minigame-container">
+            <div id="game-level">NIVEL 1</div>
+            <div id="game-record">RÉCORD: 1</div>
+            <div id="game-msg">ESPERANDO INICIO...</div>
+
+            <div id="game-bar-bg">
+                <div id="game-target"></div>
+                <div id="game-marker"></div>
+            </div>
+
+            <button id="btn-game-action" class="btn-cyber" style="padding: 15px 40px; font-size: 1.2rem; margin-top: 0;" onclick="toggleGame()">INICIAR ENTRENAMIENTO</button>
+        </div>
+    </div>
+</div>
+@endsection
+
+@section('scripts')
+<script>
+    // Sistema de cuenta regresiva
+    function updateCountdown() {
+        const eventDate = new Date('2026-07-18T09:00:00').getTime();
+        const now = new Date().getTime();
+        const diff = eventDate - now;
+
+        const countdownEl = document.getElementById('countdown');
+
+        if (diff <= 0) {
+            countdownEl.innerText = "¡SISTEMA DESBLOQUEADO!";
+            return;
+        }
+
+        const days = Math.floor(diff / (1000 * 60 * 60 * 24)).toString().padStart(2, '0');
+        const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)).toString().padStart(2, '0');
+        const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60)).toString().padStart(2, '0');
+        const seconds = Math.floor((diff % (1000 * 60)) / 1000).toString().padStart(2, '0');
+
+        countdownEl.innerText = `${days}D : ${hours}H : ${minutes}M : ${seconds}S`;
+    }
+    setInterval(updateCountdown, 1000);
+    updateCountdown();
+
+    // LÓGICA DEL MINIJUEGO CON NIVELES Y RÉCORD
+    let isPlaying = false;
+    let markerPos = 0;
+    let direction = 1;
+    let baseSpeed = 1.5;
+    let currentSpeed = baseSpeed;
+    let currentLevel = 1;
+    let maxLevel = 1;
+    let gameInterval;
+
+    let targetStart = 75;
+    let targetWidth = 12;
+
+    function toggleGame() {
+        const btn = document.getElementById('btn-game-action');
+        const msg = document.getElementById('game-msg');
+        const target = document.getElementById('game-target');
+
+        if(!isPlaying) {
+            isPlaying = true;
+            btn.innerText = "¡LANZA AHORA!";
+            btn.classList.add('btn-cyber-magenta');
+            msg.innerText = "Sincronizando...";
+            msg.style.color = "var(--neon-cyan)";
+
+            targetStart = Math.floor(Math.random() * 60) + 20;
+            target.style.left = targetStart + '%';
+
+            currentSpeed = baseSpeed + (currentLevel * 0.4);
+
+            gameInterval = setInterval(moveMarker, 20);
+        } else {
+            isPlaying = false;
+            clearInterval(gameInterval);
+            btn.classList.remove('btn-cyber-magenta');
+
+            checkHit(msg, btn);
+        }
+    }
+
+    function moveMarker() {
+        const marker = document.getElementById('game-marker');
+        markerPos += currentSpeed * direction;
+
+        if(markerPos >= 98) {
+            direction = -1;
+            markerPos = 98;
+        } else if (markerPos <= 0) {
+            direction = 1;
+            markerPos = 0;
+        }
+        marker.style.left = markerPos + '%';
+    }
+
+    function checkHit(msgElement, btnElement) {
+        const levelDisplay = document.getElementById('game-level');
+        const recordDisplay = document.getElementById('game-record');
+        const targetEnd = targetStart + targetWidth;
+
+        if(markerPos >= targetStart && markerPos <= targetEnd) {
+            msgElement.innerText = "¡PERFECT LAUNCH!";
+            msgElement.style.color = "#00ff88";
+
+            document.getElementById('game-target').style.boxShadow = "0 0 30px #00ff88";
+            setTimeout(() => { document.getElementById('game-target').style.boxShadow = "0 0 15px #00ff88"; }, 500);
+
+            currentLevel++;
+
+            if (currentLevel > maxLevel) {
+                maxLevel = currentLevel;
+                recordDisplay.innerText = "RÉCORD: " + maxLevel;
+            }
+
+            levelDisplay.innerText = "NIVEL " + currentLevel;
+            levelDisplay.style.color = "var(--neon-gold)";
+            levelDisplay.style.textShadow = "0 0 15px var(--neon-gold)";
+
+            btnElement.innerText = "SIGUIENTE NIVEL >>";
+
+        } else {
+            msgElement.innerText = "BURST FINISH. Has perdido la racha.";
+            msgElement.style.color = "var(--neon-magenta)";
+
+            currentLevel = 1;
+            levelDisplay.innerText = "NIVEL 1";
+            levelDisplay.style.color = "var(--neon-cyan)";
+            levelDisplay.style.textShadow = "0 0 10px rgba(0, 242, 254, 0.5)";
+
+            btnElement.innerText = "REINTENTAR";
+        }
+    }
+</script>
+<style>
+    @keyframes pulse {
+        0% { transform: scale(1); opacity: 1; }
+        50% { transform: scale(1.1); opacity: 0.7; }
+        100% { transform: scale(1); opacity: 1; }
+    }
+</style>
+@endsection

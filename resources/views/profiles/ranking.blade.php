@@ -4,126 +4,131 @@
 
 @section('styles')
 <style>
-    /* --- AJUSTES GENERALES --- */
-    body { background:#121212; color:#e0e0e0 !important; }
+    /* ====================================================================
+       ESTILOS ESPECÍFICOS: RANKING & DIVISIONES (Hereda de layout)
+       ==================================================================== */
 
-    /* Tabs */
-    .nav-tabs { border-bottom: 1px solid #444; }
-    .nav-tabs .nav-link { background:rgba(255,255,255,0.05); color:#aaa; border:none; margin-right: 2px; }
-    .nav-tabs .nav-link:hover { color: #fff; background: rgba(255,255,255,0.1); }
-    .nav-tabs .nav-link.active { background:#ffca28; color:#121212; font-weight:bold; }
-
-    /* --- ESTRUCTURA DE TABLA (SOLUCIÓN AL TEXTO JUNTO) --- */
-    .clasificacion {
+    /* Filtros Superiores */
+    .filtros-box {
+        background: var(--sbbl-blue-2);
+        border: 3px solid #000;
         padding: 15px;
-        border-radius: 10px;
+        box-shadow: 6px 6px 0px #000;
+        transform: skewX(-2deg);
+        border-radius: 0;
+        margin-bottom: 2rem;
+    }
+    .filtros-box > div { transform: skewX(2deg); }
+    .filtros-box label { color: var(--sbbl-gold) !important; font-family: 'Bangers', cursive; font-size: 1.2rem; letter-spacing: 1px;}
+    .filtros-box select { border: 2px solid #000; border-radius: 0; font-weight: 900; background: #111 !important; color: #fff !important; }
+    .filtros-box select:focus { border-color: var(--sbbl-gold); box-shadow: none; }
+
+    /* Tabs de Temporadas */
+    .nav-tabs { border-bottom: 4px solid #000; margin-bottom: 30px !important; gap: 5px; }
+    .nav-tabs .nav-item { margin-bottom: -4px; }
+    .nav-tabs .nav-link {
+        background: #000; color: #fff; border: 3px solid #000;
+        font-family: 'Bangers', cursive; font-size: 1.2rem; letter-spacing: 1px;
+        border-radius: 0; transform: skewX(-5deg); transition: 0.2s;
+        padding: 10px 20px;
+    }
+    .nav-tabs .nav-link:hover { background: var(--sbbl-blue-3); color: var(--sbbl-gold); }
+    .nav-tabs .nav-link.active {
+        background: var(--sbbl-gold); color: #000;
+        border-bottom-color: var(--sbbl-gold);
+        box-shadow: 4px -4px 0 var(--shonen-red);
     }
 
-    /* Convertimos las filas en una GRID para que no se monten */
+    /* --- ESTRUCTURA DE TABLA (GRID SHONEN) --- */
     .item {
         display: grid;
-        /* Definición de columnas:
-           1. Ranking (pequeño)
-           2. Avatar (fijo)
-           3. Nombre (flexible)
-           4. Región (flexible)
-           5. Puntos (fijo derecha)
-        */
-        grid-template-columns: 50px 70px 1.5fr 1fr 80px;
+        grid-template-columns: 50px 70px 1.5fr 1fr 100px;
         align-items: center;
         gap: 15px;
-        padding: 12px;
-        margin-bottom: 8px;
-        border-radius: 6px;
+        padding: 10px 15px;
+        margin-bottom: 10px;
+        background: rgba(0,0,0,0.6);
+        border: 2px solid #000;
+        transform: skewX(-2deg);
+        transition: 0.2s;
+    }
+    .item > * { transform: skewX(2deg); }
+    .item:hover:not(.encabezado) {
+        transform: translate(-3px, -3px) skewX(-2deg);
+        box-shadow: 6px 6px 0 rgba(0,0,0,0.8);
+        border-color: var(--sbbl-gold);
+        background: #000;
     }
 
-    /* Ajuste para móvil: Ocultamos región y ajustamos tamaños */
     @media (max-width: 576px) {
-        .item {
-            grid-template-columns: 40px 60px 1fr 70px;
-            font-size: 0.9rem;
-            gap: 10px;
-        }
-        /* Ocultar la columna de región (la 4ª columna) en móvil */
-        .item > span:nth-child(4) { display: none; }
-        /* En el encabezado también */
-        .encabezado > span:nth-child(4) { display: none; }
+        .item { grid-template-columns: 40px 60px 1fr 85px; font-size: 0.9rem; gap: 10px; padding: 10px; }
+        .item > span:nth-child(4), .encabezado > span:nth-child(4) { display: none; }
     }
 
-    /* Estilos de texto */
     .encabezado {
-        font-weight: bold;
-        color: #ffca28; /* Color dorado para títulos */
-        text-transform: uppercase;
-        font-size: 0.85rem;
-        letter-spacing: 1px;
-        border-bottom: 1px solid rgba(255,255,255,0.1);
-        margin-bottom: 15px !important;
+        background: var(--sbbl-blue-1) !important;
+        border: 3px solid #000 !important;
+        color: var(--sbbl-gold) !important;
+        font-family: 'Bangers', cursive;
+        font-size: 1.2rem;
+        letter-spacing: 2px;
+        box-shadow: 4px 4px 0 #000;
+        margin-bottom: 20px !important;
     }
 
-    .posicion { text-align: center; font-weight: bold; color: #888; }
-    .resaltado .posicion { color: #fff; text-shadow: 0 0 5px rgba(255,255,255,0.5); }
+    .posicion { font-family: 'Bangers', cursive; font-size: 1.6rem; text-align: center; color: #fff; text-shadow: 2px 2px 0 #000; }
+    .resaltado .posicion { color: var(--sbbl-gold); font-size: 2rem; }
 
-    /* Avatares */
-    .profile-container { width: 50px; height: 50px; position: relative; margin: 0 auto; }
-    .blader-image, .blader-frame { width: 100%; height: 100%; position: absolute; top: 0; left: 0; border-radius: 50%; object-fit: cover; }
-    .blader-frame { z-index: 2; transform: scale(1.1); } /* El marco un poco más grande */
+    .text-dim { color: #fff; font-weight: 800; font-size: 0.85em; text-transform: uppercase; opacity: 0.8; }
+    .item .text-end { font-family: 'Bangers', cursive; font-size: 1.5rem; letter-spacing: 1px; color: #fff; text-shadow: 1px 1px 0 #000; }
 
-    /* Textos más legibles (Reemplaza al text-muted) */
-    .text-dim { color: #bbb; font-size: 0.9em; }
+    /* Avatares 100% Redondos (Corregido) */
+    .profile-container { width: 55px; height: 55px; position: relative; margin: 0 auto; }
+    .blader-image, .blader-frame { width: 100%; height: 100%; position: absolute; top: 0; left: 0; object-fit: cover; border-radius: 50%; }
+    .blader-image { border: 2px solid var(--sbbl-gold); background: #000; }
+    .blader-frame { z-index: 2; transform: scale(1.15); }
 
-    /* --- TUS COLORES DE DIVISIÓN ORIGINALES --- */
-    .division-block { margin-bottom: 40px; border-radius: 12px; padding: 15px; }
-    .division-title { text-align: center; font-weight: bold; letter-spacing: 2px; margin-bottom: 15px; }
+    /* --- DIVISIONES --- */
+    .division-block { margin-bottom: 60px; padding: 25px; border: 4px solid #000; box-shadow: 10px 10px 0 rgba(0,0,0,0.5); position: relative; }
 
-    /* XTREME (Tu código original) */
-    .division-xtreme {
+    .division-title {
+        font-family: 'Bangers', cursive;
+        font-size: 2.8rem;
+        text-align: center;
+        letter-spacing: 2px;
+        margin-bottom: 30px;
+        text-shadow: 3px 3px 0 #000;
+        background: #000;
+        display: inline-block;
+        padding: 5px 30px;
+        border: 3px solid currentColor;
+        transform: translateX(-50%) skewX(-10deg);
         position: relative;
-        background: linear-gradient(135deg, rgba(104, 0, 165, .35), rgba(180, 0, 255, .18));
-        border-radius: 14px;
-        box-shadow: 0 0 25px rgba(104, 0, 165, .45), inset 0 0 30px rgba(180, 0, 255, .15);
-        overflow: hidden;
+        left: 50%;
+        box-shadow: 5px 5px 0 #000;
     }
-    .division-xtreme::before {
-        content: ""; position: absolute; inset: 0;
-        background: linear-gradient(120deg, transparent 30%, rgba(195, 0, 255, .35), transparent 70%);
-        animation: xtremeGlow 6s linear infinite; pointer-events: none;
-    }
-    .division-xtreme .division-title {
-        color: #e4b3ff; text-shadow: 0 0 8px rgba(195, 0, 255, .8), 0 0 18px rgba(104, 0, 165, .9); letter-spacing: 4px;
-    }
-    .division-xtreme .item {
-        background: linear-gradient(90deg, rgba(104, 0, 165, .35), rgba(180, 0, 255, .18));
-        border: 1px solid rgba(195, 0, 255, .55); box-shadow: 0 0 12px rgba(104, 0, 165, .4);
-    }
-    .division-xtreme .item.resaltado {
-        box-shadow: 0 0 18px rgba(195, 0, 255, .85), inset 0 0 12px rgba(255, 255, 255, .15);
-    }
-    @keyframes xtremeGlow { 0% { transform: translateX(-100%); } 100% { transform: translateX(100%); } }
+    .division-title span { font-family: 'Montserrat', sans-serif; font-weight: 900; font-size: 0.6em; margin-left: 10px; color: #fff !important; text-shadow: none; vertical-align: middle; }
 
-    /* RESTO DE DIVISIONES (Tus colores originales) */
-    .division-maestro { background: rgba(221, 8, 0, .18); }
-    .division-maestro .division-title { color: #dd0800; }
-    .division-maestro .item { background: rgba(221, 8, 0, .12); border: 1px solid rgba(221, 8, 0, .35); }
+    /* Estilos por colores de liga */
+    .division-xtreme { border-color: #b400ff; background: rgba(180, 0, 255, 0.05); }
+    .division-xtreme .division-title { color: #e4b3ff; border-color: #b400ff; }
 
-    .division-platino { background: rgba(0, 153, 127, .18); }
-    .division-platino .division-title { color: #00997f; }
-    .division-platino .item { background: rgba(0, 153, 127, .12); border: 1px solid rgba(0, 153, 127, .35); }
+    .division-maestro { border-color: #dd0800; background: rgba(221, 8, 0, 0.05); }
+    .division-maestro .division-title { color: #ff4d4d; border-color: #dd0800; }
 
-    .division-oro { background: rgba(221, 179, 0, .18); }
-    .division-oro .division-title { color: #ddb300; }
-    .division-oro .item { background: rgba(221, 179, 0, .12); border: 1px solid rgba(221, 179, 0, .35); }
+    .division-platino { border-color: #00ffcc; background: rgba(0, 255, 204, 0.05); }
+    .division-platino .division-title { color: #00ffcc; border-color: #00ffcc; }
 
-    .division-plata { background: rgba(162, 168, 192, .18); }
-    .division-plata .division-title { color: #a2a8c0; }
-    .division-plata .item { background: rgba(162, 168, 192, .12); border: 1px solid rgba(162, 168, 192, .35); }
+    .division-oro { border-color: var(--sbbl-gold); background: rgba(255, 193, 7, 0.05); }
+    .division-oro .division-title { color: var(--sbbl-gold); border-color: var(--sbbl-gold); }
 
-    .division-bronce { background: rgba(177, 86, 15, .18); }
-    .division-bronce .division-title { color: #b1560f; }
-    .division-bronce .item { background: rgba(177, 86, 15, .12); border: 1px solid rgba(177, 86, 15, .35); }
+    .division-plata { border-color: #e2e8f0; background: rgba(226, 232, 240, 0.05); }
+    .division-plata .division-title { color: #fff; border-color: #e2e8f0; }
 
-    /* Fallback para items sin división específica */
-    .item-default { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); }
+    .division-bronce { border-color: #ff9d47; background: rgba(255, 157, 71, 0.05); }
+    .division-bronce .division-title { color: #ff9d47; border-color: #ff9d47; }
+
+    .resaltado { border-width: 3px !important; background: rgba(255,255,255,0.1) !important; box-shadow: inset 0 0 15px rgba(255,255,255,0.1); }
 </style>
 @endsection
 
@@ -157,58 +162,60 @@
 
 <div class="container py-4">
 
-    <div class="row justify-content-center mb-5">
-        <div class="col-md-5 mb-3 mb-md-0">
-            <label class="text-white small text-uppercase mb-1 fw-bold">Mostrar:</label>
-            <select id="limitSelect" class="form-control bg-dark text-white border-secondary" onchange="applyFilters()">
-                @foreach([25,50,200,500,1000,'all'] as $val)
-                    <option value="{{ $val }}" {{ $limit == $val ? 'selected' : '' }}>
-                        {{ $val == 'all' ? 'Todos' : $val }}
-                    </option>
-                @endforeach
-            </select>
-        </div>
-        <div class="col-md-5">
-            <label class="text-white small text-uppercase mb-1 fw-bold">Filtrar por región:</label>
-            <select id="regionSelect" class="form-control bg-dark text-white border-secondary" onchange="applyFilters()">
-                <option value="">Todas las regiones</option>
-                @foreach ($regions as $regionOption)
-                    <option value="{{ $regionOption }}" {{ $filterRegion == $regionOption ? 'selected' : '' }}>
-                        {{ $regionOption }}
-                    </option>
-                @endforeach
-            </select>
+    {{-- Filtros Superiores --}}
+    <div class="filtros-box mx-auto" style="max-width: 800px;">
+        <div class="row">
+            <div class="col-md-6 mb-3 mb-md-0">
+                <label class="mb-1">MOSTRAR RESULTADOS:</label>
+                <select id="limitSelect" class="form-select" onchange="applyFilters()">
+                    @foreach([25,50,200,500,1000,'all'] as $val)
+                        <option value="{{ $val }}" {{ $limit == $val ? 'selected' : '' }}>
+                            {{ $val == 'all' ? 'TODOS LOS BLADERS' : 'TOP ' . $val }}
+                        </option>
+                    @endforeach
+                </select>
+            </div>
+            <div class="col-md-6">
+                <label class="mb-1">ZONA DE COMBATE:</label>
+                <select id="regionSelect" class="form-select" onchange="applyFilters()">
+                    <option value="">TODAS LAS REGIONES</option>
+                    @foreach ($regions as $regionOption)
+                        <option value="{{ $regionOption }}" {{ $filterRegion == $regionOption ? 'selected' : '' }}>
+                            {{ $regionOption }}
+                        </option>
+                    @endforeach
+                </select>
+            </div>
         </div>
     </div>
 
-    <ul class="nav nav-tabs justify-content-center border-0 mb-4">
+    {{-- Pestañas de Temporada --}}
+    <ul class="nav nav-tabs justify-content-center">
         @php
             $tabs = [
                 'points' => 'Burst S1',
                 'points_s2' => 'Burst S2',
                 'points_s3' => 'Burst S3',
-                'points_x1' => 'Beyblade X S1',
-                'points_x2' => 'Beyblade X S2'
+                'points_x1' => 'B.X Season 1',
+                'points_x2' => 'B.X Season 2'
             ];
         @endphp
         @foreach ($tabs as $key => $label)
             <li class="nav-item">
-                <button class="nav-link px-4 py-2 {{ $loop->last ? 'active' : '' }}"
+                <button class="nav-link {{ $loop->last ? 'active' : '' }}"
                         data-bs-toggle="tab"
                         data-bs-target="#{{ $key }}">
-                    {{ $label }}
+                    {{ mb_strtoupper($label) }}
                 </button>
             </li>
         @endforeach
     </ul>
 
-    <div class="tab-content">
+    <div class="tab-content pt-4">
         @foreach ($tabs as $key => $label)
             <div class="tab-pane fade {{ $loop->last ? 'show active' : '' }}" id="{{ $key }}">
 
-            {{-- BEYBLADE X SEASON 2 --}}
             @if ($key === 'points_x2')
-
                 @foreach ($divisionOrder as $divisionName)
                     @php
                         $filtered = collect($bladers_points_x2 ?? [])
@@ -223,72 +230,57 @@
 
                     <div class="division-block division-{{ strtolower($divisionName) }}">
                         <h4 class="division-title">
-                            {{ $divisionName }} <span style="opacity: 0.6; font-size: 0.8em">({{ rangoPuntos($divisionName) }} pts)</span>
+                            {{ $divisionName }} <span>({{ rangoPuntos($divisionName) }} PTS)</span>
                         </h4>
 
-                        <div class="clasificacion">
-                            {{-- HEADER (Grid) --}}
-                            <div class="item encabezado">
-                                <span class="posicion">#</span>
-                                <span>Avatar</span>
-                                <span>Blader</span>
-                                <span>Región</span>
-                                <span class="text-end">Puntos</span>
-                            </div>
-
-                            @forelse ($filtered as $index => $blader)
-                                {{-- ROW (Grid) --}}
-                                <div class="item {{ $index < 3 ? 'resaltado' : '' }}">
-                                    <span class="posicion">{{ $index + 1 }}</span>
-
-                                    <div class="profile-container">
-                                         @if($blader->avatar_url)
-                                            <img src="{{ $blader->avatar_url }}" class="blader-image" loading="lazy">
-                                            <img src="{{ $blader->marco_url }}" class="blader-frame" loading="lazy">
-                                         @endif
-                                    </div>
-
-                                    <span class="fw-bold text-white text-truncate">{{ $blader->user->name }}</span>
-
-                                    {{-- Usamos clase text-dim en vez de text-muted --}}
-                                    <span class="text-dim text-truncate">{{ optional($blader->region)->name ?? '---' }}</span>
-
-                                    <span class="text-end fw-bold text-white">{{ $blader->points_x2 }} pts</span>
-                                </div>
-                            @empty
-                                <div class="text-center py-4 text-white-50">
-                                    No hay jugadores en esta división
-                                </div>
-                            @endforelse
+                        <div class="item encabezado">
+                            <span class="posicion text-white">#</span>
+                            <span class="text-center">TERMINAL</span>
+                            <span>BLADER</span>
+                            <span>REGIÓN</span>
+                            <span class="text-end">PUNTOS</span>
                         </div>
-                    </div>
 
+                        @forelse ($filtered as $index => $blader)
+                            <div class="item {{ $index < 3 ? 'resaltado' : '' }}">
+                                <span class="posicion">{{ $index + 1 }}</span>
+                                <div class="profile-container">
+                                    <img src="{{ $blader->avatar_url }}" class="blader-image" loading="lazy">
+                                    <img src="{{ $blader->marco_url }}" class="blader-frame" loading="lazy">
+                                </div>
+                                <span class="fw-bold text-white text-truncate fs-5">{{ $blader->user->name }}</span>
+                                <span class="text-dim text-truncate">{{ optional($blader->region)->name ?? '---' }}</span>
+                                <span class="text-end" style="color: var(--sbbl-gold);">{{ $blader->points_x2 }} <small>PTS</small></span>
+                            </div>
+                        @empty
+                            <div class="text-center py-4 text-white font-bangers opacity-50" style="font-size: 1.5rem;">
+                                NO SE DETECTAN BLADERS EN ESTA DIVISIÓN
+                            </div>
+                        @endforelse
+                    </div>
                 @endforeach
 
-            {{-- RESTO DE TEMPORADAS --}}
             @else
-                <div class="clasificacion mb-4">
+                <div class="division-block border-secondary" style="background: rgba(0,0,0,0.3);">
                     <div class="item encabezado">
-                        <span class="posicion">#</span>
-                        <span>Avatar</span>
-                        <span>Blader</span>
-                        <span>Región</span>
-                        <span class="text-end">Puntos</span>
+                        <span class="posicion text-white">#</span>
+                        <span class="text-center">TERMINAL</span>
+                        <span>BLADER</span>
+                        <span>REGIÓN</span>
+                        <span class="text-end">PUNTOS</span>
                     </div>
 
                     @foreach (${'bladers_' . $key} ?? [] as $index => $blader)
                          @if($limit == 'all' || $index < (int)$limit)
-                        <div class="item item-default {{ $index < 3 ? 'resaltado' : '' }}">
+                        <div class="item {{ $index < 3 ? 'resaltado' : '' }}">
                             <span class="posicion">{{ $index + 1 }}</span>
                              <div class="profile-container">
-                                 @if(isset($blader->avatar_url))
-                                    <img src="{{ $blader->avatar_url }}" class="blader-image" loading="lazy">
-                                    <img src="{{ $blader->marco_url }}" class="blader-frame" loading="lazy">
-                                 @endif
+                                <img src="{{ $blader->avatar_url }}" class="blader-image" loading="lazy">
+                                <img src="{{ $blader->marco_url }}" class="blader-frame" loading="lazy">
                             </div>
-                            <span class="fw-bold text-white text-truncate">{{ $blader->user->name }}</span>
+                            <span class="fw-bold text-white text-truncate fs-5">{{ $blader->user->name }}</span>
                             <span class="text-dim text-truncate">{{ $blader->region->name ?? '---' }}</span>
-                            <span class="text-end fw-bold text-white">{{ $blader->{$key} }} pts</span>
+                            <span class="text-end">{{ $blader->{$key} }} <small>PTS</small></span>
                         </div>
                         @endif
                     @endforeach

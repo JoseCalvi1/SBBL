@@ -4,142 +4,54 @@
 
 @section('styles')
 <style>
-    /* --- VARIABLES TEMA AZUL OSCURO PROFUNDO --- */
+    /* ====================================================================
+       ESTILOS ESPECÍFICOS: CALENDARIO TÁCTICO (Hereda de layout)
+       ==================================================================== */
+
     :root {
-        --bg-main: #0f172a;          /* Fondo principal (Slate 900) */
-        --bg-calendar-cell: #1e293b; /* Fondo de las celdas (Slate 800) */
-        --bg-calendar-hover: #334155;/* Hover en celdas (Slate 700) */
-        --border-color: #1e293b;     /* Color de las líneas de la cuadrícula */
-        --text-primary: #f1f5f9;     /* Texto principal claro (Slate 100) */
-        --text-muted: #94a3b8;       /* Texto secundario (Slate 400) */
-        --accent-color: #38bdf8;     /* Azul brillante para resaltar (Sky 400) */
-
-        /* Colores de eventos (Pastel brillante para contraste) */
-        --color-ranking: #ffd700;    /* Amarillo oro */
-        --color-grancopa: #7dd3fc;   /* Azul cielo */
-        --color-paypal: #e2e8f0;     /* Blanco/Gris claro */
-        --color-quedada: #86efac;    /* Verde menta */
+        /* Colores de eventos (Brillantes para contrastar con el fondo oscuro) */
+        --color-ranking: var(--sbbl-gold);
+        --color-grancopa: var(--shonen-cyan);
+        --color-paypal: #fff;
+        --color-quedada: #00ff00;
     }
 
-    /* Contenedor principal para asegurar el fondo oscuro si no lo tiene el layout */
-    body {
-        background-color: var(--bg-main);
-        color: var(--text-primary);
+    /* --- TÍTULO DE PÁGINA --- */
+    .page-title {
+        font-family: 'Bangers', cursive;
+        font-size: 3.5rem;
+        color: var(--sbbl-gold);
+        text-shadow: 3px 3px 0 #000, 6px 6px 0 var(--shonen-red);
+        letter-spacing: 2px;
+        margin: 0;
+        line-height: 1;
     }
-
-    /* ESTILOS DEL CALENDARIO */
-    .calendar-container {
-        max-width: 1200px;
-        margin: 0 auto;
-        background-color: var(--bg-main);
-        border-radius: 12px;
-        overflow: hidden;
-        box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5); /* Sombra suave */
-        border: 1px solid var(--bg-calendar-cell);
-    }
-
-    /* La cuadrícula */
-    .calendar-grid {
-        display: grid;
-        grid-template-columns: repeat(7, 1fr);
-        gap: 1px; /* Espacio para las líneas */
-        background-color: var(--border-color); /* Color de las líneas */
-        border-bottom: 1px solid var(--border-color);
-    }
-
-    /* Celdas individuales */
-    .day-cell {
-        background-color: var(--bg-calendar-cell);
-        min-height: 120px;
-        padding: 8px;
-        position: relative;
-        transition: all 0.2s ease;
-        /* --- CORRECCIÓN DESBORDAMIENTO --- */
-        overflow: hidden; /* Esto corta lo que se salga del borde */
-    }
-
-    .day-cell:hover {
-         background-color: var(--bg-calendar-hover);
-    }
-
-    /* Número del día */
-    .day-number {
-        font-weight: 700;
-        margin-bottom: 8px;
-        display: block;
-        text-align: right;
-        color: var(--text-primary);
-    }
-
-    /* DÍA ACTUAL (Resaltado) */
-    .day-cell.today {
-        background-color: rgba(56, 189, 248, 0.1) !important; /* Tinte azul muy sutil */
-        box-shadow: inset 0 0 0 2px var(--accent-color); /* Borde interno brillante */
-    }
-    .day-cell.today .day-number {
-         color: var(--accent-color); /* Número en azul brillante */
-    }
-
-    /* Días de OTROS MESES (Apagados) */
-    .day-cell.other-month {
-        background-color: #0b1120; /* Un poco más oscuro que el fondo normal */
-        opacity: 0.7;
-    }
-    .day-cell.other-month .day-number {
-         color: var(--text-muted);
-    }
-
-    /* --- EVENTOS (Badges) --- */
-    .event-badge {
-        display: block;
-        padding: 4px 8px; /* Reduje un pelín el padding para ganar espacio */
-        margin-bottom: 5px;
-        border-radius: 6px;
-        font-size: 0.75rem; /* Un pelín más pequeño para que quepa más texto */
-
-        color: #1e293b !important;
-        font-weight: 700;
-        text-decoration: none;
-
-        /* --- CORRECCIÓN DE TEXTO --- */
-        white-space: nowrap;      /* Obliga a una sola línea */
-        overflow: hidden;         /* Oculta lo que sobra */
-        text-overflow: ellipsis;  /* Pone "..." al final si no cabe */
-        max-width: 100%;          /* Asegura que nunca sea más ancho que la celda */
-
-        transition: all 0.2s;
-        box-shadow: 0 1px 2px rgba(0,0,0,0.2);
-        border-left: 3px solid rgba(0,0,0,0.2);
-    }
-
-    .event-badge:hover {
-        transform: translateY(-2px) scale(1.02);
-        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.4);
-        color: #000 !important;
-        z-index: 10;
-    }
-
-    /* Asignación de colores de fondo */
-    .bg-ranking { background-color: var(--color-ranking); }
-    .bg-grancopa { background-color: var(--color-grancopa); }
-    .bg-paypal { background-color: var(--color-paypal); }
-    .bg-quedada { background-color: var(--color-quedada); }
 
     /* --- LEYENDA --- */
+    .legend-wrapper {
+        background: var(--sbbl-blue-2);
+        border: 3px solid #000;
+        box-shadow: 5px 5px 0 #000;
+        transform: skewX(-2deg);
+        padding: 15px;
+    }
+    .legend-wrapper > * { transform: skewX(2deg); }
     .legend-item {
         display: inline-flex;
         align-items: center;
-        margin: 0 12px;
-        font-size: 0.9rem;
-        color: var(--text-primary);
-        font-weight: 500;
+        margin: 0 15px;
+        font-family: 'Bangers', cursive;
+        font-size: 1.2rem;
+        color: #fff;
+        letter-spacing: 1px;
+        text-shadow: 1px 1px 0 #000;
     }
     .legend-color {
-        width: 14px;
-        height: 14px;
-        border-radius: 4px; /* Cuadrados redondeados */
+        width: 18px;
+        height: 18px;
+        border: 2px solid #000;
         margin-right: 8px;
-        box-shadow: 0 0 0 1px rgba(255,255,255,0.1);
+        box-shadow: 2px 2px 0 rgba(0,0,0,0.5);
     }
 
     /* --- NAVEGACIÓN --- */
@@ -148,31 +60,24 @@
         justify-content: space-between;
         align-items: center;
         margin-bottom: 25px;
-        padding: 0 10px;
     }
-
     #currentMonthLabel {
-        font-size: 1.75rem;
-        color: var(--text-primary);
-        letter-spacing: 1px;
-        text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        font-family: 'Bangers', cursive;
+        font-size: 2.5rem;
+        color: #fff;
+        letter-spacing: 2px;
+        text-shadow: 2px 2px 0 #000;
+        text-transform: uppercase;
+        margin: 0;
     }
 
-    .nav-btn {
-        background-color: var(--bg-calendar-cell);
-        border: 1px solid var(--bg-calendar-hover);
-        color: var(--text-primary);
-        padding: 10px 20px;
-        border-radius: 10px;
-        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        font-weight: 600;
-        cursor: pointer;
-    }
-    .nav-btn:hover {
-        background-color: var(--accent-color);
-        border-color: var(--accent-color);
-        color: var(--bg-main); /* Texto oscuro al hacer hover */
-        box-shadow: 0 0 15px -3px var(--accent-color);
+    /* --- ESTILOS DEL CALENDARIO --- */
+    .calendar-container {
+        width: 100%;
+        background-color: #000;
+        border: 4px solid #000;
+        box-shadow: 10px 10px 0 #000;
+        overflow: hidden;
     }
 
     /* Días de la semana (LUN, MAR...) */
@@ -180,15 +85,97 @@
         display: grid;
         grid-template-columns: repeat(7, 1fr);
         text-align: center;
-        font-weight: 800;
-        padding: 15px 0;
-        color: var(--accent-color); /* Color de acento */
-        text-transform: uppercase;
-        letter-spacing: 1px;
-        font-size: 0.9rem;
-        background-color: var(--bg-calendar-cell);
-        border-bottom: 2px solid var(--bg-main);
+        font-family: 'Bangers', cursive;
+        font-size: 1.5rem;
+        color: var(--sbbl-gold);
+        background-color: var(--sbbl-blue-3);
+        border-bottom: 4px solid #000;
+        padding: 10px 0;
+        text-shadow: 2px 2px 0 #000;
     }
+
+    /* La cuadrícula */
+    .calendar-grid {
+        display: grid;
+        grid-template-columns: repeat(7, 1fr);
+        gap: 3px; /* Espacio para las líneas negras */
+        background-color: #000; /* Color de las líneas */
+    }
+
+    /* Celdas individuales */
+    .day-cell {
+        background-color: var(--sbbl-blue-2);
+        min-height: 130px;
+        padding: 8px;
+        position: relative;
+        transition: 0.2s;
+        overflow: hidden;
+    }
+    .day-cell:hover {
+        background-color: var(--sbbl-blue-3);
+    }
+
+    /* Número del día */
+    .day-number {
+        font-family: 'Bangers', cursive;
+        font-size: 1.8rem;
+        color: #fff;
+        text-shadow: 2px 2px 0 #000;
+        margin-bottom: 8px;
+        display: block;
+        text-align: right;
+        line-height: 1;
+    }
+
+    /* DÍA ACTUAL (Resaltado) */
+    .day-cell.today {
+        background-color: rgba(0, 255, 204, 0.15) !important;
+        box-shadow: inset 0 0 0 4px var(--shonen-cyan);
+    }
+    .day-cell.today .day-number {
+        color: var(--shonen-cyan);
+    }
+
+    /* Días de OTROS MESES */
+    .day-cell.other-month {
+        background-color: #111;
+        opacity: 0.8;
+    }
+    .day-cell.other-month .day-number {
+        color: #555;
+        text-shadow: none;
+    }
+
+    /* --- EVENTOS (Badges) --- */
+    .event-badge {
+        display: block;
+        padding: 5px 8px;
+        margin-bottom: 5px;
+        font-weight: 900;
+        font-size: 0.8rem;
+        color: #000 !important;
+        text-decoration: none;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        max-width: 100%;
+        border: 2px solid #000;
+        box-shadow: 2px 2px 0 #000;
+        transition: 0.2s;
+        text-transform: uppercase;
+    }
+    .event-badge:hover {
+        transform: translate(-2px, -2px);
+        box-shadow: 4px 4px 0 #000;
+        z-index: 10;
+        position: relative;
+    }
+
+    /* Asignación de colores de fondo */
+    .bg-ranking { background-color: var(--color-ranking); }
+    .bg-grancopa { background-color: var(--color-grancopa); }
+    .bg-paypal { background-color: var(--color-paypal); }
+    .bg-quedada { background-color: var(--color-quedada); }
 
     /* --- RESPONSIVE & MOBILE FIXES --- */
     @media (min-width: 769px) {
@@ -196,114 +183,71 @@
     }
 
     @media (max-width: 768px) {
-        /* Ocultar grid de escritorio */
         .calendar-grid, .weekdays-grid { display: none !important; }
         #mobile-event-list { display: block; }
+        .calendar-container { background-color: transparent; box-shadow: none; border: none; }
 
-        /* Eliminar bordes del contenedor en móvil para ganar espacio */
-        .calendar-container {
-            background-color: transparent;
-            box-shadow: none;
-            border: none;
-        }
+        .page-title { font-size: 2.5rem; text-align: center; width: 100%; margin-bottom: 15px !important; }
 
-        /* Título más pequeño y centrado */
-        h1 {
-            font-size: 1.6rem !important;
-            text-align: center;
-            width: 100%;
-            margin-bottom: 10px;
-        }
-
-        /* Ajuste de cabecera: Columna vertical */
-        .d-flex.justify-content-between.align-items-center.mb-4 {
-            flex-direction: column;
-            gap: 10px;
-        }
-
-        /* Leyenda en Grid de 2 columnas para ahorrar espacio vertical */
         .legend-wrapper {
             display: grid !important;
             grid-template-columns: 1fr 1fr;
             gap: 10px;
             text-align: left !important;
-            padding: 15px !important;
         }
-        .legend-item {
-            margin: 0 !important;
-            font-size: 0.8rem;
-        }
+        .legend-item { margin: 0 !important; font-size: 1rem; }
 
-        /* Navegación: Mes arriba, botones abajo grandes */
-        .calendar-nav {
-            flex-direction: column;
-            gap: 15px;
-            margin-bottom: 20px;
-        }
-        #currentMonthLabel {
-            order: -1; /* Mueve el mes arriba del todo */
-            margin: 0;
-            font-size: 1.5rem;
-        }
-        /* Contenedor de botones inferiores */
-        .nav-buttons-container {
-            width: 100%;
-            display: flex;
-            gap: 10px;
-        }
-        /* Botones anchos para dedo */
-        .nav-btn {
-            flex: 1;
-            text-align: center;
-            padding: 12px 10px;
-            font-size: 0.9rem;
-        }
-        /* El botón "Anterior" también lo hacemos full width en su fila o flex */
-        .nav-btn-prev {
-            width: 100%;
-        }
+        .calendar-nav { flex-direction: column; gap: 15px; }
+        #currentMonthLabel { order: -1; font-size: 2rem; }
+        .nav-buttons-container { width: 100%; display: flex; gap: 10px; }
+        .btn-shonen { flex: 1; text-align: center; padding: 10px; font-size: 1rem; }
+        .nav-btn-prev { width: 100%; }
     }
 </style>
 @endsection
 
 @section('content')
-<div class="container mt-4 mt-md-5">
+<div class="container py-4">
 
-    <div class="d-flex justify-content-between align-items-center mb-4 text-white">
-        <h1 class="fw-bold text-uppercase">Calendario</h1>
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4">
+        <h1 class="page-title"><i class="fas fa-calendar-alt me-2 text-white" style="text-shadow:none;"></i>CALENDARIO</h1>
+
         @if ($countEvents < 2 || (Auth::user() && (Auth::user()->is_referee || Auth::user()->created_at->diffInMonths(now()) >= 3)))
-            <a href="{{ route('events.create') }}" class="btn btn-warning fw-bold shadow-sm">
-                <i class="fas fa-plus"></i> CREAR
+            <a href="{{ route('events.create') }}" class="btn-shonen btn-shonen-warning mt-3 mt-md-0" style="padding: 10px 25px; font-size: 1.4rem;">
+                <span style="display: block; transform: skewX(5deg);"><i class="fas fa-plus me-1"></i> CREAR EVENTO</span>
             </a>
         @endif
     </div>
 
-    <div class="legend-wrapper text-center mb-4 text-white p-3 rounded border border-secondary border-opacity-25" style="background: rgba(30, 41, 59, 0.7);">
+    <div class="legend-wrapper text-center mb-5">
         <span class="legend-item"><span class="legend-color bg-ranking"></span> Ranking / Plus</span>
         <span class="legend-item"><span class="legend-color bg-grancopa"></span> Gran Copa</span>
         <span class="legend-item"><span class="legend-color bg-paypal"></span> Copa Conqueror</span>
         <span class="legend-item"><span class="legend-color bg-quedada"></span> Quedada</span>
     </div>
 
-    <div class="calendar-nav text-white">
-        <button class="nav-btn nav-btn-prev" onclick="changeMonth(-1)">
-            <i class="fas fa-chevron-left"></i> <span class="d-inline">Anterior</span>
+    <div class="calendar-nav">
+        <button class="btn-shonen btn-shonen-info nav-btn-prev" onclick="changeMonth(-1)">
+            <span><i class="fas fa-chevron-left me-1"></i> ANTERIOR</span>
         </button>
 
-        <h2 id="currentMonthLabel" class="m-0 text-uppercase fw-bold"></h2>
+        <h2 id="currentMonthLabel"></h2>
 
-        <div class="nav-buttons-container">
-            <button class="nav-btn me-md-2" onclick="goToToday()">Hoy</button>
-            <button class="nav-btn" onclick="changeMonth(1)">
-                Siguiente <i class="fas fa-chevron-right"></i>
+        <div class="nav-buttons-container d-flex gap-3">
+            <button class="btn-shonen btn-shonen-warning" onclick="goToToday()">
+                <span>HOY</span>
+            </button>
+            <button class="btn-shonen btn-shonen-info" onclick="changeMonth(1)">
+                <span>SIGUIENTE <i class="fas fa-chevron-right ms-1"></i></span>
             </button>
         </div>
     </div>
 
     <div id="loading" class="text-center my-5" style="display: none;">
-        <div class="spinner-border text-info" role="status">
+        <div class="spinner-border text-warning" style="width: 3rem; height: 3rem; border-width: 0.3rem;" role="status">
             <span class="visually-hidden">Cargando...</span>
         </div>
+        <p class="font-bangers fs-4 mt-3" style="color: var(--sbbl-gold); text-shadow: 2px 2px 0 #000;">SINCRONIZANDO DATOS...</p>
     </div>
 
     <div class="calendar-container">
@@ -313,7 +257,7 @@
         <div id="calendarGrid" class="calendar-grid"></div>
     </div>
 
-    <div id="mobile-event-list" class="text-white mt-3"></div>
+    <div id="mobile-event-list" class="mt-3"></div>
 
 </div>
 @endsection
@@ -419,7 +363,7 @@
                 link.title = `${evt.city || evt.region.name} (${evt.mode === 'beybladex' ? 'X' : 'Burst'})`;
                 link.innerHTML = `
                     ${evt.beys === 'copapaypal' ? '<i class="fab fa-paypal"></i> ' : ''}
-                    ${evt.city || evt.region.name} (${evt.mode === 'beybladex' ? 'Beyblade X' : ' BeybladeBurst'})
+                    ${evt.city || evt.region.name} <span style="opacity:0.6">(${evt.mode === 'beybladex' ? 'X' : 'Burst'})</span>
                 `;
                 cell.appendChild(link);
             });
@@ -433,7 +377,7 @@
         list.innerHTML = ''; // Limpiar
 
         if(events.length === 0) {
-            list.innerHTML = '<div class="alert alert-dark text-center text-muted border-secondary">No hay eventos este mes.</div>';
+            list.innerHTML = '<div class="alert alert-dark text-center font-bangers fs-3 text-white" style="background: rgba(0,0,0,0.5) !important; border: 3px solid #000 !important; border-radius: 0;">NO HAY EVENTOS ESTE MES.</div>';
             return;
         }
 
@@ -441,35 +385,37 @@
 
         events.forEach(evt => {
             const dateObj = new Date(evt.date);
-            // Formato fecha: VIE, 2 ENE
             const dayName = dateObj.toLocaleDateString('es-ES', { weekday: 'short' }).toUpperCase();
             const dayNum = dateObj.getDate();
             const monthName = dateObj.toLocaleDateString('es-ES', { month: 'short' }).toUpperCase();
 
             const item = document.createElement('div');
-            // Usamos position-relative y un diseño más limpio
-            item.className = `p-3 mb-3 rounded position-relative shadow-sm ${getEventColorClass(evt.beys)}`;
-
-            // Forzamos texto negro para contraste en los fondos pastel
-            item.style.color = '#000000';
+            // Estilo Shonen para las tarjetas de móvil
+            item.className = `p-3 mb-3 position-relative ${getEventColorClass(evt.beys)}`;
+            item.style.border = '3px solid #000';
+            item.style.boxShadow = '5px 5px 0 #000';
+            item.style.transform = 'skewX(-2deg)';
+            item.style.color = '#000';
 
             item.innerHTML = `
-                <div class="d-flex justify-content-between align-items-start mb-2">
-                    <div class="d-flex flex-column lh-1">
-                        <span class="small fw-bold opacity-75" style="color:inherit;">${dayName}, ${dayNum} ${monthName}</span>
+                <div style="transform: skewX(2deg);">
+                    <div class="d-flex justify-content-between align-items-start mb-2">
+                        <div class="d-flex flex-column lh-1">
+                            <span class="font-bangers fs-4" style="color:inherit;">${dayName}, ${dayNum} ${monthName}</span>
+                        </div>
+                        <span class="badge bg-black text-white font-bangers fs-6" style="border: 2px solid #fff; border-radius: 0; box-shadow: 2px 2px 0 rgba(0,0,0,0.5);">${evt.mode === 'beybladex' ? 'Beyblade X' : 'Beyblade Burst'}</span>
                     </div>
-                    <span class="badge bg-dark text-white rounded-pill px-3">${evt.mode === 'beybladex' ? 'Beyblade X' : ' Beyblade Burst'}</span>
-                </div>
 
-                <a href="/events/${evt.id}" class="text-decoration-none" style="color: inherit;">
-                    <h4 class="m-0 fw-bold d-flex align-items-center gap-2" style="font-size: 1.2rem;">
-                        ${evt.beys === 'copapaypal' ? '<i class="fab fa-paypal text-primary"></i>' : ''}
-                        ${evt.city || evt.region.name}
-                    </h4>
-                    <div class="mt-2 small fw-bold text-uppercase d-flex align-items-center opacity-75">
-                       Ver detalles <i class="fas fa-arrow-right ms-2"></i>
-                    </div>
-                </a>
+                    <a href="/events/${evt.id}" class="text-decoration-none" style="color: inherit;">
+                        <h4 class="m-0 fw-bold d-flex align-items-center gap-2 text-uppercase" style="font-size: 1.3rem;">
+                            ${evt.beys === 'copapaypal' ? '<i class="fab fa-paypal"></i>' : ''}
+                            ${evt.city || evt.region.name}
+                        </h4>
+                        <div class="mt-2 small fw-bold text-uppercase d-flex align-items-center" style="opacity: 0.8;">
+                           Ver reporte <i class="fas fa-arrow-right ms-2"></i>
+                        </div>
+                    </a>
+                </div>
             `;
             list.appendChild(item);
         });
@@ -486,3 +432,4 @@
         }
     }
 </script>
+@endsection

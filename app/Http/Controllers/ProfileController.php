@@ -803,5 +803,217 @@ class ProfileController extends Controller
 
         return $options;
     }
+public function showPublic($slug)
+{
+    // 1. Parsear Slug
+    if (!preg_match('/^(.+)-(\d+)$/', $slug, $matches)) {
+        abort(404);
+    }
+
+    $nameSlug = $matches[1];
+    $userId   = (int) $matches[2];
+
+    // 2. Carga de datos
+    $user = User::with(array(
+        'profile.region',
+        'profile.trophies',
+        'teams',
+        'assistsEvents' => function ($q) {
+            $q->whereNotNull('puesto')->orderBy('date', 'desc');
+        }
+    ))->findOrFail($userId);
+
+    // 3. Validación de URL canónica
+    $nameLower = mb_strtolower($user->name);
+    $nameLower = preg_replace('/\s+/', '-', trim($nameLower));
+    $nameLower = preg_replace('/[^a-z0-9\-_.]/', '', $nameLower);
+    $expectedSlug = $nameLower;
+
+    $canonicalSlug = $expectedSlug . '-' . str_pad($userId, 4, '0', STR_PAD_LEFT);
+
+    if (strtolower($nameSlug) !== strtolower($expectedSlug)) {
+        return redirect()->route('blader.public', array('slug' => $canonicalSlug), 301);
+    }
+
+    // --- CÁLCULO DE ESTADÍSTICAS GENERALES ---
+    $eventos = $user->assistsEvents;
+    $totalTorneos = $eventos->count();
+    $totalVictorias = 0;
+
+    foreach ($eventos as $e) {
+        $p = mb_strtolower($e->pivot->puesto);
+        if ($p == '1' || $p == 'primero') {
+            $totalVictorias++;
+        }
+    }
+
+    $winRate = $totalTorneos > 0 ? round(($totalVictorias / $totalTorneos) * 100, 1) : 0;
+
+    // --- ESTADÍSTICAS POR TEMPORADA (Manual) ---
+    $statsPorTemporada = array();
+    foreach ($eventos as $e) {
+        $fecha = \Carbon\Carbon::parse($e->date);
+        $tempNombre = 'Otras';
+
+        if ($fecha->between('2024-07-01', '2025-06-30')) {
+            $tempNombre = 'Temporada 1';
+        } elseif ($fecha->between('2025-09-01', '2026-05-31')) {
+            $tempNombre = 'Temporada 2';
+        }
+
+        if (!isset($statsPorTemporada[$tempNombre])) {
+            // Asignamos los puntos desde el perfil según la temporada
+            $puntosBase = 0;
+            if ($tempNombre == 'Temporada 1') {
+                $puntosBase = $user->profile->points_x1; // O 'points' si es la antigua
+            } elseif ($tempNombre == 'Temporada 2') {
+                $puntosBase = $user->profile->points_x2;
+            }
+
+            $statsPorTemporada[$tempNombre] = array(
+                'torneos'  => 0,
+                'puntos'   => $puntosBase, // Cargamos el valor de la columna de la tabla profiles
+                'primeros' => 0,
+                'segundos' => 0,
+                'terceros' => 0
+            );
+        }
+
+        $statsPorTemporada[$tempNombre]['torneos']++;
+
+        // Si quieres SUMAR los puntos del pivot ADEMÁS de los de la columna, deja la línea de abajo.
+        // Si los puntos de la columna ya son el total, COMENTA la línea siguiente:
+        // $statsPorTemporada[$tempNombre]['puntos'] += ($e->pivot->puntos ?? 0);
+
+        $p = mb_strtolower($e->pivot->puesto);
+        if ($p == '1' || $p == 'primero') $statsPorTemporada[$tempNombre]['primeros']++;
+        if ($p == '2' || $p == 'segundo') $statsPorTemporada[$tempNombre]['segundos']++;
+        if ($p == '3' || $p == 'tercero') $statsPorTemporada[$tempNombre]['terceros']++;
+    }
+
+    $statsPorTemporada = collect($statsPorTemporada);
+
+    // --- EVOLUCIÓN DE PUNTOS (points_log) ---
+    $puntosLog = \DB::table('points_log')
+        ->join('events', 'points_log.event_id', '=', 'events.id')
+        ->where('points_log.user_id', $userId)
+        ->select('points_log.puntos', 'events.date', 'events.name')
+        ->orderBy('events.date', 'desc')
+        ->take(8)
+        ->get();
+
+    $graficaPuntos = array();
+    $graficaLabels = array();
+    $ultimoEvento = null;
+
+    $puntosLogArray = array_reverse($puntosLog->toArray());
+
+    foreach ($puntosLogArray as $log) {
+        $graficaPuntos[] = $log->puntos;
+        $graficaLabels[] = \Carbon\Carbon::parse($log->date)->format('d/m');
+        $ultimoEvento = $log->name;
+    }
+
+// --- RENDIMIENTO POR TIPO (Basado en campo 'beys') ---
+    $agrupadoPorTipo = array();
+
+    // Definimos un mapeo para que los nombres luzcan bien en la vista
+    $nombresFormateados = array(
+        'ranking'     => 'Ranking',
+        'rankingplus' => 'Ranking',
+        'quedada'     => 'Quedada',
+        'grancopa'    => 'Gran Copa'
+    );
+
+    foreach ($eventos as $e) {
+        // Usamos el campo 'beys' como identificador de tipo
+        $tipoRaw = mb_strtolower($e->beys);
+
+        // Solo procesamos si es uno de los tipos que te interesan
+        if (isset($nombresFormateados[$tipoRaw])) {
+            $tipoVisible = $nombresFormateados[$tipoRaw];
+
+            if (!isset($agrupadoPorTipo[$tipoVisible])) {
+                $agrupadoPorTipo[$tipoVisible] = array('torneos' => 0, 'top4' => 0);
+            }
+
+            $agrupadoPorTipo[$tipoVisible]['torneos']++;
+
+            $p = mb_strtolower($e->pivot->puesto);
+            $esTop4 = in_array($p, array('1', '2', '3', '4', 'primero', 'segundo', 'tercero', 'cuarto'));
+
+            if ($esTop4) {
+                $agrupadoPorTipo[$tipoVisible]['top4']++;
+            }
+        }
+    }
+
+    $winRatePorTipo = array();
+    foreach ($agrupadoPorTipo as $nombre => $data) {
+        $winRatePorTipo[$nombre] = array(
+            'torneos' => $data['torneos'],
+            'tasa'    => round(($data['top4'] / $data['torneos']) * 100)
+        );
+    }
+
+    // --- COMBOS (tournament_results) ---
+    $topCombosRaw = \App\Models\TournamentResult::where('user_id', $userId)
+        ->select(
+            'blade', 'ratchet', 'bit',
+            \DB::raw('SUM(victorias) as total_victorias'),
+            \DB::raw('SUM(derrotas) as total_derrotas'),
+            \DB::raw('COUNT(*) as cantidad_usado')
+        )
+        ->groupBy('blade', 'ratchet', 'bit')
+        ->orderBy('cantidad_usado', 'desc')
+        ->take(5)
+        ->get();
+
+    $topCombos = array();
+    foreach ($topCombosRaw as $c) {
+        $totalRondas = $c->total_victorias + $c->total_derrotas;
+        $wr = $totalRondas > 0 ? round(($c->total_victorias / $totalRondas) * 100, 1) : 0;
+
+        $obj = new \stdClass();
+        $obj->combo_name = $c->blade . ' ' . $c->ratchet . ' ' . $c->bit;
+        $obj->partidas   = $c->cantidad_usado;
+        $obj->win_rate   = $wr;
+        $topCombos[] = $obj;
+    }
+
+    // --- RESULTADO FINAL ---
+    $primerosPuntos = 0;
+    $primeraTemp = $statsPorTemporada->first();
+    if ($primeraTemp) {
+        $primerosPuntos = $primeraTemp['puntos'];
+    }
+
+    return view('profiles.public', array(
+        'user' => $user,
+        'statsPorTemporada' => $statsPorTemporada,
+        'totalTorneos' => $totalTorneos,
+        'totalVictorias' => $totalVictorias,
+        'winRate' => $winRate,
+        'temporadasActivas' => $statsPorTemporada->count(),
+        'puntosTemporadaActual' => $primerosPuntos,
+        'ultimoEvento' => $ultimoEvento,
+        'graficaPuntos' => $graficaPuntos,
+        'graficaLabels' => $graficaLabels,
+        'topCombos' => $topCombos,
+        'winRatePorTipo' => $winRatePorTipo,
+        'trofeos' => $user->profile->trophies ? $user->profile->trophies : collect(array()),
+        'historialEventos' => $eventos,
+        'canonicalSlug' => $canonicalSlug
+    ));
+}
+    // Helper: convierte "JoseCalvi1" → "josecalvi1"
+    // Conserva números y letras, sustituye espacios por guión
+    private function toSlug(string $name): string
+    {
+        $slug = mb_strtolower($name);
+        $slug = preg_replace('/\s+/', '-', trim($slug));
+        $slug = preg_replace('/[^a-z0-9\-_.]/', '', $slug);
+        return $slug;
+    }
 
 }

@@ -37,8 +37,8 @@ class EventController extends Controller
     const REGION_IMAGES = [
         1 => 'upload-events/andalucias2.webp', 2 => 'upload-events/madrids2.webp',
         4 => 'upload-events/valencias2.webp', 5 => 'upload-events/galicias2.webp',
-        8 => 'upload-events/canariass2.webp', 11 => 'upload-events/aragons2.webp',
-        14 => 'upload-events/asturiass2.webp',
+        7 => 'upload-events/paisvasco2_1.webp', 8 => 'upload-events/canariass2.webp',
+        11 => 'upload-events/aragons2.webp', 14 => 'upload-events/asturiass2.webp',
     ];
 
     const EVENT_TYPES = [
@@ -374,58 +374,84 @@ class EventController extends Controller
     // --- GESTIÓN DE ASISTENCIA ---
 
     public function assist(Request $request, Event $event)
-    {
-        $userId = Auth::id();
+{
+    $userId = Auth::id();
 
-        // Iniciamos una transacción para evitar que 3 pestañas abiertas pasen la validación a la vez
-        return DB::transaction(function () use ($request, $event, $userId) {
+    // 1. Iniciamos una transacción de Base de Datos.
+    // Si algo falla dentro de este bloque, NADA se guarda (Rollback).
+    return DB::transaction(function () use ($request, $event, $userId) {
 
-            // --- 1. VALIDACIÓN DE SEGURIDAD (Solo para Ranking/RankingPlus) ---
-            if (in_array($event->beys, ['ranking', 'rankingplus'])) {
+        $date = \Carbon\Carbon::parse($event->date);
+        $hoy = \Carbon\Carbon::now()->format('Y-m-d');
 
-                // Bloqueamos la lectura para este usuario momentáneamente para asegurar el conteo real
-                // (Esto evita el truco de las pestañas múltiples)
-                DB::table('assist_user_event')->where('user_id', $userId)->lockForUpdate()->get();
+        // --- VALIDACIONES PREVIAS ---
 
-                $date = Carbon::parse($event->date);
+        // A. Verificar si el evento sigue abierto y no ha pasado la fecha
+        if ($event->status !== 'OPEN' || $event->date < $hoy) {
+            return response()->json(['error' => 'El evento no acepta más inscripciones.'], 422);
+        }
 
-                // A. Comprobar límite semanal (Ya inscrito esta semana?)
-                $registeredThisWeek = DB::table('assist_user_event')
-                    ->join('events', 'assist_user_event.event_id', '=', 'events.id')
-                    ->where('assist_user_event.user_id', $userId)
-                    ->whereBetween('events.date', [$date->copy()->startOfWeek(), $date->copy()->endOfWeek()])
-                    ->whereIn('events.beys', ['ranking', 'rankingplus'])
-                    ->where('events.id', '!=', $event->id) // Ignorar si es el mismo evento
-                    ->exists();
+        // B. Lógica de Torneos Ranking (Semanal y Mensual)
+        if (in_array($event->beys, ['ranking', 'rankingplus'])) {
 
-                if ($registeredThisWeek) {
-                    return $this->assistResponse($request, 'Error: Ya tienes un torneo de ranking esta semana.', 422);
-                }
+            // Bloqueo de lectura para evitar el truco de "múltiples pestañas"
+            DB::table('assist_user_event')->where('user_id', $userId)->lockForUpdate()->get();
 
-                // B. Comprobar límite mensual (Máximo 2)
-                $monthlyCount = DB::table('assist_user_event')
-                    ->join('events', 'assist_user_event.event_id', '=', 'events.id')
-                    ->where('assist_user_event.user_id', $userId)
-                    ->whereBetween('events.date', [$date->copy()->startOfMonth(), $date->copy()->endOfMonth()])
-                    ->whereIn('events.beys', ['ranking', 'rankingplus'])
-                    ->count();
+            // Límite Semanal
+            $registeredThisWeek = DB::table('assist_user_event')
+                ->join('events', 'assist_user_event.event_id', '=', 'events.id')
+                ->where('assist_user_event.user_id', $userId)
+                ->whereBetween('events.date', [$date->copy()->startOfWeek(), $date->copy()->endOfWeek()])
+                ->whereIn('events.beys', ['ranking', 'rankingplus'])
+                ->where('events.id', '!=', $event->id)
+                ->exists();
 
-                // Si ya tiene 2 (o más por algún error anterior), bloqueamos
-                if ($monthlyCount >= 2) {
-                    return $this->assistResponse($request, 'Error: Has alcanzado el límite de 2 torneos este mes.', 422);
-                }
+            if ($registeredThisWeek) {
+                return response()->json(['error' => 'Ya estás inscrito en un torneo de ranking esta semana.'], 422);
             }
 
-            // --- 2. INSCRIPCIÓN ---
-            // syncWithoutDetaching ya maneja si el usuario intenta inscribirse dos veces al MISMO evento
+            // Límite Mensual (Máximo 2)
+            $monthlyCount = DB::table('assist_user_event')
+                ->join('events', 'assist_user_event.event_id', '=', 'events.id')
+                ->where('assist_user_event.user_id', $userId)
+                ->whereBetween('events.date', [$date->copy()->startOfMonth(), $date->copy()->endOfMonth()])
+                ->whereIn('events.beys', ['ranking', 'rankingplus'])
+                ->count();
+
+            if ($monthlyCount >= 2) {
+                return response()->json(['error' => 'Límite mensual de 2 torneos ranking alcanzado.'], 422);
+            }
+        }
+
+        // --- VALIDACIÓN DE PAGO (PAYPAL) ---
+            if (in_array($event->beys, ["grancopa", "copapaypal"])) {
+                if (!$request->has('paypal_order_id')) {
+                    return response()->json(['error' => 'Se requiere confirmación de pago para este evento.'], 402);
+                }
+                // ¡ELIMINAMOS el $pagoInfo de aquí para que no rompa la base de datos!
+            }
+
+            // --- REGISTRO FINAL ---
+            // Lo dejamos exactamente como lo tenías tú originalmente:
             $attached = $event->users()->syncWithoutDetaching([$userId]);
 
-            // --- 3. RESPUESTA ---
-            $msg = (count($attached['attached']) > 0) ? 'Inscripción exitosa' : 'Ya estabas inscrito';
+            // Comprobamos si realmente se añadió (attached) o si ya existía
+            if (count($attached['attached']) > 0) {
+                $message = 'Inscripción realizada con éxito.';
+                $status = 200;
+            } else {
+                $message = 'Ya te encuentras inscrito en este evento.';
+                $status = 200;
+            }
 
-            return $this->assistResponse($request, $msg, 200);
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json(['message' => $message], $status);
+            }
+
+            return redirect()->back()->with('success', $message);
         });
     }
+
 
     // Función auxiliar para manejar la respuesta JSON o Redirect limpiamente
     private function assistResponse($request, $message, $status)

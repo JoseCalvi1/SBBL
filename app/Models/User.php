@@ -166,4 +166,15 @@ class User extends Authenticatable
 
         return true;
     }
+
+    public function publicProfileUrl(): string
+    {
+        $slug = mb_strtolower($this->name);
+        $slug = preg_replace('/\s+/', '-', trim($slug));
+        $slug = preg_replace('/[^a-z0-9\-_.]/', '', $slug);
+
+        return route('blader.public', [
+            'slug' => $slug . '-' . str_pad($this->id, 4, '0', STR_PAD_LEFT)
+        ]);
+    }
 }

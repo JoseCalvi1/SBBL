@@ -5,119 +5,125 @@
 @section('styles')
 <style>
     /* =========================================
-       ESTILOS GENERALES
+       ESTILOS GENERALES Y PANELES SHONEN
        ========================================= */
-    :root {
-        --team-primary: #ffc107; /* Oro */
-        --team-bg: #1e1e2f;
-        --card-bg: #23232e;
-        --card-border: rgba(255, 255, 255, 0.1);
-    }
-
-    body { background-color: #121212 !important; color: #e0e0e0; }
 
     /* --- BANNER DE CUARTEL GENERAL --- */
     .hq-banner {
         position: relative;
         height: 280px;
-        background-color: #1a1a1a;
+        background-color: #000;
         background-size: cover;
         background-position: center;
-        border-bottom: 3px solid var(--team-primary);
+        border-bottom: 4px solid var(--sbbl-gold);
         overflow: hidden;
+        border-radius: 0 0 0 30px;
+        box-shadow: 0 8px 15px rgba(0,0,0,0.8);
     }
 
     .hq-overlay {
         position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-        background: linear-gradient(to bottom, rgba(0,0,0,0.3) 0%, #121212 100%);
+        background: linear-gradient(to top, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.3) 100%);
         z-index: 1;
     }
 
     .hq-content {
         position: absolute; bottom: 0; left: 0; width: 100%;
-        z-index: 2; padding: 20px;
+        z-index: 2; padding: 20px 30px;
         display: flex; align-items: flex-end; flex-wrap: wrap;
         gap: 20px;
     }
 
     .hq-logo-container {
-        width: 130px; height: 130px;
+        width: 140px; height: 140px;
+        background: #000;
+        border: 3px solid var(--sbbl-gold);
+        padding: 5px;
+        box-shadow: 5px 5px 0 #000;
+        transform: rotate(-5deg);
     }
-    .hq-logo { width: 100%; height: 100%; object-fit: contain; }
+    .hq-logo { width: 100%; height: 100%; object-fit: contain; transform: rotate(5deg); }
 
     .hq-title h1 {
-        font-family: 'Segoe UI', sans-serif;
-        font-weight: 900; text-transform: uppercase;
-        color: white; margin: 0; text-shadow: 0 4px 10px rgba(0,0,0,0.9);
-        font-size: 2.5rem; letter-spacing: 1px;
+        font-family: 'Bangers', cursive;
+        color: var(--sbbl-gold);
+        margin: 0;
+        text-shadow: 3px 3px 0 #000, 6px 6px 0 var(--shonen-red);
+        font-size: 4rem; letter-spacing: 2px;
         line-height: 1;
     }
 
-    /* --- PANELES --- */
+    /* --- PANELES TÁCTICOS --- */
     .intel-panel {
-        background: var(--team-bg);
-        border: 1px solid var(--card-border);
-        border-radius: 8px;
+        background: var(--sbbl-blue-2);
+        border: 3px solid #000;
+        border-radius: 0 20px 0 20px;
+        box-shadow: 8px 8px 0 #000;
         padding: 25px;
         margin-bottom: 30px;
     }
 
     .level-box {
-        background: linear-gradient(145deg, #1e1e2f, #161625);
-        border: 1px solid var(--team-primary);
-        padding: 20px; border-radius: 8px;
+        background: #000;
+        border: 3px solid var(--sbbl-gold);
+        padding: 20px; border-radius: 0;
         text-align: center;
-        box-shadow: 0 0 15px rgba(255, 193, 7, 0.1);
+        box-shadow: 6px 6px 0 var(--sbbl-blue-3);
         height: 100%;
+        transform: skewX(-5deg);
     }
+    .level-box > * { transform: skewX(5deg); }
 
-    .level-number { font-size: 3rem; font-weight: 800; color: var(--team-primary); line-height: 1; }
-    .xp-bar { height: 10px; background: #333; border-radius: 5px; margin-top: 15px; overflow: hidden; border: 1px solid #444; }
-    .xp-fill { height: 100%; background: linear-gradient(90deg, #ffc107, #ff6f00); box-shadow: 0 0 10px #ffc107; }
+    .level-number { font-family: 'Bangers', cursive; font-size: 5rem; color: var(--sbbl-gold); line-height: 1; text-shadow: 3px 3px 0 #000; }
+
+    .xp-bar { height: 15px; background: #222; border-radius: 0; margin-top: 15px; overflow: hidden; border: 2px solid #fff; }
+    .xp-fill { height: 100%; background: var(--sbbl-gold); }
 
     /* =========================================
-       CARTAS DE AGENTE (ROSTER) - CORREGIDO
+       CARTAS DE AGENTE (ROSTER) - SHONEN STYLE
        ========================================= */
     .agent-card {
-        background-color: var(--card-bg);
-        border: 1px solid rgba(255,255,255,0.1);
-        border-radius: 10px;
+        background-color: var(--sbbl-blue-3);
+        border: 3px solid #000;
+        border-radius: 0;
         overflow: hidden;
         position: relative;
         height: 100%;
         display: flex;
         flex-direction: column;
-        transition: transform 0.3s ease, border-color 0.3s ease;
+        transition: 0.2s;
+        box-shadow: 6px 6px 0 #000;
     }
 
     .agent-card:hover {
-        transform: translateY(-5px);
-        border-color: var(--team-primary);
-        box-shadow: 0 8px 20px rgba(0,0,0,0.6);
+        transform: translate(-3px, -3px);
+        border-color: var(--sbbl-gold);
+        box-shadow: 9px 9px 0 var(--shonen-red);
+        background-color: var(--sbbl-blue-2);
     }
 
     /* Cabecera de la carta (Imagen de fondo) */
     .agent-header {
-        height: 100px;
-        background-color: #2c2c35; /* Fondo gris oscuro por defecto si no hay imagen */
+        height: 120px;
+        background-color: #000;
         background-size: cover;
         background-position: center;
         position: relative;
+        border-bottom: 3px solid #000;
     }
 
-    /* Sombra para que se lea el badge de líder */
     .agent-header::after {
         content: ''; position: absolute; inset: 0;
-        background: linear-gradient(to top, rgba(35,35,46,1) 0%, transparent 100%);
+        background: linear-gradient(to top, rgba(0,0,0,0.9) 0%, transparent 100%);
     }
 
-    /* Contenedor Avatar - POSICIONADO CORRECTAMENTE */
+    /* Contenedor Avatar 100% Circular */
     .agent-avatar-container {
-        width: 70px;
-        height: 70px;
+        width: 80px;
+        height: 80px;
         position: absolute;
-        top: 65px; /* Se solapa entre header y body */
-        left: 15px;
+        top: 75px; /* Se solapa entre header y body */
+        left: 20px;
         z-index: 10;
     }
 
@@ -126,96 +132,98 @@
         border-radius: 50%;
         object-fit: cover;
         background-color: #000;
-        border: 3px solid var(--card-bg); /* Borde del color de la carta para separar */
+        border: 3px solid var(--sbbl-gold);
+        box-shadow: 0 0 10px rgba(0,0,0,0.8);
     }
 
     .agent-avatar-frame {
-        position: absolute; top: -5px; left: -5px;
-        width: calc(100% + 10px); height: calc(100% + 10px);
+        position: absolute; top: 0; left: 0;
+        width: 100%; height: 100%;
+        border-radius: 50%;
         pointer-events: none;
     }
 
     /* Cuerpo de la carta */
     .agent-body {
-        padding: 45px 15px 15px 15px; /* Padding superior para dejar sitio al avatar */
+        padding: 45px 20px 20px 20px; /* Padding superior para dejar sitio al avatar */
         display: flex;
         flex-direction: column;
         flex-grow: 1;
     }
 
     .agent-name {
-        font-size: 1.1rem;
-        font-weight: 800;
-        color: white;
+        font-family: 'Bangers', cursive;
+        font-size: 1.8rem;
+        color: #fff;
         text-transform: uppercase;
-        margin-bottom: 4px;
-        line-height: 1.2;
+        margin-bottom: 0;
+        line-height: 1.1;
+        letter-spacing: 1px;
+        text-shadow: 2px 2px 0 #000;
     }
 
     .agent-role {
-        font-size: 0.8rem;
-        color: #aaa;
-        font-weight: 600;
+        font-size: 0.85rem;
+        color: var(--shonen-cyan);
+        font-weight: 900;
         text-transform: uppercase;
         margin-bottom: 20px;
     }
 
     .captain-badge {
         position: absolute; top: 10px; right: 10px;
-        background: var(--team-primary); color: #000;
-        font-weight: 900; font-size: 0.7rem; padding: 4px 8px;
-        border-radius: 4px; z-index: 20;
+        background: var(--shonen-red); color: #fff;
+        font-family: 'Bangers', cursive; font-size: 1.1rem; padding: 4px 12px;
+        border: 2px solid #000; z-index: 20;
         text-transform: uppercase;
-        box-shadow: 0 2px 5px rgba(0,0,0,0.5);
+        box-shadow: 2px 2px 0 #000;
+        transform: skewX(-10deg);
+        letter-spacing: 1px;
     }
+    .captain-badge > span { display: block; transform: skewX(10deg); }
 
     /* --- BOTONES DE ACCIÓN VISIBLES --- */
     .agent-actions {
-        margin-top: auto; /* Empuja los botones al final de la carta */
+        margin-top: auto;
         display: grid;
         gap: 10px;
     }
 
     .btn-action {
-        border: none;
-        font-size: 0.8rem;
-        font-weight: 700;
+        font-family: 'Bangers', cursive;
+        font-size: 1.1rem;
+        letter-spacing: 1px;
         text-transform: uppercase;
-        padding: 10px;
-        border-radius: 6px;
+        padding: 8px;
+        border-radius: 0;
+        border: 3px solid #000;
         display: flex; align-items: center; justify-content: center; gap: 8px;
         transition: 0.2s;
         cursor: pointer;
         width: 100%;
+        transform: skewX(-5deg);
     }
+    .btn-action > * { transform: skewX(5deg); display: block;}
 
-    /* Botón Ascender (Amarillo Sólido) */
-    .btn-promote {
-        background-color: #ffc107;
-        color: #000;
-    }
-    .btn-promote:hover { background-color: #e0a800; color: #000; box-shadow: 0 0 10px rgba(255, 193, 7, 0.4); }
+    /* Botón Ascender */
+    .btn-promote { background-color: var(--sbbl-gold); color: #000; box-shadow: 3px 3px 0 #000; }
+    .btn-promote:hover { background-color: #fff; transform: translate(-2px, -2px) skewX(-5deg); box-shadow: 5px 5px 0 var(--shonen-cyan); }
 
-    /* Botón Expulsar (Rojo Sólido) */
-    .btn-kick {
-        background-color: #dc3545;
-        color: #fff;
-    }
-    .btn-kick:hover { background-color: #bb2d3b; color: #fff; box-shadow: 0 0 10px rgba(220, 53, 69, 0.4); }
+    /* Botón Expulsar */
+    .btn-kick { background-color: var(--shonen-red); color: #fff; box-shadow: 3px 3px 0 #000; }
+    .btn-kick:hover { background-color: #fff; color: #000; transform: translate(-2px, -2px) skewX(-5deg); box-shadow: 5px 5px 0 var(--shonen-red); }
 
-    /* Botón Abandonar (Borde Rojo) */
-    .btn-leave {
-        background-color: transparent;
-        border: 2px solid #dc3545;
-        color: #dc3545;
-    }
-    .btn-leave:hover { background-color: #dc3545; color: white; }
+    /* Botón Abandonar */
+    .btn-leave { background-color: #000; border-color: var(--shonen-red); color: var(--shonen-red); box-shadow: 3px 3px 0 var(--shonen-red); }
+    .btn-leave:hover { background-color: var(--shonen-red); color: white; border-color: #000; box-shadow: 3px 3px 0 #000; transform: translate(-2px, -2px) skewX(-5deg); }
 
     /* Ajuste móvil */
     @media (max-width: 768px) {
         .hq-content { flex-direction: column; text-align: center; align-items: center; }
         .agent-body { text-align: center; }
         .agent-avatar-container { left: 50%; transform: translateX(-50%); }
+        .hq-logo-container { transform: none; }
+        .hq-logo { transform: none; }
     }
 </style>
 @endsection
@@ -227,16 +235,16 @@
     @if(session('success') || session('error'))
         <div class="container mt-3">
             @if(session('success'))
-                <div class="alert alert-success bg-dark border-success text-success"><i class="fas fa-check-circle"></i> {{ session('success') }}</div>
+                <div class="alert alert-shonen alert-shonen-success"><span style="display:block; transform:skewX(2deg);"><i class="fas fa-check-circle me-2"></i> {{ session('success') }}</span></div>
             @else
-                <div class="alert alert-danger bg-dark border-danger text-danger"><i class="fas fa-exclamation-triangle"></i> {{ session('error') }}</div>
+                <div class="alert alert-shonen alert-shonen-danger"><span style="display:block; transform:skewX(2deg);"><i class="fas fa-exclamation-triangle me-2"></i> {{ session('error') }}</span></div>
             @endif
         </div>
     @endif
 
     {{-- 1. BANNER --}}
     @php
-        $bgImage = $equipo->image ? "data:image/png;base64,{$equipo->image}" : asset('images/webTile2.png');
+        $bgImage = $equipo->image ? "data:image/png;base64,{$equipo->image}" : asset('images/FONDO_BX.webp');
         $logoImage = $equipo->logo ? "data:image/png;base64,{$equipo->logo}" : asset('images/logo_new.png');
     @endphp
 
@@ -250,28 +258,28 @@
                 <div class="hq-title mb-3">
                     <h1>{{ $equipo->name }}</h1>
                     <div class="mt-2">
-                        <span class="badge bg-dark border border-secondary text-white me-2"><i class="fas fa-users"></i> {{ $miembros->count() }} Miembros</span>
-                        <span class="badge bg-dark border border-secondary text-white"><i class="fas fa-flag"></i> {{ $equipo->region->name ?? 'Global' }}</span>
+                        <span class="badge bg-black border border-white text-white me-2 py-2 px-3 font-bangers fs-5" style="box-shadow: 2px 2px 0 var(--sbbl-gold);"><i class="fas fa-users me-1"></i> {{ $miembros->count() }} OPERATIVOS</span>
+                        <span class="badge bg-black border border-white text-white py-2 px-3 font-bangers fs-5" style="box-shadow: 2px 2px 0 var(--shonen-red);"><i class="fas fa-map-marker-alt me-1 text-danger"></i> {{ $equipo->region->name ?? 'GLOBAL' }}</span>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <div class="container mt-4">
-        <div class="row">
+    <div class="container mt-5">
+        <div class="row g-4">
             {{-- DESCRIPCIÓN --}}
             <div class="col-lg-8">
-                <div class="intel-panel">
-                    <h5 class="text-white text-uppercase mb-3 border-bottom border-secondary pb-2"><i class="fas fa-file-alt me-2"></i>Archivo del Equipo</h5>
-                    <p class="text-light" style="line-height: 1.6;">{{ $equipo->description ?: 'Sin descripción disponible.' }}</p>
+                <div class="intel-panel h-100">
+                    <h4 class="text-white font-bangers fs-2 mb-3 border-bottom border-dark pb-3" style="text-shadow: 2px 2px 0 #000;"><i class="fas fa-file-alt me-2" style="color: var(--sbbl-gold);"></i> ARCHIVO DEL EQUIPO</h4>
+                    <p class="text-white fw-bold" style="line-height: 1.6; font-size: 1.1rem;">{{ $equipo->description ?: 'Sin descripción disponible en la base de datos.' }}</p>
                 </div>
             </div>
 
             {{-- NIVEL --}}
             <div class="col-lg-4">
                 <div class="level-box">
-                    <div class="text-white small text-uppercase fw-bold mb-2">Nivel Operativo</div>
+                    <div class="text-white font-bangers fs-4 mb-2" style="letter-spacing: 1px;">NIVEL OPERATIVO</div>
                     <div class="level-number">{{ floor($totalPoints / 10) }}</div>
 
                     @php
@@ -279,8 +287,8 @@
                         $fillPercentage = ($remainder / 10) * 100;
                     @endphp
 
-                    <div class="d-flex justify-content-between text-white small mt-2">
-                        <span>Progreso</span>
+                    <div class="d-flex justify-content-between text-white fw-bold small mt-3 px-1">
+                        <span>PROGRESO</span>
                         <span>{{ $remainder }} / 10 XP</span>
                     </div>
                     <div class="xp-bar">
@@ -290,10 +298,10 @@
             </div>
         </div>
 
-        {{-- 4. ROSTER DE AGENTES (CORREGIDO) --}}
-        <h4 class="text-white text-uppercase mt-4 mb-3 border-start border-warning ps-3 border-4" style="border-color: var(--team-primary) !important;">
-            Roster de Operativos
-        </h4>
+        {{-- 4. ROSTER DE AGENTES --}}
+        <h2 class="text-white font-bangers mt-5 mb-4" style="font-size: 3rem; text-shadow: 2px 2px 0 #000; letter-spacing: 2px;">
+            <i class="fas fa-users me-2" style="color: var(--shonen-cyan);"></i> ROSTER DE OPERATIVOS
+        </h2>
 
         <div class="row g-4">
             @foreach ($miembros as $miembroId)
@@ -301,33 +309,31 @@
                     $miembro = App\Models\User::find($miembroId->id);
                     $profile = $miembro->profile;
                     $esCapitan = $miembroId->pivot->is_captain;
-
-                    // Si el usuario tiene fondo, úsalo. Si no, dejar que el CSS ponga el gris por defecto.
                     $headerStyle = $profile->fondo_url ? "background-image: url('{$profile->fondo_url}');" : "";
-
-                    $gifPadding = strpos($profile->avatar_url, '.gif') !== false ? 'padding: 5px;' : '';
                 @endphp
 
                 <div class="col-sm-6 col-md-4 col-lg-3">
                     <div class="agent-card">
                         {{-- Badge de Capitán --}}
                         @if ($esCapitan)
-                            <div class="captain-badge"><i class="fas fa-crown"></i> LÍDER</div>
+                            <div class="captain-badge"><span><i class="fas fa-crown"></i> LÍDER</span></div>
                         @endif
 
                         {{-- Cabecera --}}
                         <div class="agent-header" style="{{ $headerStyle }}"></div>
 
-                        {{-- Avatar superpuesto --}}
+                        {{-- Avatar superpuesto (Redondo) --}}
                         <div class="agent-avatar-container">
-                            <img src="{{ $profile->avatar_url }}" class="agent-avatar-img" style="{{ $gifPadding }}" loading="lazy">
-                            <img src="{{ $profile->marco_url }}" class="agent-avatar-frame" loading="lazy">
+                            <img src="{{ $profile->avatar_url }}" class="agent-avatar-img" loading="lazy">
+                            @if($profile->marco_url)
+                                <img src="{{ $profile->marco_url }}" class="agent-avatar-frame" loading="lazy">
+                            @endif
                         </div>
 
                         {{-- Cuerpo --}}
                         <div class="agent-body">
                             <div class="agent-name">{{ $miembro->name }}</div>
-                            <div class="agent-role">{{ $profile->region->name ?? 'Sin Asignar' }}</div>
+                            <div class="agent-role"><i class="fas fa-map-pin me-1"></i> {{ $profile->region->name ?? 'SIN ASIGNAR' }}</div>
 
                             {{-- Botones de Acción --}}
                             <div class="agent-actions">
@@ -335,22 +341,22 @@
                                     @if (!$esCapitan)
                                         <form action="{{ route('equipos.changeCaptain', [$equipo, $miembroId]) }}" method="POST">
                                             @csrf @method('PATCH')
-                                            <button type="submit" class="btn-action btn-promote" onclick="return confirm('¿Ascender a este miembro a capitán?')">
-                                                <i class="fas fa-angle-double-up"></i> Ascender
+                                            <button type="submit" class="btn-action btn-promote" onclick="return confirm('¿TRANSFERIR EL MANDO DE LA FACCIÓN A ESTE OPERATIVO?')">
+                                                <span><i class="fas fa-angle-double-up me-1"></i> ASCENDER</span>
                                             </button>
                                         </form>
                                         <form action="{{ route('equipos.removeMember', [$equipo, $miembroId]) }}" method="POST">
                                             @csrf @method('DELETE')
-                                            <button type="submit" class="btn-action btn-kick" onclick="return confirm('¿Estás seguro de expulsar a este miembro?')">
-                                                <i class="fas fa-ban"></i> Expulsar
+                                            <button type="submit" class="btn-action btn-kick" onclick="return confirm('¿EXPULSAR A ESTE OPERATIVO DEL EQUIPO?')">
+                                                <span><i class="fas fa-ban me-1"></i> EXPULSAR</span>
                                             </button>
                                         </form>
                                     @endif
                                 @elseif ($miembro->id === Auth::user()->id)
                                     <form action="{{ route('equipos.removeMember', [$equipo, Auth::user()]) }}" method="POST">
                                         @csrf @method('DELETE')
-                                        <button type="submit" class="btn-action btn-leave" onclick="return confirm('¿Seguro que quieres abandonar el equipo?')">
-                                            <i class="fas fa-sign-out-alt"></i> Abandonar
+                                        <button type="submit" class="btn-action btn-leave" onclick="return confirm('¿SEGURO QUE DESEAS DESERTAR DE ESTA FACCIÓN?')">
+                                            <span><i class="fas fa-sign-out-alt me-1"></i> ABANDONAR</span>
                                         </button>
                                     </form>
                                 @endif
@@ -362,56 +368,57 @@
         </div>
 
         {{-- 5. BARRA DE COMANDOS INFERIOR --}}
-        <div class="d-flex flex-wrap justify-content-between align-items-center mt-5 p-3 rounded" style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);">
-            <div class="d-flex gap-2">
+        <div class="d-flex flex-wrap justify-content-between align-items-center mt-5 p-4" style="background: var(--sbbl-blue-2); border: 4px solid #000; box-shadow: 8px 8px 0 #000;">
+            <div class="d-flex flex-wrap gap-3">
                 @if ($equipo->captain_id === Auth::user()->id)
-                    <a href="{{ route('equipos.edit', $equipo) }}" class="btn btn-primary fw-bold text-uppercase">
-                        <i class="fas fa-cog me-2"></i> Configurar
+                    <a href="{{ route('equipos.edit', $equipo) }}" class="btn-shonen btn-shonen-warning">
+                        <span><i class="fas fa-cog me-2"></i> CONFIGURAR EQUIPO</span>
                     </a>
-                    <button type="button" class="btn btn-success fw-bold text-uppercase" data-bs-toggle="modal" data-bs-target="#sendInvitationModal">
-                        <i class="fas fa-user-plus me-2"></i> Reclutar
+                    <button type="button" class="btn-shonen btn-shonen-info" data-bs-toggle="modal" data-bs-target="#sendInvitationModal">
+                        <span><i class="fas fa-user-plus me-2"></i> RECLUTAR AGENTE</span>
                     </button>
                 @endif
             </div>
 
-            <a href="{{ route('equipos.index') }}" class="btn btn-outline-light mt-2 mt-md-0 text-uppercase fw-bold">
-                <i class="fas fa-arrow-left me-2"></i> Volver
+            <a href="{{ route('equipos.index') }}" class="btn-shonen mt-3 mt-md-0" style="background: #000; color: #fff;">
+                <span><i class="fas fa-arrow-left me-2"></i> VOLVER AL REGISTRO</span>
             </a>
         </div>
 
     </div>
 </div>
+
+
 @endsection
 
 @section('scripts')
-{{-- Modal Invitación --}}
+{{-- MODAL INVITACIÓN --}}
 <div class="modal fade" id="sendInvitationModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content bg-dark text-white border-secondary">
-            <div class="modal-header border-secondary">
-                <h5 class="modal-title text-uppercase fw-bold"><i class="fas fa-satellite-dish me-2 text-success"></i> Transmisión Segura</h5>
+        <div class="modal-content" style="background: var(--sbbl-blue-2); border: 4px solid #000; border-radius: 0; box-shadow: 8px 8px 0 #000;">
+            <div class="modal-header" style="background: #000; border-bottom: 4px solid var(--shonen-cyan); border-radius: 0;">
+                <h5 class="modal-title font-bangers fs-3 text-white"><i class="fas fa-satellite-dish me-2" style="color: var(--shonen-cyan);"></i> TRANSMISIÓN SEGURA</h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
             <form method="POST" action="{{ route('equipos.sendInvitation', $equipo) }}" id="invitationForm">
                 @csrf
-                <div class="modal-body">
-                    <label class="form-label text-white text-uppercase small">Seleccionar Operativo</label>
-                    <select name="user_id" id="user_id" class="form-select bg-black text-white border-secondary" required>
-                        <option value="" disabled selected>-- Buscando en base de datos... --</option>
+                <div class="modal-body p-4">
+                    <label class="form-label text-white font-bangers fs-4" style="letter-spacing: 1px;">SELECCIONAR OPERATIVO:</label>
+                    <select name="user_id" id="user_id" class="form-select bg-black text-white border-dark fw-bold" required>
+                        <option value="" disabled selected>-- BÚSQUEDA EN BASE DE DATOS --</option>
                         @foreach ($users as $user)
                             <option value="{{ $user->id }}">{{ $user->name }}</option>
                         @endforeach
                     </select>
                 </div>
-                <div class="modal-footer border-secondary">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                    <button type="submit" class="btn btn-success fw-bold">Enviar Solicitud</button>
+                <div class="modal-footer border-top border-dark" style="background: #000;">
+                    <button type="button" class="btn fw-bold text-white bg-dark border border-secondary" data-bs-dismiss="modal">CANCELAR</button>
+                    <button type="submit" class="btn fw-bold" style="background: var(--shonen-cyan); color: #000; border: 2px solid #000;">ENVIAR SOLICITUD</button>
                 </div>
             </form>
         </div>
     </div>
 </div>
-
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     if (typeof $.fn.select2 !== 'undefined') {
