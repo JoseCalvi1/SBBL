@@ -161,7 +161,9 @@
 
                     <div class="mb-4 mt-3">
                         <span class="badge bg-black border border-white text-uppercase py-2 px-3 text-white" style="font-family: 'Oswald', cursive; font-size: 1.2rem; letter-spacing: 1px; box-shadow: 3px 3px 0 var(--sbbl-blue-3); transform: skewX(-5deg); display: inline-block;">
-                            <span style="transform: skewX(5deg); display: block;">{{ $profile->region->name ?? 'ZONA DESCONOCIDA' }}</span>
+                            <span style="transform: skewX(5deg); display: block;">
+                                {{ $profile->province ? $profile->province->name . ', ' : '' }}{{ $profile->region->name ?? 'ZONA DESCONOCIDA' }}
+                            </span>
                         </span>
                     </div>
 

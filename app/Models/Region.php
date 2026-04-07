@@ -18,4 +18,10 @@ class Region extends Model
     {
         return $this->hasMany(Event::class);
     }
+
+    // Una región tiene muchas provincias
+    public function provinces()
+    {
+        return $this->hasMany(Province::class);
+    }
 }

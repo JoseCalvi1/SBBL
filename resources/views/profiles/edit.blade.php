@@ -27,7 +27,7 @@
 .exclusive-section-bronze {
     margin-top: 30px;
     margin-bottom: 30px;
-    border: 3px solid #CD7F32;  /* Borde Bronce */
+    border: 3px solid #CD7F32;
     box-shadow: 0 0 15px #CD7F32;
     transform: scale(1.02);
     transition: all 0.3s ease;
@@ -37,7 +37,7 @@
 .exclusive-section-silver {
     margin-top: 30px;
     margin-bottom: 30px;
-    border: 3px solid #c0e5fb;  /* Borde Plata */
+    border: 3px solid #c0e5fb;
     box-shadow: 0 0 15px #c0e5fb;
     transform: scale(1.02);
     transition: all 0.3s ease;
@@ -47,7 +47,7 @@
 .exclusive-section-gold {
     margin-top: 30px;
     margin-bottom: 30px;
-    border: 3px solid gold;  /* Borde Oro */
+    border: 3px solid gold;
     box-shadow: 0 0 15px rgba(255, 223, 0, 0.7);
     transform: scale(1.02);
     transition: all 0.3s ease;
@@ -100,104 +100,102 @@ h4 {
                 @enderror
             </div>
 
-                @php
-                    $subscriptionClass = '';
+            @php
+                $subscriptionClass = '';
 
-                    // 1️⃣ Prioridad: suscripción activa del usuario
-                    if ($profile->user->activeSubscription) {
-                        $level = $profile->user->activeSubscription->plan->slug; // '1', '2', '3'
-                        switch ($level) {
-                            case 'oro':
-                                $subscriptionClass = 'suscripcion-nivel-3';
-                                break;
-                            case 'plata':
-                            case 'bronce':
-                                $subscriptionClass = 'suscripcion';
-                                break;
+                // 1️⃣ Prioridad: suscripción activa del usuario
+                if ($profile->user->activeSubscription) {
+                    $level = $profile->user->activeSubscription->plan->slug; // '1', '2', '3'
+                    switch ($level) {
+                        case 'oro':
+                            $subscriptionClass = 'suscripcion-nivel-3';
+                            break;
+                        case 'plata':
+                        case 'bronce':
+                            $subscriptionClass = 'suscripcion';
+                            break;
+                    }
+                }
+
+                // 2️⃣ Si no hay suscripción activa, buscar entre los trofeos
+                if (!$subscriptionClass) {
+                    $subscriptionTrophy = $profile->trophies->first(function ($trophy) {
+                        return stripos($trophy->name, 'SUSCRIPCIÓN') !== false;
+                    });
+
+                    if ($subscriptionTrophy) {
+                        if (stripos($subscriptionTrophy->name, 'NIVEL 3') !== false) {
+                            $subscriptionClass = 'suscripcion-nivel-3';
+                        } elseif (stripos($subscriptionTrophy->name, 'NIVEL 2') !== false ||
+                                  stripos($subscriptionTrophy->name, 'NIVEL 1') !== false) {
+                            $subscriptionClass = 'suscripcion';
                         }
                     }
-
-                    // 2️⃣ Si no hay suscripción activa, buscar entre los trofeos
-                    if (!$subscriptionClass) {
-                        $subscriptionTrophy = $profile->trophies->first(function ($trophy) {
-                            return stripos($trophy->name, 'SUSCRIPCIÓN') !== false;
-                        });
-
-                        if ($subscriptionTrophy) {
-                            if (stripos($subscriptionTrophy->name, 'NIVEL 3') !== false) {
-                                $subscriptionClass = 'suscripcion-nivel-3';
-                            } elseif (stripos($subscriptionTrophy->name, 'NIVEL 2') !== false ||
-                                      stripos($subscriptionTrophy->name, 'NIVEL 1') !== false) {
-                                $subscriptionClass = 'suscripcion';
-                            }
-                        }
-                    }
-                @endphp
+                }
+            @endphp
 
 
-                    @if ($subscriptionClass == "suscripcion")
-                        <div class="form-group mt-2">
-                            <label for="subtitulo">Opción personalizada</label>
-                            <select name="subtitulo" id="subtitulo" class="form-control @error('subtitulo') is-invalid @enderror">
-                                <option value="" selected>- Selecciona una opción -</option>
+            @if ($subscriptionClass == "suscripcion")
+                <div class="form-group mt-2">
+                    <label for="subtitulo">Opción personalizada</label>
+                    <select name="subtitulo" id="subtitulo" class="form-control @error('subtitulo') is-invalid @enderror">
+                        <option value="" selected>- Selecciona una opción -</option>
 
-                                @php
-                                    $subtitulos = [
-                                        "Burst Timidín", "Custom fanboy", "Maestro del Beyblade", "Lloriquín",
-                                        "Wizard Rod Destroyer", "SBBL Fraud", "Liga de Coña de Beyblade",
-                                        "SlipGrip fangirl", "Trabajando…", "Beytakl Enjoyer", "Blader solitari@",
-                                        "It is what it is", "Otro día más en la oficina", "Tocho", "Blader senil",
-                                        "WizardLloros", "Beynito Villamarín", "Ratchet Pizjuan",
-                                        "Dinosaurios Chad", "Supersonic Acrobatic Rocket-Powered Battle Beys",
-                                        "Colormaxxing", "Brainrot"
-                                    ];
+                        @php
+                            $subtitulos = [
+                                "Burst Timidín", "Custom fanboy", "Maestro del Beyblade", "Lloriquín",
+                                "Wizard Rod Destroyer", "SBBL Fraud", "Liga de Coña de Beyblade",
+                                "SlipGrip fangirl", "Trabajando…", "Beytakl Enjoyer", "Blader solitari@",
+                                "It is what it is", "Otro día más en la oficina", "Tocho", "Blader senil",
+                                "WizardLloros", "Beynito Villamarín", "Ratchet Pizjuan",
+                                "Dinosaurios Chad", "Supersonic Acrobatic Rocket-Powered Battle Beys",
+                                "Colormaxxing", "Brainrot"
+                            ];
 
-                                    $limit = in_array($subscriptionClass, ['suscripcion']) ? 10 : count($subtitulos);
-                                @endphp
+                            $limit = in_array($subscriptionClass, ['suscripcion']) ? 10 : count($subtitulos);
+                        @endphp
 
-                                @foreach (array_slice($subtitulos, 0, $limit) as $subtitulo)
-                                    <option value="{{ $subtitulo }}" @if ($profile->subtitulo == $subtitulo) selected @endif>
-                                        {{ $subtitulo }}
-                                    </option>
-                                @endforeach
-                            </select>
+                        @foreach (array_slice($subtitulos, 0, $limit) as $subtitulo)
+                            <option value="{{ $subtitulo }}" @if ($profile->subtitulo == $subtitulo) selected @endif>
+                                {{ $subtitulo }}
+                            </option>
+                        @endforeach
+                    </select>
 
-                            @error('subtitulo')
-                                <span class="invalid-feedback d-block" role="alert">
-                                    <strong>{{ $message }}</strong>
-                                </span>
-                            @enderror
-                        </div>
+                    @error('subtitulo')
+                        <span class="invalid-feedback d-block" role="alert">
+                            <strong>{{ $message }}</strong>
+                        </span>
+                    @enderror
+                </div>
 
-                    @elseif ($subscriptionClass == "suscripcion-nivel-3")
-                        <div class="form-group mt-2">
-                            <label for="subtitulo">Subtítulo</label>
-                            <input type="text"
-                                name="subtitulo"
-                                class="form-control @error('subtitulo') is-invalid @enderror"
-                                id="subtitulo"
-                                placeholder="Subtítulo"
-                                value="{{ $profile->subtitulo }}"
-                            />
-                            @error('subtitulo')
-                                <span class="invalid-feedback d-block" role="alert">
-                                    <strong>{{ $message }}</strong>
-                                </span>
-                            @enderror
-                        </div>
-                    @endif
+            @elseif ($subscriptionClass == "suscripcion-nivel-3")
+                <div class="form-group mt-2">
+                    <label for="subtitulo">Subtítulo</label>
+                    <input type="text"
+                        name="subtitulo"
+                        class="form-control @error('subtitulo') is-invalid @enderror"
+                        id="subtitulo"
+                        placeholder="Subtítulo"
+                        value="{{ $profile->subtitulo }}"
+                    />
+                    @error('subtitulo')
+                        <span class="invalid-feedback d-block" role="alert">
+                            <strong>{{ $message }}</strong>
+                        </span>
+                    @enderror
+                </div>
+            @endif
 
 
             <div class="form-group mt-2">
-                <label for="region_id">Región</label>
-                <select name="region_id" id="region_id" class="form-control @error('nombre') is-invalid @enderror">
-                    @if ($regionT)
-                        <option value="{{ $regionT->id }}">{{ $regionT->name }}</option>
-                    @else
-                        <option disabled selected>- Selecciona -</option>
-                    @endif
+                <label for="region_id">Comunidad Autónoma</label>
+                <select name="region_id" id="region_id" class="form-control @error('region_id') is-invalid @enderror">
+                    <option value="" disabled selected>- Selecciona -</option>
                     @foreach ($regions as $region)
-                        <option value="{{ $region->id }}">{{ $region->name }}</option>
+                        <option value="{{ $region->id }}" {{ (old('region_id', $profile->region_id) == $region->id) ? 'selected' : '' }}>
+                            {{ $region->name }}
+                        </option>
                     @endforeach
                 </select>
                 @error('region_id')
@@ -206,6 +204,21 @@ h4 {
                     </span>
                 @enderror
             </div>
+
+            {{-- NUEVO CAMPO: PROVINCIA --}}
+            <div class="form-group mt-2">
+                <label for="province_id">Provincia</label>
+                <select name="province_id" id="province_id" class="form-control @error('province_id') is-invalid @enderror">
+                    <option value="" disabled selected>- Selecciona una Comunidad primero -</option>
+                    {{-- Las opciones se llenarán por JavaScript --}}
+                </select>
+                @error('province_id')
+                    <span class="invalid-feedback d-block" role="alert">
+                        <strong>{{$message}}</strong>
+                    </span>
+                @enderror
+            </div>
+
 
             <div class="form-group mt-2 form-check">
                 <input
@@ -432,5 +445,52 @@ h4 {
             var container = document.getElementById(containerId);
             container.classList.toggle('show');
         }
+
+        // ==========================================
+        // LÓGICA DINÁMICA: REGIONES Y PROVINCIAS
+        // ==========================================
+        document.addEventListener('DOMContentLoaded', function() {
+            // Traemos las provincias desde Laravel al JavaScript
+            const allProvinces = @json($provinces ?? []);
+
+            const regionSelect = document.getElementById('region_id');
+            const provinceSelect = document.getElementById('province_id');
+            const currentProvinceId = "{{ old('province_id', $profile->province_id) }}";
+
+            function updateProvinces() {
+                const selectedRegionId = regionSelect.value;
+
+                // Limpiar el desplegable de provincias
+                provinceSelect.innerHTML = '<option value="" disabled selected>- Selecciona una provincia -</option>';
+
+                if (selectedRegionId) {
+                    // Filtrar solo las provincias de la región seleccionada
+                    const filteredProvinces = allProvinces.filter(p => p.region_id == selectedRegionId);
+
+                    filteredProvinces.forEach(province => {
+                        const option = document.createElement('option');
+                        option.value = province.id;
+                        option.textContent = province.name;
+
+                        // Si era la provincia guardada del usuario, la dejamos marcada
+                        if (province.id == currentProvinceId) {
+                            option.selected = true;
+                        }
+
+                        provinceSelect.appendChild(option);
+                    });
+                } else {
+                    provinceSelect.innerHTML = '<option value="" disabled selected>- Selecciona una Comunidad primero -</option>';
+                }
+            }
+
+            // Escuchar cada vez que el usuario cambia de región
+            regionSelect.addEventListener('change', updateProvinces);
+
+            // Al cargar la página por primera vez, ejecutarlo por si ya tiene una región guardada
+            if (regionSelect.value) {
+                updateProvinces();
+            }
+        });
     </script>
 @endsection

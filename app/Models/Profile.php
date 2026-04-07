@@ -19,6 +19,11 @@ class Profile extends Model
         return $this->belongsTo(Region::class, 'region_id');
     }
 
+    public function province()
+    {
+        return $this->belongsTo(Province::class);
+    }
+
     public function trophies()
     {
         return $this->belongsToMany(Trophy::class, 'profilestrophies', 'profiles_id' /* de profiles */, 'trophies_id' /* de trophies */)->withPivot('count');

@@ -591,6 +591,7 @@
                                     <h4>JUECES</h4>
                                         <a href="{{ route('teams_versus.index') }}" class="sidebar-link"><div><i class="fas fa-users-cog"></i> Equipos Duelos</div></a>
                                         <a href="{{ route('equipos.indexAdmin') }}" class="sidebar-link"><div><i class="fas fa-users"></i> Equipos</div></a>
+                                        <a href="{{ route('admin.inventory.index') }}" class="sidebar-link"><div><i class="fas fa-boxes"></i> Inventario</div></a>
                                         <a href="{{ route('database.indexPartes') }}" class="sidebar-link"><div><i class="fas fa-cogs"></i> Partes</div></a>
                                         <a href="{{ route('database.indexBeys') }}" class="sidebar-link"><div><i class="fas fa-cube"></i> Crear Beyblades</div></a>
                                     @endif

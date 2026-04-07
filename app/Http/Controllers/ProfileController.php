@@ -482,6 +482,7 @@ class ProfileController extends Controller
 
         $regionT = Region::find($profile->region_id);
         $regions = Region::all();
+        $provinces = \App\Models\Province::all();
 
         // =====================================================================
         // 1. CARGA DINÁMICA DE IMÁGENES DESDE CARPETAS
@@ -567,7 +568,8 @@ class ProfileController extends Controller
             'marcoOptions', 'marcoBronce', 'marcoPlata', 'marcoOro',
             'fondoOptions',
             'avatars', // Iconos especiales de copa
-            'subscriptionLevel'
+            'subscriptionLevel',
+            'provinces'
         ));
     }
 
@@ -582,14 +584,15 @@ class ProfileController extends Controller
     {
         $this->authorize('update', $profile);
 
-        // Validar los datos, asegurándote de que 'custom_option' no sea obligatorio
+        // Validar los datos (Añadimos province_id)
         $data = request()->validate([
             'nombre' => 'required',
             'region_id' => 'required',
+            'province_id' => 'nullable|exists:provinces,id', // <-- NUEVO CAMPO
             'free_agent' => 'nullable|boolean',
             'fondo' => 'required',
             'marco' => 'required',
-            'subtitulo' => 'nullable|string',  // No es obligatorio
+            'subtitulo' => 'nullable|string',
         ]);
 
         $data['free_agent'] = $request->has('free_agent') ? 1 : 0;
@@ -606,10 +609,10 @@ class ProfileController extends Controller
         auth()->user()->name = $data['nombre'];
         auth()->user()->save();
 
-        // Eliminar url y name de $data
+        // Eliminar nombre de $data
         unset($data['nombre']);
 
-        // Asignar biografía, imagen y la opción personalizada
+        // Asignar biografía, imagen, provincia y opciones personalizadas
         auth()->user()->profile()->update(array_merge(
             $data,
             $array_imagen ?? []

@@ -258,6 +258,10 @@ Route::group(['middleware' => 'admin'], function () {
     Route::get('/nacional/importar', [InicioController::class, 'mostrarFormulario'])->name('nacional.importar');
 Route::get('/beyblade-database', [BeybladeDatabaseController::class, 'index'])->name('database.index');
 
+Route::get('/admin/inventory', [App\Http\Controllers\Admin\InventoryController::class, 'index'])->name('admin.inventory.index');
+Route::post('/admin/inventory', [App\Http\Controllers\Admin\InventoryController::class, 'store'])->name('admin.inventory.store');
+Route::put('/admin/inventory/{id}', [App\Http\Controllers\Admin\InventoryController::class, 'update'])->name('admin.inventory.update');
+Route::delete('/admin/inventory/{id}', [App\Http\Controllers\Admin\InventoryController::class, 'destroy'])->name('admin.inventory.destroy');
 // Rutas de partes admin (blades, ratchets, bits)
 
 Route::get('partes/{type}', [BeybladeDatabaseController::class, 'indexPartes']);

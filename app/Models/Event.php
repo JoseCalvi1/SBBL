@@ -52,6 +52,11 @@ class Event extends Model
         return $this->belongsTo(Region::class, 'region_id');
     }
 
+    public function province()
+    {
+        return $this->belongsTo(Province::class);
+    }
+
     public function users()
     {
         return $this->belongsToMany(User::class, 'assist_user_event', 'event_id', 'user_id')

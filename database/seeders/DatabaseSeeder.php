@@ -21,5 +21,6 @@ class DatabaseSeeder extends Seeder
         $this->call(ZoneSeeder::class);
         $this->call(ItemsSeeder::class);
         $this->call(RoleTransferSeeder::class);
+        $this->call(ProvinceSeeder::class);
     }
 }
