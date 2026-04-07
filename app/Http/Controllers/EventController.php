@@ -684,25 +684,44 @@ private function sendResponse($type, $message, $request, $code = 200)
         return back()->with('success', 'Revisión eliminada correctamente.');
     }
 
-    public function reviews_seguimiento(Request $request)
+    public function reviews_seguimiento(\Illuminate\Http\Request $request)
     {
+        // Cogemos el mes y año, o 'all' si queremos el histórico
         $month = $request->get('month', now()->month);
         $year = $request->get('year', now()->year);
         $userId = $request->get('user_id');
 
-        $start = Carbon::create($year, $month, 1)->startOfMonth();
-        $end = Carbon::create($year, $month, 1)->endOfMonth();
-
-        $users = User::whereHas('roles', function($query) {
+        // Traemos solo a los usuarios que tengan rol de árbitro o juez
+        $users = \App\Models\User::whereHas('roles', function($query) {
             $query->whereIn('name', ['arbitro', 'juez']);
         })->orderBy('name')->get();
 
-        // Helpers de consulta
-        $dateFilter = fn($q) => $q->whereBetween('created_at', [$start, $end]);
-        $userFilter = fn($q, $field) => $userId ? $q->where($field, $userId) : $q;
+        // Helper inteligente de consulta para las fechas
+        $dateFilter = function($q) use ($month, $year) {
+            if ($month === 'all' && $year === 'all') {
+                return $q; // SIN FILTRO: Histórico Total
+            }
+            if ($year !== 'all' && $month !== 'all') {
+                // Mes y Año exactos
+                $start = \Carbon\Carbon::create($year, $month, 1)->startOfMonth();
+                $end = \Carbon\Carbon::create($year, $month, 1)->endOfMonth();
+                return $q->whereBetween('created_at', [$start, $end]);
+            }
+            if ($year !== 'all') {
+                // Todo un año completo
+                return $q->whereYear('created_at', $year);
+            }
+            if ($month !== 'all') {
+                // Un mes específico en todos los años (raro, pero posible)
+                return $q->whereMonth('created_at', $month);
+            }
+            return $q;
+        };
 
-        // Referees (Árbitros que NO son jueces)
-        $refereeReviews = EventReview::with(['event', 'referee'])
+        // ==========================================
+        // 1. ÁRBITROS (Excluimos a los que también son jueces)
+        // ==========================================
+        $refereeReviews = \App\Models\EventReview::with(['event', 'referee'])
             ->tap($dateFilter)
             ->whereHas('referee', function($q) {
                 $q->whereHas('roles', fn($q2) => $q2->where('name', 'arbitro'))
@@ -711,21 +730,7 @@ private function sendResponse($type, $message, $request, $code = 200)
             ->when($userId, fn($q) => $q->where('referee_id', $userId))
             ->get();
 
-        // Jueces (combinado)
-        $juryReviewsFromEventReviews = EventReview::with(['event', 'referee'])
-            ->tap($dateFilter)
-            ->whereHas('referee', fn($q) => $q->whereHas('roles', fn($q2) => $q2->where('name', 'juez')))
-            ->when($userId, fn($q) => $q->where('referee_id', $userId))
-            ->get();
-
-        $juryReviewsFromJudgeTable = EventJudgeReview::with(['event', 'judge'])
-            ->tap($dateFilter)
-            ->whereHas('judge', fn($q) => $q->whereHas('roles', fn($q2) => $q2->where('name', 'juez')))
-            ->when($userId, fn($q) => $q->where('judge_id', $userId))
-            ->get();
-
-        // Estadísticas Mensuales Árbitros
-        $refereeMonthlyStats = EventReview::selectRaw('referee_id as user_id, COUNT(*) as total_reviews, COUNT(DISTINCT event_id) as total_events, SUM(status = "approved") as approved, SUM(status = "rejected") as rejected, SUM(status = "pending") as pending')
+        $refereeMonthlyStats = \App\Models\EventReview::selectRaw('referee_id as user_id, COUNT(*) as total_reviews, COUNT(DISTINCT event_id) as total_events, SUM(status = "approved") as approved, SUM(status = "rejected") as rejected, SUM(status = "pending") as pending')
             ->tap($dateFilter)
             ->whereHas('referee', function($q) {
                 $q->whereHas('roles', fn($q2) => $q2->where('name', 'arbitro'))
@@ -735,19 +740,34 @@ private function sendResponse($type, $message, $request, $code = 200)
             ->groupBy('referee_id')
             ->get();
 
-        // Estadísticas Jueces (Unificación)
-        $s1 = EventReview::selectRaw('referee_id as user_id, COUNT(*) as total_reviews, COUNT(DISTINCT event_id) as total_events, SUM(status = "approved") as approved, SUM(status = "rejected") as rejected')
+        // ==========================================
+        // 2. JUECES (Combinamos sus revisiones normales y sus veredictos finales)
+        // ==========================================
+        $juryReviewsFromEventReviews = \App\Models\EventReview::with(['event', 'referee'])
+            ->tap($dateFilter)
+            ->whereHas('referee', fn($q) => $q->whereHas('roles', fn($q2) => $q2->where('name', 'juez')))
+            ->when($userId, fn($q) => $q->where('referee_id', $userId))
+            ->get();
+
+        $juryReviewsFromJudgeTable = \App\Models\EventJudgeReview::with(['event', 'judge'])
+            ->tap($dateFilter)
+            ->whereHas('judge', fn($q) => $q->whereHas('roles', fn($q2) => $q2->where('name', 'juez')))
+            ->when($userId, fn($q) => $q->where('judge_id', $userId))
+            ->get();
+
+        $s1 = \App\Models\EventReview::selectRaw('referee_id as user_id, COUNT(*) as total_reviews, COUNT(DISTINCT event_id) as total_events, SUM(status = "approved") as approved, SUM(status = "rejected") as rejected')
             ->tap($dateFilter)
             ->whereHas('referee', fn($q) => $q->whereHas('roles', fn($q2) => $q2->where('name', 'juez')))
             ->when($userId, fn($q) => $q->where('referee_id', $userId))
             ->groupBy('referee_id')->get();
 
-        $s2 = EventJudgeReview::selectRaw('judge_id as user_id, COUNT(*) as total_reviews, COUNT(DISTINCT event_id) as total_events, SUM(final_status = "approved") as approved, SUM(final_status = "rejected") as rejected')
+        $s2 = \App\Models\EventJudgeReview::selectRaw('judge_id as user_id, COUNT(*) as total_reviews, COUNT(DISTINCT event_id) as total_events, SUM(final_status = "approved") as approved, SUM(final_status = "rejected") as rejected')
             ->tap($dateFilter)
             ->whereHas('judge', fn($q) => $q->whereHas('roles', fn($q2) => $q2->where('name', 'juez')))
             ->when($userId, fn($q) => $q->where('judge_id', $userId))
             ->groupBy('judge_id')->get();
 
+        // Unificamos las estadísticas de los jueces
         $juryMonthlyStats = $s1->concat($s2)->groupBy('user_id')->map(function ($items) {
             return (object) [
                 'user_id' => $items->first()->user_id,
@@ -758,17 +778,19 @@ private function sendResponse($type, $message, $request, $code = 200)
             ];
         });
 
-        $stats = [
-            'referee_total' => $refereeReviews->count(),
-            'approved' => $refereeReviews->where('status', 'approved')->count(),
-            'rejected' => $refereeReviews->where('status', 'rejected')->count(),
-            'pending' => $refereeReviews->where('status', 'pending')->count(),
-            'jury_total' => $juryMonthlyStats->sum('total_reviews'),
+        // ==========================================
+        // 3. ESTADÍSTICAS GLOBALES
+        // ==========================================
+        $globalStats = (object) [
+            'total_reviews' => $refereeReviews->count() + $juryReviewsFromEventReviews->count() + $juryReviewsFromJudgeTable->count(),
+            'approved' => $refereeReviews->where('status', 'approved')->count() + $juryReviewsFromEventReviews->where('status', 'approved')->count() + $juryReviewsFromJudgeTable->where('final_status', 'approved')->count(),
+            'rejected' => $refereeReviews->where('status', 'rejected')->count() + $juryReviewsFromEventReviews->where('status', 'rejected')->count() + $juryReviewsFromJudgeTable->where('final_status', 'rejected')->count(),
+            'pending' => $refereeReviews->where('status', 'pending')->count() + $juryReviewsFromEventReviews->where('status', 'pending')->count()
         ];
 
         return view('admin.dashboard.reviews', compact(
             'refereeReviews', 'juryReviewsFromEventReviews', 'juryReviewsFromJudgeTable',
-            'refereeMonthlyStats', 'juryMonthlyStats', 'stats', 'month', 'year', 'users', 'userId'
+            'refereeMonthlyStats', 'juryMonthlyStats', 'globalStats', 'month', 'year', 'users', 'userId'
         ));
     }
 

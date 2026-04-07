@@ -207,7 +207,119 @@ class ProfileController extends Controller
         }
         $plans = \App\Models\Plan::all();
 
-        return view('profiles.indexAdmin', compact('profiles', 'allUsers', 'subscriptions', 'selectedBlader', 'bladerHistory', 'selectedBladerId', 'plans'));
+        // 4. TESORERÍA: INGRESOS GRAN COPA
+        // Traemos los eventos de la Gran Copa directamente
+        $granCopaEvents = \App\Models\Event::where('beys', 'grancopa')
+            ->where('date', '>=', '2025-09-01') // <-- FILTRO EN EL EVENTO
+            ->orderByDesc('date')
+            ->get();
+
+        $totalParticipants = 0;
+        $totalGross = 0;
+        $totalFees = 0;
+        $totalNet = 0;
+
+        // Variables de configuración (Ajusta estos valores si tu tarifa de PayPal es distinta)
+        $pricePerTicket = 5.00;
+        $paypalPercentage = 0.034; // 3.4%
+        $paypalFixed = 0.35; // 0.35€ fijos por transacción
+
+        foreach ($granCopaEvents as $event) {
+            // Contamos los participantes consultando la tabla exacta
+            $participants = \Illuminate\Support\Facades\DB::table('assist_user_event')
+                ->where('event_id', $event->id)
+                ->count();
+
+            $gross = $participants * $pricePerTicket;
+
+            // La comisión se cobra por cada inscripción individual (transacción)
+            // Si hay 0 participantes, la comisión es 0 para no restar fijos a lo tonto
+            $fees = 0;
+            if ($participants > 0) {
+                $feePerTicket = ($pricePerTicket * $paypalPercentage) + $paypalFixed;
+                $fees = $participants * $feePerTicket;
+            }
+
+            $net = $gross - $fees;
+
+            // Guardamos los cálculos en el evento para pintarlos en la tabla
+            $event->assists_count = $participants; // Pasamos el conteo manual
+            $event->gross_revenue = $gross;
+            $event->paypal_fees = $fees;
+            $event->net_revenue = $net;
+
+            // Sumamos al total global
+            $totalParticipants += $participants;
+            $totalGross += $gross;
+            $totalFees += $fees;
+            $totalNet += $net;
+        }
+
+        $treasuryStats = (object)[
+            'participants' => $totalParticipants,
+            'gross' => $totalGross,
+            'fees' => $totalFees,
+            'net' => $totalNet
+        ];
+
+        // 5. RADAR REGIONAL (Estadísticas de Staff y Participación)
+        // Recogemos el filtro de la URL, por defecto el mes y año actuales
+        $radarMonth = $request->input('radar_month', now()->month);
+        $radarYear = $request->input('radar_year', now()->year);
+
+        $regionalStats = \App\Models\Region::all()->map(function($region) use ($radarMonth, $radarYear) {
+
+            // Contar Staff asignado a esta región (Jueces y Árbitros)
+            $staffInRegion = \App\Models\Profile::where('region_id', $region->id)
+                ->whereHas('user.roles', function($q) {
+                    $q->whereIn('name', ['juez', 'arbitro']);
+                })->count();
+
+            // Preparamos la consulta de eventos en esa región
+            $eventsQuery = \App\Models\Event::where('region_id', $region->id);
+
+            // Aplicamos los filtros de fecha si no han seleccionado "Todos"
+            if ($radarMonth !== 'all') {
+                $eventsQuery->whereMonth('date', $radarMonth);
+            }
+            if ($radarYear !== 'all') {
+                $eventsQuery->whereYear('date', $radarYear);
+            }
+
+            $eventsInPeriod = $eventsQuery->get();
+
+            // Total de Bladers (inscripciones) en esos eventos filtrados
+            $totalPlayersInPeriod = 0;
+            foreach($eventsInPeriod as $event) {
+                $totalPlayersInPeriod += \Illuminate\Support\Facades\DB::table('assist_user_event')
+                    ->where('event_id', $event->id)
+                    ->count();
+            }
+
+            // Cálculo de Medias
+            $eventsCount = $eventsInPeriod->count();
+            $avgPlayersPerEvent = $eventsCount > 0 ? round($totalPlayersInPeriod / $eventsCount, 1) : 0;
+
+            // Ratio de carga de trabajo
+            $workloadRatio = ($staffInRegion > 0 && $eventsCount > 0)
+                ? round($avgPlayersPerEvent / $staffInRegion, 1)
+                : $avgPlayersPerEvent;
+
+            return (object) [
+                'name' => $region->name,
+                'staff_count' => $staffInRegion,
+                'events_count' => $eventsCount,
+                'total_players' => $totalPlayersInPeriod,
+                'avg_players' => $avgPlayersPerEvent,
+                'ratio' => $workloadRatio
+            ];
+        })->sortByDesc('total_players');
+
+        return view('profiles.indexAdmin', compact(
+            'profiles', 'allUsers', 'subscriptions', 'selectedBlader',
+            'bladerHistory', 'selectedBladerId', 'granCopaEvents',
+            'treasuryStats', 'plans', 'regionalStats', 'radarMonth', 'radarYear'
+        ));
     }
 
     public function storeSubscription(Request $request)

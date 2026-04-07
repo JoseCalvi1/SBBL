@@ -203,6 +203,8 @@ Route::get('/teams-versus/{duel}/edit', [TeamsVersusController::class, 'edit'])-
 Route::put('/teams-versus/{duel}', [TeamsVersusController::class, 'update'])->name('teams_versus.update');
 Route::get('/all-teams-versus', [TeamsVersusController::class, 'show_all'])->name('teams_versus.all');
 Route::put('/teams-versus/{duel}/{mode}/{winner}/puntuarDuelo', [TeamsVersusController::class, 'puntuarDuelo'])->name('teams_versus.puntuarDuelo');
+Route::put('/teams-versus/{duel}/invalidate', [App\Http\Controllers\TeamsVersusController::class, 'invalidate'])->name('teams_versus.invalidate');
+Route::delete('/teams-versus/{duel}', [App\Http\Controllers\TeamsVersusController::class, 'destroy'])->name('teams_versus.destroy');
 
 Route::post('/event/{eventId}/results', [TournamentResultController::class, 'store'])->name('tournament.results.store');
 Route::post('/versus/{versusId}/results', [TournamentResultController::class, 'storeduel'])->name('versus.results.store');

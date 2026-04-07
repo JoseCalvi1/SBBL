@@ -201,4 +201,64 @@ public function store(Request $request)
         return redirect()->back()->with('success', 'Puntuaciones actualizadas correctamente');
     }
 
+    // Cambiar estado a INVALID y retirar puntos si ya estaba puntuado
+    public function invalidate($id)
+    {
+        $duel = \App\Models\TeamsVersus::findOrFail($id);
+
+        // Si el duelo NO estaba abierto ni ya invalidado, significa que ya se había puntuado
+        if ($duel->status !== 'OPEN' && $duel->status !== 'INVALID') {
+
+            // Determinamos quién fue el ganador comparando los resultados
+            $winnerTeamId = null;
+            if ($duel->result_1 > $duel->result_2) {
+                $winnerTeamId = $duel->team_id_1;
+            } elseif ($duel->result_2 > $duel->result_1) {
+                $winnerTeamId = $duel->team_id_2;
+            }
+
+            // Si hubo un ganador claro, le restamos 1 punto en el ranking
+            if ($winnerTeamId) {
+                $winnerTeam = \App\Models\Team::find($winnerTeamId);
+                if ($winnerTeam) {
+                    // OJO: Cambia 'puntos' por el nombre real de tu columna si es diferente (ej: 'points', 'score')
+                    $winnerTeam->decrement('points_x2');
+                }
+            }
+        }
+
+        // Finalmente, lo marcamos como inválido
+        $duel->status = 'INVALID';
+        $duel->save();
+
+        return back()->with('success', 'El duelo ha sido invalidado y el punto ha sido retirado del equipo.');
+    }
+
+    // Eliminar el duelo por completo y retirar puntos si aplica
+    public function destroy($id)
+    {
+        $duel = \App\Models\TeamsVersus::findOrFail($id);
+
+        // Aplicamos la misma lógica de justicia: si se borra un duelo puntuado, quitamos el punto
+        if ($duel->status !== 'OPEN' && $duel->status !== 'INVALID') {
+            $winnerTeamId = null;
+            if ($duel->result_1 > $duel->result_2) {
+                $winnerTeamId = $duel->team_id_1;
+            } elseif ($duel->result_2 > $duel->result_1) {
+                $winnerTeamId = $duel->team_id_2;
+            }
+
+            if ($winnerTeamId) {
+                $winnerTeam = \App\Models\Team::find($winnerTeamId);
+                if ($winnerTeam) {
+                    $winnerTeam->decrement('points_x2'); // Cambia 'puntos' si es necesario
+                }
+            }
+        }
+
+        // Eliminamos el registro de la base de datos
+        $duel->delete();
+
+        return back()->with('success', 'El duelo ha sido eliminado permanentemente y los marcadores han sido ajustados.');
+    }
 }

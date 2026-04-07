@@ -137,6 +137,12 @@
         <li class="nav-item">
             <a class="nav-link {{ request('blader_id') ? 'active' : '' }}" id="stats-tab" data-bs-toggle="tab" href="#stats" role="tab"><span><i class="fas fa-search me-2"></i> HISTORIAL DE BLADER</span></a>
         </li>
+        <li class="nav-item">
+            <a class="nav-link" id="treasury-tab" data-bs-toggle="tab" href="#treasury" role="tab"><span><i class="fas fa-coins me-2"></i> TESORERÍA</span></a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" id="regional-tab" data-bs-toggle="tab" href="#regional" role="tab"><span><i class="fas fa-map-marked-alt me-2"></i> RADAR REGIONAL</span></a>
+        </li>
     </ul>
 
     <div class="tab-content" id="userTabsContent">
@@ -433,6 +439,189 @@
                 </div>
             @endif
 
+        </div>
+
+        {{-- =====================================
+             PESTAÑA 4: TESORERÍA (GRAN COPA)
+             ===================================== --}}
+        <div class="tab-pane fade" id="treasury" role="tabpanel" aria-labelledby="treasury-tab">
+
+            {{-- TARJETAS DE RESUMEN GLOBAL --}}
+            <div class="row g-3 mb-4">
+                <div class="col-md-3">
+                    <div class="p-3 border border-secondary" style="background: rgba(0,0,0,0.5);">
+                        <h6 class="text-white-50 font-bangers mb-1 fs-5">TOTAL PARTICIPANTES</h6>
+                        <h3 class="text-white m-0 font-bangers fs-1">{{ $treasuryStats->participants }} <i class="fas fa-users fs-4 ms-2 text-secondary"></i></h3>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="p-3 border border-secondary" style="background: rgba(0,0,0,0.5);">
+                        <h6 class="text-white-50 font-bangers mb-1 fs-5">INGRESOS BRUTOS</h6>
+                        <h3 class="text-white m-0 font-bangers fs-1">{{ number_format($treasuryStats->gross, 2) }} €</h3>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="p-3 border border-danger" style="background: rgba(255, 42, 42, 0.1);">
+                        <h6 class="text-white-50 font-bangers mb-1 fs-5">COMISIONES PAYPAL</h6>
+                        <h3 class="text-danger m-0 font-bangers fs-1">-{{ number_format($treasuryStats->fees, 2) }} €</h3>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="p-3 border border-success" style="background: rgba(0, 255, 0, 0.1);">
+                        <h6 class="text-white-50 font-bangers mb-1 fs-5">INGRESOS NETOS</h6>
+                        <h3 class="text-success m-0 font-bangers fs-1">{{ number_format($treasuryStats->net, 2) }} € <i class="fas fa-check-circle fs-4 ms-2"></i></h3>
+                    </div>
+                </div>
+            </div>
+
+            {{-- TABLA DETALLADA POR EVENTO --}}
+            <h4 class="font-bangers text-white mb-3" style="font-size: 2rem;"><i class="fas fa-list-alt me-2" style="color: var(--sbbl-gold);"></i> DESGLOSE POR EVENTO (GRAN COPA)</h4>
+            <div class="table-responsive">
+                <table class="table table-tactical">
+                    <thead>
+                        <tr>
+                            <th>Fecha</th>
+                            <th>Nombre del Torneo</th>
+                            <th class="text-center">Bladers Inscritos</th>
+                            <th class="text-end">Bruto (5€)</th>
+                            <th class="text-end text-danger">Comisión PayPal</th>
+                            <th class="text-end text-success">Ingreso Neto</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach ($granCopaEvents as $event)
+                            <tr>
+                                <td>
+                                    <i class="far fa-calendar-alt text-secondary me-2"></i>
+                                    {{ \Carbon\Carbon::parse($event->date)->format('d/m/Y') }}
+                                </td>
+                                <td class="fw-bold" style="font-size: 1.1rem;">
+                                    <a href="{{ route('events.show', $event->id) }}" class="text-decoration-none" target="_blank">
+                                        {{ $event->name }} <i class="fas fa-external-link-alt ms-1 text-secondary" style="font-size: 0.8rem;"></i>
+                                    </a>
+                                </td>
+                                <td class="text-center fw-bold fs-5">{{ $event->assists_count }}</td>
+                                <td class="text-end fw-bold">{{ number_format($event->gross_revenue, 2) }} €</td>
+                                <td class="text-end text-danger">-{{ number_format($event->paypal_fees, 2) }} €</td>
+                                <td class="text-end text-success fw-bold fs-5">{{ number_format($event->net_revenue, 2) }} €</td>
+                            </tr>
+                        @endforeach
+
+                        @if($granCopaEvents->isEmpty())
+                            <tr>
+                                <td colspan="6" class="text-center text-white-50 p-4">Aún no hay torneos de categoría "Gran Copa" registrados en el sistema.</td>
+                            </tr>
+                        @endif
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        {{-- =====================================
+             PESTAÑA 5: ESTADÍSTICAS REGIONALES
+             ===================================== --}}
+        <div class="tab-pane fade {{ request()->has('radar_month') ? 'show active' : '' }}" id="regional" role="tabpanel" aria-labelledby="regional-tab">
+
+            {{-- FILTROS REGIONALES --}}
+            <div class="command-panel p-4 mb-5" style="background: rgba(0,0,0,0.5); border: 2px solid var(--shonen-cyan);">
+                <form method="GET" action="{{ route('profiles.indexAdmin') }}">
+                    <div class="row g-3 align-items-end">
+                        <div class="col-md-5">
+                            <label class="text-white font-bangers fs-5 mb-2">MES</label>
+                            <select name="radar_month" class="form-control bg-dark text-white border-secondary">
+                                <option value="all" {{ $radarMonth === 'all' ? 'selected' : '' }}>-- TODOS LOS MESES --</option>
+                                @for ($m = 1; $m <= 12; $m++)
+                                    <option value="{{ $m }}" {{ $radarMonth == $m ? 'selected' : '' }}>
+                                        {{ strtoupper(\Carbon\Carbon::create()->month($m)->translatedFormat('F')) }}
+                                    </option>
+                                @endfor
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="text-white font-bangers fs-5 mb-2">AÑO</label>
+                            <select name="radar_year" class="form-control bg-dark text-white border-secondary">
+                                <option value="all" {{ $radarYear === 'all' ? 'selected' : '' }}>-- HISTÓRICO TOTAL --</option>
+                                @for ($y = now()->year; $y >= now()->year - 5; $y--)
+                                    <option value="{{ $y }}" {{ $radarYear == $y ? 'selected' : '' }}>{{ $y }}</option>
+                                @endfor
+                            </select>
+                        </div>
+                        <div class="col-md-3 text-end">
+                            <button type="submit" class="btn btn-info font-bangers fs-5 w-100 py-2" style="letter-spacing: 1px;">APLICAR FILTROS</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+
+            <div class="text-center mb-4">
+                <h4 class="font-bangers text-white" style="font-size: 2rem;">
+                    <i class="fas fa-map-marked-alt me-2" style="color: var(--shonen-cyan);"></i>
+                    ASISTENCIA POR REGIÓN:
+                    <span class="text-warning">
+                        @if($radarMonth === 'all' && $radarYear === 'all')
+                            HISTÓRICO ABSOLUTO
+                        @elseif($radarMonth === 'all')
+                            AÑO {{ $radarYear }}
+                        @elseif($radarYear === 'all')
+                            MES DE {{ strtoupper(\Carbon\Carbon::create()->month($radarMonth)->translatedFormat('F')) }} (TODOS LOS AÑOS)
+                        @else
+                            {{ strtoupper(\Carbon\Carbon::create()->month($radarMonth)->translatedFormat('F')) }} {{ $radarYear }}
+                        @endif
+                    </span>
+                </h4>
+                <p class="text-white-50 small">Análisis de participación y distribución de Jueces/Árbitros por comunidad.</p>
+            </div>
+
+            <div class="table-responsive">
+                <table class="table table-tactical">
+                    <thead>
+                        <tr>
+                            <th>Región</th>
+                            <th class="text-center">Jueces/Árbitros</th>
+                            <th class="text-center">Torneos</th>
+                            <th class="text-center">Bladers Totales</th>
+                            <th class="text-center">Media x Torneo</th>
+                            <th class="text-center">Carga x Árbitro</th>
+                            <th class="text-center">Estado de la Región</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach ($regionalStats as $reg)
+                            <tr>
+                                <td class="fw-bold fs-5">{{ $reg->name }}</td>
+                                <td class="text-center">
+                                    <span class="badge bg-dark border border-info px-3">{{ $reg->staff_count }}</span>
+                                </td>
+                                <td class="text-center">{{ $reg->events_count }}</td>
+                                <td class="text-center fw-bold text-warning fs-5">{{ $reg->total_players }}</td>
+                                <td class="text-center">{{ $reg->avg_players }}</td>
+                                <td class="text-center">
+                                    <span class="fw-bold" style="color: {{ $reg->ratio > 20 ? 'var(--shonen-red)' : ($reg->ratio > 12 ? 'var(--sbbl-gold)' : 'var(--shonen-cyan)') }}">
+                                        {{ $reg->ratio }} <small>Bladers/Árbitro</small>
+                                    </span>
+                                </td>
+                                <td class="text-center">
+                                    @if($reg->events_count > 0 && $reg->ratio > 20)
+                                        <span class="badge bg-danger text-white border border-white"><i class="fas fa-exclamation-triangle me-1"></i> SATURADA</span>
+                                    @elseif($reg->events_count > 0)
+                                        <span class="badge bg-success text-white border border-white"><i class="fas fa-check-circle me-1"></i> ACTIVA</span>
+                                    @else
+                                        <span class="badge bg-secondary text-white-50">INACTIVA</span>
+                                    @endif
+                                </td>
+                            </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+            </div>
+
+            {{-- LEYENDA TÉCNICA --}}
+            <div class="mt-4 p-3 bg-black border border-secondary">
+                <div class="row text-white-50 small">
+                    <div class="col-md-4"><i class="fas fa-info-circle text-info me-1"></i> <strong>Carga x Árbitro:</strong> Cuántos Bladers debe supervisar cada miembro del staff de media por torneo.</div>
+                    <div class="col-md-4"><i class="fas fa-signal text-success me-1"></i> <strong>Saturada (>20):</strong> Indica que se necesita reclutar más Jueces o Árbitros en esa región.</div>
+                    <div class="col-md-4"><i class="fas fa-moon text-secondary me-1"></i> <strong>Inactiva:</strong> Regiones sin torneos registrados en el periodo seleccionado.</div>
+                </div>
+            </div>
         </div>
 
     </div>

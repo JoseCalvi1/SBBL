@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Duelos de Sindicatos SBBL')
+@section('title', 'Duelos de Equipos SBBL')
 
 @section('styles')
 <style>
@@ -203,7 +203,7 @@
     <div class="container">
         <div class="d-flex justify-content-center flex-wrap gap-3">
             <a class="btn-shonen btn-shonen-info px-4 py-2" style="background: var(--sbbl-blue-3);" href="{{ route('equipos.index') }}">
-                <span><i class="fas fa-users me-1"></i> SINDICATOS</span>
+                <span><i class="fas fa-users me-1"></i> EQUIPOS</span>
             </a>
             <a class="btn-shonen btn-shonen-warning px-4 py-2" href="{{ route('teams_versus.all') }}">
                 <span><i class="fas fa-fist-raised me-1"></i> DUELOS</span>
@@ -290,7 +290,7 @@
                     <div style="transform: skewX(2deg);">
                         <i class="fas fa-satellite-dish mb-3 text-secondary" style="font-size: 4rem;"></i>
                         <h3 class="font-Oswald text-white fs-2 mb-2">SIN REGISTROS DE COMBATE</h3>
-                        <p class="text-white fw-bold mb-0">La arena de sindicatos está en silencio.</p>
+                        <p class="text-white fw-bold mb-0">La arena de equipos está en silencio.</p>
                     </div>
                 </div>
             </div>
