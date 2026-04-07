@@ -13,7 +13,7 @@
     <form method="POST" action="{{ route('events.update', ['event' => $event->id]) }}" enctype="multipart/form-data" novalidate style="color:white;">
         @csrf
         @method('PUT')
-        @if (Auth::user()->is_admin || Auth::user()->is_referee)
+        @if (Auth::user()->hasAnyRole(['admin', 'arbitro']))
             <div class="form-group">
                 <label for="name">Título evento</label>
 
@@ -65,7 +65,7 @@
                     <option disabled selected>- Selecciona una imagen -</option>
                     <option value="quedada" {{ $event->beys == 'quedada' ? 'selected' : '' }}>Quedada</option>
                     <option value="ranking" {{ ($event->beys == 'ranking' || $event->imagen == 'upload-events/rankingx.jpg') ? 'selected' : '' }}>Ranking</option>
-                    @if (Auth::user()->is_admin || Auth::user()->is_referee)
+                    @if (Auth::user()->hasAnyRole(['admin', 'arbitro']))
                     <option value="rankingplus" {{ $event->beys == 'rankingplus' ? 'selected' : '' }}>Ranking Plus</option>
                     <option value="grancopa" {{ $event->beys == 'grancopa' ? 'selected' : '' }}>Gran Copa</option>
                     @endif
@@ -249,7 +249,7 @@
                     @enderror
             </div>
 
-        @if(!Auth::user()->is_admin && !Auth::user()->is_referee)
+        @if(!Auth::user()->hasAnyRole(['admin', 'arbitro']))
             <div class="alert alert-warning text-center text-dark" role="alert">
                 Al editar este evento, afirmo que he leído y comprendido <a href="sbbl.es/rules" target="_blank">las normas</a> para el desarrollo del torneo y que soy el encargado de que haya material suficiente para ello (Estadio y material de grabación como trípode y móvil/cámara).
             </div>

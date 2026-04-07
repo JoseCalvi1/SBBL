@@ -1,7 +1,7 @@
 @extends('layouts.app')
 
 @section('content')
-@if (Auth::user()->is_jury || Auth::user()->is_admin || Auth::user()->is_referee || Auth::user()->is_reviewer)
+@if (Auth::user()->hasAnyRole(['juez', 'admin', 'arbitro', 'revisor']))
 <div class="py-4">
     <h2 class="text-center mb-2 text-white">Administra los eventos</h2>
 
@@ -109,18 +109,18 @@
     $user = auth()->user();
     $userId = $user->id;
 
-    $isReferee = $user->is_referee;
-    $isJury = $user->is_jury;
+    $isReferee = $user->hasRole('arbitro');
+    $isJury = $user->hasRole('juez');
     $isReviewer = $user->is_reviewer; // NUEVO ROL
 
     // ¿El evento ya tiene una revisión de jurado?
     $hasJuryReview = $event->reviews->contains(function ($review) {
-        return optional($review->referee)->is_jury;
+        return optional($review->referee)->hasRole('juez');
     });
 
     // ¿El evento ya tiene una revisión de un reviewer?
     $hasReviewerReview = $event->reviews->contains(function ($review) {
-        return optional($review->referee)->is_reviewer;
+        return optional($review->referee)->hasRole('revisor');
     });
 
     // Máximo de revisiones del evento
@@ -195,7 +195,7 @@
 <?php endif; ?>
 
 @if (
-    (auth()->user()->is_jury || auth()->user()->is_admin) &&
+    (Auth::user()->hasAnyRole(['juez', 'admin'])) &&
     !in_array($event->status, ['INVALID', 'CLOSE']) &&
     in_array($event->beys, ['ranking', 'rankingplus'])
 )
@@ -221,7 +221,7 @@
 
 
 
-        @if (in_array($event->beys, ['ranking', 'rankingplus']) && (in_array($event->status, ['INVALID', 'CLOSE']) || auth()->user()->is_admin))
+        @if (in_array($event->beys, ['ranking', 'rankingplus']) && (in_array($event->status, ['INVALID', 'CLOSE']) || Auth::user()->hasRole('admin')))
 <button class="btn btn-danger btn-sm mb-1 mt-2" type="button"
                 data-bs-toggle="collapse" data-bs-target="#reviewCollapse{{ $event->id }}"
                 aria-expanded="false" aria-controls="reviewCollapse{{ $event->id }}">
@@ -238,7 +238,7 @@
                 @foreach($event->reviews as $review)
                 <li class="mb-1">
                     <strong>
-                    @if(auth()->user()->is_admin || Auth::user()->name == optional($review->referee)->name)
+                    @if(Auth::user()->hasRole('admin') || Auth::user()->name == optional($review->referee)->name)
                         {{ optional($review->referee)->name ?? 'Árbitro desconocido' }}
                     @else
                         Árbitro {{ $loop->iteration }}
@@ -264,7 +264,7 @@
       </div>
       <div class="d-flex flex-column flex-shrink-0 me-md-3 mt-3 mb-3 mb-md-0" style="min-width: 140px;">
         <a href="{{ route('events.show', $event->id) }}" class="btn btn-success btn-sm mb-1">Ver</a>
-        @if (auth()->user()->is_admin || auth()->user()->is_jury)
+        @if(Auth::user()->hasAnyRole(['admin', 'juez']))
             <a href="{{ route('events.edit', $event->id) }}" class="btn btn-dark btn-sm mb-1">Editar</a>
             <event-delete event-id="{{ $event->id }}"></event-delete>
         @endif

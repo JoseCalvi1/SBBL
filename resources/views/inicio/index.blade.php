@@ -20,7 +20,7 @@
        ==================================================================== */
 
     .section-title {
-        font-family: 'Bangers', cursive;
+        font-family: 'Oswald', cursive;
         color: var(--sbbl-gold);
         text-shadow: 2px 2px 0px #000, 4px 4px 0px var(--sbbl-blue-3);
         margin-bottom: 25px;
@@ -35,7 +35,7 @@
     .segment { height: 100%; transition: width 1.5s ease-in-out; }
     .preseason { background: var(--sbbl-blue-3); border-right: 2px solid #000; }
     .season { background: var(--sbbl-gold); }
-    .timeline-dates { font-family: 'Bangers', cursive; font-size: 1.1rem; color: #fff; display: flex; justify-content: space-between; letter-spacing: 1px; }
+    .timeline-dates { font-family: 'Oswald', cursive; font-size: 1.1rem; color: #fff; display: flex; justify-content: space-between; letter-spacing: 1px; }
 
     /* --- ACCESOS RÁPIDOS --- */
     .quick-action-btn {
@@ -53,8 +53,8 @@
         box-shadow: 8px 8px 0px var(--sbbl-gold);
         background-image: repeating-linear-gradient(45deg, rgba(0,0,0,0.1) 0px, rgba(0,0,0,0.1) 10px, transparent 10px, transparent 20px);
     }
-    .mvp-card h2, .mvp-card h4 { color: #fff; font-family: 'Bangers', cursive; letter-spacing: 1px; text-shadow: 2px 2px 0px #000; }
-    .mvp-stats span { background: #000; color: var(--sbbl-gold) !important; border: 2px solid #fff; font-family: 'Bangers', cursive; font-size: 1.1rem; padding: 5px 10px; border-radius: 0; }
+    .mvp-card h2, .mvp-card h4 { color: #fff; font-family: 'Oswald', cursive; letter-spacing: 1px; text-shadow: 2px 2px 0px #000; }
+    .mvp-stats span { background: #000; color: var(--sbbl-gold) !important; border: 2px solid #fff; font-family: 'Oswald', cursive; font-size: 1.1rem; padding: 5px 10px; border-radius: 0; }
 
     /* --- RANKINGS WIDGET --- */
     .ranking-podium { display: flex; align-items: flex-end; justify-content: center; gap: 15px; margin-bottom: 30px; }
@@ -73,18 +73,18 @@
         object-fit: cover;
     }
 
-    .rank-number { position: absolute; bottom: -10px; left: 50%; transform: translateX(-50%); background: #000; color: #fff; padding: 2px 8px; font-weight: bold; font-size: 1rem; border: 2px solid #fff; font-family: 'Bangers', cursive; }
+    .rank-number { position: absolute; bottom: -10px; left: 50%; transform: translateX(-50%); background: #000; color: #fff; padding: 2px 8px; font-weight: bold; font-size: 1rem; border: 2px solid #fff; font-family: 'Oswald', cursive; }
     .podium-1 .rank-number { border-color: var(--sbbl-gold); color: var(--sbbl-gold); }
 
     .team-row { display: flex; align-items: center; justify-content: space-between; background: rgba(0,0,0,0.5); padding: 10px; margin-bottom: 8px; border: 2px solid #000; transform: skewX(-5deg); transition: 0.2s; }
     .team-row > * { transform: skewX(5deg); }
     .team-row:hover { background: #000; border-color: var(--sbbl-gold); box-shadow: 4px 4px 0 var(--shonen-red); }
-    .team-rank-badge { font-family: 'Bangers', cursive; font-size: 1.4rem; color: var(--sbbl-gold); width: 30px; text-shadow: 1px 1px 0 #000; }
+    .team-rank-badge { font-family: 'Oswald', cursive; font-size: 1.4rem; color: var(--sbbl-gold); width: 30px; text-shadow: 1px 1px 0 #000; }
 
     /* --- ARTÍCULOS Y EVENTOS --- */
     .news-card, .event-hover-effect { background: var(--sbbl-blue-2); border: 3px solid #000 !important; border-radius: 0 !important; box-shadow: 5px 5px 0px #000 !important; transition: 0.2s; }
     .news-card img, .event-hover-effect img { border-radius: 0 !important; border-bottom: 3px solid #000; }
-    .news-card .btn, .event-hover-effect .btn { border-radius: 0; border: 2px solid #000; font-weight: 900; font-family: 'Bangers', cursive; font-size: 1.1rem; background: var(--sbbl-blue-3); color: #fff;}
+    .news-card .btn, .event-hover-effect .btn { border-radius: 0; border: 2px solid #000; font-weight: 900; font-family: 'Oswald', cursive; font-size: 1.1rem; background: var(--sbbl-blue-3); color: #fff;}
     .news-card .btn:hover, .event-hover-effect .btn:hover { background: var(--sbbl-gold); color: #000; box-shadow: 3px 3px 0 var(--shonen-red); }
     .news-card:hover, .event-hover-effect:hover { transform: translate(-2px, -2px) !important; box-shadow: 7px 7px 0px var(--sbbl-gold) !important; border-color: var(--sbbl-gold) !important; }
 
@@ -96,8 +96,8 @@
 
     .evento-banner { background: #000; border: 3px solid var(--sbbl-gold); border-radius: 0; padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; text-decoration: none; transition: 0.2s; margin-top: 15px; box-shadow: 4px 4px 0px #000; }
     .evento-banner:hover { transform: translate(-2px, -2px); box-shadow: 6px 6px 0px var(--shonen-red); border-color: var(--shonen-red); }
-    .evento-banner-text { color: #fff; font-family: 'Bangers', cursive; font-size: 1.4rem; letter-spacing: 1px; margin: 0; }
-    .evento-banner-btn { background: var(--sbbl-gold); color: #000; padding: 5px 15px; font-family: 'Bangers', cursive; font-size: 1.2rem; border: 2px solid #000; transition: 0.2s; box-shadow: 2px 2px 0 var(--shonen-red); }
+    .evento-banner-text { color: #fff; font-family: 'Oswald', cursive; font-size: 1.4rem; letter-spacing: 1px; margin: 0; }
+    .evento-banner-btn { background: var(--sbbl-gold); color: #000; padding: 5px 15px; font-family: 'Oswald', cursive; font-size: 1.2rem; border: 2px solid #000; transition: 0.2s; box-shadow: 2px 2px 0 var(--shonen-red); }
 
     .social-hub a { color: #fff; font-size: 1.5rem; margin: 0 10px; transition: all 0.2s; }
     .social-hub a:hover { color: var(--sbbl-gold); transform: scale(1.2) rotate(5deg); }
@@ -123,7 +123,7 @@
                 <div class="d-flex align-items-center">
                     <i class="fas fa-lock text-danger me-3 fs-3" style="animation: pulse-red 1s infinite;"></i>
                     <p class="evento-banner-text">
-                        Descubre los detalles del <span style="color: var(--shonen-red);">Gran Nacional SBBL'26</span>
+                        Descubre los detalles de la <span style="color: var(--shonen-red);">BEYCON SBBL'26</span>
                     </p>
                 </div>
                 <span class="evento-banner-btn">Ver Detalles <i class="fas fa-chevron-right ms-1"></i></span>
@@ -138,13 +138,13 @@
                 <div class="col-lg-7">
                     <div class="command-panel h-100 d-flex flex-column justify-content-center p-4">
                         <div class="d-flex align-items-center mb-3">
-                            <h2 class="mb-0 text-white font-bangers" style="line-height: 1.1; font-size: 2rem;">
+                            <h2 class="mb-0 text-white font-Oswald" style="line-height: 1.1; font-size: 2rem;">
                                 <span style="color: var(--sbbl-gold); text-shadow: 2px 2px 0 #000;">SBBL</span> <br>ESTATUS DE TEMPORADA
                             </h2>
-                            <span class="badge bg-white text-dark border border-2 border-dark ms-3 font-bangers fs-5">ONLINE</span>
+                            <span class="badge bg-white text-dark border border-2 border-dark ms-3 font-Oswald fs-5">ONLINE</span>
                         </div>
 
-                        <p id="season-status" class="text-white mb-3 fw-bold fs-5 font-bangers" style="letter-spacing: 1px;"></p>
+                        <p id="season-status" class="text-white mb-3 fw-bold fs-5 font-Oswald" style="letter-spacing: 1px;"></p>
 
                         <div class="season-tracker mb-2">
                             <div class="combined-bar">
@@ -162,7 +162,7 @@
 
                         <div>
                             <div class="d-flex justify-content-between align-items-center">
-                                <span class="text-white font-bangers fs-5">Canales de Comunicación</span>
+                                <span class="text-white font-Oswald fs-5">Canales de Comunicación</span>
                                 <div class="social-hub">
                                     <a href="https://discord.gg/JCtAHfJ8Ht" target="_blank" title="Discord"><i class="fab fa-discord"></i></a>
                                     <a href="https://www.youtube.com/@sbbl_oficial" target="_blank" title="YouTube"><i class="fab fa-youtube"></i></a>
@@ -201,8 +201,8 @@
                                 </div>
                                 <div>
                                     <div class="d-flex align-items-center mb-1">
-                                        <h3 class="text-white m-0 me-3 font-bangers fs-2" style="text-shadow: 2px 2px 0 #000;">MODO CONQUISTA</h3>
-                                        <span class="badge bg-dark border border-2 border-white text-white font-bangers fs-6">
+                                        <h3 class="text-white m-0 me-3 font-Oswald fs-2" style="text-shadow: 2px 2px 0 #000;">MODO CONQUISTA</h3>
+                                        <span class="badge bg-dark border border-2 border-white text-white font-Oswald fs-6">
                                             <span class="live-dot"></span> GUERRA ACTIVA
                                         </span>
                                     </div>
@@ -266,11 +266,11 @@
                                     <img src="/storage/{{ $evento->imagen }}" class="object-fit-cover">
                                 @endif
                                 <div class="position-absolute top-0 end-0 m-2">
-                                    <span class="badge bg-black border border-white font-bangers fs-6">{{ $evento->region->name }}</span>
+                                    <span class="badge bg-black border border-white font-Oswald fs-6">{{ $evento->region->name }}</span>
                                 </div>
                             </div>
-                            <div class="card-body d-flex flex-column p-3">
-                                <h4 class="font-bangers text-truncate text-white">{{ $evento->name }}</h4>
+                            <div class="card-body d-flex flex-column p-3" style="background-color: currentColor;">
+                                <h4 class="font-Oswald text-truncate text-white">{{ $evento->name }}</h4>
                                 <div class="text-white mb-3 fw-bold">
                                     <i class="far fa-clock me-1 text-warning"></i> <event-date fecha="{{ $evento->date }}"></event-date>
                                 </div>
@@ -282,7 +282,7 @@
                     </div>
                 @empty
                     <div class="col-12 text-center py-5 border border-3 border-dark bg-black text-white" style="border-radius: 0; box-shadow: 6px 6px 0 var(--sbbl-blue-3);">
-                        <h4 class="font-bangers fs-1"><i class="fas fa-radar text-danger"></i> Sin actividad detectada</h4>
+                        <h4 class="font-Oswald fs-1"><i class="fas fa-radar text-danger"></i> Sin actividad detectada</h4>
                         <p class="fw-bold">No hay eventos próximos programados.</p>
                     </div>
                 @endforelse
@@ -290,7 +290,7 @@
 
             @if ($totalEventos > 3)
                 <div class="text-center mt-4">
-                    <button id="show-more-events" class="btn w-50" style="border-radius: 0; border: 3px solid #000; font-family: 'Bangers', cursive; font-size: 1.3rem; background: var(--sbbl-gold); color: #000; box-shadow: 4px 4px 0 #000; transform: skewX(-5deg);" onclick="toggleMoreEvents()" data-showing="false">
+                    <button id="show-more-events" class="btn w-50" style="border-radius: 0; border: 3px solid #000; font-family: 'Oswald', cursive; font-size: 1.3rem; background: var(--sbbl-gold); color: #000; box-shadow: 4px 4px 0 #000; transform: skewX(-5deg);" onclick="toggleMoreEvents()" data-showing="false">
                         <span style="transform: skewX(5deg); display: block;">⬇ Mostrar más ({{ $totalEventos - 3 }})</span>
                     </button>
                 </div>
@@ -305,7 +305,7 @@
                     <div class="command-panel p-4 h-100">
                         <div class="panel-header mb-4 bg-transparent border-0 px-0">
                             <span><i class="fas fa-crown text-warning me-2"></i>Top Bladers</span>
-                            <a href="{{ route('profiles.ranking') }}" class="text-decoration-none text-white font-bangers fs-5">VER TODO ></a>
+                            <a href="{{ route('profiles.ranking') }}" class="text-decoration-none text-white font-Oswald fs-5">VER TODO ></a>
                         </div>
 
                         <div class="ranking-podium">
@@ -321,7 +321,7 @@
                                         <div class="rank-number">#{{ $pos }}</div>
                                     </div>
                                     <div class="text-white fw-bold text-truncate" style="max-width: 100px;">{{ $blader->user->name }}</div>
-                                    <div class="font-bangers" style="color: var(--sbbl-gold); font-size: 1.2rem;">{{ $blader->points_x2 }} pts</div>
+                                    <div class="font-Oswald" style="color: var(--sbbl-gold); font-size: 1.2rem;">{{ $blader->points_x2 }} pts</div>
                                 </div>
                             @endforeach
                         </div>
@@ -330,11 +330,11 @@
                             @foreach ($bladers->slice(3, 2) as $index => $blader)
                                 <div class="d-flex align-items-center justify-content-between p-2 border-bottom border-dark" style="border-width: 2px !important;">
                                     <div class="d-flex align-items-center">
-                                        <span class="text-white fw-bold me-3 font-bangers" style="font-size: 1.5rem;">#{{ $index + 1 }}</span>
+                                        <span class="text-white fw-bold me-3 font-Oswald" style="font-size: 1.5rem;">#{{ $index + 1 }}</span>
                                         <img src="{{ $blader->avatar_url }}" class="me-2" width="35" height="35" style="border: 2px solid var(--sbbl-gold); border-radius: 50%; object-fit: cover;">
                                         <span class="text-white fw-bold">{{ $blader->user->name }}</span>
                                     </div>
-                                    <span class="font-bangers fs-5" style="color: var(--sbbl-gold); text-shadow: 1px 1px 0 #000;">{{ $blader->points_x2 }} pts</span>
+                                    <span class="font-Oswald fs-5" style="color: var(--sbbl-gold); text-shadow: 1px 1px 0 #000;">{{ $blader->points_x2 }} pts</span>
                                 </div>
                             @endforeach
                         </div>
@@ -358,7 +358,7 @@
                                     </div>
                                     <span class="fw-bold text-white">{{ $team->name }}</span>
                                 </div>
-                                <span class="badge bg-black text-white border border-secondary font-bangers fs-6" style="border-radius: 0;">{{ $team->points_x2 }} pts</span>
+                                <span class="badge bg-black text-white border border-secondary font-Oswald fs-6" style="border-radius: 0;">{{ $team->points_x2 }} pts</span>
                             </div>
                             @endforeach
                         </div>
@@ -373,14 +373,14 @@
             <div class="mvp-card p-4 p-md-5 position-relative overflow-hidden">
                 <div class="row align-items-center position-relative" style="z-index: 1;">
                     <div class="col-md-8">
-                        <div class="d-inline-block bg-black text-white px-3 py-1 mb-3 font-bangers fs-4" style="border: 2px solid #fff; box-shadow: 4px 4px 0 #000; transform: skewX(-10deg);">
+                        <div class="d-inline-block bg-black text-white px-3 py-1 mb-3 font-Oswald fs-4" style="border: 2px solid #fff; box-shadow: 4px 4px 0 #000; transform: skewX(-10deg);">
                             <span style="display:block; transform: skewX(10deg);">🌟 RENDIMIENTO DESTACADO</span>
                         </div>
                         <h2 class="display-5 mb-1" style="font-size: 3rem;">Blader del Mes</h2>
                         <h4 class="mb-4" style="color: #ccc;">{{ $lastMonthName ?? '' }} {{ $lastYear ?? '' }}</h4>
 
                         <div class="d-flex align-items-center mb-4">
-                            <h3 class="mb-0 me-3 font-bangers" style="font-size: 2.5rem; text-shadow: 2px 2px 0 #000; color: var(--sbbl-gold);">{{ $bestUserProfile->name ?? 'N/A' }}</h3>
+                            <h3 class="mb-0 me-3 font-Oswald" style="font-size: 2.5rem; text-shadow: 2px 2px 0 #000; color: var(--sbbl-gold);">{{ $bestUserProfile->name ?? 'N/A' }}</h3>
                             <span class="badge bg-black text-white border border-2 border-white fw-bold py-2" style="border-radius: 0;">{{ $bestUserProfile->profile->region->name ?? '' }}</span>
                         </div>
 
@@ -428,8 +428,8 @@
                                     <i class="fas fa-newspaper fa-3x text-secondary"></i>
                                 </div>
                             @endif
-                            <div class="card-body d-flex flex-column p-4">
-                                <h4 class="font-bangers text-white mb-3" style="font-size: 1.5rem; letter-spacing: 1px;">{{ $article->title }}</h4>
+                            <div class="card-body d-flex flex-column p-4" style="background-color: currentColor;">
+                                <h4 class="font-Oswald text-white mb-3" style="font-size: 1.5rem; letter-spacing: 1px;">{{ $article->title }}</h4>
                                 <a href="{{ route('blog.show', $article->custom_url) }}" class="btn mt-auto text-uppercase">Leer Informe</a>
                             </div>
                         </div>
@@ -443,16 +443,16 @@
         {{-- 8. QUIÉNES SOMOS & STAFF --}}
         <div class="container mt-5 mb-5">
             <div class="command-panel p-5 text-center">
-                <h2 class="mb-4 font-bangers text-white" style="font-size: 3rem;">La Iniciativa SBBL</h2>
+                <h2 class="mb-4 font-Oswald text-white" style="font-size: 3rem;">La Iniciativa SBBL</h2>
                 <div class="row justify-content-center text-center">
                     <div class="col-md-8 text-white fw-bold">
-                        <p class="mb-3" style="font-size: 1.1rem;">La <strong style="color: var(--sbbl-gold); font-size: 1.3rem; font-family: 'Bangers', cursive;">SBBL (Spanish BeyBattle League)</strong> es una organización sin ánimo de lucro operada por la comunidad. Nuestro objetivo es estandarizar y profesionalizar el Beyblade competitivo en España.</p>
+                        <p class="mb-3" style="font-size: 1.1rem;">La <strong style="color: var(--sbbl-gold); font-size: 1.3rem; font-family: 'Oswald', cursive;">SBBL (Spanish BeyBattle League)</strong> es una organización sin ánimo de lucro operada por la comunidad. Nuestro objetivo es estandarizar y profesionalizar el Beyblade competitivo en España.</p>
                         <p class="mb-4" style="color: #ccc;">Gestionamos rankings, organizamos torneos nacionales y desarrollamos tecnología para conectar a los Bladers de todas las regiones.</p>
                     </div>
                 </div>
 
                 <div class="d-flex justify-content-center gap-3 mt-3">
-                    <a href="https://paypal.me/AsocSBBL" target="_blank" class="btn" style="border-radius: 0; border: 3px solid #000; font-family: 'Bangers', cursive; font-size: 1.5rem; background: var(--sbbl-gold); color: #000; box-shadow: 4px 4px 0 #000; transform: skewX(-5deg);">
+                    <a href="https://paypal.me/AsocSBBL" target="_blank" class="btn" style="border-radius: 0; border: 3px solid #000; font-family: 'Oswald', cursive; font-size: 1.5rem; background: var(--sbbl-gold); color: #000; box-shadow: 4px 4px 0 #000; transform: skewX(-5deg);">
                         <span style="display: block; transform: skewX(5deg);"><i class="fab fa-paypal me-2"></i> Apoyar Proyecto</span>
                     </a>
                 </div>
@@ -466,8 +466,8 @@
                                     <img src="{{ $profile->avatar_url }}" class="rounded-circle w-100 h-100" style="object-fit: cover; border: 2px solid var(--sbbl-gold);">
                                     <img src="{{ $profile->marco_url }}" class="position-absolute top-0 start-0 w-100 h-100" style="border-radius:50%;">
                                 </div>
-                                <h5 class="mb-0 text-white font-bangers fs-4" style="letter-spacing: 1px;">{{ $usuario->name }}</h5>
-                                <span class="badge bg-black text-white mt-1 border border-dark" style="font-family: 'Bangers', cursive; border-radius: 0;">{{ $usuario->titulo ?? 'STAFF' }}</span>
+                                <h5 class="mb-0 text-white font-Oswald fs-4" style="letter-spacing: 1px;">{{ $usuario->name }}</h5>
+                                <span class="badge bg-black text-white mt-1 border border-dark" style="font-family: 'Oswald', cursive; border-radius: 0;">{{ $usuario->titulo ?? 'STAFF' }}</span>
                             </div>
                         </div>
                     @endforeach
@@ -483,9 +483,9 @@
                     <div class="card bg-black border-0 overflow-hidden" style="border: 3px solid #333 !important; border-radius: 0; transition: 0.2s;">
                         <div style="height: 180px; background: url('{{ $antiguo->image_mod ? "data:image/png;base64,".$antiguo->image_mod : "/storage/".$antiguo->imagen }}') center/cover; opacity: 0.7; transition: 0.3s;" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=0.7"></div>
                         <div class="card-body p-3" style="background: var(--sbbl-blue-2);">
-                            <h5 class="text-truncate text-white font-bangers fs-4" style="letter-spacing: 1px;">{{ $antiguo->name }}</h5>
+                            <h5 class="text-truncate text-white font-Oswald fs-4" style="letter-spacing: 1px;">{{ $antiguo->name }}</h5>
                             <small class="text-white d-block fw-bold text-uppercase">{{ $antiguo->location }}</small>
-                            <small style="color: var(--sbbl-gold); font-family: 'Bangers', cursive; font-size: 1.1rem;"><event-date fecha="{{ $antiguo->date }}"></event-date></small>
+                            <small style="color: var(--sbbl-gold); font-family: 'Oswald', cursive; font-size: 1.1rem;"><event-date fecha="{{ $antiguo->date }}"></event-date></small>
                             <a href="{{ route('events.show', ['event' => $antiguo->id]) }}" class="stretched-link"></a>
                         </div>
                     </div>

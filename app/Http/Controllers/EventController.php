@@ -490,7 +490,7 @@ class EventController extends Controller
     {
         $event = Event::findOrFail($id);
 
-        if (!Auth::user()->is_jury && (empty($request->input('iframe')) || empty($request->input('challonge')))) {
+        if (!Auth::user()->hasRole('juez') && (empty($request->input('iframe')) || empty($request->input('challonge')))) {
             return redirect()->back()->with('error', 'Primero tienes que enviar los datos del torneo.');
         }
 
@@ -621,7 +621,7 @@ class EventController extends Controller
         $user = Auth::user();
         $event = Event::findOrFail($eventId);
 
-        if ($user->is_referee) {
+        if ($user->hasRole('arbitro')) {
             $review = $event->reviews()->where('referee_id', $user->id)->first();
 
             // Retornamos error JSON si es petición AJAX, sino redirigimos
@@ -641,7 +641,7 @@ class EventController extends Controller
             }
         }
 
-        if ($user->is_jury && $event->status === 'requires_judge') {
+        if ($user->hasRole('juez') && $event->status === 'requires_judge') {
             EventJudgeReview::create([
                 'event_id' => $event->id, 'judge_id' => $user->id,
                 'final_status' => $request->final_status, 'comment' => $request->comment
@@ -678,7 +678,7 @@ private function sendResponse($type, $message, $request, $code = 200)
         $review = EventReview::where('event_id', $eventId)->where('referee_id', $userId)->first();
         if (!$review) return back()->with('error', 'Revisión no encontrada.');
 
-        if (Auth::id() !== (int)$userId && !Auth::user()->is_admin) abort(403);
+        if (Auth::id() !== (int)$userId && !Auth::user()->hasRole('admin')) abort(403);
 
         $review->delete();
         return back()->with('success', 'Revisión eliminada correctamente.');
@@ -693,36 +693,44 @@ private function sendResponse($type, $message, $request, $code = 200)
         $start = Carbon::create($year, $month, 1)->startOfMonth();
         $end = Carbon::create($year, $month, 1)->endOfMonth();
 
-        $users = User::where('is_referee', true)->orWhere('is_jury', true)->orderBy('name')->get();
+        $users = User::whereHas('roles', function($query) {
+            $query->whereIn('name', ['arbitro', 'juez']);
+        })->orderBy('name')->get();
 
         // Helpers de consulta
         $dateFilter = fn($q) => $q->whereBetween('created_at', [$start, $end]);
         $userFilter = fn($q, $field) => $userId ? $q->where($field, $userId) : $q;
 
-        // Referees
+        // Referees (Árbitros que NO son jueces)
         $refereeReviews = EventReview::with(['event', 'referee'])
             ->tap($dateFilter)
-            ->whereHas('referee', fn($q) => $q->where('is_referee', true)->where('is_jury', false))
+            ->whereHas('referee', function($q) {
+                $q->whereHas('roles', fn($q2) => $q2->where('name', 'arbitro'))
+                  ->whereDoesntHave('roles', fn($q2) => $q2->where('name', 'juez'));
+            })
             ->when($userId, fn($q) => $q->where('referee_id', $userId))
             ->get();
 
         // Jueces (combinado)
         $juryReviewsFromEventReviews = EventReview::with(['event', 'referee'])
             ->tap($dateFilter)
-            ->whereHas('referee', fn($q) => $q->where('is_jury', true))
+            ->whereHas('referee', fn($q) => $q->whereHas('roles', fn($q2) => $q2->where('name', 'juez')))
             ->when($userId, fn($q) => $q->where('referee_id', $userId))
             ->get();
 
         $juryReviewsFromJudgeTable = EventJudgeReview::with(['event', 'judge'])
             ->tap($dateFilter)
-            ->whereHas('judge', fn($q) => $q->where('is_jury', true))
+            ->whereHas('judge', fn($q) => $q->whereHas('roles', fn($q2) => $q2->where('name', 'juez')))
             ->when($userId, fn($q) => $q->where('judge_id', $userId))
             ->get();
 
-        // Estadísticas Mensuales
+        // Estadísticas Mensuales Árbitros
         $refereeMonthlyStats = EventReview::selectRaw('referee_id as user_id, COUNT(*) as total_reviews, COUNT(DISTINCT event_id) as total_events, SUM(status = "approved") as approved, SUM(status = "rejected") as rejected, SUM(status = "pending") as pending')
             ->tap($dateFilter)
-            ->whereHas('referee', fn($q) => $q->where('is_referee', true)->where('is_jury', false))
+            ->whereHas('referee', function($q) {
+                $q->whereHas('roles', fn($q2) => $q2->where('name', 'arbitro'))
+                  ->whereDoesntHave('roles', fn($q2) => $q2->where('name', 'juez'));
+            })
             ->when($userId, fn($q) => $q->where('referee_id', $userId))
             ->groupBy('referee_id')
             ->get();
@@ -730,13 +738,13 @@ private function sendResponse($type, $message, $request, $code = 200)
         // Estadísticas Jueces (Unificación)
         $s1 = EventReview::selectRaw('referee_id as user_id, COUNT(*) as total_reviews, COUNT(DISTINCT event_id) as total_events, SUM(status = "approved") as approved, SUM(status = "rejected") as rejected')
             ->tap($dateFilter)
-            ->whereHas('referee', fn($q) => $q->where('is_jury', true))
+            ->whereHas('referee', fn($q) => $q->whereHas('roles', fn($q2) => $q2->where('name', 'juez')))
             ->when($userId, fn($q) => $q->where('referee_id', $userId))
             ->groupBy('referee_id')->get();
 
         $s2 = EventJudgeReview::selectRaw('judge_id as user_id, COUNT(*) as total_reviews, COUNT(DISTINCT event_id) as total_events, SUM(final_status = "approved") as approved, SUM(final_status = "rejected") as rejected')
             ->tap($dateFilter)
-            ->whereHas('judge', fn($q) => $q->where('is_jury', true))
+            ->whereHas('judge', fn($q) => $q->whereHas('roles', fn($q2) => $q2->where('name', 'juez')))
             ->when($userId, fn($q) => $q->where('judge_id', $userId))
             ->groupBy('judge_id')->get();
 

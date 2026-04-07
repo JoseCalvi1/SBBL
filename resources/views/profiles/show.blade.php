@@ -39,7 +39,7 @@
 
     /* --- ETIQUETAS DE SUSCRIPCIÓN --- */
     .sub-badge {
-        font-family: 'Bangers', cursive;
+        font-family: 'Oswald', cursive;
         font-size: 1.2rem;
         padding: 5px 15px;
         border-radius: 0;
@@ -70,7 +70,7 @@
 
     /* --- NOMBRE DEL PILOTO --- */
     .pilot-name {
-        font-family: 'Bangers', cursive;
+        font-family: 'Oswald', cursive;
         font-size: clamp(2.5rem, 5vw, 3.5rem);
         color: var(--sbbl-gold);
         text-shadow: 3px 3px 0px #000, 6px 6px 0px var(--sbbl-blue-3);
@@ -106,7 +106,7 @@
 |--------------------------------------------------------------------------
 --}}
 @section('content')
-@if (Auth::check() && (Auth::user()->profile->id == $profile->id || Auth::user()->is_admin))
+@if (Auth::check() && (Auth::user()->profile->id == $profile->id || Auth::user()->hasRole('admin')))
 <div class="container py-4">
 
     {{-- 1. MENSAJES DEL SISTEMA (Alertas Globales Heredadas) --}}
@@ -160,7 +160,7 @@
                     </h2>
 
                     <div class="mb-4 mt-3">
-                        <span class="badge bg-black border border-white text-uppercase py-2 px-3 text-white" style="font-family: 'Bangers', cursive; font-size: 1.2rem; letter-spacing: 1px; box-shadow: 3px 3px 0 var(--sbbl-blue-3); transform: skewX(-5deg); display: inline-block;">
+                        <span class="badge bg-black border border-white text-uppercase py-2 px-3 text-white" style="font-family: 'Oswald', cursive; font-size: 1.2rem; letter-spacing: 1px; box-shadow: 3px 3px 0 var(--sbbl-blue-3); transform: skewX(-5deg); display: inline-block;">
                             <span style="transform: skewX(5deg); display: block;">{{ $profile->region->name ?? 'ZONA DESCONOCIDA' }}</span>
                         </span>
                     </div>
@@ -191,7 +191,7 @@
                     <div class="command-panel p-0">
                         <div class="panel-header">
                             <span><i class="fas fa-chart-line me-2" style="color: var(--sbbl-gold);"></i> Nivel de Poder</span>
-                            <span class="badge bg-white text-dark border border-dark" style="font-family: 'Bangers', cursive; font-size: 1.1rem; transform: skewX(-5deg);"><span style="display:block; transform:skewX(5deg);">ONLINE</span></span>
+                            <span class="badge bg-white text-dark border border-dark" style="font-family: 'Oswald', cursive; font-size: 1.1rem; transform: skewX(-5deg);"><span style="display:block; transform:skewX(5deg);">ONLINE</span></span>
                         </div>
 
                         <div class="p-4" style="background: var(--sbbl-blue-1);">
@@ -246,7 +246,7 @@
                                 @endphp
                                 <div class="d-flex flex-wrap align-items-center justify-content-between p-3 mb-3 bg-black border border-secondary" style="transform: skewX(-2deg);">
                                     <div style="transform: skewX(2deg);">
-                                        <h5 class="mb-1 text-uppercase font-bangers fs-3 {{ $claseNivel }}">
+                                        <h5 class="mb-1 text-uppercase font-Oswald fs-3 {{ $claseNivel }}">
                                             Licencia {{ ucfirst($planName) }}
                                         </h5>
                                         <small class="text-white fw-bold">
@@ -257,19 +257,19 @@
                                 </div>
                             @else
                                 <div class="alert bg-black border border-secondary text-center mb-3" style="border-radius: 0;">
-                                    <span class="text-white fw-bold font-bangers fs-4">NO SE DETECTA AURA ACTIVA.</span>
+                                    <span class="text-white fw-bold font-Oswald fs-4">NO SE DETECTA AURA ACTIVA.</span>
                                 </div>
                             @endif
 
                             {{-- Invitaciones Pendientes --}}
                             @if(!$invitacionesPendientes->isEmpty())
                                 <div class="mt-4 p-3" style="background: rgba(255, 42, 42, 0.1); border: 2px solid var(--shonen-red);">
-                                    <h6 class="text-danger text-uppercase fs-4 mb-3 font-bangers" style="text-shadow: 1px 1px 0 #000;">
+                                    <h6 class="text-danger text-uppercase fs-4 mb-3 font-Oswald" style="text-shadow: 1px 1px 0 #000;">
                                         <i class="fas fa-exclamation-triangle me-2"></i> ¡SOLICITUDES DE FACCIÓN!
                                     </h6>
                                     @foreach ($invitacionesPendientes as $invitacion)
                                         <div class="d-flex justify-content-between align-items-center bg-black p-2 border border-danger mb-2" style="transform: skewX(-5deg);">
-                                            <span class="text-white fw-bold small ms-2" style="transform: skewX(5deg); font-size: 1rem;">Sindicato: <strong style="color: var(--sbbl-gold); font-family: 'Bangers', cursive; font-size: 1.3rem; letter-spacing: 1px;">{{ $invitacion->team->name }}</strong></span>
+                                            <span class="text-white fw-bold small ms-2" style="transform: skewX(5deg); font-size: 1rem;">Sindicato: <strong style="color: var(--sbbl-gold); font-family: 'Oswald', cursive; font-size: 1.3rem; letter-spacing: 1px;">{{ $invitacion->team->name }}</strong></span>
                                             <div style="transform: skewX(5deg);">
                                                 <form action="{{ route('invitations.accept', $invitacion) }}" method="POST" class="d-inline">
                                                     @csrf <button class="btn btn-success btn-sm rounded-0 border-dark fw-bold px-3" style="box-shadow: 2px 2px 0 #000;">ACEPTAR</button>
@@ -297,7 +297,7 @@
 
             {{-- Header con Navegación --}}
             <div class="d-flex flex-column flex-md-row justify-content-between align-items-center mb-4 pb-3 border-bottom border-dark" style="border-width: 4px !important;">
-                <h3 class="font-bangers text-white text-uppercase mb-3 mb-md-0" style="font-size: 2.5rem; text-shadow: 2px 2px 0 #000;">
+                <h3 class="font-Oswald text-white text-uppercase mb-3 mb-md-0" style="font-size: 2.5rem; text-shadow: 2px 2px 0 #000;">
                     <i class="fas fa-calendar-alt me-2" style="color: var(--sbbl-gold);"></i> Registro de Batallas
                 </h3>
 
@@ -309,7 +309,7 @@
                 @endphp
                 <div class="time-nav">
                     <a href="{{ $prevMonthUrl }}" class="text-white text-decoration-none fs-5"><span><i class="fas fa-chevron-left"></i></span></a>
-                    <span class="fw-bold text-uppercase font-bangers fs-4 text-white" style="min-width: 120px; text-align: center;"><span>{{ $monthName }}</span></span>
+                    <span class="fw-bold text-uppercase font-Oswald fs-4 text-white" style="min-width: 120px; text-align: center;"><span>{{ $monthName }}</span></span>
                     <a href="{{ $nextMonthUrl }}" class="text-white text-decoration-none fs-5"><span><i class="fas fa-chevron-right"></i></span></a>
                 </div>
             </div>
@@ -326,10 +326,10 @@
                             <div style="height: 150px; background: url('{{ $eventImageUrl }}') center center no-repeat; background-size: cover; border-radius: 0;"></div>
 
                             <div class="card-body d-flex flex-column p-3 bg-transparent">
-                                <h5 class="font-bangers text-white text-truncate mb-1 fs-4" style="letter-spacing: 1px;">{{ $evento->name }}</h5>
+                                <h5 class="font-Oswald text-white text-truncate mb-1 fs-4" style="letter-spacing: 1px;">{{ $evento->name }}</h5>
                                 <p class="small text-white mb-2 fw-bold text-uppercase opacity-75">{{ $evento->region->name }}</p>
                                 <div class="mt-auto">
-                                    <p class="small mb-3 font-bangers text-white fs-5" style="text-shadow: 1px 1px 0 #000;"><event-date fecha="{{ $evento->date }}"></event-date></p>
+                                    <p class="small mb-3 font-Oswald text-white fs-5" style="text-shadow: 1px 1px 0 #000;"><event-date fecha="{{ $evento->date }}"></event-date></p>
                                     <a href="{{ route('events.show', ['event' => $evento->id]) }}" class="btn-shonen btn-shonen-info w-100 text-center" style="padding: 5px;">
                                         <span>REVISAR LOG</span>
                                     </a>
@@ -339,7 +339,7 @@
                     </div>
                 @empty
                     <div class="col-12 py-5 text-center bg-black" style="border: 3px solid #333;">
-                        <div class="font-bangers text-white opacity-50" style="font-size: 2rem;">
+                        <div class="font-Oswald text-white opacity-50" style="font-size: 2rem;">
                             <i class="fas fa-search d-block mb-3" style="font-size: 3rem;"></i>
                             NO SE DETECTA ACTIVIDAD EN ESTE PERIODO
                         </div>

@@ -19,7 +19,7 @@
         margin-bottom: 2rem;
     }
     .filtros-box > div { transform: skewX(2deg); }
-    .filtros-box label { color: var(--sbbl-gold) !important; font-family: 'Bangers', cursive; font-size: 1.2rem; letter-spacing: 1px;}
+    .filtros-box label { color: var(--sbbl-gold) !important; font-family: 'Oswald', cursive; font-size: 1.2rem; letter-spacing: 1px;}
     .filtros-box select { border: 2px solid #000; border-radius: 0; font-weight: 900; background: #111 !important; color: #fff !important; }
     .filtros-box select:focus { border-color: var(--sbbl-gold); box-shadow: none; }
 
@@ -28,7 +28,7 @@
     .nav-tabs .nav-item { margin-bottom: -4px; }
     .nav-tabs .nav-link {
         background: #000; color: #fff; border: 3px solid #000;
-        font-family: 'Bangers', cursive; font-size: 1.2rem; letter-spacing: 1px;
+        font-family: 'Oswald', cursive; font-size: 1.2rem; letter-spacing: 1px;
         border-radius: 0; transform: skewX(-5deg); transition: 0.2s;
         padding: 10px 20px;
     }
@@ -69,18 +69,18 @@
         background: var(--sbbl-blue-1) !important;
         border: 3px solid #000 !important;
         color: var(--sbbl-gold) !important;
-        font-family: 'Bangers', cursive;
+        font-family: 'Oswald', cursive;
         font-size: 1.2rem;
         letter-spacing: 2px;
         box-shadow: 4px 4px 0 #000;
         margin-bottom: 20px !important;
     }
 
-    .posicion { font-family: 'Bangers', cursive; font-size: 1.6rem; text-align: center; color: #fff; text-shadow: 2px 2px 0 #000; }
+    .posicion { font-family: 'Oswald', cursive; font-size: 1.6rem; text-align: center; color: #fff; text-shadow: 2px 2px 0 #000; }
     .resaltado .posicion { color: var(--sbbl-gold); font-size: 2rem; }
 
     .text-dim { color: #fff; font-weight: 800; font-size: 0.85em; text-transform: uppercase; opacity: 0.8; }
-    .item .text-end { font-family: 'Bangers', cursive; font-size: 1.5rem; letter-spacing: 1px; color: #fff; text-shadow: 1px 1px 0 #000; }
+    .item .text-end { font-family: 'Oswald', cursive; font-size: 1.5rem; letter-spacing: 1px; color: #fff; text-shadow: 1px 1px 0 #000; }
 
     /* Avatares 100% Redondos (Corregido) */
     .profile-container { width: 55px; height: 55px; position: relative; margin: 0 auto; }
@@ -92,7 +92,7 @@
     .division-block { margin-bottom: 60px; padding: 25px; border: 4px solid #000; box-shadow: 10px 10px 0 rgba(0,0,0,0.5); position: relative; }
 
     .division-title {
-        font-family: 'Bangers', cursive;
+        font-family: 'Oswald', cursive;
         font-size: 2.8rem;
         text-align: center;
         letter-spacing: 2px;
@@ -253,7 +253,7 @@
                                 <span class="text-end" style="color: var(--sbbl-gold);">{{ $blader->points_x2 }} <small>PTS</small></span>
                             </div>
                         @empty
-                            <div class="text-center py-4 text-white font-bangers opacity-50" style="font-size: 1.5rem;">
+                            <div class="text-center py-4 text-white font-Oswald opacity-50" style="font-size: 1.5rem;">
                                 NO SE DETECTAN BLADERS EN ESTA DIVISIÓN
                             </div>
                         @endforelse

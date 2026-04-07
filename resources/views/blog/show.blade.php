@@ -21,7 +21,7 @@
             ← Volver al listado de posts
         </a>
 
-        @if (Auth::user() && (Auth::user()->is_editor || Auth::user()->id == $article->user_id))
+        @if (Auth::user() && (Auth::user()->hasRole('editor') || Auth::user()->id == $article->user_id))
             <a href="{{ route('blog.edit', $article->id) }}" class="btn btn-primary mt-2 mt-md-0">
                 Editar post
             </a>

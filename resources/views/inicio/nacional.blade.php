@@ -69,6 +69,23 @@
         filter: drop-shadow(0 0 10px rgba(0, 242, 254, 0.4));
     }
 
+    /* --- ESTILOS DEL CARTEL DEL HERO --- */
+    .hero-poster {
+        border: 4px solid #000;
+        border-radius: 0;
+        box-shadow: 8px 8px 0 var(--neon-cyan); /* Sombra estilo cyber/shonen */
+        transform: skewX(-2deg); /* Ligero sesgo para dar dinamismo */
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        max-height: 500px; /* Evita que sea gigantesco en pantallas grandes */
+        object-fit: cover;
+    }
+
+    .hero-poster:hover {
+        transform: translate(-4px, -4px) skewX(-2deg);
+        box-shadow: 12px 12px 0 var(--text-bright);
+        border-color: var(--neon-cyan);
+    }
+
     @keyframes textShine {
         to { background-position: 300% center; }
     }
@@ -301,7 +318,7 @@
         transition: color 0.3s, text-shadow 0.3s;
     }
 
-    /* NUEVO: ESTILO PARA EL RÉCORD */
+    /* ESTILO PARA EL RÉCORD */
     #game-record {
         position: absolute;
         top: 45px;
@@ -370,24 +387,65 @@
             margin-bottom: 15px;
         }
     }
+
+    /* ESTILOS DE LOGOS PATROCINADORES */
+    .partner-card {
+        display: block;
+        text-decoration: none !important;
+        cursor: pointer;
+    }
+    .partner-logo {
+        max-width: 100%;
+        max-height: 60px;
+        object-fit: contain;
+        transition: transform 0.3s ease;
+    }
+    .partner-card:hover .partner-logo {
+        transform: scale(1.1);
+    }
+    .logo-container {
+        height: 70px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
 </style>
 @endsection
 
 @section('content')
-<div class="hero reveal">
-    <h1 class="hero-title">BeyCon España</h1>
-    <div id="countdown">00D : 00H : 00M : 00S</div>
+<div class="hero reveal container mt-4">
+    <div class="row align-items-center justify-content-center">
 
-    <div style="margin-top: 10px;">
-        <p style="font-size: 1.3rem; color: var(--text-bright); font-weight: 600; letter-spacing: 1px;">
-            Sevilla | 18 de Julio | 09:00 AM
-        </p>
-        <p style="color: var(--neon-cyan); font-family: 'Roboto Mono'; opacity: 0.9;">HOTEL VÉRTICE ALJARAFE - SEDE OFICIAL NACIONAL</p>
+        {{-- COLUMNA IZQUIERDA: CARTEL DEL EVENTO --}}
+        <div class="col-12 col-md-5 col-lg-4 text-center mb-4 mb-md-0">
+            <img src="{{ asset('storage/upload-events/beycon.png') }}" alt="Cartel BeyCon España" class="img-fluid hero-poster">
+        </div>
+
+        {{-- COLUMNA DERECHA: DATOS Y BOTÓN --}}
+        <div class="col-12 col-md-7 col-lg-6 text-center text-md-start">
+
+            {{-- Cuenta regresiva --}}
+            <div id="countdown" class="mb-3" style="font-size: 2.5rem; text-shadow: 2px 2px 0 #000;">
+                00D : 00H : 00M : 00S
+            </div>
+
+            {{-- Información de ubicación y fecha --}}
+            <div class="mt-4 mb-4 p-3" style="background: rgba(0,0,0,0.4); border-left: 4px solid var(--neon-cyan);">
+                <p class="mb-2" style="font-size: 1.4rem; color: var(--text-bright); font-family: 'Oswald', cursive; letter-spacing: 2px;">
+                    <i class="fas fa-calendar-check me-2" style="color: var(--neon-cyan);"></i> Sevilla | 18 de Julio | 09:00 AM
+                </p>
+                <p class="mb-0 fw-bold" style="color: var(--neon-cyan); font-family: 'Roboto Mono', monospace; font-size: 0.9rem;">
+                    <i class="fas fa-map-marker-alt me-2 text-danger"></i> HOTEL VÉRTICE ALJARAFE - SEDE OFICIAL NACIONAL
+                </p>
+            </div>
+
+            {{-- Botón de registro --}}
+            <a href="https://forms.gle/ZWugRhfrr9vLAavQ6" target="_blank" class="btn-cyber mt-2 d-inline-block">
+               <i class="fas fa-user-plus me-2"></i> REGISTRO DE BLADERS
+            </a>
+        </div>
+
     </div>
-
-    <a href="https://forms.gle/ZWugRhfrr9vLAavQ6" target="_blank" class="btn-cyber mt-4">
-       REGISTRO DE BLADERS
-    </a>
 </div>
 
 <div class="section-container reveal">
@@ -427,8 +485,10 @@
                 <span class="price-tag">5€</span>
             </div>
         </div>
-        <div class="col-md-6">
-            <div class="cyber-card text-center h-100" style="border-top: 3px solid var(--neon-gold);">
+        <div class="col-md-6" style="position: relative;">
+            <h4 class="coming-soon-text" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 10; font-family: 'Orbitron'; color: white; text-shadow: 0 0 15px var(--neon-gold), 0 0 30px #000; text-align: center; width: 100%; pointer-events: none;">PRÓXIMAMENTE</h4>
+
+            <div class="cyber-card text-center h-100" style="border-top: 3px solid var(--neon-gold); filter: blur(8px); pointer-events: none; user-select: none; opacity: 0.4;">
                 <h4 style="color: var(--neon-gold); font-family: 'Orbitron';">PACK VIP SBBL</h4>
                 <p class="stat-desc mt-3">Pase de acceso completo + Pack de Merchandising oficial de la SBBL.</p>
                 <span class="price-tag" style="color: var(--neon-gold);">15€</span>
@@ -450,27 +510,27 @@
                     <h4 class="side-event-title">EVENTO 1<br>BP POWER</h4>
                     <div class="side-event-info">
                         <p class="stat-desc"><strong>Reglas:</strong> Lanza con todas tus fuerzas con uno de los battlepass del evento para conseguir la mejor puntuación.</p>
-                        <p class="stat-desc mt-3"><strong>Premios:</strong> La persona con mayor puntuación se llevará una palmadita en la espalda.</p>
+                        <p class="stat-desc mt-3"><strong>Premios:</strong> Por determinar (Para quien consiga el lanzamiento más potente al cierre).</p>
                     </div>
                 </div>
             </div>
 
             <div class="col-md-4">
                 <div class="side-event-card">
-                    <h4 class="side-event-title">EVENTO 2<br>REY DE PISTA</h4>
+                    <h4 class="side-event-title">EVENTO 2<br>REY DE LA PISTA</h4>
                     <div class="side-event-info">
-                        <p class="stat-desc"><strong>Reglas:</strong> En el estadio de 3, se el último en pie y encadena la mayor racha de victorias.</p>
-                        <p class="stat-desc mt-3"><strong>Premios:</strong> La persona con mayor racha de victorias podrá llevarse un besito de kaw (si Ana no le deja será de berni).</p>
+                        <p class="stat-desc"><strong>Reglas:</strong> Combates en el estadio de 3 jugadores. El jugador que consiga encadenar la racha consecutiva más larga de victorias gana. Se aplicarán las reglas de combate estándar de la SBBL.</p>
+                        <p class="stat-desc mt-3"><strong>Premios:</strong> Por determinar (Para quien haya la mayor racha de victorias al cierre).</p>
                     </div>
                 </div>
             </div>
 
             <div class="col-md-4">
                 <div class="side-event-card">
-                    <h4 class="side-event-title">EVENTO 3<br>MEDAL MASTERS</h4>
+                    <h4 class="side-event-title">EVENTO 3<br>THE ULTIMATE SURVIVOR</h4>
                     <div class="side-event-info">
-                        <p class="stat-desc"><strong>Reglas:</strong> Recibe medallas al inscribirte y reta a tus amigos por ellas.</p>
-                        <p class="stat-desc mt-3"><strong>Premios:</strong> La persona con más medallas al cierre de los eventos ganará un estupendo enhorabuena.</p>
+                        <p class="stat-desc"><strong>Reglas:</strong> Juego de desafío. En cada duelo se debe apostar al menos la mitad de las medallas del jugador que tenga menos (redondeando hacia arriba). Si te quedas a cero, quedas descalificado (se marcará tu pulsera con una X). En caso de empate al final del día, habrá duelo directo. Reglas SBBL.</p>
+                        <p class="stat-desc mt-3"><strong>Premios:</strong> Por determinar (para quien acumule más medallas al cierre).</p>
                     </div>
                 </div>
             </div>
@@ -483,10 +543,10 @@
 </div>
 
 <div class="section-container reveal">
-    <h2 class="sec-title">Sistema de Clasificación</h2>
+    <h2 class="sec-title">Sistema de Clasificación Individual</h2>
     <div class="row mt-4">
         <div class="col-md-6 mb-3">
-            <div class="cyber-card h-100" style="border-color: rgba(0, 242, 254, 0.2);">
+            <div class="cyber-card h-100" style="border-color: rgba(0, 242, 254, 0.2); border-top: 3px solid var(--neon-cyan);">
                 <h4 style="color: var(--neon-cyan); font-family: 'Orbitron';">Nivel 1: Compromiso</h4>
                 <p class="stat-desc mt-3">Prioridad según inscripción en Grandes Copas de la temporada:</p>
                 <ul style="color: var(--text-bright); line-height: 2;">
@@ -498,7 +558,7 @@
             </div>
         </div>
         <div class="col-md-6 mb-3">
-            <div class="cyber-card h-100" style="border-color: rgba(255, 0, 85, 0.2);">
+            <div class="cyber-card h-100" style="border-color: rgba(255, 0, 85, 0.2); border-top: 3px solid var(--neon-magenta);">
                 <h4 style="color: var(--neon-magenta); font-family: 'Orbitron';">Nivel 2: Desempates</h4>
                 <p class="stat-desc mt-3">Puntos por rendimiento y fidelidad:</p>
                 <ul style="color: var(--text-bright); line-height: 2;">
@@ -509,68 +569,122 @@
             </div>
         </div>
     </div>
+
+    <h2 class="sec-title mt-5">Torneo por Equipos</h2>
+    <div class="row mt-4">
+        <div class="col-md-6 mb-3">
+            <div class="cyber-card h-100" style="border-color: rgba(255, 215, 0, 0.2); border-top: 3px solid #FFD700;">
+                <h4 style="color: #FFD700; font-family: 'Orbitron';">Estructura y Formato</h4>
+                <ul style="color: var(--text-bright); line-height: 1.8; margin-top: 15px;">
+                    <li><strong style="color: #FFD700">Clasificación:</strong> Solo los 16 primeros equipos del ranking que presenten 3 jugadores mínimo en el evento.</li>
+                    <li><strong style="color: #FFD700">Bracket:</strong> Eliminación simple (1º vs 16º, 2º vs 15º, etc.).</li>
+                    <li><strong style="color: #FFD700">Participantes:</strong> Entre 3 y 6 bladers por equipo.</li>
+                    <li><strong style="color: #FFD700">Registro:</strong> Los equipos deberán traer sus combos anotados desde casa.</li>
+                </ul>
+            </div>
+        </div>
+        <div class="col-md-6 mb-3">
+            <div class="cyber-card h-100" style="border-color: rgba(0, 255, 170, 0.2); border-top: 3px solid #00FFAA;">
+                <h4 style="color: #00FFAA; font-family: 'Orbitron';">Reglas de Combate</h4>
+                <ul style="color: var(--text-bright); line-height: 1.8; margin-top: 15px; font-size: 0.95rem;">
+                    <li><strong style="color: #00FFAA">Combos:</strong> 1 único Bey por blader. Prohibido repetir piezas entre los integrantes activos.</li>
+                    <li><strong style="color: #00FFAA">Orden Oculto:</strong> Se decide el orden de participación y se muestra al árbitro antes de empezar.</li>
+                    <li><strong style="color: #00FFAA">Desarrollo:</strong> Duelos directos (1ºvs1º, 2ºvs2º...). Si un equipo tiene menos jugadores, rotará de nuevo desde su 1º jugador sin cambiar el orden.</li>
+                    <li><strong style="color: #00FFAA">Victoria global:</strong> Gana el equipo con más puntuación al finalizar todos los cruces.</li>
+                    <li><strong style="color: #00FFAA">Desempate:</strong> Batalla final a un duelo entre capitanes (o el jugador 1º en su ausencia) con su combo seleccionado.</li>
+                </ul>
+            </div>
+        </div>
+    </div>
 </div>
 
-<div class="section-container reveal">
-    <div class="row g-4">
-        <div class="col-md-6">
-            <div class="cyber-card h-100" style="border-top: 3px solid var(--neon-cyan); padding: 40px;">
-                <h5 style="color: #fff; text-align: center; margin-bottom: 30px; font-family: 'Orbitron'; font-size: 1.4rem;">TIENDAS OFICIALES</h5>
+<div style="position: relative;">
 
-                <div class="d-flex flex-column gap-3">
-                    <div class="p-3 rounded" style="background: rgba(0, 242, 254, 0.05); border-left: 3px solid var(--neon-cyan); transition: 0.3s;" onmouseover="this.style.background='rgba(0, 242, 254, 0.1)'" onmouseout="this.style.background='rgba(0, 242, 254, 0.05)'">
-                        <strong style="color: var(--text-bright); font-size: 1.1rem;">🖨️ XTREME Cases</strong>
-                        <p class="mb-0 mt-1" style="color: var(--text-soft); font-size: 0.9rem;">Venta de Deckcases, Stands y material 3D.</p>
-                    </div>
+    <h2 style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 20; font-family: 'Orbitron'; color: white; text-shadow: 0 0 15px var(--neon-cyan), 0 0 30px #000; text-align: center; width: 100%; pointer-events: none; font-size: 3.5rem; letter-spacing: 4px;">PRÓXIMAMENTE</h2>
 
-                    <div class="p-3 rounded" style="background: rgba(0, 242, 254, 0.05); border-left: 3px solid var(--neon-cyan); transition: 0.3s;" onmouseover="this.style.background='rgba(0, 242, 254, 0.1)'" onmouseout="this.style.background='rgba(0, 242, 254, 0.05)'">
-                        <strong style="color: var(--text-bright); font-size: 1.1rem;">👕 SBBL Merch</strong>
-                        <p class="mb-0 mt-1" style="color: var(--text-soft); font-size: 0.9rem;">Merchandising oficial de la liga.</p>
-                    </div>
+    <div class="section-container reveal" style="filter: blur(10px); pointer-events: none; user-select: none; opacity: 0.3; transition: all 0.5s ease;">
 
-                    <div class="p-3 rounded" style="background: rgba(0, 242, 254, 0.05); border-left: 3px solid var(--neon-cyan); transition: 0.3s;" onmouseover="this.style.background='rgba(0, 242, 254, 0.1)'" onmouseout="this.style.background='rgba(0, 242, 254, 0.05)'">
-                        <strong style="color: var(--text-bright); font-size: 1.1rem;">🎌 B4S</strong>
-                        <p class="mb-0 mt-1" style="color: var(--text-soft); font-size: 0.9rem;">Material exclusivo deluxe.</p>
-                    </div>
+        <div class="row g-4">
+            <div class="col-md-6">
+                <div class="cyber-card h-100" style="border-top: 3px solid var(--neon-cyan); padding: 40px;">
+                    <h5 style="color: #fff; text-align: center; margin-bottom: 30px; font-family: 'Orbitron'; font-size: 1.4rem;">TIENDAS OFICIALES</h5>
 
-                    <div class="p-3 rounded" style="background: rgba(0, 242, 254, 0.05); border-left: 3px solid var(--neon-cyan); transition: 0.3s;" onmouseover="this.style.background='rgba(0, 242, 254, 0.1)'" onmouseout="this.style.background='rgba(0, 242, 254, 0.05)'">
-                        <strong style="color: var(--text-bright); font-size: 1.1rem;">🃏 Gold Saucer Store</strong>
-                        <p class="mb-0 mt-1" style="color: var(--text-soft); font-size: 0.9rem;">Beyblades TT y Hasbro.</p>
+                    <div class="d-flex flex-column gap-3">
+                        <a href="#" class="partner-card p-3 rounded" style="background: rgba(0, 242, 254, 0.05); border-left: 3px solid var(--neon-cyan);">
+                            <div class="d-flex align-items-center gap-3">
+                                <div class="logo-container" style="width: 80px; background: rgba(255,255,255,0.1); border-radius: 8px;"></div>
+                                <div>
+                                    <strong style="color: var(--text-bright); font-size: 1.1rem;">TIENDA SECRETA 1</strong>
+                                    <p class="mb-0 mt-1" style="color: var(--text-soft); font-size: 0.9rem;">Revelación muy pronto...</p>
+                                </div>
+                            </div>
+                        </a>
+
+                        <a href="#" class="partner-card p-3 rounded" style="background: rgba(0, 242, 254, 0.05); border-left: 3px solid var(--neon-cyan);">
+                            <div class="d-flex align-items-center gap-3">
+                                <div class="logo-container" style="width: 80px; background: rgba(255,255,255,0.1); border-radius: 8px;"></div>
+                                <div>
+                                    <strong style="color: var(--text-bright); font-size: 1.1rem;">TIENDA SECRETA 2</strong>
+                                    <p class="mb-0 mt-1" style="color: var(--text-soft); font-size: 0.9rem;">Revelación muy pronto...</p>
+                                </div>
+                            </div>
+                        </a>
+
+                        <a href="#" class="partner-card p-3 rounded" style="background: rgba(0, 242, 254, 0.05); border-left: 3px solid var(--neon-cyan);">
+                            <div class="d-flex align-items-center gap-3">
+                                <div class="logo-container" style="width: 80px; background: rgba(255,255,255,0.1); border-radius: 8px;"></div>
+                                <div>
+                                    <strong style="color: var(--text-bright); font-size: 1.1rem;">TIENDA SECRETA 3</strong>
+                                    <p class="mb-0 mt-1" style="color: var(--text-soft); font-size: 0.9rem;">Revelación muy pronto...</p>
+                                </div>
+                            </div>
+                        </a>
+
+                        <a href="#" class="partner-card p-3 rounded" style="background: rgba(0, 242, 254, 0.05); border-left: 3px solid var(--neon-cyan);">
+                            <div class="d-flex align-items-center gap-3">
+                                <div class="logo-container" style="width: 80px; background: rgba(255,255,255,0.1); border-radius: 8px;"></div>
+                                <div>
+                                    <strong style="color: var(--text-bright); font-size: 1.1rem;">TIENDA SECRETA 4</strong>
+                                    <p class="mb-0 mt-1" style="color: var(--text-soft); font-size: 0.9rem;">Revelación muy pronto...</p>
+                                </div>
+                            </div>
+                        </a>
                     </div>
                 </div>
             </div>
-        </div>
 
-        <div class="col-md-6">
-            <div class="cyber-card h-100" style="border-top: 3px solid var(--neon-magenta); padding: 40px;">
-                <h5 style="color: #fff; text-align: center; margin-bottom: 30px; font-family: 'Orbitron'; font-size: 1.4rem;">COLABORADORES</h5>
+            <div class="col-md-6">
+                <div class="cyber-card h-100" style="border-top: 3px solid var(--neon-magenta); padding: 40px;">
+                    <h5 style="color: #fff; text-align: center; margin-bottom: 30px; font-family: 'Orbitron'; font-size: 1.4rem;">COLABORADORES</h5>
 
                     <div class="d-flex flex-wrap justify-content-center gap-3">
-                        <div class="text-center p-4 rounded" style="background: rgba(255, 0, 85, 0.05); border: 1px solid rgba(255, 0, 85, 0.2); width: 45%; transition: 0.3s;" onmouseover="this.style.borderColor='var(--neon-magenta)'" onmouseout="this.style.borderColor='rgba(255, 0, 85, 0.2)'">
-                        <span style="font-size: 2.5rem; display: block; margin-bottom: 10px;">📸</span>
-                        <strong style="color: var(--neon-magenta); font-size: 1rem;">Sugoi Digital Capture</strong>
-                    </div>
 
-                    <div class="text-center p-4 rounded" style="background: rgba(255, 0, 85, 0.05); border: 1px solid rgba(255, 0, 85, 0.2); width: 45%; transition: 0.3s;" onmouseover="this.style.borderColor='var(--neon-magenta)'" onmouseout="this.style.borderColor='rgba(255, 0, 85, 0.2)'">
-                        <span style="font-size: 2.5rem; display: block; margin-bottom: 10px;">🌀</span>
-                        <strong style="color: var(--neon-magenta); font-size: 1rem;">Beyblade Nexus</strong>
-                    </div>
+                        <a href="#" class="partner-card text-center p-4 rounded" style="background: rgba(255, 0, 85, 0.05); border: 1px solid rgba(255, 0, 85, 0.2); width: 45%;">
+                            <div class="logo-container w-100 mb-2" style="background: rgba(255,255,255,0.1); border-radius: 8px;"></div>
+                            <strong style="color: var(--neon-magenta); font-size: 1rem;">SPONSOR VIP</strong>
+                        </a>
 
-                    <div class="text-center p-4 rounded" style="background: rgba(255, 0, 85, 0.05); border: 1px solid rgba(255, 0, 85, 0.2); width: 45%; transition: 0.3s;" onmouseover="this.style.borderColor='var(--neon-magenta)'" onmouseout="this.style.borderColor='rgba(255, 0, 85, 0.2)'">
-                        <span style="font-size: 2.5rem; display: block; margin-bottom: 10px;">🎲</span>
-                        <strong style="color: var(--neon-magenta); font-size: 1rem;">Gold Saucer Store</strong>
-                    </div>
+                        <a href="#" class="partner-card text-center p-4 rounded" style="background: rgba(255, 0, 85, 0.05); border: 1px solid rgba(255, 0, 85, 0.2); width: 45%;">
+                            <div class="logo-container w-100 mb-2" style="background: rgba(255,255,255,0.1); border-radius: 8px;"></div>
+                            <strong style="color: var(--neon-magenta); font-size: 1rem;">SPONSOR VIP</strong>
+                        </a>
 
-                    <div class="text-center p-4 rounded" style="background: rgba(255, 0, 85, 0.05); border: 1px solid rgba(255, 0, 85, 0.2); width: 45%; transition: 0.3s;" onmouseover="this.style.borderColor='var(--neon-magenta)'" onmouseout="this.style.borderColor='rgba(255, 0, 85, 0.2)'">
-                        <span style="font-size: 2.5rem; display: block; margin-bottom: 10px;">🍔</span>
-                        <strong style="color: var(--neon-magenta); font-size: 1rem;">Hamburguesería Mr Dope</strong>
+                        <a href="#" class="partner-card text-center p-4 rounded" style="background: rgba(255, 0, 85, 0.05); border: 1px solid rgba(255, 0, 85, 0.2); width: 45%;">
+                            <div class="logo-container w-100 mb-2" style="background: rgba(255,255,255,0.1); border-radius: 8px;"></div>
+                            <strong style="color: var(--neon-magenta); font-size: 1rem;">SPONSOR VIP</strong>
+                        </a>
+
+                        <a href="#" class="partner-card text-center p-4 rounded" style="background: rgba(255, 0, 85, 0.05); border: 1px solid rgba(255, 0, 85, 0.2); width: 45%;">
+                            <div class="logo-container w-100 mb-2" style="background: rgba(255,255,255,0.1); border-radius: 8px;"></div>
+                            <strong style="color: var(--neon-magenta); font-size: 1rem;">SPONSOR VIP</strong>
+                        </a>
+
                     </div>
                 </div>
             </div>
         </div>
     </div>
 </div>
-
 <div class="section-container reveal">
     <div class="cyber-card text-center" style="border: 2px solid var(--neon-magenta); background: rgba(255,0,85,0.02);">
         <h2 class="sec-title" style="border: none; padding-left: 0; margin-bottom: 20px;">¿Quieres Colaborar con la SBBL?</h2>
@@ -591,7 +705,7 @@
 
     <div class="protocol-item">
         <strong>¿Cuál es el precio de la entrada si no compito en el Nacional?</strong>
-        <p class="stat-desc mb-0">La entrada general de asistente tiene un coste de 5€. Si quieres llevarte el Merch oficial de la liga, puedes adquirir el Pack VIP por 15€.</p>
+        <p class="stat-desc mb-0">La entrada general de asistente tiene un coste de 5€.</p>
     </div>
 
     <div class="protocol-item">

@@ -31,7 +31,7 @@
                     @endif
                     @if ($duel->status == 'Abierto' && $duel->versus_1->id == Auth::user()->id)
                         <a class="d-block font-weight-bold text-uppercase pt-2 pb-2" style="text-decoration: none; color:white;width: 100%; background-color:red;" href="{{ route('generations.edit', ['versus' => $duel->id]) }}">Ver duelo</a>
-                    @elseif (Auth::user()->is_admin && $duel->status == 'Pendiente')
+                    @elseif (Auth::user()->hasRole('admin') && $duel->status == 'Pendiente')
                     <form method="POST" action="{{ route('generations.update', ['versus' => $duel->id]) }}" enctype="multipart/form-data" novalidate>
                         <a class="d-block font-weight-bold text-uppercase pt-2 pb-2" style="text-decoration: none; color:white;width: 100%; background-color:red;" href="{{ route('generations.edit', ['versus' => $duel->id]) }}">Ver duelo</a>
                         @csrf
@@ -56,4 +56,3 @@
 
 @endsection
 
-	

@@ -38,7 +38,7 @@
                     @foreach ($users as $user)
                         <option value="{{ $user->id }}" {{ $userId == $user->id ? 'selected' : '' }}>
                             {{ $user->name }}
-                            {{ $user->is_jury ? '(Jurado)' : '(Árbitro)' }}
+                            {{ $user->hasRole('juez') ? '(Jurado)' : '(Árbitro)' }}
                         </option>
                     @endforeach
                 </select>

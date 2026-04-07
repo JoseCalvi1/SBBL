@@ -10,7 +10,7 @@
 
     /* ── TÍTULO DE PÁGINA ── */
     .blog-title {
-        font-family: 'Bangers', cursive;
+        font-family: 'Oswald', cursive;
         font-size: 3.5rem;
         color: var(--sbbl-gold);
         text-shadow: 3px 3px 0 #000, 6px 6px 0 var(--shonen-red);
@@ -33,7 +33,7 @@
 
     .blog-filters label {
         color: var(--sbbl-gold) !important;
-        font-family: 'Bangers', cursive;
+        font-family: 'Oswald', cursive;
         font-size: 1.2rem;
         letter-spacing: 1px;
         text-transform: uppercase;
@@ -79,7 +79,7 @@
         right: 10px;
         background: var(--shonen-red);
         color: #fff;
-        font-family: 'Bangers', cursive;
+        font-family: 'Oswald', cursive;
         padding: 4px 12px;
         border: 2px solid #000;
         transform: skewX(-10deg);
@@ -95,7 +95,7 @@
     }
 
     .article-title {
-        font-family: 'Bangers', cursive;
+        font-family: 'Oswald', cursive;
         font-size: 1.8rem;
         color: #fff;
         line-height: 1.2;
@@ -123,7 +123,7 @@
         background: var(--shonen-cyan);
         color: #000;
         border: 3px solid #000;
-        font-family: 'Bangers', cursive;
+        font-family: 'Oswald', cursive;
         font-size: 1.2rem;
         padding: 5px 15px;
         box-shadow: 4px 4px 0 #000;
@@ -147,7 +147,7 @@
     <div class="d-flex flex-column flex-md-row justify-content-between align-items-center mb-4 gap-3">
         <h2 class="blog-title m-0 text-center text-md-start">TABLÓN BLADER</h2>
 
-        @if (Auth::user() && Auth::user()->is_editor)
+        @if (Auth::user() && Auth::user()->hasRole('editor'))
             <a href="{{ route('blog.create') }}" class="btn-create-post">
                 <i class="fas fa-plus-circle me-1"></i> NUEVO INFORME
             </a>
@@ -221,7 +221,7 @@
             <div class="col-12 w-100">
                 <div class="command-panel p-5 text-center">
                     <i class="fas fa-ghost fa-4x mb-3 text-secondary"></i>
-                    <h3 class="font-bangers text-white">FRECUENCIA VACÍA</h3>
+                    <h3 class="font-Oswald text-white">FRECUENCIA VACÍA</h3>
                     <p class="text-white fw-bold">No hay transmisiones registradas en el servidor.</p>
                 </div>
             </div>

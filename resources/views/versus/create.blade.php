@@ -100,7 +100,7 @@
                        placeholder="https://www.youtube.com/embed/tu-video">
             </div>
 
-            @if(!Auth::user()->is_admin && !Auth::user()->is_referee)
+            @if(!Auth::user()->hasAnyRole(['admin', 'arbitro']))
                 <div class="form-group form-check mt-4">
                     <input type="checkbox" class="form-check-input" id="acceptConditions">
                     <label class="form-check-label" for="acceptConditions">En caso de NO HABER árbitro oficial de la liga presente, ENTIENDO que este duelo NO SERÁ REVISADO a menos que suba el vídeo ahora o posteriormente desde el apartado de todos los eventos o desde el perfil de los bladers implicados</label>

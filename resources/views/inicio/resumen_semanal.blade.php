@@ -17,7 +17,7 @@
         flex-wrap: wrap; gap: 15px;
     }
     .report-title {
-        font-family: 'Bangers', cursive;
+        font-family: 'Oswald', cursive;
         font-size: 3rem;
         color: var(--sbbl-gold);
         text-shadow: 2px 2px 0px #000, 4px 4px 0px var(--shonen-red);
@@ -30,7 +30,7 @@
     }
 
     .report-date {
-        font-family: 'Bangers', cursive;
+        font-family: 'Oswald', cursive;
         color: #fff; font-size: 1.5rem;
         background: #000; padding: 8px 20px;
         border: 3px solid var(--sbbl-gold);
@@ -42,7 +42,7 @@
 
     /* Títulos de Sección */
     .section-heading {
-        font-family: 'Bangers', cursive;
+        font-family: 'Oswald', cursive;
         font-size: 2.2rem;
         color: #fff;
         text-transform: uppercase;
@@ -81,7 +81,7 @@
     .shonen-event-badge {
         position: absolute; top: 10px; right: 10px;
         background: var(--sbbl-gold); color: #000;
-        font-family: 'Bangers', cursive; padding: 5px 10px;
+        font-family: 'Oswald', cursive; padding: 5px 10px;
         border: 2px solid #000; transform: skewX(-5deg);
         box-shadow: 3px 3px 0 var(--shonen-red);
         font-size: 1.1rem; letter-spacing: 1px;
@@ -89,7 +89,7 @@
     .shonen-event-badge > span { display: block; transform: skewX(5deg); }
 
     .event-body { padding: 15px; flex-grow: 1; display: flex; flex-direction: column; }
-    .event-title { font-family: 'Bangers', cursive; font-size: 1.6rem; color: #fff; text-shadow: 1px 1px 0 #000; letter-spacing: 1px; margin-bottom: 5px;}
+    .event-title { font-family: 'Oswald', cursive; font-size: 1.6rem; color: #fff; text-shadow: 1px 1px 0 #000; letter-spacing: 1px; margin-bottom: 5px;}
     .event-meta { font-size: 0.9rem; color: #fff; font-weight: 900; margin-bottom: 15px; border-bottom: 2px dashed #000; padding-bottom: 10px; text-transform: uppercase; }
 
     /* Podio dentro de la tarjeta */
@@ -122,14 +122,14 @@
         transform: translate(-2px, -2px) skewX(-2deg);
     }
 
-    .team-name { font-family: 'Bangers', cursive; font-size: 1.8rem; letter-spacing: 1px; color: #fff; text-shadow: 2px 2px 0 #000; }
+    .team-name { font-family: 'Oswald', cursive; font-size: 1.8rem; letter-spacing: 1px; color: #fff; text-shadow: 2px 2px 0 #000; }
     .team-name.winner { color: var(--sbbl-gold); text-shadow: 2px 2px 0 var(--shonen-red); }
 
-    .vs-badge { font-family: 'Bangers', cursive; font-size: 1.4rem; color: var(--shonen-red); margin: 0 15px; text-shadow: 1px 1px 0 #000; }
+    .vs-badge { font-family: 'Oswald', cursive; font-size: 1.4rem; color: var(--shonen-red); margin: 0 15px; text-shadow: 1px 1px 0 #000; }
 
     .score-badge {
         background: #000; padding: 5px 15px;
-        font-family: 'Bangers', cursive; font-size: 2rem; color: #fff;
+        font-family: 'Oswald', cursive; font-size: 2rem; color: #fff;
         border: 3px solid var(--sbbl-gold); box-shadow: 4px 4px 0 var(--shonen-red);
         line-height: 1;
     }
@@ -225,7 +225,7 @@
         @empty
             <div class="col-12">
                 <div class="alert alert-dark border-secondary text-center" style="background: rgba(0,0,0,0.5) !important; border: 3px solid #000 !important; border-radius: 0; box-shadow: 4px 4px 0 #000;">
-                    <span class="font-bangers fs-3 text-white">NO SE HAN REGISTRADO TORNEOS EN ESTE PERIODO.</span>
+                    <span class="font-Oswald fs-3 text-white">NO SE HAN REGISTRADO TORNEOS EN ESTE PERIODO.</span>
                 </div>
             </div>
         @endforelse
@@ -269,7 +269,7 @@
                 </div>
             @empty
                 <div class="alert alert-dark border-secondary text-center" style="background: rgba(0,0,0,0.5) !important; border: 3px solid #000 !important; border-radius: 0; box-shadow: 4px 4px 0 #000;">
-                    <span class="font-bangers fs-3 text-white">SIN ACTIVIDAD DE EQUIPOS REGISTRADA ESTA SEMANA.</span>
+                    <span class="font-Oswald fs-3 text-white">SIN ACTIVIDAD DE EQUIPOS REGISTRADA ESTA SEMANA.</span>
                 </div>
             @endforelse
         </div>

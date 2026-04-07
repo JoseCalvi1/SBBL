@@ -20,5 +20,6 @@ class DatabaseSeeder extends Seeder
         $this->call(PlansTableSeeder::class);
         $this->call(ZoneSeeder::class);
         $this->call(ItemsSeeder::class);
+        $this->call(RoleTransferSeeder::class);
     }
 }

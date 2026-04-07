@@ -19,7 +19,7 @@
 
     /* ── TÍTULO DE PÁGINA ── */
     .page-title {
-        font-family: 'Bangers', cursive;
+        font-family: 'Oswald', cursive;
         font-size: 3.5rem;
         color: var(--sbbl-gold);
         text-shadow: 2px 2px 0px #000, 4px 4px 0px var(--shonen-red);
@@ -67,7 +67,7 @@
         top: -2px; /* Solapa ligeramente el borde */
         left: 50%;
         transform: translateX(-50%) skewX(-10deg);
-        font-family: 'Bangers', cursive;
+        font-family: 'Oswald', cursive;
         font-size: 1.2rem;
         letter-spacing: 1px;
         text-transform: uppercase;
@@ -97,7 +97,7 @@
     }
 
     .player-name {
-        font-family: 'Bangers', cursive;
+        font-family: 'Oswald', cursive;
         font-size: 1.8rem;
         letter-spacing: 1px;
         text-shadow: 2px 2px 0 #000;
@@ -122,7 +122,7 @@
     }
 
     .vs {
-        font-family: 'Bangers', cursive;
+        font-family: 'Oswald', cursive;
         font-size: 3rem;
         color: var(--shonen-red);
         text-shadow: 3px 3px 0 #000;
@@ -133,7 +133,7 @@
     }
 
     .player-score {
-        font-family: 'Bangers', cursive;
+        font-family: 'Oswald', cursive;
         font-size: 2.5rem;
         color: white;
         text-shadow: 3px 3px 0 #000;
@@ -222,7 +222,7 @@
         <h2 class="page-title"><i class="fas fa-fist-raised text-white me-2" style="text-shadow: none;"></i> REGISTRO DE BATALLAS</h2>
 
         {{-- BOTÓN CREAR DUELO --}}
-        @if (Auth::check() && (Auth::user()->is_referee || (Auth::user()->teams && count(Auth::user()->teams) > 0 && Auth::user()->teams[0]->captain_id == Auth::user()->id && Auth::user()->teams[0]->members()->count() >= 3)))
+        @if (Auth::check() && (Auth::user()->hasRole('arbitro') || (Auth::user()->teams && count(Auth::user()->teams) > 0 && Auth::user()->teams[0]->captain_id == Auth::user()->id && Auth::user()->teams[0]->members()->count() >= 3)))
             <div class="mt-4">
                 <a href="{{ route('teams_versus.create') }}" class="btn-shonen btn-shonen-warning d-inline-block px-4 py-2" style="font-size: 1.5rem;">
                     <span><i class="fas fa-bolt me-2"></i> DECLARAR DUELO</span>
@@ -289,7 +289,7 @@
                 <div class="text-center py-5 bg-black border border-secondary" style="border-width: 3px !important; box-shadow: 6px 6px 0 #000; transform: skewX(-2deg);">
                     <div style="transform: skewX(2deg);">
                         <i class="fas fa-satellite-dish mb-3 text-secondary" style="font-size: 4rem;"></i>
-                        <h3 class="font-bangers text-white fs-2 mb-2">SIN REGISTROS DE COMBATE</h3>
+                        <h3 class="font-Oswald text-white fs-2 mb-2">SIN REGISTROS DE COMBATE</h3>
                         <p class="text-white fw-bold mb-0">La arena de sindicatos está en silencio.</p>
                     </div>
                 </div>

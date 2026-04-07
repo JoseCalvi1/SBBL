@@ -11,7 +11,7 @@
 @section('styles')
 <style>
     /* --- ESTILO GENERAL: ANIME / SHONEN --- */
-    @import url('https://fonts.googleapis.com/css2?family=Bangers&family=Montserrat:ital,wght@0,700;0,900;1,900&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Oswald&family=Montserrat:ital,wght@0,700;0,900;1,900&display=swap');
 
     :root {
         --shonen-red: #ff2a2a;
@@ -31,8 +31,8 @@
         background-size: 20px 20px;
     }
 
-    h1, h2, h3, h4, h5, .font-bangers {
-        font-family: 'Bangers', cursive;
+    h1, h2, h3, h4, h5, .font-Oswald {
+        font-family: 'Oswald', cursive;
         letter-spacing: 1px;
     }
 
@@ -56,7 +56,7 @@
         padding: 10px 20px;
         border-bottom: 3px solid var(--shonen-yellow);
         color: #fff;
-        font-family: 'Bangers', cursive;
+        font-family: 'Oswald', cursive;
         font-size: 1.3rem;
         letter-spacing: 1px;
         text-transform: uppercase;
@@ -99,7 +99,7 @@
         box-shadow: 4px 4px 0px var(--shonen-yellow);
     }
     .pilot-name {
-        font-family: 'Bangers', cursive;
+        font-family: 'Oswald', cursive;
         font-size: clamp(2rem, 5vw, 3rem);
         color: var(--shonen-yellow);
         text-shadow: 2px 2px 0px #000, 4px 4px 0px var(--shonen-red);
@@ -109,7 +109,7 @@
         line-height: 1;
     }
     .division-pill {
-        font-family: 'Bangers', cursive;
+        font-family: 'Oswald', cursive;
         font-size: 1rem;
         padding: 4px 12px;
         border-radius: 0;
@@ -131,7 +131,7 @@
         margin-bottom: 20px;
     }
     .season-tab {
-        font-family: 'Bangers', cursive;
+        font-family: 'Oswald', cursive;
         font-size: 1.1rem;
         padding: 5px 15px;
         border-radius: 0;
@@ -164,7 +164,7 @@
     }
     .podium-box > * { transform: skewX(5deg); }
     .podium-box:hover { background: #111; box-shadow: 4px 4px 0 var(--shonen-red); }
-    .podium-num { font-family: 'Bangers', cursive; font-size: 2.2rem; line-height: 1; }
+    .podium-num { font-family: 'Oswald', cursive; font-size: 2.2rem; line-height: 1; }
     .podium-lbl { font-size: 0.7rem; font-weight: 900; text-transform: uppercase; margin-top: 5px; }
 
     /* ── BARRAS WIN RATE ── */
@@ -198,8 +198,8 @@
     }
     .combo-row > * { transform: skewX(5deg); }
     .combo-row:hover { background: #000; border-color: var(--shonen-yellow); }
-    .combo-rank { font-family: 'Bangers', cursive; font-size: 1.4rem; color: var(--shonen-red); min-width: 25px; text-align: center; }
-    .combo-wr   { font-family: 'Bangers', cursive; font-size: 1.2rem; color: var(--shonen-yellow); text-shadow: 1px 1px 0 #000; }
+    .combo-rank { font-family: 'Oswald', cursive; font-size: 1.4rem; color: var(--shonen-red); min-width: 25px; text-align: center; }
+    .combo-wr   { font-family: 'Oswald', cursive; font-size: 1.2rem; color: var(--shonen-yellow); text-shadow: 1px 1px 0 #000; }
 
     /* ── BADGES / LOGROS ── */
     .badge-grid {
@@ -245,12 +245,12 @@
         transition: 0.2s;
     }
     .event-row:hover { background: #000; border-color: var(--shonen-blue); }
-    .event-date { font-family: 'Bangers', cursive; font-size: 1.1rem; color: var(--shonen-yellow); min-width: 55px; line-height: 1; text-align: center;}
+    .event-date { font-family: 'Oswald', cursive; font-size: 1.1rem; color: var(--shonen-yellow); min-width: 55px; line-height: 1; text-align: center;}
     .event-name { font-size: 0.95rem; font-weight: 900; text-transform: uppercase; }
     .event-meta { font-size: 0.75rem; font-weight: 700; color: #888; }
 
     .result-pill {
-        font-family: 'Bangers', cursive;
+        font-family: 'Oswald', cursive;
         font-size: 1rem;
         padding: 4px 10px;
         border-radius: 0;
@@ -279,7 +279,7 @@
     .pts-bar:hover { background: var(--shonen-red); transform: scaleY(1.05); transform-origin: bottom; }
     .pts-bar.highlight { background: var(--shonen-yellow); }
     .pts-labels { display: flex; gap: 4px; margin-top: 8px; }
-    .pts-labels span { flex: 1; font-family: 'Bangers', cursive; font-size: 0.9rem; color: #fff; text-align: center; }
+    .pts-labels span { flex: 1; font-family: 'Oswald', cursive; font-size: 0.9rem; color: #fff; text-align: center; }
 
     /* ── SHARE BUTTON Y QR ── */
     .btn-share {
@@ -287,7 +287,7 @@
         border: 2px solid #fff;
         color: #fff;
         border-radius: 0;
-        font-family: 'Bangers', cursive;
+        font-family: 'Oswald', cursive;
         font-size: 1.1rem;
         padding: 8px 20px;
         cursor: pointer;
@@ -326,7 +326,7 @@
     }
     .mini-row:last-child { border-bottom: none; }
     .mini-lbl { color: #aaa; text-transform: uppercase; }
-    .mini-val { color: #fff; font-family: 'Bangers', cursive; font-size: 1.2rem; letter-spacing: 1px;}
+    .mini-val { color: #fff; font-family: 'Oswald', cursive; font-size: 1.2rem; letter-spacing: 1px;}
     .mini-val.text-warning { color: var(--shonen-yellow) !important; text-shadow: 1px 1px 0 #000;}
 </style>
 @endsection
@@ -398,26 +398,26 @@
                         <div class="qr-wrapper">
                             <img src="{{ $qrApi }}" alt="QR Perfil" style="width: 100px; height: 100px; image-rendering: pixelated;">
                         </div>
-                        <p class="font-bangers mt-2 mb-0" style="font-size: 1.1rem; color: var(--shonen-yellow); letter-spacing: 1px;">SCANNER ID</p>
+                        <p class="font-Oswald mt-2 mb-0" style="font-size: 1.1rem; color: var(--shonen-yellow); letter-spacing: 1px;">SCANNER ID</p>
                     </div>
                 </div>
 
                 {{-- Stats rápidas --}}
                 <div class="row g-0 border-top border-dark" style="border-width: 3px !important; background: #000;">
                     <div class="col-3 text-center py-3 border-end border-dark" style="border-width: 3px !important;">
-                        <div class="font-bangers text-white" style="font-size:1.8rem; line-height: 1;">{{ $totalTorneos }}</div>
+                        <div class="font-Oswald text-white" style="font-size:1.8rem; line-height: 1;">{{ $totalTorneos }}</div>
                         <div style="font-size:0.65rem; color:var(--shonen-yellow); font-weight: 900; text-transform:uppercase;">Torneos</div>
                     </div>
                     <div class="col-3 text-center py-3 border-end border-dark" style="border-width: 3px !important;">
-                        <div class="font-bangers text-white" style="font-size:1.8rem; line-height: 1;">{{ $totalVictorias }}</div>
+                        <div class="font-Oswald text-white" style="font-size:1.8rem; line-height: 1;">{{ $totalVictorias }}</div>
                         <div style="font-size:0.65rem; color:var(--shonen-yellow); font-weight: 900; text-transform:uppercase;">1.º Puesto</div>
                     </div>
                     <div class="col-3 text-center py-3 border-end border-dark" style="border-width: 3px !important;">
-                        <div class="font-bangers text-white" style="font-size:1.8rem; line-height: 1;">{{ $winRate }}%</div>
+                        <div class="font-Oswald text-white" style="font-size:1.8rem; line-height: 1;">{{ $winRate }}%</div>
                         <div style="font-size:0.65rem; color:var(--shonen-yellow); font-weight: 900; text-transform:uppercase;">Win Rate</div>
                     </div>
                     <div class="col-3 text-center py-3">
-                        <div class="font-bangers text-white" style="font-size:1.8rem; line-height: 1;">{{ $temporadasActivas }}</div>
+                        <div class="font-Oswald text-white" style="font-size:1.8rem; line-height: 1;">{{ $temporadasActivas }}</div>
                         <div style="font-size:0.65rem; color:var(--shonen-yellow); font-weight: 900; text-transform:uppercase;">Temporadas</div>
                     </div>
                 </div>
@@ -449,7 +449,7 @@
                                     </div>
                                 @endforeach
                             @else
-                                <p class="text-secondary text-center py-3 font-bangers" style="font-size: 1.5rem;">-- SIN DATOS DE TEMPORADA --</p>
+                                <p class="text-secondary text-center py-3 font-Oswald" style="font-size: 1.5rem;">-- SIN DATOS DE TEMPORADA --</p>
                             @endif
                         </div>
                     </div>
@@ -459,7 +459,7 @@
                     <div class="command-panel p-0">
                         <div class="panel-header">
                             <span><i class="fas fa-chart-line me-2" style="color: var(--shonen-yellow);"></i> Evolución de Poder</span>
-                            <span class="badge bg-white text-dark border border-dark" style="font-family: 'Bangers'; font-size: 1rem;">{{ $puntosTemporadaActual }} PTS ACTUALES</span>
+                            <span class="badge bg-white text-dark border border-dark" style="font-family: 'Oswald'; font-size: 1rem;">{{ $puntosTemporadaActual }} PTS ACTUALES</span>
                         </div>
                         <div class="p-4">
                             <div class="pts-chart-wrap" id="pts-chart"></div>
@@ -482,13 +482,13 @@
                         <div class="combo-row">
                             <span class="combo-rank">#{{ $i + 1 }}</span>
                             <div style="flex:1; min-width:0">
-                                <div class="text-white text-truncate font-bangers" style="font-size:1.3rem; letter-spacing: 1px;">{{ $combo->combo_name }}</div>
+                                <div class="text-white text-truncate font-Oswald" style="font-size:1.3rem; letter-spacing: 1px;">{{ $combo->combo_name }}</div>
                                 <div class="fw-bold" style="font-size:0.75rem; color:#aaa">{{ $combo->partidas }} partidas jugadas</div>
                             </div>
                             <span class="combo-wr">{{ $combo->win_rate }}% WR</span>
                         </div>
                     @empty
-                        <p class="text-secondary text-center py-3 font-bangers" style="font-size: 1.5rem;">-- SIN DATOS DE COMBATE --</p>
+                        <p class="text-secondary text-center py-3 font-Oswald" style="font-size: 1.5rem;">-- SIN DATOS DE COMBATE --</p>
                     @endforelse
                 </div>
             </div>
@@ -503,7 +503,7 @@
                     @forelse($winRatePorTipo as $tipo => $data)
                         <div class="mb-4">
                             <div class="d-flex justify-content-between align-items-end mb-1">
-                                <span class="font-bangers" style="color:#fff; font-size: 1.2rem; letter-spacing: 1px;">{{ $tipo }}</span>
+                                <span class="font-Oswald" style="color:#fff; font-size: 1.2rem; letter-spacing: 1px;">{{ $tipo }}</span>
                                 <span style="color:var(--shonen-yellow); font-weight: 900; font-size: 0.8rem;">
                                     {{ $data['torneos'] }} {{ $data['torneos'] == 1 ? 'Batalla' : 'Batallas' }}
                                     <span class="mx-1 text-white">|</span>
@@ -517,7 +517,7 @@
                     @empty
                         <div class="text-center py-4">
                             <i class="fas fa-ghost d-block mb-3" style="font-size: 3rem; color: #333;"></i>
-                            <p class="text-secondary font-bangers" style="font-size:1.5rem;">-- SIN ASISTENCIAS REGISTRADAS --</p>
+                            <p class="text-secondary font-Oswald" style="font-size:1.5rem;">-- SIN ASISTENCIAS REGISTRADAS --</p>
                         </div>
                     @endforelse
                 </div>
@@ -532,7 +532,7 @@
             <div class="command-panel p-0">
                 <div class="panel-header">
                     <span><i class="fas fa-medal me-2" style="color: var(--shonen-yellow);"></i> Galería de Trofeos</span>
-                    <span class="badge bg-white text-dark border border-dark" style="font-family: 'Bangers'; font-size: 1rem;">{{ $trofeos->count() }} OBTENIDOS</span>
+                    <span class="badge bg-white text-dark border border-dark" style="font-family: 'Oswald'; font-size: 1rem;">{{ $trofeos->count() }} OBTENIDOS</span>
                 </div>
                 <div class="p-4">
                     <div class="badge-grid">
@@ -544,7 +544,7 @@
                                 </div>
                                 <div class="badge-name">{{ $trofeo->name }}</div>
                                 @if(($trofeo->pivot->count ?? 0) > 1)
-                                    <div class="font-bangers mt-1" style="font-size:1.2rem; color:var(--shonen-yellow);">x{{ $trofeo->pivot->count }}</div>
+                                    <div class="font-Oswald mt-1" style="font-size:1.2rem; color:var(--shonen-yellow);">x{{ $trofeo->pivot->count }}</div>
                                 @endif
                             </div>
                         @endforeach
@@ -580,7 +580,7 @@
                             <a href="{{ route('events.show', $evento->id) }}" class="btn btn-light rounded-0 border-dark fw-bold px-3 py-1 text-uppercase" style="font-size:0.7rem; border-width: 2px;">Ver</a>
                         </div>
                     @empty
-                        <p class="text-secondary text-center py-4 font-bangers" style="font-size: 1.5rem;">-- SIN HISTORIAL REGISTRADO --</p>
+                        <p class="text-secondary text-center py-4 font-Oswald" style="font-size: 1.5rem;">-- SIN HISTORIAL REGISTRADO --</p>
                     @endforelse
                 </div>
             </div>

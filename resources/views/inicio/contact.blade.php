@@ -10,7 +10,7 @@
 
     /* ── TÍTULO DE PÁGINA ── */
     .page-title {
-        font-family: 'Bangers', cursive;
+        font-family: 'Oswald', cursive;
         font-size: 3rem;
         color: var(--sbbl-gold);
         text-shadow: 2px 2px 0px #000, 4px 4px 0px var(--shonen-red);
@@ -20,7 +20,7 @@
 
     /* ── FORMULARIO ── */
     .form-label {
-        font-family: 'Bangers', cursive;
+        font-family: 'Oswald', cursive;
         font-size: 1.2rem;
         color: var(--shonen-cyan);
         letter-spacing: 1px;
@@ -74,7 +74,7 @@
         {{-- PANEL IZQUIERDO: DISCORD WIDGET --}}
         <div class="col-md-5 text-center">
             <div class="command-panel p-4" style="background: var(--sbbl-blue-3);">
-                <h3 class="font-bangers text-white mb-3" style="font-size: 2rem; letter-spacing: 1px;">ÚNETE A LA COMUNIDAD</h3>
+                <h3 class="font-Oswald text-white mb-3" style="font-size: 2rem; letter-spacing: 1px;">ÚNETE A LA COMUNIDAD</h3>
                 <p class="text-white fw-bold small mb-4">La respuesta más rápida la encontrarás en nuestro servidor oficial.</p>
                 <div style="border: 4px solid #000; box-shadow: 6px 6px 0 #000; display: inline-block;">
                     <iframe src="https://discord.com/widget?id=875324662010228746&theme=dark" width="100%" height="450" allowtransparency="true" frameborder="0" sandbox="allow-popups allow-popups-to-escape-sandbox allow-same-origin allow-scripts" style="display: block;"></iframe>

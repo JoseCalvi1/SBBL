@@ -10,7 +10,7 @@
 
     /* ── TÍTULO DE PÁGINA ── */
     .page-title {
-        font-family: 'Bangers', cursive;
+        font-family: 'Oswald', cursive;
         font-size: 2.5rem;
         color: var(--sbbl-gold);
         text-shadow: 2px 2px 0px #000, 4px 4px 0px var(--shonen-red);
@@ -20,7 +20,7 @@
 
     /* ── BOTONES SUPERIORES ── */
     .btn-top-action {
-        font-family: 'Bangers', cursive;
+        font-family: 'Oswald', cursive;
         font-size: 1.1rem;
         border-radius: 0;
         border: 2px solid #000;
@@ -43,7 +43,7 @@
         margin-bottom: 2rem !important;
     }
     .filter-card label {
-        font-family: 'Bangers', cursive;
+        font-family: 'Oswald', cursive;
         font-size: 1.1rem;
         color: var(--sbbl-gold);
         letter-spacing: 1px;
@@ -74,7 +74,7 @@
         padding: 15px 10px !important;
     }
     thead th a {
-        font-family: 'Bangers', cursive;
+        font-family: 'Oswald', cursive;
         font-size: 1.2rem;
         color: #fff;
         text-decoration: none;
@@ -86,12 +86,12 @@
     }
     thead th a.active-sort { color: var(--sbbl-gold); text-shadow: 2px 2px 0 #000; }
 
-    .combo-name { font-family: 'Bangers', cursive; font-size: 1.5rem; color: var(--sbbl-gold); text-shadow: 1px 1px 0 #000; }
+    .combo-name { font-family: 'Oswald', cursive; font-size: 1.5rem; color: var(--sbbl-gold); text-shadow: 1px 1px 0 #000; }
 
     /* Barras de Energía (Win Rate) */
     .energy-bar-bg { background-color: #000; border: 2px solid #333; height: 12px; border-radius: 0; transform: skewX(-15deg); margin-top: 5px; }
     .energy-bar-fill { height: 100%; transition: width 0.5s ease; }
-    .win-rate-text { font-family: 'Bangers', cursive; font-size: 1.4rem; line-height: 1; text-shadow: 1px 1px 0 #000; }
+    .win-rate-text { font-family: 'Oswald', cursive; font-size: 1.4rem; line-height: 1; text-shadow: 1px 1px 0 #000; }
 
     .wr-s { color: #00ff00; } .bg-wr-s { background: #00ff00; box-shadow: 0 0 10px rgba(0,255,0,0.5); }
     .wr-a { color: var(--shonen-cyan); } .bg-wr-a { background: var(--shonen-cyan); box-shadow: 0 0 10px rgba(0,255,204,0.5); }
@@ -100,7 +100,7 @@
 
     .eficiencia-badge {
         background: #000; border: 2px solid #fff; color: var(--sbbl-gold);
-        font-family: 'Bangers', cursive; font-size: 1.2rem;
+        font-family: 'Oswald', cursive; font-size: 1.2rem;
         padding: 5px 15px; transform: skewX(-10deg); display: inline-block;
         box-shadow: 3px 3px 0 var(--sbbl-blue-3);
     }
@@ -112,8 +112,8 @@
         border-bottom: 3px solid var(--shonen-red);
         background-image: repeating-linear-gradient(45deg, rgba(255,255,255,0.02) 0px, rgba(255,255,255,0.02) 10px, transparent 10px, transparent 20px);
     }
-    .stat-title-detail { font-family: 'Bangers', cursive; font-size: 1.1rem; color: #aaa; letter-spacing: 1px; }
-    .stat-value-detail { font-family: 'Bangers', cursive; font-size: 2.5rem; text-shadow: 2px 2px 0 #000; }
+    .stat-title-detail { font-family: 'Oswald', cursive; font-size: 1.1rem; color: #aaa; letter-spacing: 1px; }
+    .stat-value-detail { font-family: 'Oswald', cursive; font-size: 2.5rem; text-shadow: 2px 2px 0 #000; }
 
     /* ── MODAL TOP 5 (EXPORT) ── */
     .modal-content-export {
@@ -154,7 +154,7 @@
         <div class="card-header p-0">
             <button class="btn btn-link text-decoration-none w-100 text-start p-3 d-flex justify-content-between align-items-center"
                     type="button" data-bs-toggle="collapse" data-bs-target="#collapseFilters">
-                <span class="text-white font-bangers fs-4"><i class="fas fa-filter text-warning me-2"></i> CONFIGURAR ESCÁNER</span>
+                <span class="text-white font-Oswald fs-4"><i class="fas fa-filter text-warning me-2"></i> CONFIGURAR ESCÁNER</span>
                 <i class="fas fa-chevron-down text-white"></i>
             </button>
         </div>
@@ -211,7 +211,7 @@
                             @if(Auth::check())
                             <div class="form-check form-switch" style="transform: scale(1.2);">
                                 <input class="form-check-input bg-dark border-secondary" type="checkbox" id="userParts" name="only_user_parts" value="on" {{ request('only_user_parts') ? 'checked' : '' }} onchange="this.form.submit()">
-                                <label class="form-check-label font-bangers ms-2 text-white" for="userParts">MIS DATOS</label>
+                                <label class="form-check-label font-Oswald ms-2 text-white" for="userParts">MIS DATOS</label>
                             </div>
                             @endif
 
@@ -342,7 +342,7 @@
                 @empty
                     <tr>
                         <td colspan="5" class="text-center py-5 text-white border-0">
-                            <span class="font-bangers fs-3" style="color: var(--shonen-red);">EL RADAR NO DETECTA COMBOS CON ESTOS PARÁMETROS.</span>
+                            <span class="font-Oswald fs-3" style="color: var(--shonen-red);">EL RADAR NO DETECTA COMBOS CON ESTOS PARÁMETROS.</span>
                         </td>
                     </tr>
                 @endforelse
@@ -369,8 +369,8 @@
                 <div style="position: absolute; bottom: 0; right: 0; width: 80px; height: 80px; border-bottom: 8px solid var(--sbbl-gold); border-right: 8px solid var(--sbbl-gold);"></div>
 
                 <div class="text-center mb-4 mt-3">
-                    <h2 class="font-bangers m-0" style="font-size: 4rem; color: var(--sbbl-gold); text-shadow: 3px 3px 0 var(--shonen-red);">META RADAR</h2>
-                    <div class="d-inline-block bg-white text-dark px-3 py-1 mt-2 font-bangers fs-4" style="transform: skewX(-10deg); border: 2px solid #000; box-shadow: 4px 4px 0 var(--sbbl-blue-3);">
+                    <h2 class="font-Oswald m-0" style="font-size: 4rem; color: var(--sbbl-gold); text-shadow: 3px 3px 0 var(--shonen-red);">META RADAR</h2>
+                    <div class="d-inline-block bg-white text-dark px-3 py-1 mt-2 font-Oswald fs-4" style="transform: skewX(-10deg); border: 2px solid #000; box-shadow: 4px 4px 0 var(--sbbl-blue-3);">
                         <span style="transform: skewX(10deg); display: block;">TOP 5 COMBOS DE LA SEMANA</span>
                     </div>
                 </div>
@@ -379,16 +379,16 @@
                     @if(isset($topSemanal) && count($topSemanal) > 0)
                         @foreach($topSemanal as $combo)
                             <div class="d-flex align-items-center justify-content-between p-3" style="background: rgba(0,0,0,0.9); border: 3px solid {{ $combo->posicion == 1 ? 'var(--sbbl-gold)' : '#333' }}; transform: skewX(-5deg); box-shadow: {{ $combo->posicion == 1 ? '5px 5px 0 var(--shonen-red)' : '5px 5px 0 #000' }};">
-                                <div class="font-bangers" style="font-size: 3rem; color: {{ $combo->posicion == 1 ? 'var(--sbbl-gold)' : '#ff2a2a' }}; text-shadow: 2px 2px 0 #fff; min-width: 60px; transform: skewX(5deg);">
+                                <div class="font-Oswald" style="font-size: 3rem; color: {{ $combo->posicion == 1 ? 'var(--sbbl-gold)' : '#ff2a2a' }}; text-shadow: 2px 2px 0 #fff; min-width: 60px; transform: skewX(5deg);">
                                     #{{ $combo->posicion }}
                                 </div>
-                                <div class="font-bangers text-white flex-grow-1 px-3 text-truncate text-uppercase" style="font-size: 1.6rem; letter-spacing: 2px; transform: skewX(5deg);">
+                                <div class="font-Oswald text-white flex-grow-1 px-3 text-truncate text-uppercase" style="font-size: 1.6rem; letter-spacing: 2px; transform: skewX(5deg);">
                                     @php $nombreFormateado = str_replace('|', '<span style="color:var(--sbbl-gold);">|</span>', $combo->nombre); @endphp
                                     {!! $nombreFormateado !!}
                                 </div>
                                 <div class="d-flex align-items-center gap-3" style="transform: skewX(5deg);">
                                     <div class="text-end d-none d-sm-block text-white">
-                                        <span class="d-block font-bangers" style="font-size: 1.8rem; line-height: 1;">{{ $combo->usos }}</span>
+                                        <span class="d-block font-Oswald" style="font-size: 1.8rem; line-height: 1;">{{ $combo->usos }}</span>
                                         <span style="font-weight: 900; font-size: 0.8rem; opacity: 0.6;">USOS</span>
                                     </div>
                                     <div class="d-flex align-items-center justify-content-center bg-black border {{ $combo->posicion == 1 ? 'border-warning' : 'border-secondary' }} rounded-circle" style="width: 50px; height: 50px; font-size: 1.5rem;">
@@ -401,7 +401,7 @@
                 </div>
 
                 <div class="text-center mt-5 mb-2">
-                    <span class="font-bangers" style="font-size: 1.5rem; letter-spacing: 2px; color: #fff; opacity: 0.5;">SBBL OFICIAL - ESPAÑA</span>
+                    <span class="font-Oswald" style="font-size: 1.5rem; letter-spacing: 2px; color: #fff; opacity: 0.5;">SBBL OFICIAL - ESPAÑA</span>
                 </div>
             </div>
 

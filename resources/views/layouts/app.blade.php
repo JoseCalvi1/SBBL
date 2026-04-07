@@ -18,7 +18,8 @@
            VARIABLES GLOBALES: Z-INDEX & COLORES LIGA + SHONEN
            ¡ESTO APLICA A TODA LA WEB!
         ===================================================== */
-        @import url('https://fonts.googleapis.com/css2?family=Bangers&family=Montserrat:ital,wght@0,700;0,900;1,900&display=swap');
+        /* 1. IMPORTAMOS OSWALD PARA BUENA LECTURA DE NÚMEROS */
+        @import url('https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,700;0,900;1,900&family=Oswald:wght@500;700&display=swap');
 
         :root {
             /* Z-INDEX */
@@ -47,7 +48,7 @@
         html, body {
             margin: 0;
             padding: 0;
-            min-height: 100vh; /* <-- IMPORTANTE: min-height, no height */
+            min-height: 100vh;
             font-family: 'Montserrat', sans-serif;
             background-color: var(--sbbl-bg-dark);
             color: var(--text-main);
@@ -55,14 +56,23 @@
             background-size: 20px 20px;
         }
 
-        /* Tipografía Heroica Global */
-        .font-bangers { font-family: 'Bangers', cursive; letter-spacing: 1px; }
-        h1, h2, h3, h4, h5, h6 { font-family: 'Bangers', cursive; letter-spacing: 1px; text-transform: uppercase; }
+        /* 2. APLICAMOS OSWALD A LOS TÍTULOS Y A LA CLASE */
+        .font-Oswald {
+            font-family: 'Oswald', sans-serif;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+        }
+        h1, h2, h3, h4, h5, h6 {
+            font-family: 'Oswald', sans-serif;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+        }
 
         /* =====================================================
-           COMPONENTES REUTILIZABLES (Borrar de las vistas hijas)
+           COMPONENTES REUTILIZABLES
         ===================================================== */
-        /* Paneles Shonen Azules */
         .command-panel {
             background-color: var(--sbbl-blue-2);
             border: 3px solid #000;
@@ -82,8 +92,9 @@
             padding: 12px 20px;
             border-bottom: 3px solid var(--sbbl-gold);
             color: #fff;
-            font-family: 'Bangers', cursive;
-            font-size: 1.4rem;
+            font-family: 'Oswald', sans-serif;
+            font-weight: 700;
+            font-size: 1.6rem;
             letter-spacing: 1px;
             text-transform: uppercase;
             display: flex;
@@ -93,8 +104,9 @@
 
         /* Botones Universales Shonen */
         .btn-shonen {
-            font-family: 'Bangers', cursive;
-            font-size: 1.2rem;
+            font-family: 'Oswald', sans-serif;
+            font-weight: 700;
+            font-size: 1.3rem;
             letter-spacing: 1px;
             border-radius: 0;
             border: 3px solid #000;
@@ -103,7 +115,7 @@
             display: inline-block;
             text-transform: uppercase;
             text-decoration: none;
-            padding: 8px 20px;
+            padding: 5px 20px;
         }
         .btn-shonen > * { transform: skewX(5deg); display: block; }
         .btn-shonen-info { background: var(--sbbl-blue-3); color: #fff; box-shadow: 4px 4px 0 #000; }
@@ -117,7 +129,7 @@
         .suscripcion-nivel-1 { color: #b45309 !important; text-shadow: 2px 2px 0 #000; }
 
         /* =====================================================
-           NAVBAR SUPERIOR (SHONEN + COLORES LIGA)
+           NAVBAR SUPERIOR
         ===================================================== */
         nav.navbar {
             background-color: var(--sbbl-blue-1) !important;
@@ -128,11 +140,12 @@
             box-shadow: 0 4px 0 #000;
         }
 
-        .navbar-brand span { font-family: 'Bangers', cursive; font-size: 1.6rem; letter-spacing: 1px; text-shadow: 2px 2px 0 #000; }
+        .navbar-brand span { font-family: 'Oswald', sans-serif; font-weight: 700; font-size: 1.8rem; letter-spacing: 1px; text-shadow: 2px 2px 0 #000; }
 
         .navbar-nav .nav-link {
             color: white !important;
-            font-family: 'Bangers', cursive;
+            font-family: 'Oswald', sans-serif;
+            font-weight: 700;
             font-size: 1.3rem;
             letter-spacing: 1px;
             text-transform: uppercase;
@@ -160,9 +173,11 @@
 
         .navbar .dropdown-item {
             color: white;
-            font-family: 'Bangers', cursive;
-            font-size: 1.2em !important;
+            font-family: 'Oswald', sans-serif;
+            font-weight: 500;
+            font-size: 1.2rem !important;
             letter-spacing: 1px;
+            text-transform: uppercase;
             transition: 0.2s;
             border-bottom: 1px dashed rgba(255,255,255,0.2);
         }
@@ -194,7 +209,7 @@
         }
 
         /* =====================================================
-           SIDEBAR (DASHBOARD) - MODO SHONEN AZUL
+           SIDEBAR (DASHBOARD)
         ===================================================== */
         .dashboard-wrapper {
             display: flex;
@@ -214,7 +229,8 @@
         }
 
         .sidebar-title {
-            font-family: 'Bangers', cursive;
+            font-family: 'Oswald', sans-serif;
+            font-weight: 700;
             font-size: 2.5rem;
             text-align: center;
             color: var(--sbbl-gold);
@@ -237,7 +253,7 @@
             display: flex;
             align-items: center;
             gap: 10px;
-            padding: 10px 15px;
+            padding: 8px 15px;
             border-radius: 0;
             border: 2px solid #000;
             margin-bottom: 8px;
@@ -246,9 +262,11 @@
             color: #fff;
             text-decoration: none;
             transition: 0.2s;
-            font-family: 'Bangers', cursive;
+            font-family: 'Oswald', sans-serif;
+            font-weight: 500;
             font-size: 1.2rem;
             letter-spacing: 1px;
+            text-transform: uppercase;
             transform: skewX(-5deg);
         }
         .sidebar-link > * { transform: skewX(5deg); }
@@ -294,23 +312,23 @@
             padding: 20px;
             overflow-y: auto;
             background-color: var(--sbbl-blue-1);
-            /* Manga dots en el dashboard */
             background-image: radial-gradient(rgba(255, 255, 255, 0.05) 2px, transparent 2px);
             background-size: 20px 20px;
         }
 
         /* =====================================================
-           BOTONES FLOTANTES (SUSCRIPCIÓN Y CARRITO)
+           BOTONES FLOTANTES
         ===================================================== */
         .subscription-button {
             position: fixed; bottom: 20px; right: 20px;
             background: var(--sbbl-gold); color: #000;
-            padding: 12px 20px; border-radius: 0;
+            padding: 10px 20px; border-radius: 0;
             border: 3px solid #000; box-shadow: 5px 5px 0 var(--shonen-red);
             display: flex; align-items: center; gap: 10px;
-            font-family: 'Bangers', cursive; font-size: 1.3rem; letter-spacing: 1px;
+            font-family: 'Oswald', sans-serif; font-weight: 700; font-size: 1.4rem; letter-spacing: 1px;
             cursor: pointer; transition: 0.2s;
             z-index: var(--z-floating); transform: skewX(-10deg);
+            text-transform: uppercase;
         }
         .subscription-button > * { transform: skewX(10deg); }
         .subscription-button:hover { background: #fff; transform: translate(-3px,-3px) skewX(-10deg); box-shadow: 8px 8px 0 #000; }
@@ -323,7 +341,7 @@
             z-index: calc(var(--z-floating) + 1);
             font-family: 'Montserrat', sans-serif; font-size: 0.9rem;
         }
-        .subscription-tooltip h4 { font-family: 'Bangers', cursive; color: var(--sbbl-gold); font-size: 1.5rem; letter-spacing: 1px; text-transform: uppercase; margin-top:0;}
+        .subscription-tooltip h4 { font-family: 'Oswald', sans-serif; font-weight: 700; color: var(--sbbl-gold); font-size: 1.8rem; letter-spacing: 1px; text-transform: uppercase; margin-top:0;}
         .subscription-button:hover .subscription-tooltip { display: block; }
 
         .cart-floating-btn {
@@ -339,13 +357,13 @@
         .cart-badge {
             position: absolute; top: -15px; right: -15px;
             background: var(--shonen-red); color: white;
-            border: 2px solid #000; font-family: 'Bangers', cursive;
+            border: 2px solid #000; font-family: 'Oswald', sans-serif; font-weight: 700;
             width: 30px; height: 30px; font-size: 1.2rem;
             display: flex; align-items: center; justify-content: center;
         }
 
         /* =====================================================
-           COOKIES (MODO SHONEN)
+           COOKIES
         ===================================================== */
         .hidden { display: none !important; }
 
@@ -361,9 +379,9 @@
 
         .cookie-buttons button {
             margin-left: 0.5em; background: #000;
-            border: 2px solid #fff; padding: 0.5em 1.5em;
-            cursor: pointer; color: white; font-family: 'Bangers', cursive;
-            font-size: 1.2rem; letter-spacing: 1px; transition: 0.2s;
+            border: 2px solid #fff; padding: 0.3em 1.5em;
+            cursor: pointer; color: white; font-family: 'Oswald', sans-serif; font-weight: 700;
+            font-size: 1.2rem; letter-spacing: 1px; transition: 0.2s; text-transform: uppercase;
             transform: skewX(-10deg);
         }
         .cookie-buttons button:hover { background: var(--sbbl-gold); color: #000; border-color: #000; box-shadow: 4px 4px 0 var(--shonen-red); transform: translate(-2px,-2px) skewX(-10deg); }
@@ -378,13 +396,13 @@
             box-shadow: 10px 10px 0 var(--sbbl-gold); text-align: left;
             max-width: 600px; max-height: 90%; overflow-y: auto; color: #fff;
         }
-        .cookie-modal-content h3 { font-family: 'Bangers', cursive; color: var(--sbbl-gold); font-size: 2.5rem; letter-spacing: 1px; text-shadow: 2px 2px 0 #000; margin-top:0; }
+        .cookie-modal-content h3 { font-family: 'Oswald', sans-serif; font-weight: 700; color: var(--sbbl-gold); font-size: 2.5rem; letter-spacing: 1px; text-shadow: 2px 2px 0 #000; margin-top:0; }
         .cookie-category { margin: 15px 0; padding: 15px; background: var(--sbbl-blue-1); border: 2px solid #000; border-left: 5px solid var(--sbbl-gold); }
         .cookie-category label { font-weight: 900; font-size: 1.1rem; cursor: pointer; }
         .cookie-category small { display: block; color: #aaa; font-size: 0.85em; margin-top: 5px; font-weight: normal; }
 
         /* =====================================================
-           FOOTER DE MANDO (SHONEN ESTILIZADO)
+           FOOTER DE MANDO
         ===================================================== */
         .command-footer {
             background: var(--sbbl-blue-1);
@@ -396,11 +414,11 @@
             position: relative;
         }
         .footer-heading {
-            font-family: 'Bangers', cursive;
+            font-family: 'Oswald', sans-serif; font-weight: 700;
             color: var(--sbbl-gold);
             text-transform: uppercase;
             font-size: 1.8rem;
-            letter-spacing: 2px;
+            letter-spacing: 1px;
             margin-bottom: 1.2rem;
             text-shadow: 2px 2px 0 #000;
         }
@@ -409,7 +427,7 @@
         .footer-links li { margin-bottom: 0.8rem; }
         .footer-links a {
             color: #fff; text-decoration: none; transition: all 0.2s ease;
-            font-family: 'Bangers', cursive; font-size: 1.2rem; letter-spacing: 1px;
+            font-family: 'Oswald', sans-serif; font-weight: 500; font-size: 1.3rem; letter-spacing: 1px; text-transform: uppercase;
         }
         .footer-links a:hover { color: var(--shonen-cyan); padding-left: 10px; text-shadow: 2px 2px 0 #000; }
 
@@ -507,7 +525,7 @@
                             </li>
 
                             @auth
-                                @if (Auth::user()->is_referee || Auth::user()->is_reviewer || Auth::user()->is_admin)
+                                @if (Auth::user()->hasAnyRole(['juez', 'admin', 'arbitro', 'revisor']))
                                     <li class="nav-item">
                                         <a id="navbarAdmin" class="nav-link" style="color: var(--shonen-red) !important;" href="{{ route('admin.dashboard') }}" target="_blank">ADMIN</a>
                                     </li>
@@ -565,11 +583,11 @@
                         <div class="col-12 p-0">
                             <div class="dashboard-wrapper">
                                 <nav class="sidebar" id="sidebar">
-                                    <h2 class="sidebar-title">COMMAND HQ</h2>
+                                    <h2 class="sidebar-title">PANEL ADMIN</h2>
                                     <h4>ÁRBITROS</h4>
                                     <a href="{{ route('events.indexAdmin') }}" class="sidebar-link"><div><i class="fas fa-calendar-alt"></i> Eventos</div></a>
 
-                                    @if(Auth::user()->is_jury || Auth::user()->is_admin)
+                                    @if (Auth::user()->hasAnyRole(['juez', 'admin', 'arbitro']))
                                     <h4>JUECES</h4>
                                         <a href="{{ route('teams_versus.index') }}" class="sidebar-link"><div><i class="fas fa-users-cog"></i> Equipos Duelos</div></a>
                                         <a href="{{ route('equipos.indexAdmin') }}" class="sidebar-link"><div><i class="fas fa-users"></i> Equipos</div></a>
@@ -577,7 +595,7 @@
                                         <a href="{{ route('database.indexBeys') }}" class="sidebar-link"><div><i class="fas fa-cube"></i> Crear Beyblades</div></a>
                                     @endif
 
-                                    @if(Auth::user()->is_admin)
+                                    @if(Auth::user()->hasRole('admin'))
                                     <h4>ADMIN CORE</h4>
                                         <a href="{{ route('admin.dashboard.reviews') }}" class="sidebar-link"><div><i class="fas fa-chart-bar"></i> Revisiones</div></a>
                                         <a href="{{ route('productos.index') }}" class="sidebar-link"><div><i class="fas fa-shopping-bag"></i> Productos</div></a>
@@ -695,7 +713,7 @@
                             <li><a href="{{ route('inicio.resumen_semanal') }}"><i class="fas fa-bullseye me-1"></i> Data_Log Semanal</a></li>
                             <li><a href="{{ route('inicio.stats') }}"><i class="fas fa-chart-bar me-1"></i> Radar Meta</a></li>
                             @guest
-                                <li class="mt-3"><a href="{{ route('register') }}" class="btn-shonen btn-shonen-info" style="font-size: 1rem; padding: 5px 15px;"><div>Únete a la Batalla</div></a></li>
+                                <li class="mt-3"><a href="{{ route('register') }}" class="btn-shonen btn-shonen-info" style="font-size: 1.1rem; padding: 5px 15px;"><div>Únete a la Batalla</div></a></li>
                             @endguest
                         </ul>
                     </div>

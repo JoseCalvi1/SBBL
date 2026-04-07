@@ -10,7 +10,7 @@
 
     /* ── TÍTULO DE PÁGINA ── */
     .page-title {
-        font-family: 'Bangers', cursive;
+        font-family: 'Oswald', cursive;
         font-size: 3rem;
         color: var(--sbbl-gold);
         text-shadow: 2px 2px 0px #000, 4px 4px 0px var(--shonen-red);
@@ -30,7 +30,7 @@
         background: #000;
         color: #fff;
         border: 3px solid #000;
-        font-family: 'Bangers', cursive;
+        font-family: 'Oswald', cursive;
         font-size: 1.3rem;
         letter-spacing: 1px;
         border-radius: 0;
@@ -84,7 +84,7 @@
         background: var(--sbbl-blue-1) !important;
         border: 3px solid #000 !important;
         color: var(--sbbl-gold) !important;
-        font-family: 'Bangers', cursive;
+        font-family: 'Oswald', cursive;
         font-size: 1.3rem;
         letter-spacing: 2px;
         box-shadow: 4px 4px 0 #000;
@@ -94,7 +94,7 @@
 
     /* Textos internos */
     .posicion {
-        font-family: 'Bangers', cursive;
+        font-family: 'Oswald', cursive;
         font-size: 1.8rem;
         text-align: center;
         color: #fff;
@@ -112,7 +112,7 @@
     }
 
     .puntos {
-        font-family: 'Bangers', cursive;
+        font-family: 'Oswald', cursive;
         font-size: 1.8rem;
         letter-spacing: 1px;
         color: var(--sbbl-gold);
@@ -183,7 +183,7 @@
                         <div class="text-center py-5 bg-black border border-secondary mt-3" style="transform: skewX(-2deg);">
                             <div style="transform: skewX(2deg);">
                                 <i class="fas fa-ghost fa-3x mb-3 text-secondary"></i>
-                                <h4 class="font-bangers text-white" style="font-size: 2rem; letter-spacing: 1px;">SIN DATOS EN ESTE SPLIT</h4>
+                                <h4 class="font-Oswald text-white" style="font-size: 2rem; letter-spacing: 1px;">SIN DATOS EN ESTE SPLIT</h4>
                                 <p class="text-white fw-bold mb-0">Aún no hay batallas registradas en este periodo.</p>
                             </div>
                         </div>

@@ -68,7 +68,7 @@ h4 {
 @endsection
 
 @section('content')
-@if (Auth::user()->profile->id == $profile->id || Auth::user()->is_admin)
+@if (Auth::user()->profile->id == $profile->id || Auth::user()->hasRole('admin'))
 <a href="{{ route('profiles.show', $profile) }}" class="btn btn-outline-primary m-4 text-uppercase font-weight-bold">
     <svg class="icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 15l-3-3m0 0l3-3m-3 3h8M3 12a9 9 0 1118 0 9 9 0 01-18 0z" />
@@ -289,7 +289,7 @@ h4 {
                         </div>
                     @endif
 
-                    @if (!empty($avatars) || Auth::user()->is_admin)
+                    @if (!empty($avatars) || Auth::user()->hasRole('admin'))
                         <div class="exclusive-section-gold mt-4" style="border-color: #e83e8c; box-shadow: 0 0 15px #e83e8c;">
                             <h4 style="color: #e83e8c"><i class="fas fa-trophy me-2"></i> COPAS EXCLUSIVAS</h4>
                             <div class="row">

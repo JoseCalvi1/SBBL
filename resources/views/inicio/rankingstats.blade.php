@@ -10,7 +10,7 @@
 
     /* ── TÍTULO DE PÁGINA ── */
     .page-title {
-        font-family: 'Bangers', cursive;
+        font-family: 'Oswald', cursive;
         font-size: 3rem;
         color: var(--sbbl-gold);
         text-shadow: 2px 2px 0px #000, 4px 4px 0px var(--shonen-red);
@@ -55,7 +55,7 @@
         background: var(--sbbl-blue-1) !important;
         border: 3px solid #000 !important;
         color: var(--sbbl-gold) !important;
-        font-family: 'Bangers', cursive;
+        font-family: 'Oswald', cursive;
         font-size: 1.3rem;
         letter-spacing: 2px;
         box-shadow: 4px 4px 0 #000;
@@ -65,7 +65,7 @@
 
     /* Textos internos */
     .posicion {
-        font-family: 'Bangers', cursive;
+        font-family: 'Oswald', cursive;
         font-size: 1.8rem;
         text-align: center;
         color: #fff;
@@ -74,7 +74,7 @@
     .resaltado .posicion { color: var(--sbbl-gold); font-size: 2.2rem; }
 
     .jugador-name {
-        font-family: 'Bangers', cursive;
+        font-family: 'Oswald', cursive;
         font-size: 1.5rem;
         color: #fff;
         letter-spacing: 1px;
@@ -94,7 +94,7 @@
     }
 
     .stat-value {
-        font-family: 'Bangers', cursive;
+        font-family: 'Oswald', cursive;
         font-size: 1.4rem;
         letter-spacing: 1px;
         text-shadow: 1px 1px 0 #000;
@@ -104,7 +104,7 @@
     .puntos-perdidos { color: var(--shonen-red); }
 
     .win-rate {
-        font-family: 'Bangers', cursive;
+        font-family: 'Oswald', cursive;
         font-size: 1.8rem;
         text-align: right;
         text-shadow: 2px 2px 0 #000;
@@ -183,7 +183,7 @@
             <div class="text-center py-5 bg-black border border-secondary mt-3" style="transform: skewX(-2deg);">
                 <div style="transform: skewX(2deg);">
                     <i class="fas fa-ghost fa-3x mb-3 text-secondary"></i>
-                    <h4 class="font-bangers text-white" style="font-size: 2rem; letter-spacing: 1px;">DATOS NO DISPONIBLES</h4>
+                    <h4 class="font-Oswald text-white" style="font-size: 2rem; letter-spacing: 1px;">DATOS NO DISPONIBLES</h4>
                     <p class="text-white fw-bold mb-0">No hay suficientes registros para generar el ranking del mes pasado.</p>
                 </div>
             </div>

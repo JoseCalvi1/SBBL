@@ -10,7 +10,7 @@
 
     /* --- TÍTULOS --- */
     .hall-title {
-        font-family: 'Bangers', cursive;
+        font-family: 'Oswald', cursive;
         font-size: 4rem;
         color: var(--sbbl-gold);
         text-shadow: 3px 3px 0 #000, 6px 6px 0 var(--shonen-red);
@@ -46,14 +46,14 @@
     .section-badge {
         position: absolute; top: -20px; left: 50%; transform: translateX(-50%) skewX(-10deg);
         background: var(--shonen-cyan); padding: 5px 20px;
-        color: #000; font-family: 'Bangers', cursive; font-size: 1.5rem; text-transform: uppercase;
+        color: #000; font-family: 'Oswald', cursive; font-size: 1.5rem; text-transform: uppercase;
         border: 3px solid #000; box-shadow: 4px 4px 0 var(--shonen-red);
     }
     .section-badge > span { display: block; transform: skewX(10deg); }
 
     /* --- TARJETAS DE CAMPEONES (BURST / X) --- */
     .era-badge {
-        font-family: 'Bangers', cursive;
+        font-family: 'Oswald', cursive;
         font-size: 1.5rem;
         border: 3px solid #000;
         border-radius: 0;
@@ -97,7 +97,7 @@
 
     .champ-season-badge {
         position: absolute; top: 0; right: 0;
-        font-family: 'Bangers', cursive;
+        font-family: 'Oswald', cursive;
         font-size: 1.2rem;
         padding: 2px 10px; border-bottom: 3px solid #000; border-left: 3px solid #000;
         box-shadow: -3px 3px 0 rgba(0,0,0,0.5);
@@ -130,7 +130,7 @@
     .podium-1 .podium-avatar { width: 110px; height: 110px; border-color: var(--sbbl-gold); box-shadow: 0 0 0 3px #000; }
     .podium-medal { font-size: 2rem; margin-bottom: 5px; display: block; text-shadow: 2px 2px 0 #000; }
 
-    .podium-name { font-family: 'Bangers', cursive; font-size: 1.5rem; letter-spacing: 1px; text-shadow: 2px 2px 0 #000;}
+    .podium-name { font-family: 'Oswald', cursive; font-size: 1.5rem; letter-spacing: 1px; text-shadow: 2px 2px 0 #000;}
 
     /* --- ESTADÍSTICAS GENERALES --- */
     .stat-row {
@@ -163,7 +163,7 @@
         transition: 0.2s; box-shadow: 4px 4px 0 #000;
     }
     .month-tile:hover { border-color: var(--sbbl-gold); transform: translate(-2px, -2px); box-shadow: 6px 6px 0 var(--shonen-red); }
-    .month-date { font-family: 'Bangers', cursive; font-size: 1.1rem; color: var(--sbbl-gold); margin-top: 5px; letter-spacing: 1px; text-shadow: 1px 1px 0 #000; }
+    .month-date { font-family: 'Oswald', cursive; font-size: 1.1rem; color: var(--sbbl-gold); margin-top: 5px; letter-spacing: 1px; text-shadow: 1px 1px 0 #000; }
 
 </style>
 @endsection
@@ -185,7 +185,7 @@
         <div class="col-lg-6 mb-5">
             <div class="d-flex align-items-center justify-content-center mb-4">
                 <div class="era-badge era-burst me-3"><span>ERA BURST</span></div>
-                <h3 class="text-white font-bangers fs-2 mb-0" style="text-shadow: 2px 2px 0 #000;">Campeones de Liga</h3>
+                <h3 class="text-white font-Oswald fs-2 mb-0" style="text-shadow: 2px 2px 0 #000;">Campeones de Liga</h3>
             </div>
 
             <div class="champ-grid">
@@ -201,7 +201,7 @@
                         @endphp
                         <img src="{{ $imgSrc }}" class="w-100 h-100 rounded-circle object-fit-cover border border-2 border-dark" style="box-shadow: 0 0 0 2px var(--sbbl-gold);">
                     </div>
-                    <h5 class="font-bangers fs-4 text-white mb-0 text-truncate" style="letter-spacing: 1px; text-shadow: 1px 1px 0 #000;">{{ $blader->name }}</h5>
+                    <h5 class="font-Oswald fs-4 text-white mb-0 text-truncate" style="letter-spacing: 1px; text-shadow: 1px 1px 0 #000;">{{ $blader->name }}</h5>
                     <small class="fw-bold" style="color: var(--sbbl-gold);">Temporada {{ $key+1 }}</small>
                 </div>
                 @endforeach
@@ -212,7 +212,7 @@
         <div class="col-lg-6 mb-5">
             <div class="d-flex align-items-center justify-content-center mb-4">
                 <div class="era-badge era-x me-3"><span>ERA X</span></div>
-                <h3 class="text-white font-bangers fs-2 mb-0" style="text-shadow: 2px 2px 0 #000;">Campeones de Liga</h3>
+                <h3 class="text-white font-Oswald fs-2 mb-0" style="text-shadow: 2px 2px 0 #000;">Campeones de Liga</h3>
             </div>
 
             <div class="champ-grid">
@@ -227,7 +227,7 @@
                         @endphp
                         <img src="{{ $imgSrc }}" class="w-100 h-100 rounded-circle object-fit-cover border border-2 border-dark" style="box-shadow: 0 0 0 2px var(--shonen-cyan);">
                     </div>
-                    <h5 class="font-bangers fs-4 text-white mb-0 text-truncate" style="letter-spacing: 1px; text-shadow: 1px 1px 0 #000;">{{ $blader->name }}</h5>
+                    <h5 class="font-Oswald fs-4 text-white mb-0 text-truncate" style="letter-spacing: 1px; text-shadow: 1px 1px 0 #000;">{{ $blader->name }}</h5>
                     <small class="fw-bold" style="color: var(--shonen-cyan);">Temporada {{ $key+1 }}</small>
                 </div>
                 @endforeach
@@ -242,7 +242,7 @@
 
     {{-- 2. PODIO NACIONAL 2025 --}}
     <div class="text-center mb-5">
-        <h2 class="text-white font-bangers" style="font-size: 3rem; text-shadow: 2px 2px 0 #000;">Campeonato de España 2025</h2>
+        <h2 class="text-white font-Oswald" style="font-size: 3rem; text-shadow: 2px 2px 0 #000;">Campeonato de España 2025</h2>
         <p class="text-white fw-bold bg-dark d-inline-block px-3 py-1 border border-secondary">Los mejores bladers del país</p>
 
         @php
@@ -269,7 +269,7 @@
                 @if($podio[1])
                     <img src="{{ $podio[1]->profile->avatar_url }}" class="podium-avatar">
                     <div class="podium-name text-truncate w-100" style="color: var(--sbbl-gold);">{{ $podio[1]->name }}</div>
-                    <span class="badge bg-black text-white border border-warning mt-2" style="font-family: 'Bangers', cursive; font-size: 1rem;">CAMPEÓN</span>
+                    <span class="badge bg-black text-white border border-warning mt-2" style="font-family: 'Oswald', cursive; font-size: 1rem;">CAMPEÓN</span>
                 @endif
             </div>
 
@@ -293,7 +293,7 @@
     <div class="row pb-5">
         {{-- Columna Izquierda: Récords --}}
         <div class="col-lg-5 mb-5">
-            <h4 class="text-white font-bangers fs-2 mb-4" style="text-shadow: 2px 2px 0 #000;"><i class="fas fa-chart-bar text-info me-2"></i>Récords Históricos</h4>
+            <h4 class="text-white font-Oswald fs-2 mb-4" style="text-shadow: 2px 2px 0 #000;"><i class="fas fa-chart-bar text-info me-2"></i>Récords Históricos</h4>
 
             <div class="stat-list">
                 @php
@@ -314,11 +314,11 @@
                             <div class="stat-icon"><i class="fas {{ $rec['icon'] }}"></i></div>
                             <div>
                                 <div class="text-white fw-bold text-uppercase" style="font-size: 0.75rem;">{{ $rec['label'] }}</div>
-                                <div class="text-white font-bangers fs-5" style="letter-spacing: 1px;">{{ $rec['user']->name }}</div>
+                                <div class="text-white font-Oswald fs-5" style="letter-spacing: 1px;">{{ $rec['user']->name }}</div>
                             </div>
                         </div>
                         <div class="text-end">
-                            <span class="font-bangers fs-2 text-white" style="text-shadow: 2px 2px 0 #000;">{{ $rec['val'] }}</span>
+                            <span class="font-Oswald fs-2 text-white" style="text-shadow: 2px 2px 0 #000;">{{ $rec['val'] }}</span>
                         </div>
                     </div>
                     @endif
@@ -328,7 +328,7 @@
 
         {{-- Columna Derecha: Bladers del Mes --}}
         <div class="col-lg-7">
-            <h4 class="text-white font-bangers fs-2 mb-4" style="text-shadow: 2px 2px 0 #000;"><i class="fas fa-calendar-alt text-warning me-2"></i>Muro de Honor Mensual</h4>
+            <h4 class="text-white font-Oswald fs-2 mb-4" style="text-shadow: 2px 2px 0 #000;"><i class="fas fa-calendar-alt text-warning me-2"></i>Muro de Honor Mensual</h4>
 
             <div class="month-grid">
                 @if ($mejoresPorMes)
@@ -341,7 +341,7 @@
                     @endforeach
                 @else
                     <div class="alert alert-dark border-secondary text-center" style="grid-column: 1 / -1; background: rgba(0,0,0,0.5) !important; border: 3px solid #000 !important; border-radius: 0;">
-                        <span class="font-bangers fs-4 text-white">NO HAY REGISTROS MENSUALES DISPONIBLES.</span>
+                        <span class="font-Oswald fs-4 text-white">NO HAY REGISTROS MENSUALES DISPONIBLES.</span>
                     </div>
                 @endif
             </div>

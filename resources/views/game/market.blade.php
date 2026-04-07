@@ -34,7 +34,7 @@
         </div>
 
         {{-- Botón para abrir Wordle / Gestión --}}
-        @if(Auth::user()->is_editor == 1)
+        @if(Auth::user()->hasRole('editor'))
             {{-- Si es editor, el botón SIEMPRE abre el modal --}}
             <button onclick="openWordle()" class="bg-yellow-600 hover:bg-yellow-500 text-black font-bold py-3 px-8 rounded-full shadow-[0_0_20px_rgba(234,179,8,0.4)] border border-black/20 transition-all flex items-center gap-2">
                 ⚙️ GESTIONAR CÓDIGOS
@@ -297,8 +297,8 @@
             <div id="wordle-keyboard" class="flex flex-wrap gap-1 justify-center mt-4"></div>
         </div>
 
-        {{-- PANEL DE EDITOR (Visible siempre para is_editor) --}}
-        @if(Auth::user()->is_editor == 1)
+        {{-- PANEL DE EDITOR (Visible siempre para user()->hasRole('editor')) --}}
+        @if(Auth::user()->hasRole('editor'))
         <div class="mt-8 pt-6 border-t border-gray-800">
             <h4 class="text-yellow-500 text-xs font-bold mb-3 uppercase flex items-center gap-2">
                 <span>⚙️</span> CONFIGURACIÓN DE FRECUENCIAS
@@ -506,7 +506,7 @@
     let currentGuess = "";
     let gameOver = false;
     let alreadyWon = {{ $alreadyWon ? 'true' : 'false' }};
-    let isEditor = {{ Auth::user()->is_editor == 1 ? 'true' : 'false' }};
+    let isEditor = {{ Auth::user()->hasRole('editor') ? 'true' : 'false' }};
 
     // Referencia al input invisible para móviles
     const mobileInput = document.getElementById('wordle-mobile-input');

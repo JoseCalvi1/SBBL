@@ -19,7 +19,7 @@
 
     /* ── TÍTULO DE PÁGINA ── */
     .page-title {
-        font-family: 'Bangers', cursive;
+        font-family: 'Oswald', cursive;
         font-size: 3.5rem;
         color: var(--sbbl-gold);
         text-shadow: 2px 2px 0px #000, 4px 4px 0px var(--shonen-blue);
@@ -85,7 +85,7 @@
     }
 
     .equipo-name {
-        font-family: 'Bangers', cursive;
+        font-family: 'Oswald', cursive;
         font-size: 1.6rem;
         color: #fff;
         text-shadow: 2px 2px 0 #000;
@@ -107,7 +107,7 @@
 
     /* ── BOTONES ── */
     .btn-equipo {
-        font-family: 'Bangers', cursive;
+        font-family: 'Oswald', cursive;
         font-size: 1.1rem;
         padding: 5px 15px;
         border: 2px solid #000;
@@ -167,7 +167,7 @@
     {{-- FILTROS --}}
     <div class="d-flex justify-content-center mb-5">
         <form method="GET" action="{{ route('equipos.index') }}" class="filtros-box d-flex flex-column flex-sm-row align-items-sm-center gap-3">
-            <label for="region" class="font-bangers text-white mb-0 fs-4" style="letter-spacing: 1px;">ZONA DE OPERACIONES:</label>
+            <label for="region" class="font-Oswald text-white mb-0 fs-4" style="letter-spacing: 1px;">ZONA DE OPERACIONES:</label>
             <select name="region" id="region" class="form-select w-auto" onchange="this.form.submit()">
                 <option value="all" {{ $regionFilter === 'all' ? 'selected' : '' }}>TODAS LAS REGIONES</option>
                 @foreach ($regiones as $region)
@@ -209,7 +209,7 @@
                 <div class="text-center py-5 bg-black border border-secondary" style="border-width: 3px !important; box-shadow: 6px 6px 0 #000; transform: skewX(-2deg);">
                     <div style="transform: skewX(2deg);">
                         <i class="fas fa-users-slash mb-3 text-secondary" style="font-size: 4rem;"></i>
-                        <h3 class="font-bangers text-white fs-2 mb-2">NO HAY EQUIPOS REGISTRADOS</h3>
+                        <h3 class="font-Oswald text-white fs-2 mb-2">NO HAY EQUIPOS REGISTRADOS</h3>
                         <p class="text-white fw-bold mb-0">Modifica los filtros o funda tu propio equipo.</p>
                     </div>
                 </div>

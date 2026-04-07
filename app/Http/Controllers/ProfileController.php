@@ -164,52 +164,127 @@ class ProfileController extends Controller
         }
     }
 
-    /**
-     * Display a listing of the resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
-    // Mostrar usuarios con roles especiales
-    public function indexAdmin()
+// Mostrar usuarios con roles especiales y estadísticas
+    public function indexAdmin(Request $request)
     {
+        // 1. Roles
         $profiles = Profile::whereHas('user', function ($query) {
-            $query->where('is_admin', 1)
-                ->orWhere('is_jury', 1)
-                ->orWhere('is_referee', 1)
-                ->orWhere('is_reviewer', 1)
-                ->orWhere('is_editor', 1);
-        })->with('user', 'region')->get();
+            $query->has('roles');
+        })->with('user.roles', 'region')->get();
 
         $allUsers = User::orderBy('name')->get();
 
+        // 2. Suscripciones
         $subscriptions = Subscription::with('user', 'plan')
             ->where('status', 'active')
             ->orderBy('plan_id', 'desc')
             ->get();
 
-        return view('profiles.indexAdmin', compact('profiles', 'allUsers', 'subscriptions'));
+        // 3. Historial Individual del Blader (NUEVO)
+        $selectedBladerId = $request->input('blader_id');
+        $selectedBlader = null;
+        $bladerHistory = collect();
+
+        if ($selectedBladerId) {
+            $selectedBlader = User::find($selectedBladerId);
+
+            if ($selectedBlader) {
+                // Buscamos en la tabla de asistencias y cruzamos datos con eventos y regiones
+                $bladerHistory = DB::table('assist_user_event')
+                    ->where('assist_user_event.user_id', $selectedBladerId)
+                    ->join('events', 'assist_user_event.event_id', '=', 'events.id')
+                    ->leftJoin('regions', 'events.region_id', '=', 'regions.id')
+                    ->select(
+                        'assist_user_event.id as assist_id',
+                        'events.name as event_name',
+                        'events.date as event_date',
+                        'regions.name as region_name',
+                        'assist_user_event.puesto'
+                    )
+                    ->orderByDesc('events.date')
+                    ->get();
+            }
+        }
+        $plans = \App\Models\Plan::all();
+
+        return view('profiles.indexAdmin', compact('profiles', 'allUsers', 'subscriptions', 'selectedBlader', 'bladerHistory', 'selectedBladerId', 'plans'));
+    }
+
+    public function storeSubscription(Request $request)
+    {
+        $request->validate([
+            'user_id' => 'required|exists:users,id',
+            'plan_id' => 'required|exists:plans,id',
+            'period' => 'required|in:monthly,annual',
+            'status' => 'required',
+        ]);
+
+        \App\Models\Subscription::create([
+            'user_id' => $request->user_id,
+            'plan_id' => $request->plan_id,
+            'period' => $request->period,
+            'status' => $request->status,
+            'paypal_subscription_id' => $request->paypal_subscription_id,
+            'started_at' => $request->started_at ?? now(),
+            'ended_at' => $request->ended_at,
+        ]);
+
+        return back()->with('success', 'Suscripción creada correctamente.');
+    }
+
+    public function updateSubscription(Request $request, $id)
+    {
+        $sub = \App\Models\Subscription::findOrFail($id);
+        $sub->update($request->all());
+
+        return back()->with('success', 'Suscripción actualizada correctamente.');
+    }
+
+    public function destroySubscription($id)
+    {
+        \App\Models\Subscription::findOrFail($id)->delete();
+        return back()->with('success', 'Suscripción eliminada.');
+    }
+
+    // Eliminar un registro del historial de un Blader
+    public function destroyHistory($id)
+    {
+        // Verificamos que el usuario logueado tenga permisos (opcional, pero recomendado)
+        if (!\Illuminate\Support\Facades\Auth::user()->hasAnyRole(['admin', 'juez'])) {
+            abort(403, 'No tienes permiso para eliminar registros.');
+        }
+
+        \Illuminate\Support\Facades\DB::table('assist_user_event')->where('id', $id)->delete();
+
+        return back()->with('success', 'Registro de torneo eliminado correctamente.');
     }
 
 
-    // Actualizar roles
+    // Actualizar roles (Nuevo Sistema Nativo)
     public function updateRoles(Request $request, $userId)
     {
         if ($userId == 0) {
-            // Caso formulario para asignar roles a usuario existente
             $user = User::findOrFail($request->input('user_id'));
         } else {
             $user = User::findOrFail($userId);
         }
 
-        $user->is_admin = $request->has('is_admin');
-        $user->is_jury = $request->has('is_jury');
-        $user->is_referee = $request->has('is_referee');
-        $user->is_editor = $request->has('is_editor');
-        $user->is_reviewer = $request->has('is_reviewer');
-        $user->save();
+        // Recogemos los roles marcados en el formulario
+        $rolesToAssign = [];
+        if ($request->has('role_admin')) $rolesToAssign[] = 'admin';
+        if ($request->has('role_juez')) $rolesToAssign[] = 'juez';
+        if ($request->has('role_arbitro')) $rolesToAssign[] = 'arbitro';
+        if ($request->has('role_editor')) $rolesToAssign[] = 'editor';
+        if ($request->has('role_revisor')) $rolesToAssign[] = 'revisor';
 
-    return back()->with('success', 'Roles actualizados correctamente.');
-}
+        // Buscamos los IDs de esos roles en la BD
+        $roleIds = \App\Models\Role::whereIn('name', $rolesToAssign)->pluck('id')->toArray();
+
+        // Sync sincroniza la tabla intermedia: quita los que no estén en el array y añade los nuevos
+        $user->roles()->sync($roleIds);
+
+        return back()->with('success', 'Protocolo de roles de la SBBL actualizado correctamente.');
+    }
 
 
 
@@ -280,8 +355,6 @@ class ProfileController extends Controller
     }
 
 
-
-
     /**
      * Show the form for editing the specified resource.
      *
@@ -291,7 +364,7 @@ class ProfileController extends Controller
     public function edit(Profile $profile)
     {
         // Verificar permisos
-        if (Auth::user()->profile->id != $profile->id && !Auth::user()->is_admin) {
+        if (Auth::user()->profile->id != $profile->id && !Auth::user()->hasRole('admin')) {
              return redirect()->route('index'); // O mostrar un error 403
         }
 

@@ -18,7 +18,7 @@
 
     /* --- TÍTULO DE PÁGINA --- */
     .page-title {
-        font-family: 'Bangers', cursive;
+        font-family: 'Oswald', cursive;
         font-size: 3.5rem;
         color: var(--sbbl-gold);
         text-shadow: 3px 3px 0 #000, 6px 6px 0 var(--shonen-red);
@@ -40,7 +40,7 @@
         display: inline-flex;
         align-items: center;
         margin: 0 15px;
-        font-family: 'Bangers', cursive;
+        font-family: 'Oswald', cursive;
         font-size: 1.2rem;
         color: #fff;
         letter-spacing: 1px;
@@ -62,7 +62,7 @@
         margin-bottom: 25px;
     }
     #currentMonthLabel {
-        font-family: 'Bangers', cursive;
+        font-family: 'Oswald', cursive;
         font-size: 2.5rem;
         color: #fff;
         letter-spacing: 2px;
@@ -85,7 +85,7 @@
         display: grid;
         grid-template-columns: repeat(7, 1fr);
         text-align: center;
-        font-family: 'Bangers', cursive;
+        font-family: 'Oswald', cursive;
         font-size: 1.5rem;
         color: var(--sbbl-gold);
         background-color: var(--sbbl-blue-3);
@@ -117,7 +117,7 @@
 
     /* Número del día */
     .day-number {
-        font-family: 'Bangers', cursive;
+        font-family: 'Oswald', cursive;
         font-size: 1.8rem;
         color: #fff;
         text-shadow: 2px 2px 0 #000;
@@ -212,7 +212,7 @@
     <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4">
         <h1 class="page-title"><i class="fas fa-calendar-alt me-2 text-white" style="text-shadow:none;"></i>CALENDARIO</h1>
 
-        @if ($countEvents < 2 || (Auth::user() && (Auth::user()->is_referee || Auth::user()->created_at->diffInMonths(now()) >= 3)))
+        @if ($countEvents < 2 || (Auth::user() && (Auth::user()->hasRole('arbitro') || Auth::user()->created_at->diffInMonths(now()) >= 3)))
             <a href="{{ route('events.create') }}" class="btn-shonen btn-shonen-warning mt-3 mt-md-0" style="padding: 10px 25px; font-size: 1.4rem;">
                 <span style="display: block; transform: skewX(5deg);"><i class="fas fa-plus me-1"></i> CREAR EVENTO</span>
             </a>
@@ -247,7 +247,7 @@
         <div class="spinner-border text-warning" style="width: 3rem; height: 3rem; border-width: 0.3rem;" role="status">
             <span class="visually-hidden">Cargando...</span>
         </div>
-        <p class="font-bangers fs-4 mt-3" style="color: var(--sbbl-gold); text-shadow: 2px 2px 0 #000;">SINCRONIZANDO DATOS...</p>
+        <p class="font-Oswald fs-4 mt-3" style="color: var(--sbbl-gold); text-shadow: 2px 2px 0 #000;">SINCRONIZANDO DATOS...</p>
     </div>
 
     <div class="calendar-container">
@@ -377,7 +377,7 @@
         list.innerHTML = ''; // Limpiar
 
         if(events.length === 0) {
-            list.innerHTML = '<div class="alert alert-dark text-center font-bangers fs-3 text-white" style="background: rgba(0,0,0,0.5) !important; border: 3px solid #000 !important; border-radius: 0;">NO HAY EVENTOS ESTE MES.</div>';
+            list.innerHTML = '<div class="alert alert-dark text-center font-Oswald fs-3 text-white" style="background: rgba(0,0,0,0.5) !important; border: 3px solid #000 !important; border-radius: 0;">NO HAY EVENTOS ESTE MES.</div>';
             return;
         }
 
@@ -401,9 +401,9 @@
                 <div style="transform: skewX(2deg);">
                     <div class="d-flex justify-content-between align-items-start mb-2">
                         <div class="d-flex flex-column lh-1">
-                            <span class="font-bangers fs-4" style="color:inherit;">${dayName}, ${dayNum} ${monthName}</span>
+                            <span class="font-Oswald fs-4" style="color:inherit;">${dayName}, ${dayNum} ${monthName}</span>
                         </div>
-                        <span class="badge bg-black text-white font-bangers fs-6" style="border: 2px solid #fff; border-radius: 0; box-shadow: 2px 2px 0 rgba(0,0,0,0.5);">${evt.mode === 'beybladex' ? 'Beyblade X' : 'Beyblade Burst'}</span>
+                        <span class="badge bg-black text-white font-Oswald fs-6" style="border: 2px solid #fff; border-radius: 0; box-shadow: 2px 2px 0 rgba(0,0,0,0.5);">${evt.mode === 'beybladex' ? 'Beyblade X' : 'Beyblade Burst'}</span>
                     </div>
 
                     <a href="/events/${evt.id}" class="text-decoration-none" style="color: inherit;">

@@ -341,7 +341,7 @@ class MarketController extends Controller
     }
 
     public function storeWordle(Request $request) {
-        if (Auth::user()->is_editor != 1) return abort(403);
+        if (Auth::user()->hasRole('editor') != 1) return abort(403);
 
         $request->validate([
             'word' => 'required|alpha|min:3',
@@ -377,7 +377,7 @@ class MarketController extends Controller
     }
 
     public function deleteWordle($id) {
-        if (Auth::user()->is_editor != 1) return abort(403);
+        if (!Auth::user()->hasRole('editor')) return abort(403);
 
         $word = \App\Models\WordleWord::findOrFail($id);
         $word->delete();

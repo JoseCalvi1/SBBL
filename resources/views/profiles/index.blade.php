@@ -10,7 +10,7 @@
 
     /* ── TÍTULO DE PÁGINA ── */
     .page-title {
-        font-family: 'Bangers', cursive;
+        font-family: 'Oswald', cursive;
         font-size: 3rem;
         color: var(--sbbl-gold);
         text-shadow: 2px 2px 0px #000, 4px 4px 0px var(--shonen-red);
@@ -39,7 +39,7 @@
         background: var(--sbbl-gold);
         color: #000;
         border: 3px solid #000;
-        font-family: 'Bangers', cursive;
+        font-family: 'Oswald', cursive;
         font-size: 1.2rem;
         border-radius: 0;
         box-shadow: 3px 3px 0 #000;
@@ -116,7 +116,7 @@
 
     .info { position: relative; z-index: 4; }
     .info h5 {
-        font-family: 'Bangers', cursive;
+        font-family: 'Oswald', cursive;
         font-size: 1.6rem;
         letter-spacing: 1px;
         color: var(--sbbl-gold);
@@ -128,7 +128,7 @@
         position: absolute; bottom: 10px; right: 10px;
         background: var(--shonen-cyan); color: #000;
         padding: 3px 8px; border: 2px solid #000;
-        font-family: 'Bangers', cursive; font-size: 1rem;
+        font-family: 'Oswald', cursive; font-size: 1rem;
         letter-spacing: 1px; z-index: 5;
         box-shadow: 2px 2px 0 #000;
         transform: skewX(-10deg);
@@ -164,7 +164,7 @@
         border-bottom: 3px solid var(--sbbl-gold);
         border-radius: 0 15px 0 0;
     }
-    .modal-title { font-family: 'Bangers', cursive; font-size: 1.8rem; color: var(--sbbl-gold); letter-spacing: 1px; }
+    .modal-title { font-family: 'Oswald', cursive; font-size: 1.8rem; color: var(--sbbl-gold); letter-spacing: 1px; }
 
     .modal-avatar-container {
         width: 140px; height: 140px;
@@ -180,7 +180,7 @@
     /* ── PAGINACIÓN ── */
     .pagination .page-item .page-link {
         background: #000; border: 2px solid #fff; color: #fff;
-        font-family: 'Bangers', cursive; font-size: 1.2rem; border-radius: 0;
+        font-family: 'Oswald', cursive; font-size: 1.2rem; border-radius: 0;
         margin: 0 3px; transform: skewX(-10deg);
         box-shadow: 3px 3px 0 #000;
     }
@@ -199,7 +199,7 @@
     {{-- 🎁 Filtros --}}
     <form method="GET" class="d-flex flex-wrap justify-content-center gap-3 mb-5 p-3 filtros-box mx-auto" style="max-width: 800px;">
         <div>
-            <label for="region" class="form-label text-light fw-bold mb-0 text-uppercase" style="font-family: 'Bangers', cursive; letter-spacing: 1px; color: var(--sbbl-gold) !important;">Región:</label>
+            <label for="region" class="form-label text-light fw-bold mb-0 text-uppercase" style="font-family: 'Oswald', cursive; letter-spacing: 1px; color: var(--sbbl-gold) !important;">Región:</label>
             <select name="region" id="region" class="form-select bg-dark text-light border-secondary">
                 <option value="">Todas</option>
                 @foreach ($regiones as $region)
@@ -210,7 +210,7 @@
             </select>
         </div>
         <div>
-            <label for="free_agent" class="form-label text-light fw-bold mb-0 text-uppercase" style="font-family: 'Bangers', cursive; letter-spacing: 1px; color: var(--sbbl-gold) !important;">Buscando equipo:</label>
+            <label for="free_agent" class="form-label text-light fw-bold mb-0 text-uppercase" style="font-family: 'Oswald', cursive; letter-spacing: 1px; color: var(--sbbl-gold) !important;">Buscando equipo:</label>
             <select name="free_agent" id="free_agent" class="form-select bg-dark text-light border-secondary">
                 <option value="">Todos</option>
                 <option value="1" {{ request('free_agent') === '1' ? 'selected' : '' }}>Sí</option>
@@ -346,11 +346,11 @@ document.addEventListener('DOMContentLoaded', () => {
         const modalBody = bladerModal.querySelector('.modal-body');
 
         if (!bladerId) {
-            modalBody.innerHTML = '<div class="text-center py-5"><p class="text-danger font-bangers fs-3">ERROR DE LECTURA DE ENERGÍA</p></div>';
+            modalBody.innerHTML = '<div class="text-center py-5"><p class="text-danger font-Oswald fs-3">ERROR DE LECTURA DE ENERGÍA</p></div>';
             return;
         }
 
-        modalBody.innerHTML = '<div class="text-center py-5"><span class="spinner-border text-warning" role="status"></span><p class="mt-2 font-bangers fs-4" style="color: var(--sbbl-gold);">ANALIZANDO COSMOS...</p></div>';
+        modalBody.innerHTML = '<div class="text-center py-5"><span class="spinner-border text-warning" role="status"></span><p class="mt-2 font-Oswald fs-4" style="color: var(--sbbl-gold);">ANALIZANDO COSMOS...</p></div>';
 
         const url = detailsRoute.replace('BLADER_ID', bladerId);
 
@@ -363,7 +363,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 renderModalContent(modalBody, data, bladerId);
             })
             .catch(error => {
-                modalBody.innerHTML = '<div class="text-center py-5"><i class="fas fa-exclamation-triangle text-danger fa-3x"></i><p class="mt-2 text-danger font-bangers fs-4">ERROR AL CARGAR LA INFORMACIÓN.</p></div>';
+                modalBody.innerHTML = '<div class="text-center py-5"><i class="fas fa-exclamation-triangle text-danger fa-3x"></i><p class="mt-2 text-danger font-Oswald fs-4">ERROR AL CARGAR LA INFORMACIÓN.</p></div>';
             });
     });
 
@@ -372,8 +372,8 @@ document.addEventListener('DOMContentLoaded', () => {
         const freeAgentClass = data.free_agent === 'Sí' ? 'color: var(--shonen-cyan);' : 'color: var(--shonen-red);';
 
         const teamNameHtml = data.equipo_nombre === 'Ninguno'
-            ? '<span style="color: var(--shonen-red); font-family: \'Bangers\', cursive; font-size: 1.2rem; letter-spacing: 1px;">Lobo Solitario</span>'
-            : `<span style="color: var(--sbbl-gold); font-family: \'Bangers\', cursive; font-size: 1.4rem; letter-spacing: 1px; text-shadow: 1px 1px 0 #000;">${data.equipo_nombre}</span>`;
+            ? '<span style="color: var(--shonen-red); font-family: \'Oswald\', cursive; font-size: 1.2rem; letter-spacing: 1px;">Lobo Solitario</span>'
+            : `<span style="color: var(--sbbl-gold); font-family: \'Oswald\', cursive; font-size: 1.4rem; letter-spacing: 1px; text-shadow: 1px 1px 0 #000;">${data.equipo_nombre}</span>`;
 
         const teamLogoHtml = data.equipo_logo_b64
             ? `<img src="data:image/png;base64,${data.equipo_logo_b64}" alt="Logo" style="width: 35px; height: 35px; margin-right: 5px; border: 2px solid #000;">`
@@ -390,39 +390,39 @@ document.addEventListener('DOMContentLoaded', () => {
 
             statsSection = `
                 <div class="p-4" style="background: rgba(0,0,0,0.5); border-bottom: 3px solid #000;">
-                    <h5 class="font-bangers" style="color: var(--sbbl-gold); font-size: 1.5rem; text-shadow: 2px 2px 0 #000;">Temporada 2 (25/26)</h5>
+                    <h5 class="font-Oswald" style="color: var(--sbbl-gold); font-size: 1.5rem; text-shadow: 2px 2px 0 #000;">Temporada 2 (25/26)</h5>
                     <div class="d-flex justify-content-center gap-4 mb-3">
-                        <p class="mb-0 fw-bold text-white">PUNTOS: <span class="font-bangers fs-4" style="color: #fff;">${data.puntos_x2 || 0}</span></p>
-                        <p class="mb-0 fw-bold text-white">TORNEOS: <span class="font-bangers fs-4" style="color: #fff;">${data.torneos_jugados || 0}</span></p>
+                        <p class="mb-0 fw-bold text-white">PUNTOS: <span class="font-Oswald fs-4" style="color: #fff;">${data.puntos_x2 || 0}</span></p>
+                        <p class="mb-0 fw-bold text-white">TORNEOS: <span class="font-Oswald fs-4" style="color: #fff;">${data.torneos_jugados || 0}</span></p>
                     </div>
 
                     <div class="d-flex justify-content-center gap-3">
                         <div style="background: #000; border: 2px solid #333; padding: 5px 15px; transform: skewX(-5deg);">
-                            <h6 style="color: var(--sbbl-gold); font-weight: 900; margin:0; transform: skewX(5deg);">🥇 1º</h6>
-                            <p class="font-bangers fs-3 mb-0 text-white" style="transform: skewX(5deg);">${data.primeros || 0}</p>
+                            <h6 style="color: var(--sbbl-gold); font-weight: 900; margin:0; transform: skewX(5deg);">🥇</h6>
+                            <p class="font-Oswald fs-3 mb-0 text-white" style="transform: skewX(5deg);">${data.primeros || 0}</p>
                         </div>
                         <div style="background: #000; border: 2px solid #333; padding: 5px 15px; transform: skewX(-5deg);">
-                            <h6 style="color: #fff; font-weight: 900; margin:0; transform: skewX(5deg);">🥈 2º</h6>
-                            <p class="font-bangers fs-3 mb-0 text-white" style="transform: skewX(5deg);">${data.segundos || 0}</p>
+                            <h6 style="color: #fff; font-weight: 900; margin:0; transform: skewX(5deg);">🥈</h6>
+                            <p class="font-Oswald fs-3 mb-0 text-white" style="transform: skewX(5deg);">${data.segundos || 0}</p>
                         </div>
                         <div style="background: #000; border: 2px solid #333; padding: 5px 15px; transform: skewX(-5deg);">
-                            <h6 style="color: #ff9d47; font-weight: 900; margin:0; transform: skewX(5deg);">🥉 3º</h6>
-                            <p class="font-bangers fs-3 mb-0 text-white" style="transform: skewX(5deg);">${data.terceros || 0}</p>
+                            <h6 style="color: #ff9d47; font-weight: 900; margin:0; transform: skewX(5deg);">🥉</h6>
+                            <p class="font-Oswald fs-3 mb-0 text-white" style="transform: skewX(5deg);">${data.terceros || 0}</p>
                         </div>
                     </div>
                 </div>
 
                 <div class="p-3" style="background: rgba(0,0,0,0.3); border-bottom: 3px solid #000;">
-                    <h5 class="font-bangers text-white mb-2" style="font-size: 1.2rem;">Temporada 1 (24/25)</h5>
+                    <h5 class="font-Oswald text-white mb-2" style="font-size: 1.2rem;">Temporada 1 (24/25)</h5>
                     <div class="d-flex justify-content-center gap-4">
-                        <p class="mb-0 fw-bold text-white" style="font-size: 0.9rem;">PTS: <span class="font-bangers fs-5 text-white">${data.puntos_x1 || 0}</span></p>
-                        <p class="mb-0 fw-bold text-white" style="font-size: 0.9rem;">TORNEOS: <span class="font-bangers fs-5 text-white">${data.torneos_jugados_x1 || 0}</span></p>
+                        <p class="mb-0 fw-bold text-white" style="font-size: 0.9rem;">PTS: <span class="font-Oswald fs-5 text-white">${data.puntos_x1 || 0}</span></p>
+                        <p class="mb-0 fw-bold text-white" style="font-size: 0.9rem;">TORNEOS: <span class="font-Oswald fs-5 text-white">${data.torneos_jugados_x1 || 0}</span></p>
                     </div>
                 </div>
 
                 <div class="text-center p-4">
                     <a href="${profileUrl}" class="btn text-uppercase fw-bold text-dark" target="_blank"
-                       style="background: var(--sbbl-gold); border: 3px solid #000; border-radius: 0; font-family: 'Bangers', cursive; font-size: 1.3rem; letter-spacing: 1px; box-shadow: 4px 4px 0 #000; transform: skewX(-5deg); display: inline-block;">
+                       style="background: var(--sbbl-gold); border: 3px solid #000; border-radius: 0; font-family: 'Oswald', cursive; font-size: 1.3rem; letter-spacing: 1px; box-shadow: 4px 4px 0 #000; transform: skewX(-5deg); display: inline-block;">
                         <span style="transform: skewX(5deg); display: block;"><i class="fas fa-bolt me-2"></i> VER PERFIL COMPLETO</span>
                     </a>
                 </div>
@@ -433,7 +433,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     <i class="fas fa-lock fa-3x mb-3" style="color: var(--shonen-red);"></i>
                     <p class="mb-3 text-white fw-bold">Las estadísticas completas están bloqueadas.</p>
                     <button class="btn fw-bold text-white" onclick="window.location.href='{{ route('planes.index') }}'"
-                            style="background: var(--shonen-blue); border: 3px solid #000; font-family: 'Bangers', cursive; font-size: 1.2rem; box-shadow: 4px 4px 0 var(--shonen-red); transform: skewX(-5deg);">
+                            style="background: var(--shonen-blue); border: 3px solid #000; font-family: 'Oswald', cursive; font-size: 1.2rem; box-shadow: 4px 4px 0 var(--shonen-red); transform: skewX(-5deg);">
                         <span style="transform: skewX(5deg); display: block;">DESBLOQUEAR AURA</span>
                     </button>
                 </div>
@@ -447,7 +447,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         <img src="${data.imagen}" class="img-blader-modal">
                         <img src="${data.marco}" class="marco-blader-modal">
                     </div>
-                    <h3 class="font-bangers" style="color: var(--sbbl-gold); text-shadow: 2px 2px 0 #000; font-size: 2.2rem; line-height: 1;">${data.nombre}</h3>
+                    <h3 class="font-Oswald" style="color: var(--sbbl-gold); text-shadow: 2px 2px 0 #000; font-size: 2.2rem; line-height: 1;">${data.nombre}</h3>
                     <p class="fst-italic fw-bold text-white bg-dark d-inline-block px-3 py-1 mt-2" style="border-left: 4px solid var(--shonen-blue); font-size: 0.9rem;">${data.subtitulo || 'Sin lema'}</p>
 
                     <hr class="border-dark my-4" style="border-width: 3px; opacity: 1;">
@@ -460,11 +460,11 @@ document.addEventListener('DOMContentLoaded', () => {
                         </div>
                     </div>
 
-                    <p class="font-bangers fs-4 mb-3 text-white">PODER EQUIPO: <span style="color: var(--sbbl-gold); text-shadow: 1px 1px 0 #000;">${data.equipo_puntos}</span></p>
+                    <p class="font-Oswald fs-4 mb-3 text-white">PODER EQUIPO: <span style="color: var(--sbbl-gold); text-shadow: 1px 1px 0 #000;">${data.equipo_puntos}</span></p>
 
                     <div class="d-flex justify-content-center gap-2 mt-3 flex-wrap">
-                        <span class="badge bg-black text-white border border-white py-2 px-3" style="font-family: 'Bangers', cursive; font-size: 1rem; border-radius: 0;">🗺️ ${data.region}</span>
-                        <span class="badge py-2 px-3 text-white" style="font-family: 'Bangers', cursive; font-size: 1rem; border: 2px solid #000; border-radius: 0; ${freeAgentClass} background: #000;">${freeAgentText}</span>
+                        <span class="badge bg-black text-white border border-white py-2 px-3" style="font-family: 'Oswald', cursive; font-size: 1rem; border-radius: 0;">🗺️ ${data.region}</span>
+                        <span class="badge py-2 px-3 text-white" style="font-family: 'Oswald', cursive; font-size: 1rem; border: 2px solid #000; border-radius: 0; ${freeAgentClass} background: #000;">${freeAgentText}</span>
                     </div>
                 </div>
 

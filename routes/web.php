@@ -226,6 +226,10 @@ Route::delete('/trophies/{userId}/remove/{trophyId}', [TrophyController::class, 
 Route::get('/eventos', [InicioController::class, 'events'])->name('events.index');
 Route::post('/eventos/fetch', [InicioController::class, 'fetchEvents'])->name('events.fetch');
 Route::get('/subscriptions', [InicioController::class, 'suscriptions'])->name('subscriptions');
+Route::delete('/admin/historial/borrar/{id}', [ProfileController::class, 'destroyHistory'])->name('admin.history.destroy');
+Route::post('/admin/suscripciones', [App\Http\Controllers\ProfileController::class, 'storeSubscription'])->name('admin.subscriptions.store');
+Route::put('/admin/suscripciones/{id}', [App\Http\Controllers\ProfileController::class, 'updateSubscription'])->name('admin.subscriptions.update');
+Route::delete('/admin/suscripciones/{id}', [App\Http\Controllers\ProfileController::class, 'destroySubscription'])->name('admin.subscriptions.destroy');
 
 Route::get('/dashboard', [InicioController::class, 'dashboard'])->name('admin.dashboard');
 Route::get('/dashboard/events', [App\Http\Controllers\EventController::class, 'index'])->name('events.indexAdmin');

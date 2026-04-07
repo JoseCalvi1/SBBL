@@ -86,7 +86,7 @@
                     <div class="wizard-step active" data-step="1">
                         <h4 class="text-white mb-4 border-bottom border-secondary pb-3 fw-bold">Información General</h4>
 
-                        @if (Auth::user()->is_admin || Auth::user()->is_referee)
+                        @if (Auth::user()->hasAnyRole(['admin', 'arbitro']))
                             <div class="row g-4 mb-5">
                                 <div class="col-md-6">
                                     <label for="name" class="form-label text-light-muted small text-uppercase fw-bold">Título (Opcional)</label>
@@ -129,7 +129,7 @@
                                 <option value="" disabled selected>Selecciona tipo de evento...</option>
                                 <option value="quedada">Quedada (Amistoso)</option>
                                 <option value="ranking">Ranking (Oficial)</option>
-                                @if (Auth::user()->is_admin || Auth::user()->is_referee)
+                                @if (Auth::user()->hasAnyRole(['admin', 'arbitro']))
                                     <option value="rankingplus">Ranking Plus (Árbitros)</option>
                                     <option value="grancopa">Gran Copa (Especial)</option>
                                 @endif
@@ -235,7 +235,7 @@
                             <textarea name="note" id="note" rows="4" class="form-control dark-input p-3" placeholder="Material necesario, punto de encuentro..."></textarea>
                         </div>
 
-                        @if(!Auth::user()->is_admin && !Auth::user()->is_referee)
+                        @if(!Auth::user()->hasAnyRole(['admin', 'arbitro']))
                             <div class="alert alert-info d-flex align-items-center p-4 bg-opacity-10 border-info text-info">
                                 <i class="fas fa-info-circle me-4 fs-2"></i>
                                 <div class="fs-5">Confirmo que he leído las <a href="https://sbbl.es/rules" target="_blank" class="alert-link text-white text-decoration-underline">normas</a> y soy responsable del material.</div>

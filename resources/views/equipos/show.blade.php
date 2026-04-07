@@ -45,7 +45,7 @@
     .hq-logo { width: 100%; height: 100%; object-fit: contain; transform: rotate(5deg); }
 
     .hq-title h1 {
-        font-family: 'Bangers', cursive;
+        font-family: 'Oswald', cursive;
         color: var(--sbbl-gold);
         margin: 0;
         text-shadow: 3px 3px 0 #000, 6px 6px 0 var(--shonen-red);
@@ -74,7 +74,7 @@
     }
     .level-box > * { transform: skewX(5deg); }
 
-    .level-number { font-family: 'Bangers', cursive; font-size: 5rem; color: var(--sbbl-gold); line-height: 1; text-shadow: 3px 3px 0 #000; }
+    .level-number { font-family: 'Oswald', cursive; font-size: 5rem; color: var(--sbbl-gold); line-height: 1; text-shadow: 3px 3px 0 #000; }
 
     .xp-bar { height: 15px; background: #222; border-radius: 0; margin-top: 15px; overflow: hidden; border: 2px solid #fff; }
     .xp-fill { height: 100%; background: var(--sbbl-gold); }
@@ -152,7 +152,7 @@
     }
 
     .agent-name {
-        font-family: 'Bangers', cursive;
+        font-family: 'Oswald', cursive;
         font-size: 1.8rem;
         color: #fff;
         text-transform: uppercase;
@@ -173,7 +173,7 @@
     .captain-badge {
         position: absolute; top: 10px; right: 10px;
         background: var(--shonen-red); color: #fff;
-        font-family: 'Bangers', cursive; font-size: 1.1rem; padding: 4px 12px;
+        font-family: 'Oswald', cursive; font-size: 1.1rem; padding: 4px 12px;
         border: 2px solid #000; z-index: 20;
         text-transform: uppercase;
         box-shadow: 2px 2px 0 #000;
@@ -190,7 +190,7 @@
     }
 
     .btn-action {
-        font-family: 'Bangers', cursive;
+        font-family: 'Oswald', cursive;
         font-size: 1.1rem;
         letter-spacing: 1px;
         text-transform: uppercase;
@@ -258,8 +258,8 @@
                 <div class="hq-title mb-3">
                     <h1>{{ $equipo->name }}</h1>
                     <div class="mt-2">
-                        <span class="badge bg-black border border-white text-white me-2 py-2 px-3 font-bangers fs-5" style="box-shadow: 2px 2px 0 var(--sbbl-gold);"><i class="fas fa-users me-1"></i> {{ $miembros->count() }} OPERATIVOS</span>
-                        <span class="badge bg-black border border-white text-white py-2 px-3 font-bangers fs-5" style="box-shadow: 2px 2px 0 var(--shonen-red);"><i class="fas fa-map-marker-alt me-1 text-danger"></i> {{ $equipo->region->name ?? 'GLOBAL' }}</span>
+                        <span class="badge bg-black border border-white text-white me-2 py-2 px-3 font-Oswald fs-5" style="box-shadow: 2px 2px 0 var(--sbbl-gold);"><i class="fas fa-users me-1"></i> {{ $miembros->count() }} OPERATIVOS</span>
+                        <span class="badge bg-black border border-white text-white py-2 px-3 font-Oswald fs-5" style="box-shadow: 2px 2px 0 var(--shonen-red);"><i class="fas fa-map-marker-alt me-1 text-danger"></i> {{ $equipo->region->name ?? 'GLOBAL' }}</span>
                     </div>
                 </div>
             </div>
@@ -271,7 +271,7 @@
             {{-- DESCRIPCIÓN --}}
             <div class="col-lg-8">
                 <div class="intel-panel h-100">
-                    <h4 class="text-white font-bangers fs-2 mb-3 border-bottom border-dark pb-3" style="text-shadow: 2px 2px 0 #000;"><i class="fas fa-file-alt me-2" style="color: var(--sbbl-gold);"></i> ARCHIVO DEL EQUIPO</h4>
+                    <h4 class="text-white font-Oswald fs-2 mb-3 border-bottom border-dark pb-3" style="text-shadow: 2px 2px 0 #000;"><i class="fas fa-file-alt me-2" style="color: var(--sbbl-gold);"></i> ARCHIVO DEL EQUIPO</h4>
                     <p class="text-white fw-bold" style="line-height: 1.6; font-size: 1.1rem;">{{ $equipo->description ?: 'Sin descripción disponible en la base de datos.' }}</p>
                 </div>
             </div>
@@ -279,7 +279,7 @@
             {{-- NIVEL --}}
             <div class="col-lg-4">
                 <div class="level-box">
-                    <div class="text-white font-bangers fs-4 mb-2" style="letter-spacing: 1px;">NIVEL OPERATIVO</div>
+                    <div class="text-white font-Oswald fs-4 mb-2" style="letter-spacing: 1px;">NIVEL OPERATIVO</div>
                     <div class="level-number">{{ floor($totalPoints / 10) }}</div>
 
                     @php
@@ -299,7 +299,7 @@
         </div>
 
         {{-- 4. ROSTER DE AGENTES --}}
-        <h2 class="text-white font-bangers mt-5 mb-4" style="font-size: 3rem; text-shadow: 2px 2px 0 #000; letter-spacing: 2px;">
+        <h2 class="text-white font-Oswald mt-5 mb-4" style="font-size: 3rem; text-shadow: 2px 2px 0 #000; letter-spacing: 2px;">
             <i class="fas fa-users me-2" style="color: var(--shonen-cyan);"></i> ROSTER DE OPERATIVOS
         </h2>
 
@@ -397,13 +397,13 @@
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content" style="background: var(--sbbl-blue-2); border: 4px solid #000; border-radius: 0; box-shadow: 8px 8px 0 #000;">
             <div class="modal-header" style="background: #000; border-bottom: 4px solid var(--shonen-cyan); border-radius: 0;">
-                <h5 class="modal-title font-bangers fs-3 text-white"><i class="fas fa-satellite-dish me-2" style="color: var(--shonen-cyan);"></i> TRANSMISIÓN SEGURA</h5>
+                <h5 class="modal-title font-Oswald fs-3 text-white"><i class="fas fa-satellite-dish me-2" style="color: var(--shonen-cyan);"></i> TRANSMISIÓN SEGURA</h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
             <form method="POST" action="{{ route('equipos.sendInvitation', $equipo) }}" id="invitationForm">
                 @csrf
                 <div class="modal-body p-4">
-                    <label class="form-label text-white font-bangers fs-4" style="letter-spacing: 1px;">SELECCIONAR OPERATIVO:</label>
+                    <label class="form-label text-white font-Oswald fs-4" style="letter-spacing: 1px;">SELECCIONAR OPERATIVO:</label>
                     <select name="user_id" id="user_id" class="form-select bg-black text-white border-dark fw-bold" required>
                         <option value="" disabled selected>-- BÚSQUEDA EN BASE DE DATOS --</option>
                         @foreach ($users as $user)

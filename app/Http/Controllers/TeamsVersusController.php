@@ -96,7 +96,7 @@ public function store(Request $request)
         'team_id_2' => 'required',
         'result_1'  => 'required',
         'result_2'  => 'required',
-        'url'       => Auth::user()->is_jury ? 'nullable|url' : 'required|url',
+        'url'       => Auth::user()->hasRole('juez') ? 'nullable|url' : 'required|url',
         'modalidad' => 'required',
     ]);
 

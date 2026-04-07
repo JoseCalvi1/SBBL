@@ -10,7 +10,7 @@
 
     /* ── TÍTULO DE PÁGINA ── */
     .page-title {
-        font-family: 'Bangers', cursive;
+        font-family: 'Oswald', cursive;
         font-size: 3.5rem;
         color: var(--sbbl-gold);
         text-shadow: 2px 2px 0px #000, 4px 4px 0px var(--shonen-red);
@@ -45,7 +45,7 @@
         text-align: center;
     }
     .aura-title {
-        font-family: 'Bangers', cursive;
+        font-family: 'Oswald', cursive;
         font-size: 2.5rem;
         margin: 0;
         letter-spacing: 2px;
@@ -98,7 +98,7 @@
     .price-box > * { transform: skewX(5deg); }
 
     .price-label {
-        font-family: 'Bangers', cursive;
+        font-family: 'Oswald', cursive;
         font-size: 1.2rem;
         margin-bottom: 5px;
         letter-spacing: 1px;
@@ -187,7 +187,7 @@
                             </div>
                         @else
                             <div class="alert alert-dark border-secondary text-center mb-0 bg-black">
-                                <p class="text-white font-bangers fs-4 mb-0">INICIA SESIÓN PARA ACTIVAR</p>
+                                <p class="text-white font-Oswald fs-4 mb-0">INICIA SESIÓN PARA ACTIVAR</p>
                             </div>
                         @endauth
                     </div>
@@ -230,7 +230,7 @@ document.addEventListener('DOMContentLoaded', function () {
             },
             onApprove: (data) => {
                 // Interfaz de carga visual
-                messageDiv.innerHTML = '<div class="alert alert-info border border-info bg-black text-white font-bangers fs-4 text-center"><i class="fas fa-spinner fa-spin me-2"></i> VERIFICANDO FIRMA DE AURA...</div>';
+                messageDiv.innerHTML = '<div class="alert alert-info border border-info bg-black text-white font-Oswald fs-4 text-center"><i class="fas fa-spinner fa-spin me-2"></i> VERIFICANDO FIRMA DE AURA...</div>';
 
                 fetch("{{ route('paypal.confirm') }}", {
                     method: 'POST',
@@ -247,20 +247,20 @@ document.addEventListener('DOMContentLoaded', function () {
                 .then(r => r.json())
                 .then(resp => {
                     if (resp.success) {
-                        messageDiv.innerHTML = '<div class="alert alert-success border border-success bg-black text-success font-bangers fs-4 text-center"><i class="fas fa-check-circle me-2"></i> ¡AURA DESBLOQUEADA CORRECTAMENTE! REINICIANDO SISTEMAS...</div>';
+                        messageDiv.innerHTML = '<div class="alert alert-success border border-success bg-black text-success font-Oswald fs-4 text-center"><i class="fas fa-check-circle me-2"></i> ¡AURA DESBLOQUEADA CORRECTAMENTE! REINICIANDO SISTEMAS...</div>';
                         setTimeout(() => window.location.href = resp.redirect ?? '/', 2000);
                     } else {
-                        messageDiv.innerHTML = '<div class="alert alert-danger border border-danger bg-black text-danger font-bangers fs-4 text-center"><i class="fas fa-exclamation-triangle me-2"></i> ERROR: ' + (resp.message || 'FALLO EN LA VALIDACIÓN.') + '</div>';
+                        messageDiv.innerHTML = '<div class="alert alert-danger border border-danger bg-black text-danger font-Oswald fs-4 text-center"><i class="fas fa-exclamation-triangle me-2"></i> ERROR: ' + (resp.message || 'FALLO EN LA VALIDACIÓN.') + '</div>';
                     }
                 })
                 .catch(err => {
                     console.error("❌ Error de transmisión:", err);
-                    messageDiv.innerHTML = '<div class="alert alert-danger border border-danger bg-black text-danger font-bangers fs-4 text-center"><i class="fas fa-exclamation-triangle me-2"></i> ERROR AL PROCESAR EL PAGO EN EL SERVIDOR CENTRAL.</div>';
+                    messageDiv.innerHTML = '<div class="alert alert-danger border border-danger bg-black text-danger font-Oswald fs-4 text-center"><i class="fas fa-exclamation-triangle me-2"></i> ERROR AL PROCESAR EL PAGO EN EL SERVIDOR CENTRAL.</div>';
                 });
             },
             onError: (err) => {
                 console.error("❌ Error en Pasarela:", err);
-                messageDiv.innerHTML = '<div class="alert alert-danger border border-danger bg-black text-danger font-bangers fs-4 text-center"><i class="fas fa-exclamation-triangle me-2"></i> LA CONEXIÓN CON PAYPAL HA SIDO INTERRUMPIDA.</div>';
+                messageDiv.innerHTML = '<div class="alert alert-danger border border-danger bg-black text-danger font-Oswald fs-4 text-center"><i class="fas fa-exclamation-triangle me-2"></i> LA CONEXIÓN CON PAYPAL HA SIDO INTERRUMPIDA.</div>';
             }
         }).render(container);
     });

@@ -1,11 +1,8 @@
 @extends('layouts.app')
 
-@section('title', $event->name)
+@section('title', 'Detalles del evento')
 
 @section('styles')
-<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
-<link href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css" rel="stylesheet" />
-
 <style>
     /* ====================================================================
        ESTILOS ESPECÍFICOS: DETALLE DE EVENTO (El resto hereda del layout)
@@ -13,7 +10,7 @@
 
     /* --- TÍTULO Y ESTADO --- */
     .event-title {
-        font-family: 'Bangers', cursive;
+        font-family: 'Oswald', cursive;
         font-size: 3.5rem;
         color: var(--sbbl-gold);
         text-shadow: 3px 3px 0 #000, 6px 6px 0 var(--shonen-blue);
@@ -24,7 +21,7 @@
     }
 
     .status-badge {
-        font-family: 'Bangers', cursive;
+        font-family: 'Oswald', cursive;
         font-size: 1.5rem;
         letter-spacing: 1px;
         padding: 5px 20px;
@@ -70,7 +67,7 @@
     }
     .info-list li:last-child { border-bottom: none; }
     .info-list .info-label { font-weight: 900; color: var(--shonen-cyan); text-transform: uppercase; }
-    .info-list .info-value { font-family: 'Bangers', cursive; font-size: 1.3rem; letter-spacing: 1px; }
+    .info-list .info-value { font-family: 'Oswald', cursive; font-size: 1.3rem; letter-spacing: 1px; }
 
     /* --- SECCIÓN PARTICIPANTES --- */
     .participant-card {
@@ -114,7 +111,7 @@
 
     /* Chat Evento */
     .chat-header {
-        font-family: 'Bangers', cursive; font-size: 1.8rem; letter-spacing: 1px;
+        font-family: 'Oswald', cursive; font-size: 1.8rem; letter-spacing: 1px;
         background: #000; color: var(--sbbl-gold); border-bottom: 4px solid var(--shonen-red);
         padding: 10px 20px;
     }
@@ -165,10 +162,10 @@
                     </div>
 
                     <div class="position-absolute top-0 end-0 m-2 z-2">
-                        <span class="badge bg-black text-white border border-2 border-white" style="font-family: 'Bangers', cursive; font-size: 1.2rem; transform: skewX(-5deg);"><span style="display:block; transform:skewX(5deg);">{{ $event->region->name }}</span></span>
+                        <span class="badge bg-black text-white border border-2 border-white" style="font-family: 'Oswald', cursive; font-size: 1.2rem; transform: skewX(-5deg);"><span style="display:block; transform:skewX(5deg);">{{ $event->region->name }}</span></span>
                     </div>
                     <div class="position-absolute bottom-0 start-0 w-100 p-3 z-2" style="background: linear-gradient(to top, rgba(0,0,0,0.9), transparent); pointer-events: none;">
-                        <h5 class="text-white mb-0 font-bangers fs-3" style="text-shadow: 2px 2px 0 #000;"><i class="fas fa-map-marker-alt me-2" style="color: var(--shonen-red);"></i>{{ $event->city }}</h5>
+                        <h5 class="text-white mb-0 font-Oswald fs-3" style="text-shadow: 2px 2px 0 #000;"><i class="fas fa-map-marker-alt me-2" style="color: var(--shonen-red);"></i>{{ $event->city }}</h5>
                     </div>
                 </div>
 
@@ -243,7 +240,7 @@
             @endif
 
             {{-- REVISIONES Y JUECES --}}
-            @if (in_array($event->beys, ['ranking', 'rankingplus']) && (in_array($event->status, ['INVALID', 'CLOSE']) || (Auth::check() && Auth::user()->is_admin)))
+            @if (in_array($event->beys, ['ranking', 'rankingplus']) && (in_array($event->status, ['INVALID', 'CLOSE']) || (Auth::check() && Auth::user()->hasRole('admin'))))
                 <div class="mb-4">
                     <button class="btn-shonen btn-shonen-warning w-100 text-center" type="button"
                             data-bs-toggle="collapse" data-bs-target="#reviewCollapse{{ $event->id }}"
@@ -257,11 +254,11 @@
                             {{-- LÓGICA PRINCIPAL: JUEZ vs ÁRBITROS --}}
                             @if($event->judgeReview)
                                 {{-- CASO 1: HAY REVISIÓN DE JUEZ (SOLO SE MUESTRA ESTA) --}}
-                                <h4 class="font-bangers text-white mb-3"><i class="fas fa-gavel me-2" style="color: var(--sbbl-gold);"></i>Resolución del Juez</h4>
+                                <h4 class="font-Oswald text-white mb-3"><i class="fas fa-gavel me-2" style="color: var(--sbbl-gold);"></i>Resolución del Juez</h4>
                                 <div class="p-3 border border-warning" style="background-color: rgba(255, 193, 7, 0.1);">
                                     <div class="d-flex justify-content-between align-items-center mb-2">
                                         <strong class="text-white">Juez Principal</strong>
-                                        <span class="badge {{ $event->judgeReview->status == 'approved' ? 'bg-success' : ($event->judgeReview->status == 'rejected' ? 'bg-danger' : 'bg-secondary') }} font-bangers fs-6 border border-white">
+                                        <span class="badge {{ $event->judgeReview->status == 'approved' ? 'bg-success' : ($event->judgeReview->status == 'rejected' ? 'bg-danger' : 'bg-secondary') }} font-Oswald fs-6 border border-white">
                                             {{ strtoupper($event->judgeReview->status) }}
                                         </span>
                                     </div>
@@ -272,7 +269,7 @@
 
                             @else
                                 {{-- CASO 2: NO HAY JUEZ, MOSTRAMOS ÁRBITROS --}}
-                                <h4 class="font-bangers text-white mb-3"><i class="fas fa-users me-2" style="color: var(--shonen-cyan);"></i>Historial de Revisiones</h4>
+                                <h4 class="font-Oswald text-white mb-3"><i class="fas fa-users me-2" style="color: var(--shonen-cyan);"></i>Historial de Revisiones</h4>
 
                                 @if($event->reviews->isEmpty())
                                     <div class="text-center text-white fw-bold bg-black p-3 border border-secondary">
@@ -284,13 +281,13 @@
                                         <li class="p-3 border border-secondary" style="background-color: #000;">
                                             <div class="d-flex justify-content-between align-items-center mb-2">
                                                 <strong class="text-white">
-                                                    @if(Auth::check() && (Auth::user()->is_admin || Auth::user()->name == $review->referee->name))
+                                                    @if(Auth::check() && (Auth::user()->hasRole('admin') || Auth::user()->name == $review->referee->name))
                                                         {{ $review->referee->name ?? 'Árbitro' }}
                                                     @else
                                                         Árbitro {{ $loop->iteration }}
                                                     @endif
                                                 </strong>
-                                                <span class="badge {{ $review->status == 'approved' ? 'bg-success' : ($review->status == 'rejected' ? 'bg-danger' : 'bg-secondary') }} font-bangers fs-6 border border-white">
+                                                <span class="badge {{ $review->status == 'approved' ? 'bg-success' : ($review->status == 'rejected' ? 'bg-danger' : 'bg-secondary') }} font-Oswald fs-6 border border-white">
                                                     {{ strtoupper($review->status) }}
                                                 </span>
                                             </div>
@@ -312,19 +309,19 @@
             <div class="participant-card">
                 <div class="card-body p-4 bg-transparent">
                     <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 gap-3">
-                        <h2 class="font-bangers text-white m-0" style="font-size: 2.5rem; letter-spacing: 1px;">
+                        <h2 class="font-Oswald text-white m-0" style="font-size: 2.5rem; letter-spacing: 1px;">
                             <i class="fas fa-users me-2" style="color: var(--sbbl-gold);"></i> PARTICIPANTES <span class="badge bg-white text-dark ms-2 border border-2 border-dark" style="font-size: 1.5rem;">{{ $assists->count() }}</span>
                         </h2>
 
                         <div class="d-flex flex-wrap gap-2">
-                            @if (($event->status == "OPEN") && (Auth::user()->is_admin || Auth::user()->is_referee) && ($diffInHours <= 24 && $diffInHours >= 0))
+                            @if (($event->status == "OPEN") && (Auth::user()->hasAnyRole(['admin', 'arbitro'])) && ($diffInHours <= 24 && $diffInHours >= 0))
                                 <form method="POST" action="{{ route('events.estado', ['event' => $event->id, 'estado' => 'inscripcion']) }}">
                                     @csrf @method('PUT')
                                     <button type="submit" class="btn btn-secondary fw-bold border-2 border-dark">CERRAR INSC.</button>
                                 </form>
                             @endif
 
-                            @if (($event->status != "CLOSE" && $event->status != "INVALID") && Auth::user()->is_referee || ($event->status == "OPEN" && $event->created_by == Auth::user()->id))
+                            @if (($event->status != "CLOSE" && $event->status != "INVALID") && Auth::user()->hasRole('arbitro') || ($event->status == "OPEN" && $event->created_by == Auth::user()->id))
                                 <a href="{{ route('events.edit', ['event' => $event->id]) }}" class="btn btn-light fw-bold border-2 border-dark"><i class="fas fa-edit me-1"></i> EDITAR</a>
                             @endif
 
@@ -373,13 +370,13 @@
                             @endphp
 
                             <div class="text-center mb-4 p-3 border" style="border-color: {{ $shonenColor }} !important; background: rgba(255,255,255,0.05);">
-                                <h4 class="font-bangers mb-2" style="color: {{ $shonenColor }}; font-size: 2rem; letter-spacing: 1px;">
+                                <h4 class="font-Oswald mb-2" style="color: {{ $shonenColor }}; font-size: 2rem; letter-spacing: 1px;">
                                     🏟️ {{ $event->stadiums }} ESTADIOS DETECTADOS
                                 </h4>
                                 <p class="text-white fw-bold mb-3">{{ $limitText }}</p>
 
                                 <div class="progress rounded-0 border border-secondary" style="height: 25px; background-color: #111;">
-                                    <div class="progress-bar fw-bold text-dark font-bangers fs-5" role="progressbar"
+                                    <div class="progress-bar fw-bold text-dark font-Oswald fs-5" role="progressbar"
                                          style="background-color: {{ $shonenColor }}; width: {{ min(($currentCount / ($limit > 1000 ? 50 : $limit)) * 100, 100) }}%;">
                                         {{ $currentCount }} / {{ ($limit > 1000) ? '∞' : $limit }}
                                     </div>
@@ -404,7 +401,7 @@
                             @endif
 
                             @php $creator = \App\Models\User::find($event->created_by); @endphp
-                            @if ($creator && !($creator->is_jury || $creator->is_referee || $creator->is_reviewer))
+                            @if ($creator && !$creator->hasAnyRole(['juez', 'arbitro', 'revisor']))
                                 <div class="alert alert-shonen alert-shonen-info text-center" style="border-color: #fff !important; color: #fff !important; box-shadow: 4px 4px 0 #fff;">
                                     <div>EVENTO ORGANIZADO POR LA COMUNIDAD. MATERIAL NO GARANTIZADO POR SBBL.</div>
                                 </div>
@@ -412,7 +409,7 @@
 
                             @if($event->beys === "grancopa" || $event->beys === "copapaypal")
                                 <div class="text-center p-4 border border-secondary" style="background: #111;">
-                                    <p class="text-white font-bangers fs-3 mb-3">COSTE DE INSCRIPCIÓN: <span style="color: var(--sbbl-gold);">{{ $event->beys === "grancopa" ? '5€' : '2€' }}</span></p>
+                                    <p class="text-white font-Oswald fs-3 mb-3">COSTE DE INSCRIPCIÓN: <span style="color: var(--sbbl-gold);">{{ $event->beys === "grancopa" ? '5€' : '2€' }}</span></p>
                                     <div id="paypal-button-container" class="d-flex justify-content-center"></div>
                                 </div>
                             @else
@@ -441,12 +438,12 @@
                         @endif
 
                     @elseif($event->status != "OPEN")
-                        <div class="text-center text-white font-bangers fs-3">LAS INSCRIPCIONES ESTÁN CERRADAS.</div>
+                        <div class="text-center text-white font-Oswald fs-3">LAS INSCRIPCIONES ESTÁN CERRADAS.</div>
                     @else
-                        <div class="text-center text-white font-bangers fs-3">EL EVENTO HA FINALIZADO.</div>
+                        <div class="text-center text-white font-Oswald fs-3">EL EVENTO HA FINALIZADO.</div>
                     @endif
                     @else
-                        <div class="text-center font-bangers fs-3" style="color: var(--sbbl-gold);">INICIA SESIÓN PARA INSCRIBIRTE AL COMBATE.</div>
+                        <div class="text-center font-Oswald fs-3" style="color: var(--sbbl-gold);">INICIA SESIÓN PARA INSCRIBIRTE AL COMBATE.</div>
                     @endauth
                     </div>
 
@@ -455,14 +452,14 @@
                         <button id="copyButton" class="btn btn-dark fw-bold border-2 border-secondary flex-fill text-white">
                             <i class="fas fa-copy me-2" style="color: var(--sbbl-gold);"></i> Copiar Nombres
                         </button>
-                        @if (Auth::user() && Auth::user()->is_jury)
+                        @if (Auth::user() && Auth::user()->hasRole('juez'))
                             <button id="copyButtonEmail" class="btn btn-dark fw-bold border-2 border-secondary flex-fill text-white">
                                 <i class="fas fa-envelope me-2" style="color: var(--shonen-cyan);"></i> Copiar Emails
                             </button>
                         @endif
                     </div>
 
-                    @if (Auth::user() && Auth::user()->is_jury)
+                    @if (Auth::user() && Auth::user()->hasRole('juez'))
                         <div class="mb-4 bg-black p-3 border border-secondary">
                             <h6 class="text-white fw-bold mb-2">Añadir Participante Manual:</h6>
                             <form method="POST" action="{{ route('events.addAssist', ['event' => $event->id]) }}" class="input-group">
@@ -503,7 +500,7 @@
                                                 {{ substr($assist->name, 0, 1) }}
                                             </div>
                                             <div>
-                                                <div class="font-bangers fs-4 text-white d-flex align-items-center gap-2 flex-wrap" style="letter-spacing: 1px;">
+                                                <div class="font-Oswald fs-4 text-white d-flex align-items-center gap-2 flex-wrap" style="letter-spacing: 1px;">
                                                     {{ $assist->name }}
 
                                                     {{-- ETIQUETA DE EQUIPO DEL USUARIO --}}
@@ -528,7 +525,7 @@
                                         </div>
 
                                         <div class="d-flex align-items-center gap-2">
-                                            @if (($event->status != "CLOSE" && $event->status != "INVALID") && Auth::user()->is_referee || ($event->status == "OPEN" && $event->created_by == Auth::user()->id))
+                                            @if (($event->status != "CLOSE" && $event->status != "INVALID") && Auth::user()->hasRole('arbitro') || ($event->status == "OPEN" && $event->created_by == Auth::user()->id))
                                                 <input type="hidden" name="participantes[{{ $assist->id }}][id]" value="{{ $assist->id }}">
                                                 <select class="form-select fw-bold bg-black text-white border-2 border-secondary" style="width: 140px;" name="participantes[{{ $assist->id }}][puesto]">
                                                     <option value="participante" {{ $assist->pivot->puesto == 'participante' ? 'selected' : '' }}>Participante</option>
@@ -557,7 +554,7 @@
                                             @if($hasRes)
                                                 @foreach($resultsByParticipant[$assist->id] as $res)
                                                     <div class="d-flex flex-wrap gap-2 border-bottom border-dark pb-2 mb-2">
-                                                        <span class="text-white font-bangers fs-5" style="letter-spacing: 1px; color: var(--sbbl-gold) !important;">{{ $res->blade }}</span>
+                                                        <span class="text-white font-Oswald fs-5" style="letter-spacing: 1px; color: var(--sbbl-gold) !important;">{{ $res->blade }}</span>
                                                         <span><i class="fas fa-plus text-secondary mx-1" style="font-size: 0.7rem;"></i> {{ $res->assist_blade }} <span class="mx-2 text-secondary">|</span> {{ $res->ratchet }} <span class="text-secondary mx-1">·</span> {{ $res->bit }}</span>
                                                     </div>
                                                 @endforeach
@@ -567,13 +564,13 @@
                                 </div>
                             @endforeach
 
-                            @if (($event->status != "CLOSE" && $event->status != "INVALID") && Auth::user()->is_referee || ($event->status == "OPEN" && $event->created_by == Auth::user()->id))
+                            @if (($event->status != "CLOSE" && $event->status != "INVALID") && Auth::user()->hasRole('arbitro') || ($event->status == "OPEN" && $event->created_by == Auth::user()->id))
                                 <div class="mt-4 p-4 border border-dark" style="background: #000;">
-                                    <h5 class="font-bangers text-white fs-3 mb-3"><i class="fas fa-lock me-2" style="color: var(--shonen-red);"></i>CIERRE DE TORNEO</h5>
+                                    <h5 class="font-Oswald text-white fs-3 mb-3"><i class="fas fa-lock me-2" style="color: var(--shonen-red);"></i>CIERRE DE TORNEO</h5>
 
-                                    <input type="url" name="iframe" autocomplete="off" class="form-control fw-bold border-2 border-secondary bg-dark text-white mb-3 p-2" placeholder="Link YouTube del Torneo" value="{{ old('iframe', $event->iframe) }}" required>
+                                    <input type="url" name="iframe" autocomplete="off" class="form-control fw-bold border-2 border-secondary bg-darkblue text-white mb-3 p-2" placeholder="Link YouTube del Torneo" value="{{ old('iframe', $event->iframe) }}" required>
 
-                                    <input type="url" name="challonge" autocomplete="off" class="form-control fw-bold border-2 border-secondary bg-dark text-white mb-3 p-2" placeholder="Link del Bracket (Challonge/Tonamel)" value="{{ old('challonge', $event->challonge) }}" required>
+                                    <input type="url" name="challonge" autocomplete="off" class="form-control fw-bold border-2 border-secondary bg-darkblue text-white mb-3 p-2" placeholder="Link del Bracket Challonge" value="{{ old('challonge', $event->challonge) }}" required>
 
                                     <div class="form-check mb-4 bg-dark p-3 border border-warning">
                                         <input class="form-check-input ms-1" type="checkbox" id="podioCheck" required style="transform: scale(1.5);">
@@ -591,7 +588,7 @@
                     @else
                         <div class="p-5 text-center border border-secondary" style="background: #000;">
                             <i class="fas fa-users-slash fa-4x mb-3 text-secondary"></i>
-                            <h4 class="font-bangers text-white fs-3">LA ARENA ESTÁ VACÍA.</h4>
+                            <h4 class="font-Oswald text-white fs-3">LA ARENA ESTÁ VACÍA.</h4>
                             <p class="text-white fw-bold">Aún no hay bladers inscritos a este evento.</p>
                         </div>
                     @endif
@@ -603,8 +600,6 @@
     </div>
 </div>
 
-
-
 @endsection
 
 @section('scripts')
@@ -613,7 +608,7 @@
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content" style="border-color: var(--shonen-red);">
             <div class="modal-header border-bottom border-dark" style="background: #000;">
-                <h5 class="modal-title font-bangers fs-3 text-white"><i class="fas fa-exclamation-triangle me-2" style="color: var(--shonen-red);"></i> ALERTA DE SISTEMA</h5>
+                <h5 class="modal-title font-Oswald fs-3 text-white"><i class="fas fa-exclamation-triangle me-2" style="color: var(--shonen-red);"></i> ALERTA DE SISTEMA</h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body text-center p-4" style="background: var(--sbbl-blue-2);">
@@ -647,7 +642,7 @@
     <div class="modal-dialog modal-dialog-centered modal-lg">
         <div class="modal-content">
             <div class="modal-header border-bottom border-dark">
-                <h5 class="modal-title font-bangers fs-3 text-white"><i class="fas fa-shield-alt me-2" style="color: var(--shonen-cyan);"></i> EQUIPOS REPRESENTADOS</h5>
+                <h5 class="modal-title font-Oswald fs-3 text-white"><i class="fas fa-shield-alt me-2" style="color: var(--shonen-cyan);"></i> EQUIPOS REPRESENTADOS</h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body p-4" style="background: var(--sbbl-blue-1);">
@@ -658,7 +653,7 @@
                                 <div class="card h-100 border-0" style="background-color: var(--sbbl-blue-2); border-top: 5px solid {{ $equipo['color'] }} !important; box-shadow: 4px 4px 0 #000; border-radius: 0;">
                                     <div class="card-header border-0 pb-0 bg-transparent">
                                         <div class="d-flex justify-content-between align-items-center">
-                                            <strong class="font-bangers fs-4 text-white text-truncate" style="letter-spacing: 1px;">{{ $equipo['name'] }}</strong>
+                                            <strong class="font-Oswald fs-4 text-white text-truncate" style="letter-spacing: 1px;">{{ $equipo['name'] }}</strong>
                                             <span class="badge bg-white text-dark rounded-circle fs-6 border border-dark">{{ $equipo['count'] }}</span>
                                         </div>
                                         <hr class="border-secondary mt-2 mb-2" style="border-width: 2px;">
@@ -743,53 +738,56 @@
 
         // --- PAYPAL CONFIGURACIÓN ---
         @if(in_array($event->beys, ["grancopa", "copapaypal"]))
-            const amount = "{{ $event->beys === 'grancopa' ? '5.00' : '2.00' }}";
+            if (document.getElementById('paypal-button-container')) {
+                const amount = "{{ $event->beys === 'grancopa' ? '5.00' : '2.00' }}";
 
-            paypal.Buttons({
-                style: { layout: 'vertical', color: 'gold', shape: 'rect', label: 'pay' },
+                paypal.Buttons({
+                    style: { layout: 'vertical', color: 'gold', shape: 'rect', label: 'pay' },
 
-                onClick: function(data, actions) { return actions.resolve(); },
-
-                createOrder: (data, actions) => {
-                    return actions.order.create({
-                        purchase_units: [{
-                            description: "Inscripción Misión: {{ $event->name }}",
-                            amount: { value: amount }
-                        }]
-                    });
-                },
-
-                onApprove: (data, actions) => {
-                    return actions.order.capture().then(function(details) {
-                        return fetch("{{ route('events.assist', ['event' => $event->id]) }}", {
-                            method: "POST",
-                            headers: {
-                                "Content-Type": "application/json",
-                                "X-CSRF-TOKEN": "{{ csrf_token() }}",
-                                "Accept": "application/json"
-                            },
-                            body: JSON.stringify({
-                                paypal_order_id: data.orderID,
-                                paypal_details: details
-                            })
-                        }).then(response => {
-                            if (!response.ok) throw new Error('Error al registrar en la base de datos');
-                            return response.json();
-                        }).then(data => {
-                            alert('¡INSCRIPCIÓN COMPLETADA CON ÉXITO!');
-                            window.location.reload();
-                        }).catch(err => {
-                            console.error(err);
-                            alert('El pago se realizó pero hubo un error de sincronización. Contacta con el Alto Mando. ID: ' + data.orderID);
+                    createOrder: (data, actions) => {
+                        return actions.order.create({
+                            purchase_units: [{
+                                description: "Inscripcion Mision: {!! str_replace('\"', '', substr($event->name, 0, 80)) !!}",
+                                amount: {
+                                    currency_code: "EUR",
+                                    value: amount
+                                }
+                            }]
                         });
-                    });
-                },
+                    },
 
-                onError: (err) => {
-                    console.error('Paypal Error:', err);
-                    alert('ERROR EN LA TRANSMISIÓN DE FONDOS. NO SE HA REALIZADO CARGO.');
-                }
-            }).render("#paypal-button-container");
+                    onApprove: (data, actions) => {
+                        return actions.order.capture().then(function(details) {
+                            return fetch("{{ route('events.assist', ['event' => $event->id]) }}", {
+                                method: "POST",
+                                headers: {
+                                    "Content-Type": "application/json",
+                                    "X-CSRF-TOKEN": "{{ csrf_token() }}",
+                                    "Accept": "application/json"
+                                },
+                                body: JSON.stringify({
+                                    paypal_order_id: data.orderID,
+                                    paypal_details: details
+                                })
+                            }).then(response => {
+                                if (!response.ok) throw new Error('Error al registrar en la base de datos');
+                                return response.json();
+                            }).then(data => {
+                                alert('¡INSCRIPCIÓN COMPLETADA CON ÉXITO!');
+                                window.location.reload();
+                            }).catch(err => {
+                                console.error(err);
+                                alert('El pago se realizó pero hubo un error de sincronización. Contacta con el Alto Mando. ID: ' + data.orderID);
+                            });
+                        });
+                    },
+
+                    onError: (err) => {
+                        console.error('Paypal Error:', err);
+                        alert('ERROR EN LA TRANSMISIÓN DE FONDOS. NO SE HA REALIZADO CARGO.');
+                    }
+                }).render("#paypal-button-container");
+            }
         @endif
 
         // --- BOTONES DE COPIAR ---

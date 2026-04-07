@@ -177,4 +177,38 @@ class User extends Authenticatable
             'slug' => $slug . '-' . str_pad($this->id, 4, '0', STR_PAD_LEFT)
         ]);
     }
+
+    // 1. Relación: Un usuario tiene muchos roles
+    public function roles()
+    {
+        return $this->belongsToMany(Role::class);
+    }
+
+    // 2. Comprobar si tiene un rol específico
+    public function hasRole($roleName)
+    {
+        return $this->roles->contains('name', $roleName);
+    }
+
+    // 3. Comprobar si tiene AL MENOS UNO de los roles del array
+    public function hasAnyRole(array $roleNames)
+    {
+        return $this->roles->whereIn('name', $roleNames)->isNotEmpty();
+    }
+
+    // 4. Asignar un rol de forma segura
+    public function assignRole($roleName)
+    {
+        $role = Role::firstOrCreate(['name' => $roleName]);
+        $this->roles()->syncWithoutDetaching([$role->id]);
+    }
+
+    // 5. Quitar un rol
+    public function removeRole($roleName)
+    {
+        $role = Role::where('name', $roleName)->first();
+        if ($role) {
+            $this->roles()->detach($role->id);
+        }
+    }
 }

@@ -19,7 +19,7 @@
 
     /* ── TÍTULO DE PÁGINA ── */
     .page-title {
-        font-family: 'Bangers', cursive;
+        font-family: 'Oswald', cursive;
         font-size: 3.5rem;
         color: var(--sbbl-gold);
         text-shadow: 2px 2px 0px #000, 4px 4px 0px var(--shonen-blue);
@@ -79,7 +79,7 @@
     }
 
     .team-rank {
-        font-family: 'Bangers', cursive;
+        font-family: 'Oswald', cursive;
         font-size: 2.5rem;
         color: #fff;
         margin-right: 20px;
@@ -106,7 +106,7 @@
     }
 
     .team-name {
-        font-family: 'Bangers', cursive;
+        font-family: 'Oswald', cursive;
         font-size: 1.8rem;
         color: #fff;
         letter-spacing: 1px;
@@ -115,7 +115,7 @@
     }
 
     .team-points {
-        font-family: 'Bangers', cursive;
+        font-family: 'Oswald', cursive;
         font-size: 1.5rem;
         color: var(--sbbl-gold);
         text-shadow: 1px 1px 0 #000;
@@ -254,7 +254,7 @@
             <div class="text-center py-5 bg-black border border-secondary" style="border-width: 3px !important; box-shadow: 6px 6px 0 #000; transform: skewX(-2deg);">
                 <div style="transform: skewX(2deg);">
                     <i class="fas fa-chart-bar mb-3 text-secondary" style="font-size: 4rem;"></i>
-                    <h3 class="font-bangers text-white fs-2 mb-2">NO HAY DATOS EN EL RADAR</h3>
+                    <h3 class="font-Oswald text-white fs-2 mb-2">NO HAY DATOS EN EL RADAR</h3>
                     <p class="text-white fw-bold mb-0">Aún no hay equipos clasificados en esta temporada.</p>
                 </div>
             </div>

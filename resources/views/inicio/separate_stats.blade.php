@@ -10,7 +10,7 @@
 
     /* ── TÍTULO Y NAVEGACIÓN ── */
     .page-title {
-        font-family: 'Bangers', cursive;
+        font-family: 'Oswald', cursive;
         font-size: 3rem;
         color: var(--sbbl-gold);
         text-shadow: 2px 2px 0px #000, 4px 4px 0px var(--shonen-red);
@@ -21,7 +21,7 @@
     }
 
     .section-subtitle {
-        font-family: 'Bangers', cursive;
+        font-family: 'Oswald', cursive;
         font-size: 2.2rem;
         color: #fff;
         letter-spacing: 1px;
@@ -34,7 +34,7 @@
     }
 
     .btn-top-action {
-        font-family: 'Bangers', cursive;
+        font-family: 'Oswald', cursive;
         font-size: 1.2rem;
         border-radius: 0;
         border: 2px solid #000;
@@ -68,7 +68,7 @@
         padding: 15px 10px !important;
     }
     thead th a {
-        font-family: 'Bangers', cursive;
+        font-family: 'Oswald', cursive;
         font-size: 1.3rem;
         color: #fff;
         text-decoration: none;
@@ -90,7 +90,7 @@
     tbody tr:hover { background-color: var(--sbbl-blue-3) !important; }
 
     .piece-name {
-        font-family: 'Bangers', cursive;
+        font-family: 'Oswald', cursive;
         font-size: 1.8rem;
         letter-spacing: 1px;
         color: #fff;
@@ -98,7 +98,7 @@
     }
 
     .stat-number {
-        font-family: 'Bangers', cursive;
+        font-family: 'Oswald', cursive;
         font-size: 1.6rem;
         color: #fff;
         text-shadow: 1px 1px 0 #000;
@@ -107,7 +107,7 @@
     /* Barras de Energía (Win Rate) */
     .energy-bar-bg { background-color: #000; border: 2px solid #000; height: 14px; transform: skewX(-15deg); margin-top: 5px; }
     .energy-bar-fill { height: 100%; transition: width 0.5s ease; }
-    .win-rate-text { font-family: 'Bangers', cursive; font-size: 1.6rem; line-height: 1; text-shadow: 2px 2px 0 #000; }
+    .win-rate-text { font-family: 'Oswald', cursive; font-size: 1.6rem; line-height: 1; text-shadow: 2px 2px 0 #000; }
 
     .wr-s { color: #00ff00; } .bg-wr-s { background: #00ff00; box-shadow: 0 0 10px rgba(0,255,0,0.5); }
     .wr-a { color: var(--shonen-cyan); } .bg-wr-a { background: var(--shonen-cyan); box-shadow: 0 0 10px rgba(0,255,204,0.5); }
