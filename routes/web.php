@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Admin\TreasuryController;
 use App\Http\Controllers\BeybladeCollectionController;
 use App\Http\Controllers\BeybladeDatabaseController;
 use App\Http\Controllers\CarritoController;
@@ -258,11 +259,14 @@ Route::group(['middleware' => 'admin'], function () {
     Route::get('/nacional/importar', [InicioController::class, 'mostrarFormulario'])->name('nacional.importar');
 Route::get('/beyblade-database', [BeybladeDatabaseController::class, 'index'])->name('database.index');
 
-Route::get('/admin/inventory', [App\Http\Controllers\Admin\InventoryController::class, 'index'])->name('admin.inventory.index');
+Route::get('/dashboard/admin/inventory', [App\Http\Controllers\Admin\InventoryController::class, 'index'])->name('admin.inventory.index');
 Route::post('/admin/inventory', [App\Http\Controllers\Admin\InventoryController::class, 'store'])->name('admin.inventory.store');
 Route::put('/admin/inventory/{id}', [App\Http\Controllers\Admin\InventoryController::class, 'update'])->name('admin.inventory.update');
 Route::delete('/admin/inventory/{id}', [App\Http\Controllers\Admin\InventoryController::class, 'destroy'])->name('admin.inventory.destroy');
-// Rutas de partes admin (blades, ratchets, bits)
+Route::get('/dashboard/admin/treasury', [TreasuryController::class, 'index'])->name('admin.treasury.index');
+Route::post('/admin/treasury/income', [TreasuryController::class, 'storeIncome'])->name('admin.treasury.income.store');
+Route::post('/admin/treasury/expense', [TreasuryController::class, 'storeExpense'])->name('admin.treasury.expense.store');
+Route::post('/events/{event}/paypal-pending', [EventController::class, 'logPendingPayment'])->name('events.paypal.pending');
 
 Route::get('partes/{type}', [BeybladeDatabaseController::class, 'indexPartes']);
 Route::get('partes/{type}/{id}', [BeybladeDatabaseController::class, 'show']); // Para editar

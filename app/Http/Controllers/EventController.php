@@ -373,66 +373,98 @@ class EventController extends Controller
 
     // --- GESTIÓN DE ASISTENCIA ---
 
-    public function assist(Request $request, Event $event)
-{
-    $userId = Auth::id();
+    public function assist(Request $request, \App\Models\Event $event)
+    {
+        $userId = Auth::id();
 
-    // 1. Iniciamos una transacción de Base de Datos.
-    // Si algo falla dentro de este bloque, NADA se guarda (Rollback).
-    return DB::transaction(function () use ($request, $event, $userId) {
+        // 1. Iniciamos una transacción de Base de Datos.
+        // Si algo falla dentro de este bloque, NADA se guarda (Rollback).
+        return \Illuminate\Support\Facades\DB::transaction(function () use ($request, $event, $userId) {
 
-        $date = \Carbon\Carbon::parse($event->date);
-        $hoy = \Carbon\Carbon::now()->format('Y-m-d');
+            $date = \Carbon\Carbon::parse($event->date);
+            $hoy = \Carbon\Carbon::now()->format('Y-m-d');
 
-        // --- VALIDACIONES PREVIAS ---
+            // --- VALIDACIONES PREVIAS ---
 
-        // A. Verificar si el evento sigue abierto y no ha pasado la fecha
-        if ($event->status !== 'OPEN' || $event->date < $hoy) {
-            return response()->json(['error' => 'El evento no acepta más inscripciones.'], 422);
-        }
-
-        // B. Lógica de Torneos Ranking (Semanal y Mensual)
-        if (in_array($event->beys, ['ranking', 'rankingplus'])) {
-
-            // Bloqueo de lectura para evitar el truco de "múltiples pestañas"
-            DB::table('assist_user_event')->where('user_id', $userId)->lockForUpdate()->get();
-
-            // Límite Semanal
-            $registeredThisWeek = DB::table('assist_user_event')
-                ->join('events', 'assist_user_event.event_id', '=', 'events.id')
-                ->where('assist_user_event.user_id', $userId)
-                ->whereBetween('events.date', [$date->copy()->startOfWeek(), $date->copy()->endOfWeek()])
-                ->whereIn('events.beys', ['ranking', 'rankingplus'])
-                ->where('events.id', '!=', $event->id)
-                ->exists();
-
-            if ($registeredThisWeek) {
-                return response()->json(['error' => 'Ya estás inscrito en un torneo de ranking esta semana.'], 422);
+            // A. Verificar si el evento sigue abierto y no ha pasado la fecha
+            if ($event->status !== 'OPEN' || $event->date < $hoy) {
+                return response()->json(['error' => 'El evento no acepta más inscripciones.'], 422);
             }
 
-            // Límite Mensual (Máximo 2)
-            $monthlyCount = DB::table('assist_user_event')
-                ->join('events', 'assist_user_event.event_id', '=', 'events.id')
-                ->where('assist_user_event.user_id', $userId)
-                ->whereBetween('events.date', [$date->copy()->startOfMonth(), $date->copy()->endOfMonth()])
-                ->whereIn('events.beys', ['ranking', 'rankingplus'])
-                ->count();
+            // B. Lógica de Torneos Ranking (Semanal y Mensual)
+            if (in_array($event->beys, ['ranking', 'rankingplus'])) {
 
-            if ($monthlyCount >= 2) {
-                return response()->json(['error' => 'Límite mensual de 2 torneos ranking alcanzado.'], 422);
+                // Bloqueo de lectura para evitar el truco de "múltiples pestañas"
+                \Illuminate\Support\Facades\DB::table('assist_user_event')->where('user_id', $userId)->lockForUpdate()->get();
+
+                // Límite Semanal
+                $registeredThisWeek = \Illuminate\Support\Facades\DB::table('assist_user_event')
+                    ->join('events', 'assist_user_event.event_id', '=', 'events.id')
+                    ->where('assist_user_event.user_id', $userId)
+                    ->whereBetween('events.date', [$date->copy()->startOfWeek(), $date->copy()->endOfWeek()])
+                    ->whereIn('events.beys', ['ranking', 'rankingplus'])
+                    ->where('events.id', '!=', $event->id)
+                    ->exists();
+
+                if ($registeredThisWeek) {
+                    return response()->json(['error' => 'Ya estás inscrito en un torneo de ranking esta semana.'], 422);
+                }
+
+                // Límite Mensual (Máximo 2)
+                $monthlyCount = \Illuminate\Support\Facades\DB::table('assist_user_event')
+                    ->join('events', 'assist_user_event.event_id', '=', 'events.id')
+                    ->where('assist_user_event.user_id', $userId)
+                    ->whereBetween('events.date', [$date->copy()->startOfMonth(), $date->copy()->endOfMonth()])
+                    ->whereIn('events.beys', ['ranking', 'rankingplus'])
+                    ->count();
+
+                if ($monthlyCount >= 2) {
+                    return response()->json(['error' => 'Límite mensual de 2 torneos ranking alcanzado.'], 422);
+                }
             }
-        }
 
-        // --- VALIDACIÓN DE PAGO (PAYPAL) ---
+            // --- VALIDACIÓN Y CIERRE DE PAGO (PAYPAL) ---
             if (in_array($event->beys, ["grancopa", "copapaypal"])) {
                 if (!$request->has('paypal_order_id')) {
                     return response()->json(['error' => 'Se requiere confirmación de pago para este evento.'], 402);
                 }
-                // ¡ELIMINAMOS el $pagoInfo de aquí para que no rompa la base de datos!
+
+                // Extraemos la comisión de PayPal desde los detalles del frontend (si vienen)
+                $fee = 0;
+                if (isset($request->paypal_details['purchase_units'][0]['payments']['captures'][0]['seller_receivable_breakdown']['paypal_fee']['value'])) {
+                    $fee = (float) $request->paypal_details['purchase_units'][0]['payments']['captures'][0]['seller_receivable_breakdown']['paypal_fee']['value'];
+                }
+
+                // Buscamos el ingreso pendiente y lo pasamos a completado
+                $log = \App\Models\TreasuryLog::where('reference_id', $request->paypal_order_id)
+                    ->where('status', 'pendiente')
+                    ->first();
+
+                if ($log) {
+                    $log->status = 'completado';
+                    $log->fee = $fee;
+                    $log->net_amount = $log->gross_amount - $fee;
+                    $log->description = str_replace('Pendiente', 'Completada', $log->description);
+                    $log->save();
+                } else {
+                    // FALLBACK: Si por temas de red/adblock no se creó el pendiente, lo creamos aquí directamente finalizado
+                    $gross = $event->beys === 'grancopa' ? 5.00 : 2.00;
+                    \App\Models\TreasuryLog::create([
+                        'type' => 'ingreso',
+                        'category' => 'Inscripción Torneo',
+                        'gross_amount' => $gross,
+                        'fee' => $fee,
+                        'net_amount' => $gross - $fee,
+                        'status' => 'completado',
+                        'description' => "Inscripción Completada - " . auth()->user()->name . " - " . $event->name,
+                        'reference_id' => $request->paypal_order_id,
+                        'user_id' => auth()->id(),
+                        'event_id' => $event->id,
+                    ]);
+                }
             }
 
             // --- REGISTRO FINAL ---
-            // Lo dejamos exactamente como lo tenías tú originalmente:
             $attached = $event->users()->syncWithoutDetaching([$userId]);
 
             // Comprobamos si realmente se añadió (attached) o si ya existía
@@ -942,5 +974,24 @@ private function sendResponse($type, $message, $request, $code = 200)
         if ($count >= 9) return [4, 3, 2, 1, 1, 1, 1];
         if ($count >= 6) return [3, 2, 1, 1, 1, 1, 1];
         return [2, 1, 1, 1, 1, 1, 1];
+    }
+
+    public function logPendingPayment(Request $request, \App\Models\Event $event)
+    {
+        // Creamos el registro en tesorería con estado PENDIENTE
+        \App\Models\TreasuryLog::create([
+            'type' => 'ingreso',
+            'category' => 'Inscripción Torneo',
+            'gross_amount' => $request->amount,
+            'fee' => 0, // Aún no sabemos la comisión exacta
+            'net_amount' => $request->amount,
+            'status' => 'pendiente', // <--- LA CLAVE
+            'description' => "Inscripción Pendiente - " . auth()->user()->name . " - " . $event->name,
+            'reference_id' => $request->paypal_order_id, // El ID temporal de PayPal
+            'user_id' => auth()->id(),
+            'event_id' => $event->id,
+        ]);
+
+        return response()->json(['success' => true]);
     }
 }

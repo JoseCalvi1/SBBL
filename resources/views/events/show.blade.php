@@ -737,6 +737,7 @@
         setTimeout(() => { applyColors($('#app strong, #app b, #app .fw-bold')); }, 1000);
 
         // --- PAYPAL CONFIGURACIÓN ---
+        // --- PAYPAL CONFIGURACIÓN ---
         @if(in_array($event->beys, ["grancopa", "copapaypal"]))
             if (document.getElementById('paypal-button-container')) {
                 const amount = "{{ $event->beys === 'grancopa' ? '5.00' : '2.00' }}";
@@ -747,12 +748,28 @@
                     createOrder: (data, actions) => {
                         return actions.order.create({
                             purchase_units: [{
-                                description: "Inscripcion Mision: {!! str_replace('\"', '', substr($event->name, 0, 80)) !!}",
+                                description: "Inscripcion Torneo: {!! str_replace('\"', '', substr($event->name, 0, 80)) !!}",
                                 amount: {
                                     currency_code: "EUR",
                                     value: amount
                                 }
                             }]
+                        }).then((orderID) => {
+                            // MAGIA: Avisamos al servidor de que el usuario ha iniciado un pago
+                            fetch("{{ route('events.paypal.pending', ['event' => $event->id]) }}", {
+                                method: "POST",
+                                headers: {
+                                    "Content-Type": "application/json",
+                                    "X-CSRF-TOKEN": "{{ csrf_token() }}",
+                                    "Accept": "application/json"
+                                },
+                                body: JSON.stringify({
+                                    paypal_order_id: orderID,
+                                    amount: amount
+                                })
+                            });
+
+                            return orderID; // Le devolvemos el ID a PayPal para que abra la ventanita
                         });
                     },
 
@@ -777,7 +794,7 @@
                                 window.location.reload();
                             }).catch(err => {
                                 console.error(err);
-                                alert('El pago se realizó pero hubo un error de sincronización. Contacta con el Alto Mando. ID: ' + data.orderID);
+                                alert('El pago se realizó pero hubo un error de sincronización. Contacta con la Organización. ID: ' + data.orderID);
                             });
                         });
                     },

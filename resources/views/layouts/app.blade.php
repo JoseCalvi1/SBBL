@@ -601,6 +601,7 @@
                                         <a href="{{ route('admin.dashboard.reviews') }}" class="sidebar-link"><div><i class="fas fa-chart-bar"></i> Revisiones</div></a>
                                         <a href="{{ route('productos.index') }}" class="sidebar-link"><div><i class="fas fa-shopping-bag"></i> Productos</div></a>
                                         <a href="{{ route('profiles.indexAdmin') }}" class="sidebar-link"><div><i class="fas fa-user-shield"></i> Gestión</div></a>
+                                        <a href="{{ route('admin.treasury.index') }}" class="sidebar-link"><div><i class="fas fa-file-invoice-dollar"></i> Tesorería</div></a>
                                         <a href="{{ route('profiles.indexAdminX') }}" class="sidebar-link"><div><i class="fas fa-user-cog"></i> Usuarios X</div></a>
                                         <a href="{{ route('trophies.index') }}" class="sidebar-link"><div><i class="fas fa-award"></i> Asignaciones</div></a>
                                         <a href="{{ route('index.anuncios') }}" class="sidebar-link"><div><i class="fas fa-bullhorn"></i> Anuncios</div></a>

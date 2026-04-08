@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Subscription;
 use App\Models\Plan;
+use App\Models\TreasuryLog;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Http;
@@ -74,6 +75,28 @@ class PayPalController extends Controller
 
                 if (!$subscription->save()) {
                     throw new \Exception('No se pudo crear la suscripción en la base de datos.');
+                }
+
+                // 💸 REGISTRO AUTOMÁTICO EN TESORERÍA (Solo el pago inicial)
+                // Usamos el precio del plan almacenado en tu base de datos
+                $grossAmount = $request->period === 'monthly' ? $plan->monthly_price : $plan->annual_price;
+
+                if ($grossAmount > 0) {
+                    // Calculamos la comisión de PayPal España aprox (3.4% + 0.35€)
+                    // Ajusta estos valores a la tarifa real que te apliquen.
+                    $estimatedFee = round(($grossAmount * 0.034) + 0.35, 2);
+
+                    TreasuryLog::create([
+                        'type' => 'ingreso',
+                        'category' => 'Suscripción',
+                        'gross_amount' => $grossAmount,
+                        'fee' => $estimatedFee,
+                        'net_amount' => $grossAmount - $estimatedFee,
+                        'description' => "Alta Suscripción " . ucfirst($plan->name) . " - " . $user->name,
+                        'reference_id' => $request->subscription_id,
+                        'user_id' => $user->id,
+                        // 'event_id' => null, // No aplica a eventos
+                    ]);
                 }
             });
 

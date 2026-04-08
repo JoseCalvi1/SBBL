@@ -37,7 +37,7 @@
 
     <div class="text-center mb-5">
         <h2 class="font-bangers" style="font-size: 3.5rem; color: var(--sbbl-gold); text-shadow: 2px 2px 0px #000, 4px 4px 0px var(--shonen-red);">
-            <i class="fas fa-boxes me-2 text-white" style="text-shadow:none;"></i> ARSENAL Y MATERIAL
+            <i class="fas fa-boxes me-2 text-white" style="text-shadow:none;"></i> MATERIAL
         </h2>
         <p class="text-white fw-bold fs-5">Control de inventario, desgaste y custodios por provincia.</p>
     </div>

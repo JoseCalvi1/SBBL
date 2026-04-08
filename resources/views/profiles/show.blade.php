@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Perfil de Piloto - SBBL')
+@section('title', 'Perfil de Blader - SBBL')
 
 {{--
 |--------------------------------------------------------------------------

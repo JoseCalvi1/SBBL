@@ -54,11 +54,11 @@
         color: #000;
     }
 
-    /* ── TARJETAS DE BLADERS ── */
+    /* ── TARJETAS DE BLADERS (Base) ── */
     .tarjeta {
         background-size: cover;
         background-position: center;
-        border-radius: 0 15px 0 15px; /* Estilo panel shonen */
+        border-radius: 0 15px 0 15px;
         border: 3px solid #000;
         box-shadow: 6px 6px 0px rgba(0,0,0,0.8);
         padding: 20px;
@@ -67,17 +67,71 @@
         color: #fff;
         position: relative;
         overflow: hidden;
-        transition: all .2s ease;
+        transition: all .3s ease;
         cursor: pointer;
         min-height: 250px;
         background-color: var(--sbbl-blue-3);
     }
-    .tarjeta:hover {
+
+    /* Hover genérico para usuarios SIN suscripción */
+    .tarjeta:not([class*="suscripcion-"]):hover {
         transform: translate(-3px, -3px);
-        box-shadow: 9px 9px 0px var(--sbbl-gold);
-        border-color: var(--sbbl-gold);
+        box-shadow: 9px 9px 0px var(--shonen-cyan);
+        border-color: var(--shonen-cyan);
     }
 
+    /* ── EFECTOS ÉPICOS DE SUSCRIPCIÓN ── */
+
+    /* Nivel 1: Bronce */
+    .tarjeta.suscripcion-nivel-1 {
+        border-color: #cd7f32;
+        box-shadow: 6px 6px 0px rgba(205, 127, 50, 0.5), inset 0 0 15px rgba(205, 127, 50, 0.4);
+    }
+    .tarjeta.suscripcion-nivel-1:hover {
+        transform: translate(-3px, -3px);
+        box-shadow: 9px 9px 0px #cd7f32, inset 0 0 25px rgba(205, 127, 50, 0.8);
+    }
+    .suscripcion-nivel-1.blader-name {
+        color: #cd7f32 !important;
+        text-shadow: 2px 2px 0px #000, 0 0 8px rgba(205, 127, 50, 0.8);
+    }
+
+    /* Nivel 2: Plata / Azul Gélido */
+    .tarjeta.suscripcion-nivel-2 {
+        border-color: #c0e5fb;
+        box-shadow: 6px 6px 0px rgba(192, 229, 251, 0.5), inset 0 0 15px rgba(192, 229, 251, 0.4);
+    }
+    .tarjeta.suscripcion-nivel-2:hover {
+        transform: translate(-3px, -3px);
+        box-shadow: 9px 9px 0px #c0e5fb, inset 0 0 25px rgba(192, 229, 251, 0.9);
+    }
+    .suscripcion-nivel-2.blader-name {
+        color: #c0e5fb !important;
+        text-shadow: 2px 2px 0px #000, 0 0 10px rgba(192, 229, 251, 0.8);
+    }
+
+    /* Nivel 3: Oro (Con Animación de Aura) */
+    @keyframes aura-oro {
+        0% { box-shadow: 6px 6px 0px rgba(255, 215, 0, 0.6), inset 0 0 15px rgba(255, 215, 0, 0.3); }
+        50% { box-shadow: 6px 6px 0px rgba(255, 215, 0, 0.9), inset 0 0 30px rgba(255, 215, 0, 0.6); }
+        100% { box-shadow: 6px 6px 0px rgba(255, 215, 0, 0.6), inset 0 0 15px rgba(255, 215, 0, 0.3); }
+    }
+    .tarjeta.suscripcion-nivel-3 {
+        border-color: var(--sbbl-gold);
+        animation: aura-oro 2.5s infinite alternate;
+    }
+    .tarjeta.suscripcion-nivel-3:hover {
+        transform: translate(-3px, -3px) scale(1.02);
+        box-shadow: 9px 9px 0px var(--sbbl-gold), inset 0 0 40px rgba(255, 215, 0, 0.8) !important;
+        animation: none; /* Pausamos la animación al hacer hover para dejar el destello al máximo */
+    }
+    .suscripcion-nivel-3.blader-name {
+        color: var(--sbbl-gold) !important;
+        text-shadow: 2px 2px 0px #000, 0 0 12px var(--sbbl-gold);
+        font-size: 1.8rem !important; /* Más grande para el rango máximo */
+    }
+
+    /* ── RESTO DE ELEMENTOS DE TARJETA ── */
     .efecto-hover {
         position: absolute; inset: 0;
         background: linear-gradient(135deg, rgba(255,255,255,0.1), transparent);
@@ -105,7 +159,6 @@
         width: 90px; height: 90px;
         position: absolute; top: 5px; left: 5px;
     }
-    /* Estilo de avatar (100% Redondo) */
     .img-blader {
         z-index: 1;
         border-radius: 50%;
@@ -119,8 +172,9 @@
         font-family: 'Oswald', cursive;
         font-size: 1.6rem;
         letter-spacing: 1px;
-        color: var(--sbbl-gold);
+        color: #fff; /* Color por defecto para no suscritos */
         text-shadow: 2px 2px 0 #000;
+        transition: all 0.3s ease;
     }
 
     /* Etiqueta Open To Work */
@@ -270,7 +324,8 @@
                 style="background-image: url('{{ $blader->fondo_url }}')"
                 data-bs-toggle="modal"
                 data-bs-target="#bladerModal"
-                data-blader-id="{{ $blader->id }}">
+                data-blader-id="{{ $blader->id }}"
+                data-sub-class="{{ $subscriptionClass }}">
 
                 <div class="avatar-container">
                     <img src="{{ $blader->avatar_url }}" class="img-blader" loading="lazy" alt="Avatar">
@@ -279,7 +334,7 @@
 
                 <div class="text-overlay">
                     <div class="info text-center">
-                        <h5 class="{{ $subscriptionClass }}">{{ $blader->user->name }}</h5>
+                        <h5 class="blader-name {{ $subscriptionClass }}">{{ $blader->user->name }}</h5>
                         <p class="mb-1 texto-limitado" title="{{ $blader->subtitulo }}">{{ $blader->subtitulo }}</p>
                         <p class="fw-bold text-white mb-0 mt-1" style="font-size:0.8rem; border-top: 1px dashed #555; padding-top: 5px;">{{ $blader->region->name ?? 'ZONA DESCONOCIDA' }}</p>
                     </div>
@@ -343,6 +398,8 @@ document.addEventListener('DOMContentLoaded', () => {
     bladerModal.addEventListener('show.bs.modal', function (event) {
         const button = event.relatedTarget;
         const bladerId = button.getAttribute('data-blader-id');
+        // Extraemos la clase de suscripción del botón para el modal
+        const subClass = button.getAttribute('data-sub-class') || '';
         const modalBody = bladerModal.querySelector('.modal-body');
 
         if (!bladerId) {
@@ -360,14 +417,15 @@ document.addEventListener('DOMContentLoaded', () => {
                 return response.json();
             })
             .then(data => {
-                renderModalContent(modalBody, data, bladerId);
+                // Le pasamos la clase extra a la función que pinta el modal
+                renderModalContent(modalBody, data, bladerId, subClass);
             })
             .catch(error => {
                 modalBody.innerHTML = '<div class="text-center py-5"><i class="fas fa-exclamation-triangle text-danger fa-3x"></i><p class="mt-2 text-danger font-Oswald fs-4">ERROR AL CARGAR LA INFORMACIÓN.</p></div>';
             });
     });
 
-    function renderModalContent(container, data, realBladerId) {
+    function renderModalContent(container, data, realBladerId, subClass) {
         const freeAgentText = data.free_agent === 'Sí' ? 'LIBRE PARA RECLUTAR' : 'COMPROMETIDO';
         const freeAgentClass = data.free_agent === 'Sí' ? 'color: var(--shonen-cyan);' : 'color: var(--shonen-red);';
 
@@ -447,7 +505,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         <img src="${data.imagen}" class="img-blader-modal">
                         <img src="${data.marco}" class="marco-blader-modal">
                     </div>
-                    <h3 class="font-Oswald" style="color: var(--sbbl-gold); text-shadow: 2px 2px 0 #000; font-size: 2.2rem; line-height: 1;">${data.nombre}</h3>
+                    <h3 class="font-Oswald blader-name ${subClass}" style="text-shadow: 2px 2px 0 #000; font-size: 2.2rem; line-height: 1; ${!subClass ? 'color: #fff;' : ''}">${data.nombre}</h3>
                     <p class="fst-italic fw-bold text-white bg-dark d-inline-block px-3 py-1 mt-2" style="border-left: 4px solid var(--shonen-blue); font-size: 0.9rem;">${data.subtitulo || 'Sin lema'}</p>
 
                     <hr class="border-dark my-4" style="border-width: 3px; opacity: 1;">

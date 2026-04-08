@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
 use App\Models\Subscription;
+use App\Models\TreasuryLog;
 use Illuminate\Support\Facades\Log;
 
 class PayPalWebhookController extends Controller
@@ -125,16 +126,38 @@ class PayPalWebhookController extends Controller
                     $sub->status = 'active';
                     $sub->save();
                     Log::info("Pago completado para {$subId}. Nueva fecha de finalización: {$sub->ended_at}");
-                    break;
 
-                case 'BILLING.SUBSCRIPTION.PAYMENT.FAILED':
-                    $sub->status = 'pending';
-                    $sub->save();
-                    Log::info("Pago fallido para {$subId}, suscripción marcada como pendiente");
-                    break;
+                    // 💸 REGISTRO AUTOMÁTICO EN TESORERÍA (Renovaciones)
+                    try {
+                        // Extraemos la cantidad real que PayPal cobró (viene en el JSON del webhook)
+                        $grossAmount = isset($resource['amount']['total'])
+                                       ? (float) $resource['amount']['total']
+                                       : 0;
 
-                default:
-                    Log::info("Evento no manejado: {$event}");
+                        // Extraemos la comisión real que PayPal se quedó (transaction_fee)
+                        $fee = isset($resource['transaction_fee']['value'])
+                               ? (float) $resource['transaction_fee']['value']
+                               : 0;
+
+                        if ($grossAmount > 0) {
+                            $userName = $sub->user ? $sub->user->name : 'Usuario Desconocido';
+                            $desc = "Renovación Suscripción - " . $userName;
+
+                            TreasuryLog::create([
+                                'type' => 'ingreso',
+                                'category' => 'Suscripción',
+                                'gross_amount' => $grossAmount,
+                                'fee' => $fee,
+                                'net_amount' => $grossAmount - $fee,
+                                'description' => $desc,
+                                'reference_id' => $resource['id'] ?? $subId, // ID de la transacción concreta
+                                'user_id' => $sub->user_id,
+                            ]);
+                            Log::info("Ingreso registrado en tesorería para transacción: " . ($resource['id'] ?? $subId));
+                        }
+                    } catch (\Exception $e) {
+                        Log::error("Error registrando la tesorería del webhook: " . $e->getMessage());
+                    }
                     break;
             }
 
