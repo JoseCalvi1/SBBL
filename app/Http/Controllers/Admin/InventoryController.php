@@ -11,21 +11,60 @@ use App\Models\User;
 
 class InventoryController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $items = InventoryItem::with(['category', 'province', 'custodian'])->orderBy('province_id')->get();
-        $categories = InventoryCategory::all();
+        $categories = InventoryCategory::orderBy('name')->get();
         $provinces = Province::orderBy('name')->get();
         // Solo traemos a usuarios que sean jueces, árbitros o admins para ser custodios
         $staffUsers = User::whereHas('roles', function($q) {
             $q->whereIn('name', ['admin', 'juez', 'arbitro']);
         })->orderBy('name')->get();
 
-        // Estadísticas rápidas
+        // 1. INICIAMOS LA CONSULTA
+        $query = InventoryItem::with(['category', 'province', 'custodian'])
+            ->select('inventory_items.*'); // Seleccionamos solo los campos del item para evitar conflictos
+
+        // 2. APLICAMOS FILTROS SI EXISTEN
+        if ($request->filled('search')) {
+            $query->where(function($q) use ($request) {
+                $q->where('inventory_items.name', 'like', '%' . $request->search . '%')
+                  ->orWhere('inventory_items.brand', 'like', '%' . $request->search . '%');
+            });
+        }
+        if ($request->filled('category_id')) {
+            $query->where('inventory_items.category_id', $request->category_id);
+        }
+        if ($request->filled('province_id')) {
+            $query->where('inventory_items.province_id', $request->province_id);
+        }
+        if ($request->filled('status')) {
+            $query->where('inventory_items.status', $request->status);
+        }
+
+        // 3. ORDENACIÓN DINÁMICA POR COLUMNAS
+        $sort = $request->get('sort', 'created_at');
+        $dir = $request->get('dir', 'desc');
+
+        if ($sort === 'name' || $sort === 'status') {
+            $query->orderBy('inventory_items.' . $sort, $dir);
+        } elseif ($sort === 'category') {
+            $query->leftJoin('inventory_categories', 'inventory_items.category_id', '=', 'inventory_categories.id')
+                  ->orderBy('inventory_categories.name', $dir);
+        } elseif ($sort === 'province') {
+            $query->leftJoin('provinces', 'inventory_items.province_id', '=', 'provinces.id')
+                  ->orderBy('provinces.name', $dir);
+        } else {
+            $query->orderBy('inventory_items.created_at', 'desc');
+        }
+
+        // 4. PAGINACIÓN (15 registros por página manteniendo los filtros en la URL)
+        $items = $query->paginate(15)->appends($request->all());
+
+        // 5. ESTADÍSTICAS GLOBALES (Calculadas sobre el total, ignorando los filtros)
         $stats = (object)[
-            'total' => $items->count(),
-            'criticos' => $items->whereIn('status', ['critico', 'fuera_combate'])->count(),
-            'operativos' => $items->whereIn('status', ['impecable', 'operativo'])->count(),
+            'total' => InventoryItem::count(),
+            'criticos' => InventoryItem::whereIn('status', ['critico', 'fuera_combate'])->count(),
+            'operativos' => InventoryItem::whereIn('status', ['impecable', 'operativo'])->count(),
         ];
 
         return view('admin.inventory.index', compact('items', 'categories', 'provinces', 'staffUsers', 'stats'));

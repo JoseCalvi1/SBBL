@@ -1,16 +1,22 @@
 @extends('layouts.app')
 
-@section('title', 'Arsenal SBBL')
+@section('title', 'Inventario SBBL')
 
 @section('styles')
 <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
 <style>
     .table-tactical { border: 3px solid #000; box-shadow: 6px 6px 0 #000; background: var(--sbbl-blue-2); margin-bottom: 0; }
     .table-tactical thead { background: #000; border-bottom: 4px solid var(--sbbl-gold); }
-    .table-tactical th { font-family: 'Oswald', sans-serif; color: var(--shonen-cyan); font-size: 1.1rem; letter-spacing: 1px; text-transform: uppercase; border: none; padding: 15px; }
+    .table-tactical th { font-family: 'Oswald', sans-serif; font-size: 1.1rem; letter-spacing: 1px; text-transform: uppercase; border: none; padding: 15px; }
     .table-tactical td { background: transparent; color: #fff; border-bottom: 1px solid rgba(255,255,255,0.1); vertical-align: middle; padding: 15px; }
     .table-tactical tbody tr:hover { background: rgba(0, 0, 0, 0.4); }
     .stat-card { border: 3px solid #000; padding: 20px; text-align: center; box-shadow: 5px 5px 0 #000; transition: 0.2s; }
+
+    /* Cabeceras clicables para ordenar */
+    .sort-link { color: var(--shonen-cyan); text-decoration: none; transition: color 0.2s; }
+    .sort-link:hover { color: #fff; text-shadow: 0 0 5px var(--shonen-cyan); }
+    .sort-icon { margin-left: 5px; opacity: 0.5; }
+    .sort-active { opacity: 1; color: var(--sbbl-gold); }
 
     /* Colores de Estado */
     .status-impecable { background-color: #198754; color: #fff; }
@@ -29,6 +35,17 @@
         color: #fff !important;
         line-height: 36px;
     }
+
+    /* ── PAGINACIÓN ── */
+    .pagination .page-item .page-link {
+        background: #000; border: 2px solid #fff; color: #fff;
+        font-family: 'Oswald', cursive; font-size: 1.2rem; border-radius: 0;
+        margin: 0 3px; transform: skewX(-10deg);
+        box-shadow: 3px 3px 0 #000;
+    }
+    .pagination .page-item.active .page-link {
+        background: var(--sbbl-gold); color: #000; border-color: #000; box-shadow: 2px 2px 0 var(--shonen-red);
+    }
 </style>
 @endsection
 
@@ -46,7 +63,7 @@
         <div class="alert alert-shonen alert-shonen-success mb-4 text-center text-white"><div><i class="fas fa-check-circle me-2"></i>{{ session('success') }}</div></div>
     @endif
 
-    <div class="row g-3 mb-5">
+    <div class="row g-3 mb-4">
         <div class="col-md-4">
             <div class="stat-card" style="background: var(--sbbl-blue-2);">
                 <h6 class="text-white-50 font-bangers fs-5 m-0">TOTAL MATERIAL</h6>
@@ -67,6 +84,48 @@
         </div>
     </div>
 
+    <div class="p-3 mb-4" style="background: var(--sbbl-blue-2); border: 3px solid #000; box-shadow: 4px 4px 0 #000;">
+        <form method="GET" action="{{ route('admin.inventory.index') }}" class="row g-2 align-items-end">
+            <div class="col-md-3">
+                <label class="text-white fw-bold mb-1 small text-uppercase font-Oswald">Buscar Artículo</label>
+                <input type="text" name="search" class="form-control bg-dark text-white border-secondary" placeholder="Nombre o marca..." value="{{ request('search') }}">
+            </div>
+            <div class="col-md-2">
+                <label class="text-white fw-bold mb-1 small text-uppercase font-Oswald">Categoría</label>
+                <select name="category_id" class="form-select bg-dark text-white border-secondary">
+                    <option value="">Todas</option>
+                    @foreach($categories as $cat)
+                        <option value="{{ $cat->id }}" {{ request('category_id') == $cat->id ? 'selected' : '' }}>{{ $cat->name }}</option>
+                    @endforeach
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label class="text-white fw-bold mb-1 small text-uppercase font-Oswald">Provincia</label>
+                <select name="province_id" class="form-select bg-dark text-white border-secondary">
+                    <option value="">Todas</option>
+                    @foreach($provinces as $prov)
+                        <option value="{{ $prov->id }}" {{ request('province_id') == $prov->id ? 'selected' : '' }}>{{ $prov->name }}</option>
+                    @endforeach
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label class="text-white fw-bold mb-1 small text-uppercase font-Oswald">Estado Vital</label>
+                <select name="status" class="form-select bg-dark text-white border-secondary">
+                    <option value="">Todos</option>
+                    <option value="impecable" {{ request('status') == 'impecable' ? 'selected' : '' }}>Impecable (S)</option>
+                    <option value="operativo" {{ request('status') == 'operativo' ? 'selected' : '' }}>Operativo (A)</option>
+                    <option value="fatigado" {{ request('status') == 'fatigado' ? 'selected' : '' }}>Fatigado (B)</option>
+                    <option value="critico" {{ request('status') == 'critico' ? 'selected' : '' }}>Crítico (C)</option>
+                    <option value="fuera_combate" {{ request('status') == 'fuera_combate' ? 'selected' : '' }}>Fuera Combate (F)</option>
+                </select>
+            </div>
+            <div class="col-md-3 d-flex gap-2">
+                <button type="submit" class="btn btn-info fw-bold border border-dark flex-grow-1 font-Oswald fs-5"><i class="fas fa-search me-1"></i> FILTRAR</button>
+                <a href="{{ route('admin.inventory.index') }}" class="btn btn-secondary fw-bold border border-dark" title="Limpiar Filtros"><i class="fas fa-undo-alt mt-1"></i></a>
+            </div>
+        </form>
+    </div>
+
     <div class="command-panel p-4 mb-5" style="background: rgba(0,0,0,0.5); border: 2px solid var(--shonen-cyan);">
 
         <div class="d-flex flex-column flex-md-row justify-content-between align-items-center mb-4 gap-3">
@@ -82,11 +141,27 @@
             <table class="table table-tactical text-center align-middle">
                 <thead>
                     <tr>
-                        <th class="text-start">Artículo</th>
-                        <th>Categoría</th>
-                        <th>Provincia</th>
+                        <th class="text-start">
+                            <a href="{{ request()->fullUrlWithQuery(['sort' => 'name', 'dir' => request('dir') == 'asc' && request('sort') == 'name' ? 'desc' : 'asc']) }}" class="sort-link">
+                                Artículo <i class="fas fa-sort{{ request('sort') == 'name' ? (request('dir') == 'asc' ? '-up' : '-down') . ' sort-active' : ' sort-icon' }}"></i>
+                            </a>
+                        </th>
+                        <th>
+                            <a href="{{ request()->fullUrlWithQuery(['sort' => 'category', 'dir' => request('dir') == 'asc' && request('sort') == 'category' ? 'desc' : 'asc']) }}" class="sort-link">
+                                Categoría <i class="fas fa-sort{{ request('sort') == 'category' ? (request('dir') == 'asc' ? '-up' : '-down') . ' sort-active' : ' sort-icon' }}"></i>
+                            </a>
+                        </th>
+                        <th>
+                            <a href="{{ request()->fullUrlWithQuery(['sort' => 'province', 'dir' => request('dir') == 'asc' && request('sort') == 'province' ? 'desc' : 'asc']) }}" class="sort-link">
+                                Provincia <i class="fas fa-sort{{ request('sort') == 'province' ? (request('dir') == 'asc' ? '-up' : '-down') . ' sort-active' : ' sort-icon' }}"></i>
+                            </a>
+                        </th>
                         <th>Custodio Actual</th>
-                        <th>Estado Vital</th>
+                        <th>
+                            <a href="{{ request()->fullUrlWithQuery(['sort' => 'status', 'dir' => request('dir') == 'asc' && request('sort') == 'status' ? 'desc' : 'asc']) }}" class="sort-link">
+                                Estado Vital <i class="fas fa-sort{{ request('sort') == 'status' ? (request('dir') == 'asc' ? '-up' : '-down') . ' sort-active' : ' sort-icon' }}"></i>
+                            </a>
+                        </th>
                         <th class="text-end">Acciones</th>
                     </tr>
                 </thead>
@@ -95,7 +170,7 @@
                         <tr>
                             <td class="text-start">
                                 <div class="fw-bold fs-5">{{ $item->name }}</div>
-                                <div class="small">{{ $item->brand ?? 'Marca no especificada' }}</div>
+                                <div class="small text-white-50">{{ $item->brand ?? 'Marca no especificada' }}</div>
                             </td>
                             <td><span class="badge bg-dark border border-secondary">{{ $item->category->name ?? 'N/A' }}</span></td>
                             <td class="fw-bold text-warning">{{ $item->province->name ?? 'N/A' }}</td>
@@ -127,12 +202,22 @@
 
                     @if($items->isEmpty())
                         <tr>
-                            <td colspan="6" class="text-center text-white-50 p-4">El arsenal está vacío. Registra tu primer artículo.</td>
+                            <td colspan="6" class="text-center text-white-50 p-5">
+                                <i class="fas fa-ghost fa-3x mb-3 text-secondary"></i><br>
+                                No hay material que coincida con tu búsqueda.
+                            </td>
                         </tr>
                     @endif
                 </tbody>
             </table>
         </div>
+
+        @if ($items->hasPages())
+            <div class="mt-4 d-flex justify-content-center">
+                {{ $items->links() }}
+            </div>
+        @endif
+
     </div>
 </div>
 @endsection
