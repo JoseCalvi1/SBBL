@@ -6,6 +6,10 @@
 
 import VueSweetalert2 from 'vue-sweetalert2';
 import 'sweetalert2/dist/sweetalert2.min.css';
+// Importamos el componente que creamos antes
+import FantasyRoster from './components/FantasyRoster.vue';
+
+
 
 import 'owl.carousel';
 
@@ -31,6 +35,7 @@ Vue.component('event-delete', require('./components/EventDelete.vue').default);
 Vue.component('generate-button', require('./components/GenerateButton.vue').default);
 Vue.component('check-challenge', require('./components/checkChallenge.vue').default);
 Vue.component('chat-component', require('./components/Chat.vue').default);
+Vue.component('fantasy-roster', FantasyRoster);
 
 
 /**

@@ -98,21 +98,22 @@ class EventController extends Controller
 
         // 2. VALIDACIÓN ROBUSTA (Incluyendo imagen)
         $data = $request->validate([
-            'name'            => 'required|min:6|max:255',
-            'mode'            => 'required|string',
-            'city'            => 'required|string|max:100',
-            'location'        => 'required|string|max:255',
-            'region_id'       => 'required|integer',
-            'event_date'      => 'required|date',
-            'event_time'      => 'required',
-            'imagen'          => 'required|string', // Categoría (ranking, quedada...)
-            'deck'            => 'required|string',
-            'configuration'   => 'required|string',
-            'note'            => 'nullable|string',
-            'stadiums'        => 'required|integer|min:1',
+            'name'              => 'required|min:6|max:255',
+            'mode'              => 'required|string',
+            'city'              => 'required|string|max:100',
+            'location'          => 'required|string|max:255',
+            'region_id'         => 'required|integer',
+            'province_id'       => 'required|integer', // <--- NUEVO CAMPO AÑADIDO AQUÍ
+            'event_date'        => 'required|date',
+            'event_time'        => 'required',
+            'imagen'            => 'required|string', // Categoría (ranking, quedada...)
+            'deck'              => 'required|string',
+            'configuration'     => 'required|string',
+            'note'              => 'nullable|string',
+            'stadiums'          => 'required|integer|min:1',
             'has_stadium_limit' => 'nullable',
             // CRÍTICO: Limitar la imagen a 5MB (5120 KB) para evitar error 500
-            'image_mod'       => 'nullable|image|mimes:jpeg,png,jpg,webp|max:5120',
+            'image_mod'         => 'nullable|image|mimes:jpeg,png,jpg,webp|max:5120',
         ]);
 
         try {
@@ -134,6 +135,7 @@ class EventController extends Controller
                 'city'              => $data['city'],
                 'location'          => $data['location'],
                 'region_id'         => $data['region_id'],
+                'province_id'       => $data['province_id'], // <--- NUEVO CAMPO AÑADIDO AQUÍ
                 'date'              => $data['event_date'],
                 'time'              => $data['event_time'],
                 'imagen'            => $rutaImagen,
@@ -299,22 +301,23 @@ class EventController extends Controller
     {
         // 1. VALIDACIÓN (Asegúrate de incluir max:5120 para la imagen)
         $data = $request->validate([
-            'name' => 'required|min:6|max:255',
-            'mode' => 'required',
-            'city' => 'required|max:255',
-            'location' => 'required|max:255',
-            'region_id' => 'required|exists:regions,id',
-            'event_date' => 'required|date',
-            'event_time' => 'required',
-            'stadiums' => 'required|integer|min:1',
+            'name'              => 'required|min:6|max:255',
+            'mode'              => 'required',
+            'city'              => 'required|max:255',
+            'location'          => 'required|max:255',
+            'region_id'         => 'required|exists:regions,id',
+            'province_id'       => 'required|integer', // <--- NUEVO CAMPO AQUÍ
+            'event_date'        => 'required|date',
+            'event_time'        => 'required',
+            'stadiums'          => 'required|integer|min:1',
             'has_stadium_limit' => 'nullable', // Puede venir como "on", "1" o null
-            'image_mod' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:5120', // Límite 5MB
+            'image_mod'         => 'nullable|image|mimes:jpeg,png,jpg,webp|max:5120', // Límite 5MB
             // Campos opcionales que no estaban en tu validate original pero se usan
-            'imagen' => 'required', // Categoría
-            'deck' => 'required',
-            'configuration' => 'required',
-            'note' => 'nullable|string',
-            'iframe' => 'nullable|url',
+            'imagen'            => 'required', // Categoría
+            'deck'              => 'required',
+            'configuration'     => 'required',
+            'note'              => 'nullable|string',
+            'iframe'            => 'nullable|url',
         ]);
 
         try {
@@ -333,22 +336,23 @@ class EventController extends Controller
             // 4. ACTUALIZACIÓN MASIVA Y MANUAL
             // Actualizamos los campos directos validados
             $event->fill([
-                'name' => $data['name'],
-                'mode' => $data['mode'],
-                'city' => $data['city'],
-                'location' => $data['location'],
-                'region_id' => $data['region_id'],
-                'date' => $data['event_date'],
-                'time' => $data['event_time'],
-                'stadiums' => $data['stadiums'],
+                'name'              => $data['name'],
+                'mode'              => $data['mode'],
+                'city'              => $data['city'],
+                'location'          => $data['location'],
+                'region_id'         => $data['region_id'],
+                'province_id'       => $data['province_id'], // <--- NUEVO CAMPO AQUÍ
+                'date'              => $data['event_date'],
+                'time'              => $data['event_time'],
+                'stadiums'          => $data['stadiums'],
                 // El checkbox solo envía valor si está marcado
                 'has_stadium_limit' => $request->has('has_stadium_limit'),
-                'imagen' => $rutaImagen,
-                'beys' => $request->imagen, // Categoría
-                'deck' => $request->deck,
-                'configuration' => $request->configuration,
-                'note' => $request->note,
-                'iframe' => $request->iframe,
+                'imagen'            => $rutaImagen,
+                'beys'              => $request->imagen, // Categoría
+                'deck'              => $request->deck,
+                'configuration'     => $request->configuration,
+                'note'              => $request->note,
+                'iframe'            => $request->iframe,
             ]);
 
             $event->save();
@@ -429,26 +433,38 @@ class EventController extends Controller
                     return response()->json(['error' => 'Se requiere confirmación de pago para este evento.'], 402);
                 }
 
-                // Extraemos la comisión de PayPal desde los detalles del frontend (si vienen)
+                $orderId = $request->paypal_order_id;
+                $gross = $event->beys === 'grancopa' ? 5.00 : 2.00;
                 $fee = 0;
-                if (isset($request->paypal_details['purchase_units'][0]['payments']['captures'][0]['seller_receivable_breakdown']['paypal_fee']['value'])) {
-                    $fee = (float) $request->paypal_details['purchase_units'][0]['payments']['captures'][0]['seller_receivable_breakdown']['paypal_fee']['value'];
+
+                // INTENTO 1: Buscar la comisión exacta dentro del laberinto del JSON de PayPal
+                try {
+                    if (isset($request->paypal_details['purchase_units'][0]['payments']['captures'][0]['seller_receivable_breakdown']['paypal_fee']['value'])) {
+                        $fee = (float) $request->paypal_details['purchase_units'][0]['payments']['captures'][0]['seller_receivable_breakdown']['paypal_fee']['value'];
+                    }
+                } catch (\Exception $e) {}
+
+                // INTENTO 2 (FALLBACK): Si PayPal la oculta, la calculamos con la tarifa nacional (1,2% + 0,35€)
+                if ($fee <= 0) {
+                    $fee = round(($gross * 0.012) + 0.35, 2);
                 }
 
-                // Buscamos el ingreso pendiente y lo pasamos a completado
-                $log = \App\Models\TreasuryLog::where('reference_id', $request->paypal_order_id)
-                    ->where('status', 'pendiente')
-                    ->first();
+                // BUSCAMOS SI YA EXISTE ESTE PAGO (Sea cual sea su estado)
+                $log = \App\Models\TreasuryLog::where('reference_id', $orderId)->first();
 
                 if ($log) {
-                    $log->status = 'completado';
-                    $log->fee = $fee;
-                    $log->net_amount = $log->gross_amount - $fee;
-                    $log->description = str_replace('Pendiente', 'Completada', $log->description);
-                    $log->save();
+                    // Si lo encontramos y estaba pendiente, lo actualizamos.
+                    if ($log->status === 'pendiente') {
+                        $log->status = 'completado';
+                        $log->fee = $fee;
+                        $log->net_amount = $log->gross_amount - $fee;
+                        $log->description = str_replace('Pendiente', 'Completada', $log->description);
+                        $log->save();
+                    }
+                    // Si ya estaba completado, NO HACEMOS NADA. Así evitamos el duplicado.
+
                 } else {
-                    // FALLBACK: Si por temas de red/adblock no se creó el pendiente, lo creamos aquí directamente finalizado
-                    $gross = $event->beys === 'grancopa' ? 5.00 : 2.00;
+                    // SOLO creamos uno nuevo si PayPal jamás nos avisó de que estaba pendiente
                     \App\Models\TreasuryLog::create([
                         'type' => 'ingreso',
                         'category' => 'Inscripción Torneo',
@@ -457,14 +473,14 @@ class EventController extends Controller
                         'net_amount' => $gross - $fee,
                         'status' => 'completado',
                         'description' => "Inscripción Completada - " . auth()->user()->name . " - " . $event->name,
-                        'reference_id' => $request->paypal_order_id,
+                        'reference_id' => $orderId,
                         'user_id' => auth()->id(),
                         'event_id' => $event->id,
                     ]);
                 }
             }
 
-            // --- REGISTRO FINAL ---
+            // --- REGISTRO FINAL EN EL TORNEO ---
             $attached = $event->users()->syncWithoutDetaching([$userId]);
 
             // Comprobamos si realmente se añadió (attached) o si ya existía
@@ -512,10 +528,50 @@ class EventController extends Controller
     }
 
     // --- GESTIÓN DE RESULTADOS Y STATUS ---
-
     public function actualizarStatus($id, $status)
     {
         Event::where('id', $id)->update(['status' => $status]);
+
+        // CHIVATO 1: Ver qué status exacto está llegando
+        \Log::info("Cambiando status del evento $id a: [" . $status . "]");
+
+        // Limpiamos espacios y pasamos a minúsculas por si acaso
+        if (trim(strtolower($status)) === 'inscripcion') {
+            \Log::info("¡Entró al IF de inscripción! Llamando a tomarFotoLineups...");
+            $this->tomarFotoLineups($id);
+        } else {
+            \Log::info("No entró al IF. El status es diferente a 'inscripcion'.");
+        }
+    }
+
+    private function tomarFotoLineups($eventId)
+    {
+        \DB::table('fantasy_event_lineups')->where('event_id', $eventId)->delete();
+
+        $lineupsActuales = \App\Models\FantasyRoster::where('status', 'starter')->get();
+
+        // CHIVATO 2: Ver cuántos titulares ha encontrado en la base de datos
+        \Log::info("Tomando foto: Se han encontrado " . $lineupsActuales->count() . " titulares en total.");
+
+        $dataToInsert = [];
+        foreach ($lineupsActuales as $roster) {
+            $dataToInsert[] = [
+                'event_id' => $eventId,
+                'fantasy_manager_id' => $roster->fantasy_manager_id,
+                'fantasy_real_player_id' => $roster->fantasy_real_player_id,
+                'is_captain' => $roster->is_captain,
+                'level_multiplier' => $roster->level_multiplier ?? 1.0,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ];
+        }
+
+        if (!empty($dataToInsert)) {
+            \DB::table('fantasy_event_lineups')->insert($dataToInsert);
+            \Log::info("¡Foto guardada con éxito en la BD!");
+        } else {
+            \Log::info("ATENCIÓN: No se guardó nada porque el array de titulares estaba vacío (Nadie ha guardado una alineación aún).");
+        }
     }
 
     public function updatePuestos(Request $request, $id)
@@ -602,6 +658,49 @@ class EventController extends Controller
                     'user_id' => $p->user_id, 'event_id' => $id, 'modo' => $eventMode,
                     'puntos' => $puntos, 'puesto' => $puesto, 'created_at' => now(), 'updated_at' => now()
                 ]);
+
+                // ------------------------------------------------------------------
+                // 🔥 2. REPARTO DE PREMIOS DEL FANTASY 🔥
+                // ------------------------------------------------------------------
+
+                // Buscamos a los Mánagers que tienen a este jugador de TITULAR ('starter')
+                // --- REPARTO DE PREMIOS FANTASY (CORREGIDO CON CAPITÁN Y FOTO FINISH) ---
+                // IMPORTANTE: Buscamos en la tabla de la FOTO (lineups), no en el roster vivo
+                $managersQueLoTenian = DB::table('fantasy_event_lineups')
+                    ->where('event_id', $id)
+                    ->where('fantasy_real_player_id', $p->user_id)
+                    ->get();
+
+                foreach ($managersQueLoTenian as $lineup) {
+                    $manager = \App\Models\FantasyManager::find($lineup->fantasy_manager_id);
+
+                    if ($manager) {
+                        // 1. Miramos si es capitán (x2)
+                        $puntosBase = $lineup->is_captain ? ($puntos * 2) : $puntos;
+
+                        // 2. Miramos si la carta es versión Premium (x1.2)
+                        $multiplicadorNivel = $lineup->level_multiplier ?? 1.0;
+
+                        // 3. Puntos finales (Ej: 5 puntos * 2 capitan * 1.2 carta = 12 puntos)
+                        $puntosFinales = round($puntosBase * $multiplicadorNivel);
+
+                        // A. Registro en points_log
+                        DB::table('points_log')->insert([
+                            'user_id' => $manager->user_id,
+                            'event_id' => $id,
+                            'modo' => 'fantasy_reward',
+                            'puntos' => $puntosFinales,
+                            'puesto' => 'manager',
+                            'created_at' => now(),
+                            'updated_at' => now()
+                        ]);
+
+                        // B. Recompensa económica (Monedas x Puntos multiplicados)
+                        $recompensaMonedas = $puntosFinales * 20;
+                        $manager->increment('coins_balance', $recompensaMonedas);
+                    }
+                }
+                // ------------------------------------------------------------------
             }
         });
 

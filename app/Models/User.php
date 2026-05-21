@@ -211,4 +211,21 @@ class User extends Authenticatable
             $this->roles()->detach($role->id);
         }
     }
+
+    // El usuario como Mánager (el que juega)
+    public function fantasyManager()
+    {
+        return $this->hasOne(FantasyManager::class);
+    }
+
+    // El usuario como Carta (el que es comprado)
+    public function fantasyRealPlayer()
+    {
+        return $this->hasOne(FantasyRealPlayer::class);
+    }
+
+    public function pointLogs()
+    {
+        return $this->hasMany(PointLog::class, 'user_id', 'id');
+    }
 }

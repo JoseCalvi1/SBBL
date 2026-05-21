@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Admin\TreasuryController;
+use App\Http\Controllers\Api\FantasyController;
 use App\Http\Controllers\BeybladeCollectionController;
 use App\Http\Controllers\BeybladeDatabaseController;
 use App\Http\Controllers\CarritoController;
@@ -23,6 +24,7 @@ use App\Http\Controllers\VersusController;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\File;
 
 /*
 |--------------------------------------------------------------------------
@@ -76,6 +78,87 @@ Route::domain('conquista.' . env('APP_DOMAIN', 'sbbl.es'))->group(function () {
     ->middleware('auth');
 });
 
+// ==========================================
+// 🎮 RUTAS DEL SUBDOMINIO FANTASY
+// ==========================================
+// 1. Definimos el dominio base dinámicamente
+// Si en tu .env local tienes APP_DOMAIN=sbbl.test:8000, funcionará perfecto
+$dominio = env('APP_DOMAIN', 'sbbl.es');
+
+Route::domain('fantasy.' . $dominio)->group(function () {
+
+    // La vista de la PWA
+    Route::get('/', function () {
+        return view('fantasy.app');
+    });
+    Route::get('/home', function () {
+        return redirect('/');
+    });
+    // Rutas protegidas (Sincronizadas con lo que pide Vue)
+    Route::middleware('auth')->group(function () {
+
+        Route::get('/api/my-team', [FantasyController::class, 'getMyTeam']);
+        Route::post('/api/save-lineup', [FantasyController::class, 'saveLineup']);
+        Route::get('/api/market-players', [FantasyController::class, 'getMarketPlayers']);
+        Route::post('/api/buy-player', [FantasyController::class, 'buyPlayer']);
+        Route::post('/api/sell-player', [FantasyController::class, 'sellPlayer']);
+        Route::get('/api/fantasy-ranking', [FantasyController::class, 'getRanking']);
+        Route::post('/api/open-pack', [FantasyController::class, 'openGachaPack'])->middleware('auth');
+        Route::get('/api/fantasy-history', [FantasyController::class, 'getHistory'])->middleware('auth');
+        Route::post('/api/bulk-sell', [\App\Http\Controllers\Api\FantasyController::class, 'bulkSellPlayers']);
+        Route::post('/api/claim-daily-reward', [\App\Http\Controllers\Api\FantasyController::class, 'claimDailyReward']);
+        Route::post('/api/fuse-players', [\App\Http\Controllers\Api\FantasyController::class, 'fusePlayers']);
+        Route::post('/api/open-item-pack', [FantasyController::class, 'openItemPack']);
+        Route::post('/api/equip-item', [FantasyController::class, 'equipItem']);
+    });
+});
+
+// ==============================================================
+// 🏆 RUTAS DEL CUARTEL GENERAL (NACIONAL)
+// ==============================================================
+Route::domain('nacional.sbbl.es')->group(function () {
+
+    // Portal de selección de años
+    Route::get('/', function () {
+        return view('nacional.index');
+    })->name('nacional.inicio');
+
+    Route::get('/2025', function () {
+        // 1. Ruta absoluta exacta según tu captura de OVH
+        $pathServer = "/home/sbbleso/www/nacional/fotos/2025";
+
+        // 2. Ruta local (por si lo pruebas en tu PC)
+        $pathLocal = public_path("nacional/fotos/2025");
+
+        // 3. Decidimos qué ruta usar
+        $pathFinal = File::exists($pathServer) ? $pathServer : $pathLocal;
+
+        $fotos = [];
+
+        // 4. Leemos los archivos
+        if (File::exists($pathFinal) && File::isDirectory($pathFinal)) {
+            $files = File::files($pathFinal);
+
+            foreach ($files as $file) {
+                // Filtramos solo imágenes
+                if (in_array(strtolower($file->getExtension()), ['jpg', 'jpeg', 'png', 'webp', 'gif'])) {
+                    // Generamos la URL pública (asset ya apunta a /www/ en tu caso)
+                    $fotos[] = asset('nacional/fotos/2025/' . $file->getFilename());
+                }
+            }
+        }
+
+        // Ordenamos alfabéticamente
+        $fotos = collect($fotos)->sort()->values();
+
+        return view('nacional.show_2025', compact('fotos'));
+    })->name('nacional.show_2025');
+
+    Route::get('/2026', function () {
+        return view('nacional.show_2026'); // El cuartel de este año
+    })->name('nacional.show_2026');
+
+});
 
 /*
 |--------------------------------------------------------------------------
@@ -249,10 +332,10 @@ Route::group(['middleware' => 'admin'], function () {
    Route::resource('/dashboard/productos', ProductoController::class);
    Route::get('/dashboard/admin/announcements', [InicioController::class, 'anuncios'])->name('index.anuncios');
    Route::post('/dashboard/admin/announcements/send', [InicioController::class, 'sendAnuncio'])->name('index.announcements.send');
-    Route::get('/pedidos', [\App\Http\Controllers\Admin\PedidoController::class, 'index'])->name('admin.pedidos.index');
-    Route::get('/pedidos/{pedido}', [\App\Http\Controllers\Admin\PedidoController::class, 'show'])->name('admin.pedidos.show');
-    Route::put('/pedidos/{pedido}', [\App\Http\Controllers\Admin\PedidoController::class, 'update'])->name('admin.pedidos.update');
-    Route::delete('/pedidos/{pedido}', [\App\Http\Controllers\Admin\PedidoController::class, 'destroy'])->name('admin.pedidos.destroy');
+    Route::get('/dashboard/pedidos', [\App\Http\Controllers\Admin\PedidoController::class, 'index'])->name('admin.pedidos.index');
+    Route::get('/dashboard/pedidos/{pedido}', [\App\Http\Controllers\Admin\PedidoController::class, 'show'])->name('admin.pedidos.show');
+    Route::put('/dashboard/pedidos/{pedido}', [\App\Http\Controllers\Admin\PedidoController::class, 'update'])->name('admin.pedidos.update');
+    Route::delete('/dashboard/pedidos/{pedido}', [\App\Http\Controllers\Admin\PedidoController::class, 'destroy'])->name('admin.pedidos.destroy');
 });
     Route::get('/nacional/ranking', [InicioController::class, 'rankingNacional'])->name('nacional.ranking');
     Route::post('/nacional/procesar-csv', [InicioController::class, 'procesarCsv'])->name('nacional.procesar');
