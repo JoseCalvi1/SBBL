@@ -129,31 +129,48 @@ class PayPalWebhookController extends Controller
 
                     // 💸 REGISTRO AUTOMÁTICO EN TESORERÍA (Renovaciones)
                     try {
-                        // Extraemos la cantidad real que PayPal cobró (viene en el JSON del webhook)
-                        $grossAmount = isset($resource['amount']['total'])
-                                       ? (float) $resource['amount']['total']
-                                       : 0;
+                        // El ID de la transacción concreta (vital para no mezclar meses/renovaciones)
+                        $transactionId = $resource['id'] ?? null;
 
-                        // Extraemos la comisión real que PayPal se quedó (transaction_fee)
-                        $fee = isset($resource['transaction_fee']['value'])
-                               ? (float) $resource['transaction_fee']['value']
-                               : 0;
+                        if ($transactionId) {
+                            // Evitar duplicados si PayPal reenvía el mismo webhook dos veces por accidente
+                            $logExists = TreasuryLog::where('reference_id', $transactionId)->exists();
 
-                        if ($grossAmount > 0) {
-                            $userName = $sub->user ? $sub->user->name : 'Usuario Desconocido';
-                            $desc = "Renovación Suscripción - " . $userName;
+                            if (!$logExists) {
+                                // PayPal a veces manda el importe en 'total' (v1) y otras en 'value' (v2)
+                                $grossAmount = (float) ($resource['amount']['total'] ?? $resource['amount']['value'] ?? 0);
 
-                            TreasuryLog::create([
-                                'type' => 'ingreso',
-                                'category' => 'Suscripción',
-                                'gross_amount' => $grossAmount,
-                                'fee' => $fee,
-                                'net_amount' => $grossAmount - $fee,
-                                'description' => $desc,
-                                'reference_id' => $resource['id'] ?? $subId, // ID de la transacción concreta
-                                'user_id' => $sub->user_id,
-                            ]);
-                            Log::info("Ingreso registrado en tesorería para transacción: " . ($resource['id'] ?? $subId));
+                                // Intentamos sacar la comisión de PayPal
+                                $fee = (float) ($resource['transaction_fee']['value'] ?? 0);
+
+                                // Si PayPal no manda la comisión, aplicamos el Fallback matemático (3.4% + 0.35€)
+                                if ($fee <= 0 && $grossAmount > 0) {
+                                    $fee = round(($grossAmount * 0.034) + 0.35, 2);
+                                }
+
+                                if ($grossAmount > 0) {
+                                    $userName = $sub->user ? $sub->user->name : 'Usuario Desconocido';
+
+                                    TreasuryLog::create([
+                                        'type' => 'ingreso',
+                                        'category' => 'Suscripción',
+                                        'gross_amount' => $grossAmount,
+                                        'fee' => $fee,
+                                        'net_amount' => $grossAmount - $fee,
+                                        'status' => 'completado', // <-- IMPRESCINDIBLE
+                                        'description' => "Renovación Suscripción - " . $userName,
+                                        'reference_id' => $transactionId,
+                                        'user_id' => $sub->user_id,
+                                    ]);
+                                    Log::info("Ingreso registrado en tesorería para transacción: {$transactionId}");
+                                } else {
+                                    Log::warning("No se pudo extraer el importe bruto para la transacción: {$transactionId}");
+                                }
+                            } else {
+                                Log::info("La transacción {$transactionId} ya estaba registrada en tesorería. Se ignoró el duplicado.");
+                            }
+                        } else {
+                             Log::warning("No se encontró el ID de transacción en el webhook para la suscripción {$subId}");
                         }
                     } catch (\Exception $e) {
                         Log::error("Error registrando la tesorería del webhook: " . $e->getMessage());

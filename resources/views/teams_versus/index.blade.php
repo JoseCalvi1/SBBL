@@ -100,7 +100,7 @@
                                 @endif
                             </td>
 
-                            <td class="text-white-50"><i class="far fa-calendar-alt me-1"></i> {{ $duel->created_at ? $duel->created_at->format('d/m/Y') : '-' }}</td>
+                            <td><i class="far fa-calendar-alt me-1"></i> {{ $duel->created_at ? $duel->created_at->format('d/m/Y') : '-' }}</td>
 
                             {{-- ACCIONES --}}
                             <td class="text-end">

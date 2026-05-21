@@ -662,7 +662,14 @@ class EventController extends Controller
                 // ------------------------------------------------------------------
                 // 🔥 2. REPARTO DE PREMIOS DEL FANTASY 🔥
                 // ------------------------------------------------------------------
+                $fluctuacion = ($puntos > 0) ? ($puntos * 20) : -30;
 
+                \DB::table('fantasy_real_players')
+                    ->where('user_id', $p->user_id)
+                    ->update([
+                        'current_price' => \DB::raw('GREATEST(50, current_price + ' . $fluctuacion . ')'),
+                        'updated_at' => now()
+                    ]);
                 // Buscamos a los Mánagers que tienen a este jugador de TITULAR ('starter')
                 // --- REPARTO DE PREMIOS FANTASY (CORREGIDO CON CAPITÁN Y FOTO FINISH) ---
                 // IMPORTANTE: Buscamos en la tabla de la FOTO (lineups), no en el roster vivo
@@ -675,27 +682,31 @@ class EventController extends Controller
                     $manager = \App\Models\FantasyManager::find($lineup->fantasy_manager_id);
 
                     if ($manager) {
-                        // 1. Miramos si es capitán (x2)
+                        // 1. Puntos base y Capitán
                         $puntosBase = $lineup->is_captain ? ($puntos * 2) : $puntos;
-
-                        // 2. Miramos si la carta es versión Premium (x1.2)
                         $multiplicadorNivel = $lineup->level_multiplier ?? 1.0;
 
-                        // 3. Puntos finales (Ej: 5 puntos * 2 capitan * 1.2 carta = 12 puntos)
-                        $puntosFinales = round($puntosBase * $multiplicadorNivel);
+                        // 2. 🔍 NUEVO: Buscamos TODOS los objetos equipados en este Blader (las 4 ranuras)
+                        $objetosEquipados = \DB::table('fantasy_items')
+                            ->where('fantasy_manager_id', $manager->id)
+                            ->where('fantasy_roster_id', $lineup->id)
+                            ->get();
 
-                        // A. Registro en points_log
+                        // 3. Sumamos los extras de cada objeto
+                        $multiplicadorObjetos = 1.0;
+                        foreach ($objetosEquipados as $obj) {
+                            $multiplicadorObjetos += ($obj->stat_multiplier - 1.0); // 1.05 suma +0.05
+                        }
+
+                        // 4. Puntos finales: Puntos Reales * Capitán * (Fusión + Objetos)
+                        $multiplicadorTotal = $multiplicadorNivel + ($multiplicadorObjetos - 1.0);
+                        $puntosFinales = round($puntosBase * $multiplicadorTotal);
+
                         DB::table('points_log')->insert([
-                            'user_id' => $manager->user_id,
-                            'event_id' => $id,
-                            'modo' => 'fantasy_reward',
-                            'puntos' => $puntosFinales,
-                            'puesto' => 'manager',
-                            'created_at' => now(),
-                            'updated_at' => now()
+                            'user_id' => $manager->user_id, 'event_id' => $id, 'modo' => 'fantasy_reward',
+                            'puntos' => $puntosFinales, 'puesto' => 'manager', 'created_at' => now(), 'updated_at' => now()
                         ]);
 
-                        // B. Recompensa económica (Monedas x Puntos multiplicados)
                         $recompensaMonedas = $puntosFinales * 20;
                         $manager->increment('coins_balance', $recompensaMonedas);
                     }

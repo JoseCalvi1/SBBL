@@ -1,288 +1,292 @@
 @extends('layouts.app')
 
 @section('content')
+<div class="main-container px-lg-5 py-5">
 
-<a href="{{ route('events.show', ['event' => $event->id]) }}" class="btn btn-outline-primary m-4 text-uppercase font-weight-bold">
-    Volver
-</a>
+    <div class="d-flex justify-content-between align-items-center mb-5 px-lg-4">
+        <h2 class="text-white fw-bold display-6 m-0">Editar Evento</h2>
+        <a href="{{ route('events.show', ['event' => $event->id]) }}" class="btn btn-outline-light rounded-pill px-4 hover-effect-btn">
+            <i class="fas fa-arrow-left me-2"></i> Volver al Evento
+        </a>
+    </div>
 
-<h2 class="text-center mb-5 text-white">Editar evento: {{ $event->name }}</h2>
+    <div class="row justify-content-center">
+        <div class="col-12 col-xl-10">
 
-<div class="row justify-content-center mt-5 text-white" style="margin-right: 0px !important;">
-    <div class="col-md-8">
-    <form method="POST" action="{{ route('events.update', ['event' => $event->id]) }}" enctype="multipart/form-data" novalidate style="color:white;">
-        @csrf
-        @method('PUT')
-        @if (Auth::user()->hasAnyRole(['admin', 'arbitro']))
-            <div class="form-group">
-                <label for="name">Título evento</label>
-
-                <input type="text"
-                    name="name"
-                    class="form-control bg-dark text-white @error('name') is-invalid @enderror"
-                    id="name"
-                    placeholder="Título evento"
-                    value="{{ old('name', $event->name) }}"
-                    />
-
-                    @error('name')
-                        <span class="invalid-feedback d-block" role="alert">
-                            <strong>{{$message}}</strong>
-                        </span>
-                    @enderror
-            </div>
-
-            <div class="form-group" style="color: white;">
-                <label for="image_mod">Imagen personalizada:</label>
-                @if($event->image_mod)
-                    <label>Imagen actual:</label>
-                    <img src="data:image/png;base64,{{ $event->image_mod }}" width="100">
-                @else
-                    <p>No hay imagen actual</p>
-                @endif
-                <input type="file" class="form-control-file" id="image_mod" name="image_mod" accept="image/*">
-            </div>
-        @endif
-
-            <div class="form-group">
-                <label for="mode">Modalidad</label>
-                <select name="mode" id="mode" class="form-control bg-dark text-white @error('mode') is-invalid @enderror">
-                    <option disabled selected>- Selecciona un modo -</option>
-                    <option value="beybladex" {{ $event->mode == 'beybladex' ? 'selected' : '' }}>Beyblade X</option>
-                    <option value="beybladeburst" {{ $event->mode == 'beybladeburst' ? 'selected' : '' }}>Beyblade Burst</option>
-                </select>
-
-                    @error('mode')
-                        <span class="invalid-feedback d-block" role="alert">
-                            <strong>{{$message}}</strong>
-                        </span>
-                    @enderror
-            </div>
-
-            <div class="form-group">
-                <label for="imagen">Categoría</label>
-                <select name="imagen" id="imagen" class="form-control bg-dark text-white @error('imagen') is-invalid @enderror">
-                    <option disabled selected>- Selecciona una imagen -</option>
-                    <option value="quedada" {{ $event->beys == 'quedada' ? 'selected' : '' }}>Quedada</option>
-                    <option value="ranking" {{ ($event->beys == 'ranking' || $event->imagen == 'upload-events/rankingx.jpg') ? 'selected' : '' }}>Ranking</option>
-                    @if (Auth::user()->hasAnyRole(['admin', 'arbitro']))
-                    <option value="rankingplus" {{ $event->beys == 'rankingplus' ? 'selected' : '' }}>Ranking Plus</option>
-                    <option value="grancopa" {{ $event->beys == 'grancopa' ? 'selected' : '' }}>Gran Copa</option>
-                    @endif
-                    <option value="hasbro" {{ $event->imagen == 'hasbro' ? 'selected' : '' }}>Hasbro</option>
-                </select>
-
-                    @error('imagen')
-                        <span class="invalid-feedback d-block" role="alert">
-                            <strong>{{$message}}</strong>
-                        </span>
-                    @enderror
-            </div>
-
-            <div class="form-group">
-                <label for="deck">Deck</label>
-                <select name="deck" id="deck" class="form-control bg-dark text-white @error('deck') is-invalid @enderror">
-                    <option disabled selected>- Selecciona un tamaño de deck -</option>
-                    <option value="3on3" {{ $event->deck == '3on3' ? 'selected' : '' }}>3on3</option>
-                    <option value="5g" {{ $event->deck == '5g' ? 'selected' : '' }}>5G</option>
-                </select>
-
-                    @error('deck')
-                        <span class="invalid-feedback d-block" role="alert">
-                            <strong>{{$message}}</strong>
-                        </span>
-                    @enderror
-            </div>
-
-            <div class="form-group">
-                <label for="configuration">Tipo torneo</label>
-                <select name="configuration" id="configuration" class="form-control bg-dark text-white @error('configuration') is-invalid @enderror">
-                    <option disabled selected>- Selecciona la configuración del torneo -</option>
-                    <option value="SingleElimination" {{ $event->configuration == 'SingleElimination' ? 'selected' : '' }}>Single elimination</option>
-                    <option value="DoubleElimination" {{ $event->configuration == 'DoubleElimination' ? 'selected' : '' }}>Double elimination</option>
-                    <option value="RoundRobin" {{ $event->configuration == 'RoundRobin' ? 'selected' : '' }}>Round Robin</option>
-                    <option value="Swiss" {{ $event->configuration == 'Swiss' ? 'selected' : '' }}>Swiss</option>
-                    <option value="FreeForAll" {{ $event->configuration == 'FreeForAll' ? 'selected' : '' }}>Free for all</option>
-                    <option value="Leaderboard" {{ $event->configuration == 'Leaderboard' ? 'selected' : '' }}>Leaderboard</option>
-                </select>
-
-                    @error('configuration')
-                        <span class="invalid-feedback d-block" role="alert">
-                            <strong>{{$message}}</strong>
-                        </span>
-                    @enderror
-            </div>
-
-            {{-- NUEVOS CAMPOS: ESTADIOS Y LÍMITE --}}
-            <div class="row my-3 p-3 rounded" style="background-color: rgba(255,255,255,0.05); border: 1px solid #444;">
-                <div class="col-md-6">
-                    <div class="form-group mb-0">
-                        <label for="stadiums" class="fw-bold text-info">🏟️ Número de Estadios</label>
-                        <input type="number"
-                               name="stadiums"
-                               id="stadiums"
-                               class="form-control bg-dark text-white @error('stadiums') is-invalid @enderror"
-                               value="{{ old('stadiums', $event->stadiums ?? 1) }}"
-                               min="1"
-                               required>
-                        @error('stadiums')
-                            <span class="invalid-feedback d-block">{{ $message }}</span>
-                        @enderror
+            {{-- BLOQUE DE ERRORES --}}
+            @if ($errors->any())
+                <div class="alert alert-danger border-danger bg-danger bg-opacity-10 text-white mb-4 p-4 rounded-3 shadow-sm">
+                    <div class="d-flex align-items-start">
+                        <i class="fas fa-exclamation-triangle fs-3 me-3 mt-1"></i>
+                        <div>
+                            <h4 class="fw-bold mb-2">No se pudo actualizar el evento</h4>
+                            <ul class="mb-0 ps-3">
+                                @foreach ($errors->all() as $error)
+                                    <li>{{ $error }}</li>
+                                @endforeach
+                            </ul>
+                        </div>
                     </div>
                 </div>
-                <div class="col-md-6 d-flex align-items-center">
-                    <div class="custom-control custom-switch mt-4">
-                        <input type="checkbox" class="custom-control-input" id="has_stadium_limit" name="has_stadium_limit" value="1"
-                            {{ old('has_stadium_limit', $event->has_stadium_limit ?? false) ? 'checked' : '' }}>
-                        <label class="custom-control-label text-white" for="has_stadium_limit">
-                            🚨 Activar Límite Automático
-                        </label>
-                        <p class="form-text text-white">
-                            Si se activa: 1 estadio = 20 jug. | 2 estadios = 30 jug.
-                        </p>
+                <script> document.addEventListener("DOMContentLoaded", function() { window.scrollTo(0, 0); }); </script>
+            @endif
+
+            @if (session('error'))
+                <div class="alert alert-danger border-danger bg-danger bg-opacity-10 text-white mb-4 p-4 rounded-3 shadow-sm">
+                    <div class="d-flex align-items-center">
+                        <i class="fas fa-times-circle fs-3 me-3"></i>
+                        <div>
+                            <h5 class="fw-bold m-0">Error del Servidor</h5>
+                            <p class="m-0">{{ session('error') }}</p>
+                        </div>
                     </div>
                 </div>
-            </div>
-            {{-- FIN NUEVOS CAMPOS --}}
+            @endif
 
-            <div class="form-group">
-                <label for="region_id">Región</label>
-                <select name="region_id" id="region_id" class="form-control bg-dark text-white @error('region_id') is-invalid @enderror">
-                    @if ($event->region)
-                        <option value="{{ $event->region->id }}">{{ $event->region->name }}</option>
-                    @else
-                        <option disabled selected>- Selecciona -</option>
+            <div class="px-md-5">
+                <form method="POST" action="{{ route('events.update', ['event' => $event->id]) }}" enctype="multipart/form-data" class="mx-auto" style="max-width: 1000px;">
+                    @csrf
+                    @method('PUT')
+
+                    {{-- PASO 1: BÁSICO --}}
+                    <div class="mb-5">
+                        <h4 class="text-white mb-4 border-bottom border-secondary pb-3 fw-bold">Información General</h4>
+
+                        @if (Auth::user()->hasAnyRole(['admin', 'arbitro']))
+                            <div class="row g-4 mb-4">
+                                <div class="col-md-6">
+                                    <label for="name" class="form-label text-light-muted small text-uppercase fw-bold">Título del Evento</label>
+                                    <input type="text" name="name" id="name" class="form-control form-control-lg dark-input p-3" value="{{ old('name', $event->name) }}" required>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label text-light-muted small text-uppercase fw-bold">Imagen Personalizada</label>
+                                    <input type="file" class="form-control form-control-lg dark-input p-3" id="image_mod" name="image_mod" accept="image/*">
+                                    @if($event->image_mod)
+                                        <div class="mt-2 text-info small"><i class="fas fa-image me-1"></i> Imagen actual cargada. Sube otra para reemplazarla.</div>
+                                    @endif
+                                </div>
+                            </div>
+                        @else
+                            <input type="hidden" name="name" value="{{ $event->name }}">
+                        @endif
+
+                        <div class="row g-4 mb-4">
+                            <div class="col-md-6">
+                                <label for="mode" class="form-label text-light-muted small text-uppercase fw-bold">Modalidad <span class="text-info">*</span></label>
+                                <select name="mode" id="mode" class="form-select form-select-lg dark-input p-3 fs-5" required>
+                                    <option value="beybladex" {{ (old('mode', $event->mode) == 'beybladex') ? 'selected' : '' }}>Beyblade X</option>
+                                    <option value="beybladeburst" {{ (old('mode', $event->mode) == 'beybladeburst') ? 'selected' : '' }}>Beyblade Burst</option>
+                                    <option value="beyblademetal" {{ (old('mode', $event->mode) == 'beyblademetal') ? 'selected' : '' }}>Metal Fight</option>
+                                    <option value="beybladebakuten" {{ (old('mode', $event->mode) == 'beybladebakuten') ? 'selected' : '' }}>Bakuten Shoot</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="imagen" class="form-label text-light-muted small text-uppercase fw-bold">Categoría <span class="text-info">*</span></label>
+                                <select name="imagen" id="imagen" class="form-select form-select-lg dark-input p-3 fs-5" required>
+                                    <option value="quedada" {{ (old('imagen', $event->beys) == 'quedada') ? 'selected' : '' }}>Quedada (Amistoso)</option>
+                                    <option value="ranking" {{ (old('imagen', $event->beys) == 'ranking' || $event->imagen == 'upload-events/rankingx.jpg') ? 'selected' : '' }}>Ranking (Oficial)</option>
+                                    @if (Auth::user()->hasAnyRole(['admin', 'arbitro']))
+                                        <option value="rankingplus" {{ (old('imagen', $event->beys) == 'rankingplus') ? 'selected' : '' }}>Ranking Plus (Árbitros)</option>
+                                        <option value="grancopa" {{ (old('imagen', $event->beys) == 'grancopa') ? 'selected' : '' }}>Gran Copa (Especial)</option>
+                                    @endif
+                                    <option value="hasbro" {{ (old('imagen', $event->beys) == 'hasbro' || $event->imagen == 'hasbro') ? 'selected' : '' }}>Formato Hasbro</option>
+                                    <option value="copalloros" {{ (old('imagen', $event->beys) == 'copalloros') ? 'selected' : '' }}>Copa Lloros</option>
+                                    <option value="copaligera" {{ (old('imagen', $event->beys) == 'copaligera') ? 'selected' : '' }}>Copa Ligera</option>
+                                    <option value="copapaypal" {{ (old('imagen', $event->beys) == 'copapaypal') ? 'selected' : '' }}>Copa Conqueror</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    {{-- PASO 2: CONFIGURACIÓN --}}
+                    <div class="mb-5">
+                        <h4 class="text-white mb-4 border-bottom border-secondary pb-3 fw-bold">Reglas del Juego</h4>
+
+                        <div class="row g-4 mb-4">
+                            <div class="col-md-6">
+                                <label class="form-label text-light-muted small text-uppercase fw-bold">Formato Deck <span class="text-info">*</span></label>
+                                <select name="deck" id="deck" class="form-select form-select-lg dark-input p-3" required>
+                                    <option value="3on3" {{ (old('deck', $event->deck) == '3on3') ? 'selected' : '' }}>3on3 (3 Beys)</option>
+                                    <option value="5g" {{ (old('deck', $event->deck) == '5g') ? 'selected' : '' }}>5G (5 Beys)</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label text-light-muted small text-uppercase fw-bold">Sistema Torneo <span class="text-info">*</span></label>
+                                <select name="configuration" id="configuration" class="form-select form-select-lg dark-input p-3" required>
+                                    <option value="SingleElimination" {{ (old('configuration', $event->configuration) == 'SingleElimination') ? 'selected' : '' }}>Eliminación Simple</option>
+                                    <option value="DoubleElimination" {{ (old('configuration', $event->configuration) == 'DoubleElimination') ? 'selected' : '' }}>Doble Eliminación</option>
+                                    <option value="RoundRobin" {{ (old('configuration', $event->configuration) == 'RoundRobin') ? 'selected' : '' }}>Round Robin (Liga)</option>
+                                    <option value="Swiss" {{ (old('configuration', $event->configuration) == 'Swiss') ? 'selected' : '' }}>Sistema Suizo</option>
+                                    <option value="FreeForAll" {{ (old('configuration', $event->configuration) == 'FreeForAll') ? 'selected' : '' }}>Free For All</option>
+                                    <option value="Leaderboard" {{ (old('configuration', $event->configuration) == 'Leaderboard') ? 'selected' : '' }}>Leaderboard</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="p-4 rounded border border-secondary bg-opacity-10 bg-white shadow-sm">
+                            <div class="row align-items-center">
+                                <div class="col-md-6 mb-3 mb-md-0">
+                                    <label for="stadiums" class="form-label fw-bold text-white mb-1 fs-5">
+                                        <i class="fas fa-dungeon me-2 text-info"></i>Número de Estadios
+                                    </label>
+                                    <div class="text-light-muted small">Define cuántos estadios habrá disponibles para calcular el aforo.</div>
+                                </div>
+                                <div class="col-md-3 mb-3 mb-md-0">
+                                    <input type="number" name="stadiums" id="stadiums" class="form-control form-control-lg dark-input text-center fw-bold fs-4" value="{{ old('stadiums', $event->stadiums ?? 1) }}" min="1" required>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="form-check form-switch d-flex justify-content-md-end align-items-center p-0">
+                                        <input class="form-check-input me-3 mt-0" type="checkbox" role="switch" id="has_stadium_limit" name="has_stadium_limit" value="1" {{ old('has_stadium_limit', $event->has_stadium_limit) ? 'checked' : '' }} style="width: 3.5em; height: 1.75em;">
+                                        <label class="form-check-label text-white fw-bold" for="has_stadium_limit">Límite Auto</label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {{-- PASO 3: DETALLES --}}
+                    <div class="mb-5">
+                        <h4 class="text-white mb-4 border-bottom border-secondary pb-3 fw-bold">Ubicación y Fecha</h4>
+
+                        <div class="row g-4 mb-4">
+                            <div class="col-md-6">
+                                <label class="form-label text-light-muted small text-uppercase fw-bold">Región / C. Autónoma <span class="text-info">*</span></label>
+                                <select name="region_id" id="region_id" class="form-select form-select-lg dark-input p-3 fs-5" required>
+                                    <option value="" disabled>Selecciona Región...</option>
+                                    @foreach ($regions as $region)
+                                        <option value="{{ $region->id }}" data-provinces='{{ json_encode($region->provinces) }}' {{ old('region_id', $event->region_id) == $region->id ? 'selected' : '' }}>{{ $region->name }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label text-light-muted small text-uppercase fw-bold">Provincia <span class="text-info">*</span></label>
+                                <select name="province_id" id="province_id" class="form-select form-select-lg dark-input p-3 fs-5" required disabled>
+                                    <option value="" disabled selected>Primero selecciona una región...</option>
+                                </select>
+                                {{-- Mantener ID en JS --}}
+                                <input type="hidden" id="old_province_id" value="{{ old('province_id', $event->province_id) }}">
+                            </div>
+                        </div>
+
+                        <div class="row g-4 mb-4">
+                            <div class="col-md-6">
+                                <label class="form-label text-light-muted small text-uppercase fw-bold">Ciudad <span class="text-info">*</span></label>
+                                <div class="input-group input-group-lg">
+                                    <span class="input-group-text dark-input border-end-0 text-light-muted"><i class="fas fa-city"></i></span>
+                                    <input type="text" name="city" class="form-control dark-input border-start-0 ps-0" placeholder="Ej. Madrid" value="{{ old('city', $event->city) }}" required>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label text-light-muted small text-uppercase fw-bold">Lugar Exacto <span class="text-info">*</span></label>
+                                <div class="input-group input-group-lg">
+                                    <span class="input-group-text dark-input border-end-0 text-light-muted"><i class="fas fa-map-pin"></i></span>
+                                    <input type="text" name="location" class="form-control dark-input border-start-0 ps-0" placeholder="Ej. El Retiro" value="{{ old('location', $event->location) }}" required>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row g-4 mb-4">
+                            <div class="col-md-6">
+                                <label class="form-label text-light-muted small text-uppercase fw-bold">Fecha <span class="text-info">*</span></label>
+                                <input type="date" name="event_date" class="form-control form-control-lg dark-input p-3" value="{{ old('event_date', $event->date ? \Carbon\Carbon::parse($event->date)->format('Y-m-d') : '') }}" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label text-light-muted small text-uppercase fw-bold">Hora <span class="text-info">*</span></label>
+                                <input type="time" name="event_time" class="form-control form-control-lg dark-input p-3" value="{{ old('event_time', $event->time) }}" required>
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="form-label text-light-muted small text-uppercase fw-bold">Notas Adicionales</label>
+                            <textarea name="note" id="note" rows="4" class="form-control dark-input p-3" placeholder="Material necesario, punto de encuentro...">{{ old('note', $event->note) }}</textarea>
+                        </div>
+                    </div>
+
+                    @if(!Auth::user()->hasAnyRole(['admin', 'arbitro']))
+                        <div class="alert alert-info d-flex align-items-center p-4 bg-opacity-10 border-info text-info mb-4">
+                            <i class="fas fa-info-circle me-4 fs-2"></i>
+                            <div class="fs-5">Al actualizar, confirmo que sigo cumpliendo las <a href="https://sbbl.es/rules" target="_blank" class="alert-link text-white text-decoration-underline">normas</a> y asumo la responsabilidad del material.</div>
+                        </div>
                     @endif
 
-                    @foreach ($regions as $region)
-                        <option value="{{ $region->id }}">{{ $region->name }}</option>
-                    @endforeach
-                </select>
-
-                    @error('region_id')
-                        <span class="invalid-feedback d-block" role="alert">
-                            <strong>{{$message}}</strong>
-                        </span>
-                    @enderror
+                    <div class="d-flex justify-content-end mt-5 pt-4 border-top border-secondary">
+                        <button type="submit" class="btn btn-success px-5 py-3 fw-bold rounded-pill fs-5 shadow-sm">
+                            Actualizar Evento <i class="fas fa-save ms-2"></i>
+                        </button>
+                    </div>
+                </form>
             </div>
 
-            <div class="form-group">
-                <label for="city">Localidad del evento</label>
-                <input type="text"
-                    name="city"
-                    class="form-control bg-dark text-white @error('city') is-invalid @enderror"
-                    id="city"
-                    placeholder="Localidad del evento"
-                    value="{{ old('city', $event->city) }}"
-                    />
-
-                    @error('city')
-                        <span class="invalid-feedback d-block" role="alert">
-                            <strong>{{$message}}</strong>
-                        </span>
-                    @enderror
-            </div>
-
-            <div class="form-group">
-                <label for="location">Lugar del evento</label>
-                <input type="text"
-                    name="location"
-                    class="form-control bg-dark text-white @error('location') is-invalid @enderror"
-                    id="location"
-                    placeholder="Lugar del evento"
-                    value="{{ old('location', $event->location) }}"
-                    />
-
-                    @error('location')
-                        <span class="invalid-feedback d-block" role="alert">
-                            <strong>{{$message}}</strong>
-                        </span>
-                    @enderror
-            </div>
-
-            <div class="form-group">
-                <label for="note">Anotaciones</label>
-                <input type="text"
-                    name="note"
-                    class="form-control bg-dark text-white @error('note') is-invalid @enderror"
-                    id="note"
-                    placeholder="Anotaciones importantes"
-                    value="{{ old('note', $event->note) }}"
-                    />
-
-                    @error('note')
-                        <span class="invalid-feedback d-block" role="alert">
-                            <strong>{{$message}}</strong>
-                        </span>
-                    @enderror
-            </div>
-
-            <div class="form-group">
-                <label for="event_date">Fecha del evento</label>
-                <input type="date"
-                    name="event_date"
-                    class="form-control bg-dark text-white @error('event_date') is-invalid @enderror"
-                    id="event_date"
-                    value="{{ old('event_date', $event->date ? $event->date->format('Y-m-d') : '') }}"
-                    />
-
-                    @error('event_date')
-                        <span class="invalid-feedback d-block" role="alert">
-                            <strong>{{$message}}</strong>
-                        </span>
-                    @enderror
-            </div>
-
-            <div class="form-group">
-                <label for="event_time">Hora del evento</label>
-                <input type="time"
-                    name="event_time"
-                    class="form-control bg-dark text-white @error('event_time') is-invalid @enderror"
-                    id="event_time"
-                    value="{{ old('event_time', $event->time) }}"
-                    />
-
-                    @error('event_time')
-                        <span class="invalid-feedback d-block" role="alert">
-                            <strong>{{$message}}</strong>
-                        </span>
-                    @enderror
-            </div>
-
-        @if(!Auth::user()->hasAnyRole(['admin', 'arbitro']))
-            <div class="alert alert-warning text-center text-dark" role="alert">
-                Al editar este evento, afirmo que he leído y comprendido <a href="sbbl.es/rules" target="_blank">las normas</a> para el desarrollo del torneo y que soy el encargado de que haya material suficiente para ello (Estadio y material de grabación como trípode y móvil/cámara).
-            </div>
-        @endif
-
-        <div class="form-group">
-            <input type="submit" class="btn btn-primary" value="Actualizar evento">
         </div>
-    </form>
     </div>
 </div>
+@endsection
 
+@section('styles')
+<style>
+    /* Tema Azul Oscuro */
+    body { background-color: #0f172a !important; color: #f8fafc !important; }
+    .text-light-muted { color: #cbd5e1 !important; }
+    .dark-input { background-color: #1e293b !important; border: 2px solid #334155 !important; color: #fff !important; }
+    .dark-input:focus { background-color: #0f172a !important; border-color: #38bdf8 !important; box-shadow: 0 0 0 4px rgba(56, 189, 248, 0.2); }
+    .dark-input:disabled { background-color: #0f172a !important; opacity: 0.7; cursor: not-allowed; }
+    .input-group-text.dark-input { background-color: #1e293b !important; border-color: #334155 !important; }
+    .dark-input::placeholder { color: #64748b !important; opacity: 1; }
+    .hover-effect-btn:hover { background-color: rgba(255,255,255,0.1); color: #fff; }
+
+    /* Switch personalizado */
+    .form-switch .form-check-input {
+        background-color: #334155; border-color: #475569;
+        background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='-4 -4 8 8'%3e%3ccircle r='3' fill='%23fff'/%3e%3c/svg%3e");
+    }
+    .form-switch .form-check-input:checked { background-color: #38bdf8; border-color: #38bdf8; }
+</style>
 @endsection
 
 @section('scripts')
 <script>
-    document.addEventListener("DOMContentLoaded", function () {
-        const modeSelect = document.getElementById("mode");
-        const deckSelect = document.getElementById("deck");
+document.addEventListener("DOMContentLoaded", function () {
+    const modeSelect = document.getElementById("mode");
+    const deckSelect = document.getElementById("deck");
+    const regionSelect = document.getElementById('region_id');
+    const provinceSelect = document.getElementById('province_id');
+    const oldProvinceId = document.getElementById('old_province_id').value;
 
-        function updateDeckOptions() {
-            if (modeSelect.value === "beybladex") {
-                deckSelect.value = "3on3";
-                deckSelect.querySelectorAll("option").forEach(option => {
-                    if (option.value !== "3on3") option.disabled = true;
-                });
-            } else {
-                deckSelect.querySelectorAll("option").forEach(option => option.disabled = false);
-            }
+    function updateDeckOptions() {
+        if (modeSelect.value === "beybladex") {
+            // Forzar a "3on3" visualmente, pero no bloquear si el backend ya guardó otro
+            Array.from(deckSelect.options).forEach(opt => {
+                if (opt.value !== "3on3" && !opt.selected) opt.disabled = true;
+            });
+        } else {
+            Array.from(deckSelect.options).forEach(opt => opt.disabled = false);
         }
+    }
 
-        modeSelect.addEventListener("change", updateDeckOptions);
-        updateDeckOptions();
-    });
+    function updateProvinces() {
+        const selectedOption = regionSelect.options[regionSelect.selectedIndex];
+        provinceSelect.innerHTML = '<option value="" disabled>Selecciona Provincia...</option>';
+
+        if (selectedOption && selectedOption.value) {
+            provinceSelect.disabled = false;
+            try {
+                const provinces = JSON.parse(selectedOption.dataset.provinces);
+                provinces.forEach(province => {
+                    const isSelected = oldProvinceId == province.id;
+                    provinceSelect.add(new Option(province.name, province.id, false, isSelected));
+                });
+            } catch(e) { console.error("Error leyendo provincias", e); }
+        } else {
+            provinceSelect.disabled = true;
+        }
+    }
+
+    modeSelect.addEventListener("change", updateDeckOptions);
+    regionSelect.addEventListener("change", updateProvinces);
+
+    // Inicializar al cargar (Vital para Edición)
+    updateDeckOptions();
+    if(regionSelect.value) updateProvinces();
+});
 </script>
 @endsection

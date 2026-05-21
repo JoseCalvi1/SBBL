@@ -1,175 +1,197 @@
 @extends('layouts.app')
 
+@section('title', 'Tienda: Precompras Nacional')
+
+@section('styles')
+<style>
+    /* Estilo Shonen Táctico para el Catálogo */
+    .store-header { border-bottom: 4px solid var(--sbbl-gold); padding-bottom: 20px; margin-bottom: 40px; }
+    .store-title { font-family: 'Oswald', cursive; font-size: 3.5rem; color: var(--text-bright); text-shadow: 2px 2px 0 #000, 4px 4px 0 var(--shonen-cyan); text-transform: uppercase; letter-spacing: 2px; }
+
+    .product-card { background: var(--sbbl-blue-2); border: 3px solid #000; box-shadow: 8px 8px 0 #000; transition: transform 0.2s, box-shadow 0.2s; }
+    .product-card:hover { transform: translate(-3px, -3px); box-shadow: 11px 11px 0 var(--sbbl-gold); border-color: var(--sbbl-gold); }
+
+    .product-img-wrapper { border-bottom: 3px solid #000; position: relative; overflow: hidden; background: #000; }
+    .product-img { transition: transform 0.3s ease; }
+    .product-card:hover .product-img { transform: scale(1.05); }
+
+    .product-title { font-family: 'Oswald', cursive; color: var(--shonen-cyan); letter-spacing: 1px; font-size: 1.8rem; text-transform: uppercase; text-shadow: 2px 2px 0 #000; }
+    .product-price { font-family: 'Oswald', cursive; font-size: 2rem; color: var(--sbbl-gold); text-shadow: 2px 2px 0 #000; }
+
+    .custom-select { background-color: #111 !important; border: 2px solid #555 !important; color: #fff !important; font-weight: bold; border-radius: 0; }
+    .custom-select:focus { border-color: var(--shonen-cyan) !important; box-shadow: none; }
+</style>
+@endsection
+
 @section('content')
-<div class="container text-white position-relative">
-    <div class="d-flex justify-content-between align-items-center mt-4 mb-2">
-        @if (session('success'))
-            <div class="alert alert-success alert-dismissible fade show mt-3" role="alert">
-                {{ session('success') }}
-                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Cerrar"></button>
-            </div>
-        @endif
+<div class="container py-5">
 
-        @if (session('error'))
-            <div class="alert alert-danger alert-dismissible fade show mt-3" role="alert">
-                {{ session('error') }}
-                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Cerrar"></button>
-            </div>
-        @endif
+    <div class="store-header d-flex flex-column flex-md-row justify-content-between align-items-md-end gap-3">
+        <div>
+            <h1 class="store-title m-0 text-white"><i class="fas fa-store me-3"></i> TIENDA BEYCON</h1>
+            <p class="text-white-50 fw-bold m-0 fs-5 mt-2">PRECOMPRA EXCLUSIVA PARA RECOGIDA EN EL TORNEO NACIONAL.</p>
+        </div>
 
-        @if ($errors->any())
-            <div class="alert alert-warning alert-dismissible fade show mt-3" role="alert">
-                <ul class="mb-0">
-                    @foreach ($errors->all() as $error)
-                        <li>{{ $error }}</li>
-                    @endforeach
-                </ul>
-                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Cerrar"></button>
-            </div>
-        @endif
+        <div class="d-flex gap-2">
+            <button class="btn-shonen btn-shonen-info fs-5" data-bs-toggle="modal" data-bs-target="#infoTiendaModal">
+                <span><i class="fas fa-info-circle me-1"></i> NORMATIVA</span>
+            </button>
 
-        <h1 class="m-0">Productos</h1>
+            @php
+                $cantidadCarrito = \App\Models\Carrito::where('session_id', request()->session()->getId())
+                                    ->withCount('productos')
+                                    ->first()->productos_count ?? 0;
+            @endphp
 
-        <!-- Botón de información -->
-        <button class="btn btn-outline-light" data-bs-toggle="modal" data-bs-target="#infoTiendaModal">
-            <i class="fas fa-info-circle me-1"></i> Cómo funciona la tienda
-        </button>
-
-        @php
-        use Illuminate\Support\Facades\DB;
-        use Illuminate\Support\Facades\Auth;
-
-        $coinCount = 0;
-
-        if (Auth::check()) {
-            $trophyId = DB::table('trophies')->where('name', 'SBBL Coin')->value('id');
-
-            if ($trophyId) {
-                $coinCount = DB::table('profilestrophies')
-                    ->where('trophies_id', $trophyId)
-                    ->where('profiles_id', Auth::id())
-                    ->value('count') ?? 0;
-            }
-        }
-        @endphp
-
-        <div class="bg-dark rounded-pill px-3 py-2 shadow-sm">
-            <span class="fw-bold text-warning">
-                Lagartos: {{ number_format($coinCount) }} <span class="me-1">🦎</span>
-            </span>
+            <a href="{{ route('carrito.show') }}" class="btn-shonen btn-shonen-warning fs-5 position-relative">
+                <span>
+                    <i class="fas fa-shopping-cart me-2"></i> VER RESERVA
+                    @if($cantidadCarrito > 0)
+                        <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger border border-dark" style="font-family: 'Oswald', sans-serif;">
+                            {{ $cantidadCarrito }}
+                        </span>
+                    @endif
+                </span>
+            </a>
         </div>
     </div>
 
-    <div class="row g-4">
-        @foreach($productos as $producto)
-        <div class="col-md-4">
-            <div class="card bg-dark text-white h-100 shadow-sm rounded-4">
-                <div class="card-img-top position-relative" style="overflow:hidden; height:300px;">
-                    <img src="{{ $producto->fotos }}" class="producto-img img-fluid h-100 w-100 object-fit-cover" alt="{{ $producto->nombre }}">
+    {{-- ALERTAS --}}
+    @if (session('success'))
+        <div class="alert alert-shonen alert-shonen-success text-center mb-5"><div><i class="fas fa-check-circle me-2"></i> {{ session('success') }}</div></div>
+    @endif
+    @if (session('error'))
+        <div class="alert alert-shonen alert-shonen-danger text-center mb-5"><div><i class="fas fa-exclamation-triangle me-2"></i> {{ session('error') }}</div></div>
+    @endif
+    @if ($errors->any())
+        <div class="alert alert-shonen alert-shonen-danger text-center mb-5">
+            <div>
+                <ul class="mb-0 list-unstyled">
+                    @foreach ($errors->all() as $error) <li><i class="fas fa-times me-2"></i>{{ $error }}</li> @endforeach
+                </ul>
+            </div>
+        </div>
+    @endif
+
+    {{-- CATÁLOGO --}}
+    <div class="row g-5">
+        @forelse($productos as $producto)
+        <div class="col-md-6 col-lg-4">
+            <div class="product-card h-100 d-flex flex-column">
+
+                <div class="product-img-wrapper" style="height: 350px;">
+                    <img src="{{ $producto->fotos }}" class="producto-img img-fluid h-100 w-100 object-fit-contain p-3" alt="{{ $producto->nombre }}">
                 </div>
-                <div class="card-body d-flex flex-column">
-                    <h5 class="card-title">{{ $producto->nombre }}</h5>
-                    <p class="card-text text-truncate" title="{{ $producto->descripcion }}">{{ $producto->descripcion }}</p>
-                    <p class="card-text fs-5 fw-bold">
-                        {{ $producto->precio }} €
-                        @if (Auth::user())
-                             / {{ $producto->precio * 150 }} <span class="me-1">🦎</span>
-                        @endif
-                    </p>
+
+                <div class="p-4 d-flex flex-column flex-grow-1">
+                    <h5 class="product-title">{{ $producto->nombre }}</h5>
+                    <p class="text-white-50 fw-bold mb-4" style="min-height: 48px;">{{ $producto->descripcion }}</p>
+
+                    <div class="d-flex justify-content-between align-items-center mb-4 border-top border-bottom border-dark py-2" style="background: rgba(0,0,0,0.3);">
+                        <span class="text-white fw-bold ps-2">PRECIO UNITARIO:</span>
+                        <span class="product-price pe-2">{{ number_format($producto->precio, 2) }} €</span>
+                    </div>
 
                     <form action="{{ route('carrito.add', $producto->id) }}" method="POST" class="mt-auto">
                         @csrf
 
-                        {{-- Colores --}}
-                        @if(count($producto->colores) > 0)
-                        <div class="mb-2">
-                            <label>Color:</label>
-                            <select name="color" class="form-select color-select" data-producto="{{ $producto->id }}">
-                                <option value="{{ $producto->fotos }}">Original</option>
-                                @foreach($producto->colores as $color)
-                                    <option value="{{ $color['foto'] ?? '' }}">{{ $color['nombre'] ?? '' }}</option>
-                                @endforeach
-                            </select>
-                        </div>
-                        @endif
+                        <div class="row g-2 mb-3">
+                            {{-- Colores --}}
+                            @if(count($producto->colores) > 0)
+                            <div class="col-6">
+                                <label class="text-white fw-bold small mb-1">COLOR</label>
+                                <select name="color" class="form-select custom-select color-select" data-producto="{{ $producto->id }}">
+                                    <option value="{{ $producto->fotos }}">Original</option>
+                                    @foreach($producto->colores as $color)
+                                        <option value="{{ $color['foto'] ?? '' }}">{{ $color['nombre'] ?? '' }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                            @endif
 
-                        {{-- Tallas --}}
-                        @if(count($producto->tallas) > 0)
-                        <div class="mb-2">
-                            <label>Talla:</label>
-                            <select name="talla" class="form-select">
-                                @foreach($producto->tallas as $talla)
-                                    <option value="{{ $talla }}">{{ $talla }}</option>
-                                @endforeach
-                            </select>
+                            {{-- Tallas --}}
+                            @if(count($producto->tallas) > 0)
+                            <div class="col-6">
+                                <label class="text-white fw-bold small mb-1">TALLA</label>
+                                <select name="talla" class="form-select custom-select">
+                                    @foreach($producto->tallas as $talla)
+                                        <option value="{{ $talla }}">{{ $talla }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                            @endif
                         </div>
-                        @endif
 
-                        <div class="d-flex mb-2">
-                            <input type="number" name="cantidad" value="1" min="1" class="form-control me-2">
-                            <button type="submit" class="btn btn-success flex-shrink-0">Añadir</button>
+                        <div class="d-flex gap-2">
+                            <input type="number" name="cantidad" value="1" min="1" class="form-control custom-select text-center fs-5" style="width: 80px;">
+                            <button type="submit" class="btn btn-success fw-bold border border-dark flex-grow-1 fs-5 font-Oswald" style="border-radius: 0; letter-spacing: 1px;">
+                                AÑADIR <i class="fas fa-plus ms-1"></i>
+                            </button>
                         </div>
                     </form>
                 </div>
             </div>
         </div>
-        @endforeach
+        @empty
+            <div class="col-12 text-center py-5">
+                <i class="fas fa-box-open fa-4x text-secondary mb-4"></i>
+                <h3 class="font-Oswald text-white fs-1 mb-3">LA TIENDA ESTÁ CERRADA</h3>
+                <p class="text-white-50 fw-bold fs-5">Aún no hay artículos disponibles para precompra. Vuelve más tarde.</p>
+            </div>
+        @endforelse
     </div>
 </div>
-
-
 @endsection
 
 @section('scripts')
-<!-- Modal informativo -->
-<div class="modal fade text-dark" id="infoTiendaModal" tabindex="-1" aria-labelledby="infoTiendaModalLabel" aria-hidden="true">
+<div class="modal fade" id="infoTiendaModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-lg modal-dialog-centered">
-        <div class="modal-content rounded-4 shadow-lg">
-            <div class="modal-header bg-dark text-white">
-                <h5 class="modal-title" id="infoTiendaModalLabel">
-                    <i class="fas fa-store me-2"></i>Cómo funciona la tienda
+        <div class="modal-content" style="border: 3px solid var(--shonen-cyan); border-radius: 0; background: var(--sbbl-blue-2);">
+            <div class="modal-header border-bottom border-dark" style="background: #000;">
+                <h5 class="modal-title font-Oswald fs-3 text-white">
+                    <i class="fas fa-info-circle me-2" style="color: var(--shonen-cyan);"></i> PROTOCOLOS DE COMPRA
                 </h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
             </div>
-            <div class="modal-body p-4">
-                <p>🛒 <strong>1. Añade productos al carrito:</strong> Elige los artículos que quieras comprar y añádelos a tu carrito desde esta página.</p>
+            <div class="modal-body p-4 text-white">
 
-                <p>📦 <strong>2. Solicita la compra:</strong> Desde el carrito podrás enviar una <strong>solicitud de compra</strong>. La transacción se gestionará mediante <strong>Vinted</strong>, donde deberás pagar el precio del paquete y el envío.</p>
+                <div class="p-3 mb-4 border border-secondary" style="background: rgba(0,0,0,0.5);">
+                    <h5 class="font-Oswald" style="color: var(--sbbl-gold);"><i class="fas fa-truck-pickup me-2"></i> 1. RECOGIDA EN EVENTO</h5>
+                    <p class="mb-0 fw-bold">Esta tienda funciona exclusivamente como un sistema de <strong>precompra</strong>. No se realizan envíos a domicilio. Todo el material reservado aquí se fabricará bajo demanda y se entregará en mano el día de la <strong>BeyCon (Nacional)</strong> en el stand oficial.</p>
+                </div>
 
-                <hr>
+                <div class="p-3 mb-4 border border-secondary" style="background: rgba(0,0,0,0.5);">
+                    <h5 class="font-Oswald" style="color: var(--shonen-cyan);"><i class="fas fa-credit-card me-2"></i> 2. PAGO SEGURO</h5>
+                    <p class="mb-0 fw-bold">Para asegurar tu reserva, el pago se realiza por adelantado (100%) mediante la pasarela segura de <strong>PayPal</strong> o con <strong>Tarjeta de Crédito</strong> al finalizar tu pedido en la página del carrito.</p>
+                </div>
 
-                <h6 class="fw-bold text-primary">💶 Pago con dinero real</h6>
-                <ul>
-                    <li>Se realiza un pago dividido:</li>
-                    <li>➡️ <strong>50%</strong> se paga directamente en esta web mediante la pasarela de <strong>PayPal</strong>.</li>
-                    <li>➡️ El otro <strong>50% + envío</strong> se paga en <strong>Vinted</strong>.</li>
-                </ul>
+                <div class="p-3 border border-secondary" style="background: rgba(0,0,0,0.5);">
+                    <h5 class="font-Oswald" style="color: var(--shonen-red);"><i class="fas fa-id-badge me-2"></i> 3. IDENTIFICACIÓN</h5>
+                    <p class="mb-0 fw-bold">El día del evento, deberás mostrar el comprobante de PayPal o identificarte con el nombre y correo que uses al realizar la reserva para que podamos entregartelo.</p>
+                </div>
 
-                <h6 class="fw-bold text-warning mt-3"><i class="fas fa-coins me-1"></i>🪙 Pago con SBBL Coins</h6>
-                <ul>
-                    <li>Solo disponible para usuarios <strong>registrados</strong> en la web.</li>
-                    <li>Los SBBL Coins se consiguen participando en <strong>Gran Copas</strong> o <strong>Copas PayPal</strong>.</li>
-                    <li>Si pagas con coins, <strong>solo tendrás que abonar el pago mínimo de 1 €</strong> que exige Vinted, además del envío.</li>
-                </ul>
-
-                <hr>
-
-                <p>📧 Tras completar la solicitud, <strong>se te contactará al correo electrónico</strong> que indiques para coordinar el envío y el método de pago.</p>
             </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+            <div class="modal-footer border-top border-dark" style="background: #000;">
+                <button type="button" class="btn fw-bold border border-secondary text-white bg-dark" data-bs-dismiss="modal">ENTENDIDO</button>
             </div>
         </div>
     </div>
 </div>
+
 <script>
 document.addEventListener('DOMContentLoaded', function () {
+    // Lógica para cambiar la imagen principal cuando se selecciona un color diferente
     document.querySelectorAll('.color-select').forEach(function(select){
         select.addEventListener('change', function(){
-            const card = this.closest('.card');
+            const card = this.closest('.product-card');
             const img = card.querySelector('.producto-img');
             if(this.value) {
-                img.src = this.value;
+                // Pequeño fade-out para que el cambio de imagen no sea tan brusco
+                img.style.opacity = 0;
+                setTimeout(() => {
+                    img.src = this.value;
+                    img.style.opacity = 1;
+                }, 150);
             }
         });
     });

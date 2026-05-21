@@ -16,6 +16,7 @@ class Event extends Model
         'city',
         'location',
         'region_id',
+        'province_id',
         'date',
         'time',
         'imagen',

@@ -56,7 +56,6 @@
     {{-- ======================================================= --}}
 
     <div class="wizard-header mb-5 p-4">
-    {{-- ... el resto de tu código sigue igual ... --}}
                 <div class="wizard-progress position-relative mt-2 mx-auto" style="max-width: 800px;">
                     <div class="progress" style="height: 3px; background-color: #1e293b;">
                         <div class="progress-bar bg-info" id="progressBarFill" role="progressbar" style="width: 0%"></div>
@@ -90,7 +89,7 @@
                             <div class="row g-4 mb-5">
                                 <div class="col-md-6">
                                     <label for="name" class="form-label text-light-muted small text-uppercase fw-bold">Título (Opcional)</label>
-                                    <input type="text" name="name" id="name" class="form-control form-control-lg dark-input p-3" placeholder="Ej. Gran Torneo de Verano">
+                                    <input type="text" name="name" id="name" class="form-control form-control-lg dark-input p-3" placeholder="Ej. Gran Torneo de Verano" value="{{ old('name') }}">
                                 </div>
                                 <div class="col-md-6">
                                     <label class="form-label text-light-muted small text-uppercase fw-bold">Imagen Personalizada</label>
@@ -113,7 +112,7 @@
 
                                 @foreach($modes as $val => $data)
                                     <div class="col-6 col-md-3">
-                                        <input type="radio" class="btn-check" name="mode" id="mode_{{$val}}" value="{{$val}}" required>
+                                        <input type="radio" class="btn-check" name="mode" id="mode_{{$val}}" value="{{$val}}" {{ old('mode') == $val ? 'checked' : '' }} required>
                                         <label class="btn btn-outline-secondary w-100 p-4 h-100 d-flex flex-column align-items-center justify-content-center text-center mode-card gap-3 text-white" for="mode_{{$val}}">
                                             <i class="fas {{$data['icon']}} fs-2"></i>
                                             <span class="fs-5 fw-bold">{{$data['label']}}</span>
@@ -126,17 +125,17 @@
                         <div class="mb-5">
                             <label for="imagen" class="form-label text-light-muted small text-uppercase fw-bold mb-3">Categoría <span class="text-info">*</span></label>
                             <select name="imagen" id="imagen" class="form-select form-select-lg dark-input p-3 fs-5" required>
-                                <option value="" disabled selected>Selecciona tipo de evento...</option>
-                                <option value="quedada">Quedada (Amistoso)</option>
-                                <option value="ranking">Ranking (Oficial)</option>
+                                <option value="" disabled {{ old('imagen') ? '' : 'selected' }}>Selecciona tipo de evento...</option>
+                                <option value="quedada" {{ old('imagen') == 'quedada' ? 'selected' : '' }}>Quedada (Amistoso)</option>
+                                <option value="ranking" {{ old('imagen') == 'ranking' ? 'selected' : '' }}>Ranking (Oficial)</option>
                                 @if (Auth::user()->hasAnyRole(['admin', 'arbitro']))
-                                    <option value="rankingplus">Ranking Plus (Árbitros)</option>
-                                    <option value="grancopa">Gran Copa (Especial)</option>
+                                    <option value="rankingplus" {{ old('imagen') == 'rankingplus' ? 'selected' : '' }}>Ranking Plus (Árbitros)</option>
+                                    <option value="grancopa" {{ old('imagen') == 'grancopa' ? 'selected' : '' }}>Gran Copa (Especial)</option>
                                 @endif
-                                <option value="hasbro">Formato Hasbro</option>
-                                <option value="copalloros">Copa Lloros</option>
-                                <option value="copaligera">Copa Ligera</option>
-                                <option value="copapaypal">Copa Conqueror</option>
+                                <option value="hasbro" {{ old('imagen') == 'hasbro' ? 'selected' : '' }}>Formato Hasbro</option>
+                                <option value="copalloros" {{ old('imagen') == 'copalloros' ? 'selected' : '' }}>Copa Lloros</option>
+                                <option value="copaligera" {{ old('imagen') == 'copaligera' ? 'selected' : '' }}>Copa Ligera</option>
+                                <option value="copapaypal" {{ old('imagen') == 'copapaypal' ? 'selected' : '' }}>Copa Conqueror</option>
                             </select>
                         </div>
                     </div>
@@ -150,19 +149,20 @@
                                 <label class="form-label text-light-muted small text-uppercase fw-bold">Formato Deck <span class="text-info">*</span></label>
                                 <select name="deck" id="deck" class="form-select form-select-lg dark-input p-3" required>
                                     <option value="" disabled selected>Elegir...</option>
-                                    <option value="3on3">3on3 (3 Beys)</option>
-                                    <option value="5g">5G (5 Beys)</option>
+                                    {{-- Las opciones se llenan por JS, pero restauramos old con data-old --}}
+                                    <option value="3on3" data-old="{{ old('deck') == '3on3' ? '1' : '0' }}">3on3 (3 Beys)</option>
+                                    <option value="5g" data-old="{{ old('deck') == '5g' ? '1' : '0' }}">5G (5 Beys)</option>
                                 </select>
                             </div>
                             <div class="col-md-6">
                                 <label class="form-label text-light-muted small text-uppercase fw-bold">Sistema Torneo <span class="text-info">*</span></label>
                                 <select name="configuration" id="configuration" class="form-select form-select-lg dark-input p-3" required>
                                     <option value="" disabled selected>Elegir...</option>
-                                    <option value="SingleElimination">Eliminación Simple</option>
-                                    <option value="DoubleElimination">Doble Eliminación</option>
-                                    <option value="RoundRobin">Round Robin (Liga)</option>
-                                    <option value="Swiss">Sistema Suizo</option>
-                                    <option value="FreeForAll">Free For All</option>
+                                    <option value="SingleElimination" data-old="{{ old('configuration') == 'SingleElimination' ? '1' : '0' }}">Eliminación Simple</option>
+                                    <option value="DoubleElimination" data-old="{{ old('configuration') == 'DoubleElimination' ? '1' : '0' }}">Doble Eliminación</option>
+                                    <option value="RoundRobin" data-old="{{ old('configuration') == 'RoundRobin' ? '1' : '0' }}">Round Robin (Liga)</option>
+                                    <option value="Swiss" data-old="{{ old('configuration') == 'Swiss' ? '1' : '0' }}">Sistema Suizo</option>
+                                    <option value="FreeForAll" data-old="{{ old('configuration') == 'FreeForAll' ? '1' : '0' }}">Free For All</option>
                                 </select>
                             </div>
                         </div>
@@ -176,11 +176,11 @@
                                     <div class="text-light-muted small">Define cuántos estadios habrá disponibles para calcular el aforo.</div>
                                 </div>
                                 <div class="col-md-3 mb-3 mb-md-0">
-                                    <input type="number" name="stadiums" id="stadiums" class="form-control form-control-lg dark-input text-center fw-bold fs-4" value="1" min="1" required>
+                                    <input type="number" name="stadiums" id="stadiums" class="form-control form-control-lg dark-input text-center fw-bold fs-4" value="{{ old('stadiums', 1) }}" min="1" required>
                                 </div>
                                 <div class="col-md-3">
                                     <div class="form-check form-switch d-flex justify-content-md-end align-items-center p-0">
-                                        <input class="form-check-input me-3 mt-0" type="checkbox" role="switch" id="has_stadium_limit" name="has_stadium_limit" value="1" style="width: 3.5em; height: 1.75em;">
+                                        <input class="form-check-input me-3 mt-0" type="checkbox" role="switch" id="has_stadium_limit" name="has_stadium_limit" value="1" {{ old('has_stadium_limit') ? 'checked' : '' }} style="width: 3.5em; height: 1.75em;">
                                         <label class="form-check-label text-white fw-bold" for="has_stadium_limit">Límite Auto</label>
                                     </div>
                                 </div>
@@ -192,14 +192,25 @@
                     <div class="wizard-step" data-step="3">
                         <h4 class="text-white mb-4 border-bottom border-secondary pb-3 fw-bold">Ubicación y Fecha</h4>
 
-                        <div class="mb-5">
-                            <label class="form-label text-light-muted small text-uppercase fw-bold">Región / Comunidad <span class="text-info">*</span></label>
-                            <select name="region_id" id="region_id" class="form-select form-select-lg dark-input p-3 fs-5" required>
-                                <option value="" disabled selected>Selecciona...</option>
-                                @foreach ($regions as $region)
-                                    <option value="{{ $region->id }}">{{ $region->name }}</option>
-                                @endforeach
-                            </select>
+                        <div class="row g-4 mb-4">
+                            <div class="col-md-6">
+                                <label class="form-label text-light-muted small text-uppercase fw-bold">Región / C. Autónoma <span class="text-info">*</span></label>
+                                <select name="region_id" id="region_id" class="form-select form-select-lg dark-input p-3 fs-5" required>
+                                    <option value="" disabled {{ old('region_id') ? '' : 'selected' }}>Selecciona Región...</option>
+                                    @foreach ($regions as $region)
+                                        <option value="{{ $region->id }}" data-provinces='{{ json_encode($region->provinces) }}' {{ old('region_id') == $region->id ? 'selected' : '' }}>{{ $region->name }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label text-light-muted small text-uppercase fw-bold">Provincia <span class="text-info">*</span></label>
+                                <select name="province_id" id="province_id" class="form-select form-select-lg dark-input p-3 fs-5" required disabled>
+                                    <option value="" disabled selected>Primero selecciona una región...</option>
+                                    {{-- Las opciones se llenan por JS --}}
+                                </select>
+                                {{-- Campo oculto para mantener el old value de provincia si hay error de validación --}}
+                                <input type="hidden" id="old_province_id" value="{{ old('province_id') }}">
+                            </div>
                         </div>
 
                         <div class="row g-4 mb-4">
@@ -207,14 +218,14 @@
                                 <label class="form-label text-light-muted small text-uppercase fw-bold">Ciudad <span class="text-info">*</span></label>
                                 <div class="input-group input-group-lg">
                                     <span class="input-group-text dark-input border-end-0 text-light-muted"><i class="fas fa-city"></i></span>
-                                    <input type="text" name="city" class="form-control dark-input border-start-0 ps-0" placeholder="Ej. Madrid" required>
+                                    <input type="text" name="city" class="form-control dark-input border-start-0 ps-0" placeholder="Ej. Madrid" value="{{ old('city') }}" required>
                                 </div>
                             </div>
                             <div class="col-md-6">
                                 <label class="form-label text-light-muted small text-uppercase fw-bold">Lugar Exacto <span class="text-info">*</span></label>
                                 <div class="input-group input-group-lg">
                                     <span class="input-group-text dark-input border-end-0 text-light-muted"><i class="fas fa-map-pin"></i></span>
-                                    <input type="text" name="location" class="form-control dark-input border-start-0 ps-0" placeholder="Ej. El Retiro" required>
+                                    <input type="text" name="location" class="form-control dark-input border-start-0 ps-0" placeholder="Ej. El Retiro" value="{{ old('location') }}" required>
                                 </div>
                             </div>
                         </div>
@@ -222,17 +233,17 @@
                         <div class="row g-4 mb-5">
                             <div class="col-md-6">
                                 <label class="form-label text-light-muted small text-uppercase fw-bold">Fecha <span class="text-info">*</span></label>
-                                <input type="date" name="event_date" class="form-control form-control-lg dark-input p-3" required>
+                                <input type="date" name="event_date" class="form-control form-control-lg dark-input p-3" value="{{ old('event_date') }}" required>
                             </div>
                             <div class="col-md-6">
                                 <label class="form-label text-light-muted small text-uppercase fw-bold">Hora <span class="text-info">*</span></label>
-                                <input type="time" name="event_time" class="form-control form-control-lg dark-input p-3" required>
+                                <input type="time" name="event_time" class="form-control form-control-lg dark-input p-3" value="{{ old('event_time') }}" required>
                             </div>
                         </div>
 
                         <div class="mb-4">
                             <label class="form-label text-light-muted small text-uppercase fw-bold">Notas Adicionales</label>
-                            <textarea name="note" id="note" rows="4" class="form-control dark-input p-3" placeholder="Material necesario, punto de encuentro..."></textarea>
+                            <textarea name="note" id="note" rows="4" class="form-control dark-input p-3" placeholder="Material necesario, punto de encuentro...">{{ old('note') }}</textarea>
                         </div>
 
                         @if(!Auth::user()->hasAnyRole(['admin', 'arbitro']))
@@ -286,6 +297,11 @@
         background-color: #0f172a !important;
         border-color: #38bdf8 !important; /* Sky 400 */
         box-shadow: 0 0 0 4px rgba(56, 189, 248, 0.2);
+    }
+    .dark-input:disabled {
+        background-color: #0f172a !important;
+        opacity: 0.7;
+        cursor: not-allowed;
     }
     .input-group-text.dark-input {
         background-color: #1e293b !important;
@@ -369,6 +385,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const configSelect = document.getElementById('configuration');
     const noteInput = document.getElementById('note');
 
+    // Inputs Región y Provincia
+    const regionSelect = document.getElementById('region_id');
+    const provinceSelect = document.getElementById('province_id');
+    const oldProvinceId = document.getElementById('old_province_id').value;
+
     // Datos dinámicos
     const optionsMap = {
         deck: {
@@ -410,15 +431,22 @@ document.addEventListener('DOMContentLoaded', () => {
         window.scrollTo(0, 0);
     }
 
-    // Lógica de negocio
+    // Lógica de negocio (Reglas del Torneo)
     function updateLogic() {
         const mode = document.querySelector('input[name="mode"]:checked')?.value;
         const type = imagenSelect.value;
         if(!mode || !type) return;
 
-        // Guardar selección actual si existe
-        const currentDeck = deckSelect.value;
-        const currentConfig = configSelect.value;
+        // Guardar selección actual o buscar el 'old' data value que dejamos en HTML si hubo error
+        let currentDeck = deckSelect.value;
+        if (!currentDeck && Array.from(deckSelect.options).find(opt => opt.dataset.old === '1')) {
+            currentDeck = Array.from(deckSelect.options).find(opt => opt.dataset.old === '1').value;
+        }
+
+        let currentConfig = configSelect.value;
+        if (!currentConfig && Array.from(configSelect.options).find(opt => opt.dataset.old === '1')) {
+            currentConfig = Array.from(configSelect.options).find(opt => opt.dataset.old === '1').value;
+        }
 
         deckSelect.innerHTML = '';
         configSelect.innerHTML = '';
@@ -444,8 +472,36 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    // --- NUEVO: Lógica de Regiones y Provincias ---
+    function updateProvinces() {
+        const selectedOption = regionSelect.options[regionSelect.selectedIndex];
+
+        // Limpiamos el select de provincias
+        provinceSelect.innerHTML = '<option value="" disabled selected>Selecciona Provincia...</option>';
+
+        if (selectedOption.value) {
+            provinceSelect.disabled = false;
+
+            // Leemos el JSON de provincias incrustado en el atributo data-provinces
+            try {
+                const provinces = JSON.parse(selectedOption.dataset.provinces);
+
+                provinces.forEach(province => {
+                    const isSelected = oldProvinceId == province.id;
+                    provinceSelect.add(new Option(province.name, province.id, false, isSelected));
+                });
+            } catch(e) {
+                console.error("Error leyendo provincias", e);
+            }
+        } else {
+            provinceSelect.disabled = true;
+        }
+    }
+
+    // Event Listeners
     modeRadios.forEach(r => r.addEventListener('change', updateLogic));
     imagenSelect.addEventListener('change', updateLogic);
+    regionSelect.addEventListener('change', updateProvinces);
 
     nextBtn.addEventListener('click', () => {
         const inputs = steps[currentStep].querySelectorAll('input, select, textarea');
@@ -460,9 +516,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Inicialización
     updateUI();
+
     // Intentar ejecutar lógica inicial por si hay valores pre-cargados (old inputs)
     if(document.querySelector('input[name="mode"]:checked') && imagenSelect.value) {
         updateLogic();
+    }
+
+    // Inicializar provincias si la región ya estaba seleccionada (por ejemplo tras un error de validación)
+    if(regionSelect.value) {
+        updateProvinces();
     }
 });
 </script>

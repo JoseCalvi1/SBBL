@@ -19,9 +19,9 @@ class TreasuryController extends Controller
         $events = Event::orderBy('date', 'desc')->take(20)->get(); // Últimos 20 torneos
         $users = User::orderBy('name')->get();
 
-        // Cálculo rápido del saldo actual para la tarjeta resumen
-        $totalIngresosNetos = $logs->where('type', 'ingreso')->sum('net_amount');
-        $totalGastosNetos = $logs->where('type', 'gasto')->sum('net_amount');
+        // Cálculo rápido del saldo actual (SOLO LOS COMPLETADOS)
+        $totalIngresosNetos = $logs->where('type', 'ingreso')->where('status', 'completado')->sum('net_amount');
+        $totalGastosNetos = $logs->where('type', 'gasto')->where('status', 'completado')->sum('net_amount');
         $saldoActual = $totalIngresosNetos - $totalGastosNetos;
 
         return view('admin.treasury.index', compact('logs', 'events', 'users', 'saldoActual', 'totalIngresosNetos', 'totalGastosNetos'));

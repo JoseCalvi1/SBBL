@@ -143,7 +143,7 @@
     <ul class="nav nav-tabs" id="splitTabs" role="tablist">
         @foreach($splits as $nombre => $rango)
             <li class="nav-item" role="presentation">
-                <button class="nav-link @if ($loop->index === 4) active @endif"
+                <button class="nav-link @if ($loop->index === 5) active @endif"
                         id="tab-{{ $loop->index }}"
                         data-bs-toggle="tab"
                         data-bs-target="#content-{{ $loop->index }}"
@@ -158,7 +158,7 @@
     {{-- CONTENIDO DE LOS SPLITS --}}
     <div class="tab-content mt-4" id="splitTabsContent">
         @foreach($splits as $nombre => $rango)
-            <div class="tab-pane fade @if ($loop->index === 4) show active @endif"
+            <div class="tab-pane fade @if ($loop->index === 5) show active @endif"
                  id="content-{{ $loop->index }}"
                  role="tabpanel">
 

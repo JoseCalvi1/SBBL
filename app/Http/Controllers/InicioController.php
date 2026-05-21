@@ -559,7 +559,6 @@ class InicioController extends Controller
 
     private function getRankingQuery()
     {
-        // Centralizamos la consulta para que sea idéntica en ambos métodos
         return "
             WITH
             BaseResultados AS (
@@ -568,7 +567,8 @@ class InicioController extends Controller
                         WHEN e.name LIKE 'COPA LET IT R.I.P.%' THEN 'let_it_rip'
                         WHEN e.name LIKE 'COPA X-MAS%' THEN 'xmas'
                         WHEN e.name LIKE 'COPA LIGERA REVIVAL%' THEN 'ligera'
-                        WHEN e.name LIKE 'COPA ONLY ATTACK%' THEN 'attack'
+                        WHEN e.name LIKE 'COPA ATTACK%' THEN 'attack'
+                        WHEN e.name LIKE 'COPA STOCK%' THEN 'stock'
                         ELSE 'otra'
                     END AS tipo_copa,
                     CASE
@@ -579,10 +579,13 @@ class InicioController extends Controller
                     END AS puntos_partida
                 FROM assist_user_event a
                 JOIN events e ON a.event_id = e.id
-                WHERE e.beys = 'grancopa' AND e.date >= '2025-09-01'
+                WHERE (e.beys = 'grancopa' OR e.name LIKE 'COPA STOCK%') AND e.date >= '2025-09-01'
             ),
             CupAggregates AS (
-                SELECT user_id, COUNT(DISTINCT tipo_copa) AS copas_inscritas, SUM(max_puntos_copa) AS puntos_campeon
+                SELECT user_id,
+                    COUNT(DISTINCT CASE WHEN tipo_copa NOT IN ('otra', 'stock') THEN tipo_copa END) AS copas_inscritas,
+                    SUM(max_puntos_copa) AS puntos_campeon,
+                    MAX(CASE WHEN tipo_copa = 'stock' THEN 1 ELSE 0 END) AS jugo_stock
                 FROM (
                     SELECT user_id, tipo_copa, MAX(puntos_partida) AS max_puntos_copa
                     FROM BaseResultados WHERE tipo_copa != 'otra'
@@ -617,13 +620,17 @@ class InicioController extends Controller
             )
             SELECT
                 ROW_NUMBER() OVER (
-                    ORDER BY COALESCE(ca.copas_inscritas, 0) DESC,
-                    (COALESCE(ca.puntos_campeon, 0) + COALESCE(fp.puntos_fidelidad, 0) + COALESCE(rp.puntos_ranking, 1)) DESC
+                    ORDER BY
+                        COALESCE(ca.copas_inscritas, 0) DESC,
+                        -- Si tiene 4 copas o más, el comodín no aplica para desempatar
+                        CASE WHEN COALESCE(ca.copas_inscritas, 0) >= 4 THEN 0 ELSE COALESCE(ca.jugo_stock, 0) END DESC,
+                        (COALESCE(ca.puntos_campeon, 0) + COALESCE(fp.puntos_fidelidad, 0) + COALESCE(rp.puntos_ranking, 1)) DESC
                 ) AS posicion,
                 u.id AS raw_id,
                 CONCAT('#', LPAD(u.id, 4, '0')) AS id_formateado,
                 u.name AS nombre_usuario,
                 COALESCE(ca.copas_inscritas, 0) AS copas_inscritas,
+                COALESCE(ca.jugo_stock, 0) AS jugo_stock,
                 CASE
                     WHEN COALESCE(ca.copas_inscritas, 0) >= 4 THEN 'Grupo A'
                     WHEN COALESCE(ca.copas_inscritas, 0) = 3  THEN 'Grupo B'
@@ -638,7 +645,11 @@ class InicioController extends Controller
             JOIN CupAggregates ca ON u.id = ca.user_id
             LEFT JOIN RankingPoints rp ON u.id = rp.user_id
             LEFT JOIN FidelidadPoints fp ON u.id = fp.user_id
-            ORDER BY copas_inscritas DESC, total_desempate DESC;
+            ORDER BY
+                copas_inscritas DESC,
+                -- Replicamos la misma lógica en el ORDER BY final
+                CASE WHEN copas_inscritas >= 4 THEN 0 ELSE jugo_stock END DESC,
+                total_desempate DESC;
         ";
     }
 

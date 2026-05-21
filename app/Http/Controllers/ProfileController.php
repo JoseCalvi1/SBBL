@@ -700,61 +700,67 @@ class ProfileController extends Controller
     }
 
         public function ranking(Request $request)
-        {
-            ini_set('memory_limit', '1024M'); // Seguridad extra, por si acaso
-            // Valores de filtros
-            $limit = $request->input('limit', 25); // Valor por defecto: 25
-            if ($limit !== 'all') {
-                $limit = (int) $limit;
-            }
-            $region = $request->input('region', null);
+    {
+        ini_set('memory_limit', '1024M'); // Seguridad extra, por si acaso
 
-            // Función para generar cada ranking
-            $getBladersByPoints = function ($column) use ($limit, $region) {
-                return Profile::with(['user.teams', 'region'])
-                    ->when($region, function ($query) use ($region) {
-                        return $query->whereHas('region', function ($q) use ($region) {
-                            $q->where('name', $region);
-                        });
-                    })
-                    ->where($column, '!=', 0)
-                    ->orderBy($column, 'DESC')
-                    ->orderBy('id', 'ASC')
-                    ->when($limit !== 'all', function ($query) use ($limit) {
-                        return $query->take($limit);
-                    })
-                    ->get()
-                    ->map(function ($blader) use ($column) {
-                        if ($blader->user->teams->isNotEmpty() && $blader->user->teams->first()->logo) {
-                            $blader->team_logo = 'data:image/png;base64,' . $blader->user->teams->first()->logo;
-                        } else {
-                            $blader->team_logo = null;
-                        }
-                        return $blader;
-                    });
-            };
-
-            // Rankings por temporada/sistema
-            $bladers_points     = $getBladersByPoints('points');       // Season 1
-            $bladers_points_s2  = $getBladersByPoints('points_s2');    // Season 2
-            $bladers_points_s3  = $getBladersByPoints('points_s3');    // Season 3
-            $bladers_points_x1  = $getBladersByPoints('points_x1');    // Beyblade X 1
-            $bladers_points_x2  = $getBladersByPoints('points_x2');    // Beyblade X 2
-
-            // Lista de regiones
-            $regions = Region::all()->pluck('name');
-
-            return view('profiles.ranking', [
-                'bladers_points' => $bladers_points,
-                'bladers_points_s2' => $bladers_points_s2,
-                'bladers_points_s3' => $bladers_points_s3,
-                'bladers_points_x1' => $bladers_points_x1,
-                'bladers_points_x2' => $bladers_points_x2,
-                'limit' => $limit,
-                'region' => $region,
-                'regions' => $regions,
-            ]);
+        // Valores de filtros
+        $limit = $request->input('limit', 25); // Valor por defecto: 25
+        if ($limit !== 'all') {
+            $limit = (int) $limit;
         }
+        $region = $request->input('region', null);
+        $province = $request->input('province', null); // <--- NUEVO FILTRO PROVINCIA
+
+        // Función para generar cada ranking
+        $getBladersByPoints = function ($column) use ($limit, $region, $province) {
+            return \App\Models\Profile::with(['user.teams', 'region', 'province'])
+                ->when($region, function ($query) use ($region) {
+                    return $query->whereHas('region', function ($q) use ($region) {
+                        $q->where('name', $region);
+                    });
+                })
+                ->when($province, function ($query) use ($province) { // <--- LÓGICA DE FILTRADO
+                    return $query->where('province_id', $province);
+                })
+                ->where($column, '!=', 0)
+                ->orderBy($column, 'DESC')
+                ->orderBy('id', 'ASC')
+                ->when($limit !== 'all', function ($query) use ($limit) {
+                    return $query->take($limit);
+                })
+                ->get()
+                ->map(function ($blader) {
+                    if ($blader->user->teams->isNotEmpty() && $blader->user->teams->first()->logo) {
+                        $blader->team_logo = 'data:image/png;base64,' . $blader->user->teams->first()->logo;
+                    } else {
+                        $blader->team_logo = null;
+                    }
+                    return $blader;
+                });
+        };
+
+        // Rankings por temporada/sistema
+        $bladers_points     = $getBladersByPoints('points');       // Season 1
+        $bladers_points_s2  = $getBladersByPoints('points_s2');    // Season 2
+        $bladers_points_s3  = $getBladersByPoints('points_s3');    // Season 3
+        $bladers_points_x1  = $getBladersByPoints('points_x1');    // Beyblade X 1
+        $bladers_points_x2  = $getBladersByPoints('points_x2');    // Beyblade X 2
+
+        // Cargar todas las regiones CON sus provincias para el JS de la vista
+        $regionsWithProvinces = \App\Models\Region::with('provinces')->orderBy('name')->get();
+
+        return view('profiles.ranking', [
+            'bladers_points' => $bladers_points,
+            'bladers_points_s2' => $bladers_points_s2,
+            'bladers_points_s3' => $bladers_points_s3,
+            'bladers_points_x1' => $bladers_points_x1,
+            'bladers_points_x2' => $bladers_points_x2,
+            'limit' => $limit,
+            'region' => $region,
+            'province' => $province, // Pasamos la provincia seleccionada a la vista
+            'regionsWithProvinces' => $regionsWithProvinces,
+        ]);
+    }
 
 
 
@@ -811,8 +817,7 @@ class ProfileController extends Controller
             'Split Let It R.I.P.' => ['2025-10-01', '2025-11-30'],
             'Split XMAS' => ['2025-12-01', '2026-01-31'],
             'Split Ligera Revival' => ['2026-02-01', '2026-03-31'],
-            'Split 4' => ['2026-04-01', '2026-05-31'],
-            'Split final' => ['2026-06-01', '2026-06-30'],
+            'Split ATTACK ONLY' => ['2026-04-01', '2026-05-31'],
         ];
 
         $data = [];
@@ -823,6 +828,7 @@ class ProfileController extends Controller
                 ->join('users', 'points_log.user_id', '=', 'users.id')
                 ->select('users.id', 'users.name', DB::raw('SUM(points_log.puntos) as total_puntos'))
                 ->whereBetween('events.date', [$start, $end])
+                ->where('points_log.modo', '!=', 'fantasy_reward')
                 ->groupBy('users.id', 'users.name')
                 ->orderByDesc('total_puntos')
                 ->get();
@@ -1085,6 +1091,7 @@ public function showPublic($slug)
     $puntosLog = \DB::table('points_log')
         ->join('events', 'points_log.event_id', '=', 'events.id')
         ->where('points_log.user_id', $userId)
+        ->where('points_log.modo', '!=', 'fantasy_reward')
         ->select('points_log.puntos', 'events.date', 'events.name')
         ->orderBy('events.date', 'desc')
         ->take(8)

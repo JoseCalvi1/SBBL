@@ -18,7 +18,6 @@
            VARIABLES GLOBALES: Z-INDEX & COLORES LIGA + SHONEN
            ¡ESTO APLICA A TODA LA WEB!
         ===================================================== */
-        /* 1. IMPORTAMOS OSWALD PARA BUENA LECTURA DE NÚMEROS */
         @import url('https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,700;0,900;1,900&family=Oswald:wght@500;700&display=swap');
 
         :root {
@@ -56,7 +55,6 @@
             background-size: 20px 20px;
         }
 
-        /* 2. APLICAMOS OSWALD A LOS TÍTULOS Y A LA CLASE */
         .font-Oswald {
             font-family: 'Oswald', sans-serif;
             font-weight: 700;
@@ -123,10 +121,38 @@
         .btn-shonen-warning { background: var(--sbbl-gold); color: #000; box-shadow: 4px 4px 0 #000; }
         .btn-shonen-warning:hover { background: var(--shonen-red); color: #fff; box-shadow: 5px 5px 0 #000; transform: translate(-2px, -2px) skewX(-5deg); }
 
-        /* Estilos de Suscripción (Clases Globales) */
+        /* Estilos de Suscripción */
         .suscripcion-nivel-3 { color: var(--sbbl-gold) !important; text-shadow: 2px 2px 0 #000; }
         .suscripcion-nivel-2 { color: #e2e8f0 !important; text-shadow: 2px 2px 0 #000; }
         .suscripcion-nivel-1 { color: #b45309 !important; text-shadow: 2px 2px 0 #000; }
+
+        /* --- ALERTAS DEL SISTEMA (ESTILO SHONEN) --- */
+        @keyframes alert-pulse {
+            0% { box-shadow: 0 0 0 0 rgba(255, 0, 0, 0.7); border-color: #ff0000; }
+            70% { box-shadow: 0 0 10px 10px rgba(255, 0, 0, 0); border-color: var(--shonen-red); }
+            100% { box-shadow: 0 0 0 0 rgba(255, 0, 0, 0); border-color: #ff0000; }
+        }
+        .alert-shonen-danger {
+            background: rgba(0, 0, 0, 0.8) !important;
+            border: 3px solid #ff0000 !important;
+            color: #fff !important;
+            font-family: 'Oswald', sans-serif;
+            font-size: 1.2rem;
+            letter-spacing: 1px;
+            box-shadow: 6px 6px 0px rgba(255, 0, 0, 0.5) !important;
+            transform: skewX(-2deg);
+            animation: alert-pulse 2s infinite;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 15px 20px;
+        }
+        .alert-shonen-danger > div { transform: skewX(2deg); }
+        .alert-shonen-danger a {
+            background: var(--shonen-red); color: #fff !important; padding: 4px 12px; text-decoration: none !important;
+            border: 2px solid #fff; margin-left: 10px; font-weight: 900; transition: 0.2s; text-shadow: 1px 1px 0px #000;
+        }
+        .alert-shonen-danger a:hover { background: #fff; color: #000 !important; border-color: var(--shonen-red); text-shadow: none; box-shadow: 3px 3px 0 var(--shonen-red); }
 
         /* =====================================================
            NAVBAR SUPERIOR
@@ -161,67 +187,33 @@
             box-shadow: 3px 3px 0 #000;
         }
 
-        /* Dropdown */
         .navbar .dropdown-menu {
-            background-color: var(--sbbl-blue-3);
-            border: 3px solid var(--sbbl-gold);
-            border-radius: 0;
-            box-shadow: 6px 6px 0 #000;
-            z-index: var(--z-dropdown);
-            margin-top: 15px;
+            background-color: var(--sbbl-blue-3); border: 3px solid var(--sbbl-gold); border-radius: 0; box-shadow: 6px 6px 0 #000; z-index: var(--z-dropdown); margin-top: 15px;
         }
 
         .navbar .dropdown-item {
-            color: white;
-            font-family: 'Oswald', sans-serif;
-            font-weight: 500;
-            font-size: 1.2rem !important;
-            letter-spacing: 1px;
-            text-transform: uppercase;
-            transition: 0.2s;
-            border-bottom: 1px dashed rgba(255,255,255,0.2);
+            color: white; font-family: 'Oswald', sans-serif; font-weight: 500; font-size: 1.2rem !important; letter-spacing: 1px; text-transform: uppercase; transition: 0.2s; border-bottom: 1px dashed rgba(255,255,255,0.2);
         }
 
-        .navbar .dropdown-item:hover {
-            background-color: var(--sbbl-gold);
-            color: #000 !important;
-            padding-left: 25px;
-        }
+        .navbar .dropdown-item:hover { background-color: var(--sbbl-gold); color: #000 !important; padding-left: 25px; }
 
-        /* =====================================================
-           COLLAPSE NAVBAR (MÓVIL)
-        ===================================================== */
         @media (max-width: 767.98px) {
-            .navbar-collapse {
-                position: absolute;
-                top: 100%;
-                left: 0;
-                right: 0;
-                background-color: var(--sbbl-blue-1);
-                border-bottom: 4px solid var(--sbbl-gold);
-                box-shadow: 0 4px 0 #000;
-                z-index: var(--z-navbar);
-                padding: 10px 0;
-            }
+            .navbar-collapse { position: absolute; top: 100%; left: 0; right: 0; background-color: var(--sbbl-blue-1); border-bottom: 4px solid var(--sbbl-gold); box-shadow: 0 4px 0 #000; z-index: var(--z-navbar); padding: 10px 0; }
             .navbar-nav .nav-link { transform: none; text-align: center; border-bottom: 1px solid #000; }
             .navbar-nav .nav-link:hover { transform: none; box-shadow: none; }
             .navbar .dropdown-menu { border: none; box-shadow: none; margin: 0; }
         }
 
         /* =====================================================
-           SIDEBAR (DASHBOARD)
+           SIDEBAR (DASHBOARD ADMIN ACORDEÓN)
         ===================================================== */
-        .dashboard-wrapper {
-            display: flex;
-            height: calc(100vh - 70px);
-            overflow: hidden;
-        }
+        .dashboard-wrapper { display: flex; height: calc(100vh - 70px); overflow: hidden; }
 
         .sidebar {
-            width: 260px;
+            width: 280px;
             background-color: var(--sbbl-blue-3);
             border-right: 4px solid var(--sbbl-gold);
-            padding: 20px;
+            padding: 20px 10px;
             overflow-y: auto;
             flex-shrink: 0;
             z-index: var(--z-sidebar);
@@ -239,67 +231,51 @@
             letter-spacing: 2px;
         }
 
-        .sidebar h4 {
-            font-family: 'Montserrat', sans-serif;
-            font-weight: 900;
-            color: #a8c0ff;
-            font-size: 0.8rem;
-            margin-top: 20px;
-            border-bottom: 2px dashed #000;
-            padding-bottom: 5px;
+        /* Estilos del Acordeón Admin */
+        .accordion-button::after { filter: invert(1) grayscale(100%) brightness(200%); }
+        .accordion-button:not(.collapsed) {
+            background-color: rgba(255, 193, 7, 0.1) !important;
+            color: var(--sbbl-gold) !important;
+            border-color: var(--sbbl-gold) !important;
+            box-shadow: none;
+        }
+        .accordion-button { transition: all 0.2s; border-radius: 0 !important; background: var(--sbbl-blue-1); color: #fff;}
+        .accordion-button:hover {
+            background-color: rgba(255, 255, 255, 0.05) !important;
+            border-color: var(--shonen-cyan) !important;
+            color: #ffffff !important; /* <--- Obliga al texto a ponerse blanco puro */
+            text-shadow: 0 0 5px rgba(255, 255, 255, 0.5); /* Opcional: Le da un pequeño brillo al pasar el ratón */
         }
 
-        .sidebar-link {
+        .admin-sublink {
+            color: #ffffff !important; /* Forzado a blanco puro */
+            font-family: 'Oswald', sans-serif;
+            font-size: 1.1rem;
+            padding: 8px 15px;
+            border-left: 2px solid transparent;
+            transition: all 0.2s;
+            text-decoration: none;
             display: flex;
             align-items: center;
-            gap: 10px;
-            padding: 8px 15px;
-            border-radius: 0;
-            border: 2px solid #000;
-            margin-bottom: 8px;
-            cursor: pointer;
-            background: var(--sbbl-blue-1);
-            color: #fff;
-            text-decoration: none;
-            transition: 0.2s;
-            font-family: 'Oswald', sans-serif;
-            font-weight: 500;
-            font-size: 1.2rem;
-            letter-spacing: 1px;
-            text-transform: uppercase;
-            transform: skewX(-5deg);
         }
-        .sidebar-link > * { transform: skewX(5deg); }
-
-        .sidebar-link:hover {
-            background: var(--sbbl-gold);
-            border-color: #000;
-            color: #000;
-            transform: translateX(10px) skewX(-5deg);
-            box-shadow: 4px 4px 0 #000;
+        .admin-sublink:hover, .admin-sublink.active {
+            background: rgba(0,0,0,0.5);
+            border-left: 3px solid var(--sbbl-gold);
+            transform: translateX(3px);
+            color: var(--sbbl-gold) !important; /* Dorado al pasar el ratón */
         }
 
         /* Sidebar móvil */
         @media (max-width: 991.98px) {
-            .sidebar {
-                position: fixed;
-                left: -260px;
-                top: 70px;
-                height: calc(100vh - 70px);
-                transition: left 0.3s ease;
-            }
+            .sidebar { position: fixed; left: -280px; top: 70px; height: calc(100vh - 70px); transition: left 0.3s ease; }
             .sidebar.open { left: 0; }
         }
 
         .sidebar-toggle {
-            position: fixed; top: 85px; left: 15px;
-            width: 50px; height: 50px;
-            background-color: var(--sbbl-gold); color: #000;
-            border: 3px solid #000; border-radius: 0;
-            display: flex; align-items: center; justify-content: center;
-            font-size: 22px; box-shadow: 4px 4px 0 #000;
-            cursor: pointer; z-index: var(--z-navbar);
-            transform: skewX(-10deg); transition: 0.2s;
+            position: fixed; top: 85px; left: 15px; width: 50px; height: 50px;
+            background-color: var(--sbbl-gold); color: #000; border: 3px solid #000; border-radius: 0;
+            display: flex; align-items: center; justify-content: center; font-size: 22px; box-shadow: 4px 4px 0 #000;
+            cursor: pointer; z-index: var(--z-navbar); transform: skewX(-10deg); transition: 0.2s;
         }
         .sidebar-toggle > * { transform: skewX(10deg); }
         .sidebar-toggle:hover { background-color: var(--shonen-cyan); transform: translate(-2px,-2px) skewX(-10deg); box-shadow: 6px 6px 0 #000; }
@@ -308,57 +284,40 @@
            CONTENIDO PRINCIPAL
         ===================================================== */
         .content-area {
-            flex: 1;
-            padding: 20px;
-            overflow-y: auto;
-            background-color: var(--sbbl-blue-1);
-            background-image: radial-gradient(rgba(255, 255, 255, 0.05) 2px, transparent 2px);
-            background-size: 20px 20px;
+            flex: 1; padding: 20px; overflow-y: auto; background-color: var(--sbbl-blue-1);
+            background-image: radial-gradient(rgba(255, 255, 255, 0.05) 2px, transparent 2px); background-size: 20px 20px;
         }
 
         /* =====================================================
            BOTONES FLOTANTES
         ===================================================== */
         .subscription-button {
-            position: fixed; bottom: 20px; right: 20px;
-            background: var(--sbbl-gold); color: #000;
-            padding: 10px 20px; border-radius: 0;
-            border: 3px solid #000; box-shadow: 5px 5px 0 var(--shonen-red);
-            display: flex; align-items: center; gap: 10px;
-            font-family: 'Oswald', sans-serif; font-weight: 700; font-size: 1.4rem; letter-spacing: 1px;
-            cursor: pointer; transition: 0.2s;
-            z-index: var(--z-floating); transform: skewX(-10deg);
-            text-transform: uppercase;
+            position: fixed; bottom: 20px; right: 20px; background: var(--sbbl-gold); color: #000;
+            padding: 10px 20px; border-radius: 0; border: 3px solid #000; box-shadow: 5px 5px 0 var(--shonen-red);
+            display: flex; align-items: center; gap: 10px; font-family: 'Oswald', sans-serif; font-weight: 700; font-size: 1.4rem; letter-spacing: 1px;
+            cursor: pointer; transition: 0.2s; z-index: var(--z-floating); transform: skewX(-10deg); text-transform: uppercase;
         }
         .subscription-button > * { transform: skewX(10deg); }
         .subscription-button:hover { background: #fff; transform: translate(-3px,-3px) skewX(-10deg); box-shadow: 8px 8px 0 #000; }
 
         .subscription-tooltip {
-            display: none; position: absolute; bottom: 70px; right: 0;
-            background: #000; color: #fff; padding: 15px;
-            border: 3px solid var(--sbbl-gold); border-radius: 0;
-            width: 280px; box-shadow: 6px 6px 0 var(--sbbl-blue-3);
-            z-index: calc(var(--z-floating) + 1);
-            font-family: 'Montserrat', sans-serif; font-size: 0.9rem;
+            display: none; position: absolute; bottom: 70px; right: 0; background: #000; color: #fff; padding: 15px;
+            border: 3px solid var(--sbbl-gold); border-radius: 0; width: 280px; box-shadow: 6px 6px 0 var(--sbbl-blue-3);
+            z-index: calc(var(--z-floating) + 1); font-family: 'Montserrat', sans-serif; font-size: 0.9rem;
         }
         .subscription-tooltip h4 { font-family: 'Oswald', sans-serif; font-weight: 700; color: var(--sbbl-gold); font-size: 1.8rem; letter-spacing: 1px; text-transform: uppercase; margin-top:0;}
         .subscription-button:hover .subscription-tooltip { display: block; }
 
         .cart-floating-btn {
-            position: fixed; bottom: 100px; right: 20px;
-            background: var(--shonen-cyan); color: #000;
-            padding: 15px; border-radius: 0; border: 3px solid #000;
-            text-align: center; box-shadow: 5px 5px 0 var(--sbbl-blue-3);
-            z-index: 1000; font-size: 22px; text-decoration: none;
-            transform: skewX(-10deg); transition: 0.2s;
+            position: fixed; bottom: 100px; right: 20px; background: var(--shonen-cyan); color: #000;
+            padding: 15px; border-radius: 0; border: 3px solid #000; text-align: center; box-shadow: 5px 5px 0 var(--sbbl-blue-3);
+            z-index: 1000; font-size: 22px; text-decoration: none; transform: skewX(-10deg); transition: 0.2s;
         }
         .cart-floating-btn > * { transform: skewX(10deg); }
         .cart-floating-btn:hover { background: #fff; transform: translate(-3px,-3px) skewX(-10deg); box-shadow: 8px 8px 0 var(--shonen-red); }
         .cart-badge {
-            position: absolute; top: -15px; right: -15px;
-            background: var(--shonen-red); color: white;
-            border: 2px solid #000; font-family: 'Oswald', sans-serif; font-weight: 700;
-            width: 30px; height: 30px; font-size: 1.2rem;
+            position: absolute; top: -15px; right: -15px; background: var(--shonen-red); color: white;
+            border: 2px solid #000; font-family: 'Oswald', sans-serif; font-weight: 700; width: 30px; height: 30px; font-size: 1.2rem;
             display: flex; align-items: center; justify-content: center;
         }
 
@@ -368,33 +327,24 @@
         .hidden { display: none !important; }
 
         .cookie-banner {
-            position: fixed; bottom: 0; left: 0; right: 0;
-            background: var(--sbbl-blue-1); border-top: 4px solid var(--sbbl-gold);
-            color: white; padding: 1.5em;
-            display: flex; justify-content: space-between; align-items: center;
-            z-index: var(--z-cookie); box-shadow: 0 -5px 20px #000;
-            font-weight: 700;
+            position: fixed; bottom: 0; left: 0; right: 0; background: var(--sbbl-blue-1); border-top: 4px solid var(--sbbl-gold);
+            color: white; padding: 1.5em; display: flex; justify-content: space-between; align-items: center;
+            z-index: var(--z-cookie); box-shadow: 0 -5px 20px #000; font-weight: 700;
         }
         .cookie-banner a { color: var(--shonen-cyan); font-weight: 900; }
 
         .cookie-buttons button {
-            margin-left: 0.5em; background: #000;
-            border: 2px solid #fff; padding: 0.3em 1.5em;
+            margin-left: 0.5em; background: #000; border: 2px solid #fff; padding: 0.3em 1.5em;
             cursor: pointer; color: white; font-family: 'Oswald', sans-serif; font-weight: 700;
-            font-size: 1.2rem; letter-spacing: 1px; transition: 0.2s; text-transform: uppercase;
-            transform: skewX(-10deg);
+            font-size: 1.2rem; letter-spacing: 1px; transition: 0.2s; text-transform: uppercase; transform: skewX(-10deg);
         }
         .cookie-buttons button:hover { background: var(--sbbl-gold); color: #000; border-color: #000; box-shadow: 4px 4px 0 var(--shonen-red); transform: translate(-2px,-2px) skewX(-10deg); }
 
         .cookie-modal {
-            position: fixed; top: 0; left: 0; right: 0; bottom: 0;
-            background: rgba(0,0,0,0.85); display: flex; justify-content: center; align-items: center;
-            z-index: var(--z-modal);
+            position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.85); display: flex; justify-content: center; align-items: center; z-index: var(--z-modal);
         }
         .cookie-modal-content {
-            background: var(--sbbl-blue-2); padding: 2em; border: 4px solid #000;
-            box-shadow: 10px 10px 0 var(--sbbl-gold); text-align: left;
-            max-width: 600px; max-height: 90%; overflow-y: auto; color: #fff;
+            background: var(--sbbl-blue-2); padding: 2em; border: 4px solid #000; box-shadow: 10px 10px 0 var(--sbbl-gold); text-align: left; max-width: 600px; max-height: 90%; overflow-y: auto; color: #fff;
         }
         .cookie-modal-content h3 { font-family: 'Oswald', sans-serif; font-weight: 700; color: var(--sbbl-gold); font-size: 2.5rem; letter-spacing: 1px; text-shadow: 2px 2px 0 #000; margin-top:0; }
         .cookie-category { margin: 15px 0; padding: 15px; background: var(--sbbl-blue-1); border: 2px solid #000; border-left: 5px solid var(--sbbl-gold); }
@@ -404,46 +354,22 @@
         /* =====================================================
            FOOTER DE MANDO
         ===================================================== */
-        .command-footer {
-            background: var(--sbbl-blue-1);
-            border-top: 4px solid var(--shonen-red);
-            box-shadow: 0 -4px 0 #000;
-            color: #ddd;
-            padding-top: 3rem;
-            padding-bottom: 1.5rem;
-            position: relative;
-        }
-        .footer-heading {
-            font-family: 'Oswald', sans-serif; font-weight: 700;
-            color: var(--sbbl-gold);
-            text-transform: uppercase;
-            font-size: 1.8rem;
-            letter-spacing: 1px;
-            margin-bottom: 1.2rem;
-            text-shadow: 2px 2px 0 #000;
-        }
+        .command-footer { background: var(--sbbl-blue-1); border-top: 4px solid var(--shonen-red); box-shadow: 0 -4px 0 #000; color: #ddd; padding-top: 3rem; padding-bottom: 1.5rem; position: relative; }
+        .footer-heading { font-family: 'Oswald', sans-serif; font-weight: 700; color: var(--sbbl-gold); text-transform: uppercase; font-size: 1.8rem; letter-spacing: 1px; margin-bottom: 1.2rem; text-shadow: 2px 2px 0 #000; }
         .footer-desc { font-size: 0.95rem; line-height: 1.6; font-weight: 600; }
         .footer-links { list-style: none; padding: 0; margin: 0; }
         .footer-links li { margin-bottom: 0.8rem; }
-        .footer-links a {
-            color: #fff; text-decoration: none; transition: all 0.2s ease;
-            font-family: 'Oswald', sans-serif; font-weight: 500; font-size: 1.3rem; letter-spacing: 1px; text-transform: uppercase;
-        }
+        .footer-links a { color: #fff; text-decoration: none; transition: all 0.2s ease; font-family: 'Oswald', sans-serif; font-weight: 500; font-size: 1.3rem; letter-spacing: 1px; text-transform: uppercase; }
         .footer-links a:hover { color: var(--shonen-cyan); padding-left: 10px; text-shadow: 2px 2px 0 #000; }
 
         .social-icons-footer a {
-            display: inline-flex; align-items: center; justify-content: center;
-            width: 45px; height: 45px; background: var(--sbbl-blue-3);
-            border: 2px solid #000; border-radius: 0; margin-right: 10px; color: #fff;
-            transition: 0.2s; font-size: 1.2rem; text-decoration: none; transform: skewX(-10deg);
+            display: inline-flex; align-items: center; justify-content: center; width: 45px; height: 45px; background: var(--sbbl-blue-3);
+            border: 2px solid #000; border-radius: 0; margin-right: 10px; color: #fff; transition: 0.2s; font-size: 1.2rem; text-decoration: none; transform: skewX(-10deg);
         }
         .social-icons-footer a > * { transform: skewX(10deg); }
         .social-icons-footer a:hover { background: var(--sbbl-gold); color: #000; box-shadow: 4px 4px 0 var(--shonen-red); transform: translate(-2px,-2px) skewX(-10deg); }
 
-        .copyright-bar {
-            border-top: 2px dashed #000; margin-top: 3rem; padding-top: 1.5rem;
-            font-size: 0.85rem; color: #aaa; text-align: center; font-weight: 700;
-        }
+        .copyright-bar { border-top: 2px dashed #000; margin-top: 3rem; padding-top: 1.5rem; font-size: 0.85rem; color: #aaa; text-align: center; font-weight: 700; }
     </style>
 
     <link href="{{ asset('css/app.css') }}" rel="stylesheet">
@@ -451,15 +377,9 @@
     <script>
         window.dataLayer = window.dataLayer || [];
         function gtag(){dataLayer.push(arguments);}
-
         gtag('consent', 'default', {
-            'analytics_storage': 'denied',
-            'ad_storage': 'denied',
-            'ad_user_data': 'denied',
-            'ad_personalization': 'denied',
-            'wait_for_update': 500
+            'analytics_storage': 'denied', 'ad_storage': 'denied', 'ad_user_data': 'denied', 'ad_personalization': 'denied', 'wait_for_update': 500
         });
-
         function updateConsent(analytics, marketing) {
             gtag('consent', 'update', {
                 'analytics_storage': analytics ? 'granted' : 'denied',
@@ -549,6 +469,21 @@
         </nav>
 
         <main style="flex: 1;">
+
+            {{-- 1. ALERTAS DEL SISTEMA EN TODA LA WEB --}}
+            @if (Auth::check() && (!Auth::user()->profile->region_id || !Auth::user()->profile->province_id))
+                <div class="alert alert-shonen alert-shonen-danger m-0" style="border-radius: 0; border-left: none !important; border-right: none !important;" role="alert">
+                    <div>
+                        <i class="fas fa-exclamation-triangle text-danger me-2 fa-lg"></i>
+                        <span class="text-warning">ATENCIÓN BLADER:</span>
+                        No tienes una Provincia o Región asignada en tu perfil.
+                        <a href="{{ route('profiles.edit', ['profile' => Auth::user()->id]) }}" class="d-inline-block mt-2 mt-md-0">
+                            <i class="fas fa-cog me-1"></i> CONFIGURAR AHORA
+                        </a>
+                    </div>
+                </div>
+            @endif
+
             <div class="container-fluid p-0">
                 @if (Request::is('beyblade-database*'))
                     <div class="row m-0">
@@ -573,7 +508,7 @@
                             @yield('content')
                         </div>
                     </div>
-                @elseif (Request::is('dashboard*'))
+                @elseif (Request::is('dashboard*') || Request::is('admin*'))
 
                     <button id="sidebarToggle" class="sidebar-toggle d-lg-none" aria-label="Abrir panel">
                         <div><i class="fas fa-cog"></i></div>
@@ -582,31 +517,108 @@
                     <div class="row m-0">
                         <div class="col-12 p-0">
                             <div class="dashboard-wrapper">
+
                                 <nav class="sidebar" id="sidebar">
                                     <h2 class="sidebar-title">PANEL ADMIN</h2>
-                                    <h4>ÁRBITROS</h4>
-                                    <a href="{{ route('events.indexAdmin') }}" class="sidebar-link"><div><i class="fas fa-calendar-alt"></i> Eventos</div></a>
 
-                                    @if (Auth::user()->hasAnyRole(['juez', 'admin', 'arbitro']))
-                                    <h4>JUECES</h4>
-                                        <a href="{{ route('teams_versus.index') }}" class="sidebar-link"><div><i class="fas fa-users-cog"></i> Equipos Duelos</div></a>
-                                        <a href="{{ route('equipos.indexAdmin') }}" class="sidebar-link"><div><i class="fas fa-users"></i> Equipos</div></a>
-                                        <a href="{{ route('admin.inventory.index') }}" class="sidebar-link"><div><i class="fas fa-boxes"></i> Inventario</div></a>
-                                        <a href="{{ route('database.indexPartes') }}" class="sidebar-link"><div><i class="fas fa-cogs"></i> Partes</div></a>
-                                        <a href="{{ route('database.indexBeys') }}" class="sidebar-link"><div><i class="fas fa-cube"></i> Crear Beyblades</div></a>
-                                    @endif
+                                    <div class="accordion accordion-flush" id="adminAccordion">
 
-                                    @if(Auth::user()->hasRole('admin'))
-                                    <h4>ADMIN CORE</h4>
-                                        <a href="{{ route('admin.dashboard.reviews') }}" class="sidebar-link"><div><i class="fas fa-chart-bar"></i> Revisiones</div></a>
-                                        <a href="{{ route('productos.index') }}" class="sidebar-link"><div><i class="fas fa-shopping-bag"></i> Productos</div></a>
-                                        <a href="{{ route('profiles.indexAdmin') }}" class="sidebar-link"><div><i class="fas fa-user-shield"></i> Gestión</div></a>
-                                        <a href="{{ route('admin.treasury.index') }}" class="sidebar-link"><div><i class="fas fa-file-invoice-dollar"></i> Tesorería</div></a>
-                                        <a href="{{ route('profiles.indexAdminX') }}" class="sidebar-link"><div><i class="fas fa-user-cog"></i> Usuarios X</div></a>
-                                        <a href="{{ route('trophies.index') }}" class="sidebar-link"><div><i class="fas fa-award"></i> Asignaciones</div></a>
-                                        <a href="{{ route('index.anuncios') }}" class="sidebar-link"><div><i class="fas fa-bullhorn"></i> Anuncios</div></a>
-                                        <a href="{{ route('nacional.ranking') }}" class="sidebar-link"><div><i class="fas fa-flag"></i> List Nacional</div></a>
-                                    @endif
+                                        <div class="accordion-item bg-transparent border-0 mb-2">
+                                            <h2 class="accordion-header" id="headingComp">
+                                                <button class="accordion-button collapsed font-Oswald fs-5 border border-secondary shadow-none px-3 py-2" type="button" data-bs-toggle="collapse" data-bs-target="#collapseComp" aria-expanded="false" aria-controls="collapseComp">
+                                                    <i class="fas fa-trophy text-info me-2"></i> COMPETICIÓN
+                                                </button>
+                                            </h2>
+                                            <div id="collapseComp" class="accordion-collapse collapse" aria-labelledby="headingComp" data-bs-parent="#adminAccordion">
+                                                <div class="accordion-body p-0 pt-2 ps-3">
+                                                    <ul class="nav flex-column">
+                                                        <li class="nav-item mb-1"><a class="nav-link admin-sublink text-white" href="{{ route('events.indexAdmin') }}"><i class="fas fa-calendar-alt me-2"></i> Eventos</a></li>
+                                                        @if (Auth::user()->hasAnyRole(['juez', 'admin']))
+                                                            <li class="nav-item mb-1"><a class="nav-link admin-sublink text-white" href="{{ route('equipos.indexAdmin') }}"><i class="fas fa-users me-2"></i> Equipos</a></li>
+                                                            <li class="nav-item mb-1"><a class="nav-link admin-sublink text-white" href="{{ route('teams_versus.index') }}"><i class="fas fa-fist-raised me-2"></i> Duelos</a></li>
+                                                        @endif
+                                                    </ul>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        @if (Auth::user()->hasAnyRole(['juez', 'admin']))
+                                        <div class="accordion-item bg-transparent border-0 mb-2">
+                                            <h2 class="accordion-header" id="headingLog">
+                                                <button class="accordion-button collapsed font-Oswald fs-5 border border-secondary shadow-none px-3 py-2" type="button" data-bs-toggle="collapse" data-bs-target="#collapseLog" aria-expanded="false" aria-controls="collapseLog">
+                                                    <i class="fas fa-boxes text-warning me-2"></i> LOGÍSTICA
+                                                </button>
+                                            </h2>
+                                            <div id="collapseLog" class="accordion-collapse collapse" aria-labelledby="headingLog" data-bs-parent="#adminAccordion">
+                                                <div class="accordion-body p-0 pt-2 ps-3">
+                                                    <ul class="nav flex-column">
+                                                        <li class="nav-item mb-1"><a class="nav-link admin-sublink text-white" href="{{ route('admin.inventory.index') }}"><i class="fas fa-box-open me-2"></i> Inventario</a></li>
+                                                        <li class="nav-item mb-1"><a class="nav-link admin-sublink text-white" href="{{ route('database.indexPartes') }}"><i class="fas fa-cogs me-2"></i> Partes</a></li>
+                                                        <li class="nav-item mb-1"><a class="nav-link admin-sublink text-white" href="{{ route('database.indexBeys') }}"><i class="fas fa-cube me-2"></i> Crear Beyblades</a></li>
+                                                    </ul>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        @endif
+
+                                        @if(Auth::user()->hasRole('admin'))
+                                        <div class="accordion-item bg-transparent border-0 mb-2">
+                                            <h2 class="accordion-header" id="headingTreasury">
+                                                <button class="accordion-button collapsed font-Oswald fs-5 border border-secondary shadow-none px-3 py-2" type="button" data-bs-toggle="collapse" data-bs-target="#collapseTreasury" aria-expanded="false" aria-controls="collapseTreasury">
+                                                    <i class="fas fa-coins text-success me-2"></i> ECONOMÍA
+                                                </button>
+                                            </h2>
+                                            <div id="collapseTreasury" class="accordion-collapse collapse" aria-labelledby="headingTreasury" data-bs-parent="#adminAccordion">
+                                                <div class="accordion-body p-0 pt-2 ps-3">
+                                                    <ul class="nav flex-column">
+                                                        <li class="nav-item mb-1"><a class="nav-link admin-sublink text-white" href="{{ route('admin.treasury.index') }}"><i class="fas fa-file-invoice-dollar me-2"></i> Tesorería</a></li>
+                                                        <li class="nav-item mb-1"><a class="nav-link admin-sublink text-white" href="{{ route('productos.index') }}"><i class="fas fa-shopping-bag me-2"></i> Productos</a></li>
+                                                        <li class="nav-item mb-1"><a class="nav-link admin-sublink text-white" href="{{ route('admin.pedidos.index') }}"><i class="fas fa-shopping-bag me-2"></i> Pedidos</a></li>
+                                                    </ul>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        @endif
+
+                                        @if(Auth::user()->hasRole('admin'))
+                                        <div class="accordion-item bg-transparent border-0 mb-2">
+                                            <h2 class="accordion-header" id="headingComm">
+                                                <button class="accordion-button collapsed font-Oswald fs-5 border border-secondary shadow-none px-3 py-2" type="button" data-bs-toggle="collapse" data-bs-target="#collapseComm" aria-expanded="false" aria-controls="collapseComm">
+                                                    <i class="fas fa-users-cog text-danger me-2"></i> COMUNIDAD
+                                                </button>
+                                            </h2>
+                                            <div id="collapseComm" class="accordion-collapse collapse" aria-labelledby="headingComm" data-bs-parent="#adminAccordion">
+                                                <div class="accordion-body p-0 pt-2 ps-3">
+                                                    <ul class="nav flex-column">
+                                                        <li class="nav-item mb-1"><a class="nav-link admin-sublink text-white" href="{{ route('profiles.indexAdminX') }}"><i class="fas fa-user-ninja me-2"></i> Usuarios X</a></li>
+                                                        <li class="nav-item mb-1"><a class="nav-link admin-sublink text-white" href="{{ route('trophies.index') }}"><i class="fas fa-id-badge me-2"></i> Asignaciones</a></li>
+                                                        <li class="nav-item mb-1"><a class="nav-link admin-sublink text-white" href="{{ route('index.anuncios') }}"><i class="fas fa-bullhorn me-2"></i> Anuncios</a></li>
+                                                        <li class="nav-item mb-1"><a class="nav-link admin-sublink text-white" href="{{ route('admin.dashboard.reviews') }}"><i class="fas fa-clipboard-check me-2"></i> Revisiones</a></li>
+                                                    </ul>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        @endif
+
+                                        @if(Auth::user()->hasRole('admin'))
+                                        <div class="accordion-item bg-transparent border-0 mb-2">
+                                            <h2 class="accordion-header" id="headingSys">
+                                                <button class="accordion-button collapsed font-Oswald fs-5 border border-secondary shadow-none px-3 py-2" type="button" data-bs-toggle="collapse" data-bs-target="#collapseSys" aria-expanded="false" aria-controls="collapseSys">
+                                                    <i class="fas fa-server text-secondary me-2"></i> SISTEMA
+                                                </button>
+                                            </h2>
+                                            <div id="collapseSys" class="accordion-collapse collapse" aria-labelledby="headingSys" data-bs-parent="#adminAccordion">
+                                                <div class="accordion-body p-0 pt-2 ps-3">
+                                                    <ul class="nav flex-column">
+                                                        <li class="nav-item mb-1"><a class="nav-link admin-sublink text-white" href="{{ route('nacional.ranking') }}"><i class="fas fa-flag me-2"></i> List Nacional</a></li>
+                                                        <li class="nav-item mb-1"><a class="nav-link admin-sublink text-white" href="{{ route('profiles.indexAdmin') }}"><i class="fas fa-cogs me-2"></i> Gestión General</a></li>
+                                                    </ul>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        @endif
+
+                                    </div>
                                 </nav>
 
                                 <main class="content-area">
@@ -618,27 +630,16 @@
 
                 @else
                     <div class="row m-0 flex-grow-1">
+                        <div class="col-md-2 p-0 d-none d-md-block" style="background: linear-gradient(to right, rgba(30, 42, 71, 1), rgba(39, 41, 91, 0.5)), url('/images/s2tile_3.png') repeat left;"></div>
 
-                        <div class="col-md-2 p-0 d-none d-md-block"
-                            style="background: linear-gradient(to right, rgba(30, 42, 71, 1), rgba(39, 41, 91, 0.5)), url('/images/s2tile_3.png') repeat left;">
-                        </div>
-
-                        <div class="col-md-8 col-sm-12 p-0"
-                            style="background-color: var(--sbbl-blue-2); min-height: 70vh; position: relative; z-index: 3; border-left: 4px solid #000; border-right: 4px solid #000; box-shadow: 0 0 20px rgba(0,0,0,0.8);">
-
-                            {{-- Efecto sutil de rejilla --}}
+                        <div class="col-md-8 col-sm-12 p-0" style="background-color: var(--sbbl-blue-2); min-height: 70vh; position: relative; z-index: 3; border-left: 4px solid #000; border-right: 4px solid #000; box-shadow: 0 0 20px rgba(0,0,0,0.8);">
                             <div style="position: absolute; inset: 0; background-image: radial-gradient(rgba(255, 255, 255, 0.1) 2px, transparent 2px); background-size: 20px 20px; pointer-events: none; z-index: 0;"></div>
-
-                            {{-- Contenido inyectado --}}
                             <div style="position: relative; z-index: 1;">
                                 @yield('content')
                             </div>
                         </div>
 
-                        <div class="col-md-2 p-0 d-none d-md-block"
-                            style="background: linear-gradient(to left, rgba(30, 42, 71, 1), rgba(39, 41, 91, 0.5)), url('/images/s2tile_3.png') repeat right;">
-                        </div>
-
+                        <div class="col-md-2 p-0 d-none d-md-block" style="background: linear-gradient(to left, rgba(30, 42, 71, 1), rgba(39, 41, 91, 0.5)), url('/images/s2tile_3.png') repeat right;"></div>
                     </div>
                 @endif
             </div>
@@ -668,8 +669,6 @@
         <footer class="command-footer">
             <div class="container">
                 <div class="row gy-4">
-
-                    {{-- COLUMNA 1: SOBRE NOSOTROS (MISIÓN) --}}
                     <div class="col-lg-4 col-md-6 pe-lg-5">
                         <h5 class="footer-heading">EL EQUIPO SBBL</h5>
                         <p class="footer-desc">
@@ -684,7 +683,6 @@
                         </div>
                     </div>
 
-                    {{-- COLUMNA 2: NAVEGACIÓN PRINCIPAL --}}
                     <div class="col-lg-2 col-md-3 col-6">
                         <h5 class="footer-heading">MAPA</h5>
                         <ul class="footer-links">
@@ -696,7 +694,6 @@
                         </ul>
                     </div>
 
-                    {{-- COLUMNA 3: COMPETITIVO --}}
                     <div class="col-lg-3 col-md-3 col-6">
                         <h5 class="footer-heading">ARENA</h5>
                         <ul class="footer-links">
@@ -707,7 +704,6 @@
                         </ul>
                     </div>
 
-                    {{-- COLUMNA 4: ENLACES RÁPIDOS --}}
                     <div class="col-lg-3 col-md-12">
                         <h5 class="footer-heading">SISTEMAS</h5>
                         <ul class="footer-links">
@@ -719,10 +715,8 @@
                             @endguest
                         </ul>
                     </div>
-
                 </div>
 
-                {{-- BARRA DE COPYRIGHT --}}
                 <div class="copyright-bar row align-items-center">
                     <div class="col-md-6 text-center text-md-start">
                         &copy; {{ date('Y') }} <strong>Spanish BeyBattle League</strong>. TODOS LOS DERECHOS RESERVADOS.
@@ -772,31 +766,21 @@
     </div>
 
     <script src="{{ asset('js/app.js') }}" defer></script>
-
     <link rel="dns-prefetch" href="//fonts.gstatic.com">
     <link href="https://fonts.googleapis.com/css?family=Nunito" rel="stylesheet">
-
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-
     <link href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/css/select2.min.css" rel="stylesheet" />
     <script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/js/select2.min.js"></script>
-
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 
     <script>
-        // Función para descargar imágenes generales (SBBL Wrapped)
         function downloadImage() {
             const element = document.getElementById('wrapped');
             if(element) {
-                html2canvas(element, {
-                    useCORS: true,
-                    scale: 2
-                }).then(canvas => {
+                html2canvas(element, { useCORS: true, scale: 2 }).then(canvas => {
                     const link = document.createElement('a');
                     link.download = 'SBBL_Wrapped.png';
                     link.href = canvas.toDataURL("image/png");
@@ -805,20 +789,12 @@
             }
         }
 
-        // Cookies - Funciones
         const cookieBanner = document.getElementById('cookie-banner');
         const cookieModal = document.getElementById('cookie-settings-modal');
-
-        // Inicializar Consent Mode por defecto
         window.dataLayer = window.dataLayer || [];
         function gtag(){ dataLayer.push(arguments); }
+        gtag('consent', 'default', { 'ad_storage': 'denied', 'analytics_storage': 'denied' });
 
-        gtag('consent', 'default', {
-            'ad_storage': 'denied',
-            'analytics_storage': 'denied'
-        });
-
-        // Cargar preferencias al iniciar
         document.addEventListener('DOMContentLoaded', () => {
             const consent = localStorage.getItem("cookieConsent");
             if (!consent) {
@@ -836,107 +812,65 @@
             document.getElementById('analyticsCookies').checked = prefs.analytics || false;
             document.getElementById('marketingCookies').checked = prefs.marketing || false;
         }
-
-        function acceptOnlyNecessary() {
-            saveCookiePreferences(false, false);
-            cookieBanner.classList.add("hidden");
-            trackCookieEvent('reject', 'all');
-        }
-
-        function acceptAllCookies() {
-            saveCookiePreferences(true, true);
-            cookieBanner.classList.add("hidden");
-            trackCookieEvent('accept', 'all');
-        }
-
+        function acceptOnlyNecessary() { saveCookiePreferences(false, false); cookieBanner.classList.add("hidden"); trackCookieEvent('reject', 'all'); }
+        function acceptAllCookies() { saveCookiePreferences(true, true); cookieBanner.classList.add("hidden"); trackCookieEvent('accept', 'all'); }
         function showSettings() {
             const consent = localStorage.getItem("cookieConsent");
-            if (consent) {
-                const prefs = JSON.parse(consent);
-                setCheckboxStates(prefs);
-            }
+            if (consent) { setCheckboxStates(JSON.parse(consent)); }
             cookieModal.classList.remove("hidden");
         }
-
         function saveSettings() {
             const analytics = document.getElementById('analyticsCookies').checked;
             const marketing = document.getElementById('marketingCookies').checked;
             saveCookiePreferences(analytics, marketing);
             cookieModal.classList.add("hidden");
         }
-
         function saveCookiePreferences(analytics, marketing) {
-            const consent = {
-                analytics,
-                marketing,
-                date: new Date().toISOString()
-            };
+            const consent = { analytics, marketing, date: new Date().toISOString() };
             localStorage.setItem("cookieConsent", JSON.stringify(consent));
-
             updateConsent(analytics, marketing);
-
             if (analytics) loadAnalytics();
             if (marketing) loadMarketing();
-
             trackCookieEvent('update', `analytics:${analytics},marketing:${marketing}`);
         }
-
         function updateConsent(analytics, marketing) {
-            gtag('consent', 'update', {
-                'ad_storage': marketing ? 'granted' : 'denied',
-                'analytics_storage': analytics ? 'granted' : 'denied'
-            });
+            gtag('consent', 'update', { 'ad_storage': marketing ? 'granted' : 'denied', 'analytics_storage': analytics ? 'granted' : 'denied' });
         }
 
-        // Cargar Google Analytics
         function loadAnalytics() {
             if (!window.gaLoaded) {
                 window.gaLoaded = true;
-
                 const script = document.createElement('script');
                 script.src = "https://www.googletagmanager.com/gtag/js?id=G-KSK91ZXWE3";
                 script.async = true;
                 document.head.appendChild(script);
-
                 script.onload = () => {
                     gtag('js', new Date());
                     gtag('config', 'G-KSK91ZXWE3', {
                         'anonymize_ip': true,
-                        'allow_ad_personalization_signals': localStorage.getItem("cookieConsent")
-                            ? JSON.parse(localStorage.getItem("cookieConsent")).marketing
-                            : false
+                        'allow_ad_personalization_signals': localStorage.getItem("cookieConsent") ? JSON.parse(localStorage.getItem("cookieConsent")).marketing : false
                     });
                 };
             }
         }
 
-        // Cargar Google AdSense
         function loadMarketing() {
             if (!window.adsenseLoaded) {
                 window.adsenseLoaded = true;
-
                 const adsenseScript = document.createElement('script');
                 adsenseScript.src = "https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7050675485532592";
                 adsenseScript.async = true;
                 adsenseScript.crossOrigin = "anonymous";
                 document.head.appendChild(adsenseScript);
-
                 adsenseScript.onload = () => {
-                    (window.adsbygoogle = window.adsbygoogle || []).push({
-                        google_ad_client: "ca-pub-7050675485532592",
-                        enable_page_level_ads: true
-                    });
+                    (window.adsbygoogle = window.adsbygoogle || []).push({ google_ad_client: "ca-pub-7050675485532592", enable_page_level_ads: true });
                 };
             }
         }
 
-        // Registrar evento de consentimiento
         function trackCookieEvent(action, type) {
             if (typeof gtag === 'function') {
-                gtag('event', 'cookie_consent', {
-                    'event_category': 'cookies',
-                    'event_label': `${action}_${type}`
-                });
+                gtag('event', 'cookie_consent', { 'event_category': 'cookies', 'event_label': `${action}_${type}` });
             }
         }
     </script>
@@ -944,7 +878,6 @@
         document.addEventListener('DOMContentLoaded', function () {
             const toggle = document.getElementById('sidebarToggle');
             const sidebar = document.getElementById('sidebar');
-
             if (toggle && sidebar) {
                 toggle.addEventListener('click', function () {
                     sidebar.classList.toggle('open');
@@ -952,7 +885,6 @@
             }
         });
     </script>
-
     @yield('scripts')
 </body>
 </html>

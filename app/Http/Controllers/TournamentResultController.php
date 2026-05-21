@@ -69,7 +69,7 @@ class TournamentResultController extends Controller
     return redirect()->back()->with('success', 'Resultados guardados correctamente.');
     }
 
-public function beybladeStats(Request $request)
+    public function beybladeStats(Request $request)
 {
     // 1. Valores por defecto y Filtros Simples
     $sort = $request->get('sort', 'percentage_victories');

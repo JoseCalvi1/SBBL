@@ -8,7 +8,7 @@ class TreasuryLog extends Model
 {
     protected $fillable = [
         'type', 'category', 'gross_amount', 'fee', 'net_amount',
-        'description', 'reference_id', 'receipt_b64', 'user_id', 'event_id'
+        'description', 'reference_id', 'receipt_b64', 'user_id', 'event_id', 'status'
     ];
 
     // Para saber de quién es el pago o a quién se le dio el dinero

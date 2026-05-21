@@ -183,6 +183,10 @@
                             <span class="info-label"><i class="fas fa-clock me-2 text-white"></i>Hora</span>
                             <span class="info-value text-white">{{ $event->time }}</span>
                         </li>
+                        <li>
+                            <span class="info-label"><i class="fas fa-map me-2 text-white"></i>Provincia</span>
+                            <span class="info-value text-white">{{ $event->province->name ?? 'No especificada' }}</span>
+                        </li>
                         <li class="flex-column align-items-start">
                             <span class="info-label mb-2"><i class="fas fa-map-pin me-2 text-white"></i>Ubicación</span>
                             <div class="text-white bg-black p-3 border border-secondary w-100 fw-bold">{!! $event->location !!}</div>
@@ -190,7 +194,7 @@
                         @if($event->note)
                         <li class="flex-column align-items-start">
                             <span class="info-label text-warning mb-2"><i class="fas fa-sticky-note me-2 text-white"></i>Notas</span>
-                            <div class="text-white fst-italic fw-bold border-start border-3 border-warning ps-2">{!! $event->note !!}</div>
+                            <div class="text-white fst-italic fw-bold border-start border-3 border-warning ps-2 w-100" style="width: 100% !important;">{!! $event->note !!}</div>
                         </li>
                         @endif
                     </ul>
@@ -420,7 +424,7 @@
                                         ((isset($rankingTournamentsLeft) && $rankingTournamentsLeft == 0) || (isset($isRegistered) && $isRegistered)))
                                         disabled style="background: #555 !important; color: #888 !important; border-color: #333 !important; cursor: not-allowed; box-shadow: none;"
                                         @endif>
-                                        <span><i class="fas fa-fist-raised me-2"></i> INSCRIBIRSE EN LA BATALLA
+                                        <span><i class="fas fa-fist-raised me-2"></i> INSCRIBIRSE EN EL EVENTO
                                         @if(in_array($event->beys, ['ranking', 'rankingplus']) && isset($rankingTournamentsLeft))
                                             <span class="badge bg-black text-white ms-3 border border-white" style="font-size: 1rem; vertical-align: middle;">Restantes: {{ $rankingTournamentsLeft }}</span>
                                         @endif
@@ -467,7 +471,9 @@
                                 <select name="participante_id" class="form-select form-select-sm select2">
                                     <option value="">Buscar blader...</option>
                                     @foreach($participantes as $p)
-                                        <option value="{{ $p->id }}">{{ $p->name }}</option>
+                                        <option value="{{ $p->id }}">
+                                            {{ $p->name }} #{{ str_pad($p->id, 4, '0', STR_PAD_LEFT) }} ({{ $p->email }})
+                                        </option>
                                     @endforeach
                                 </select>
                                 <button type="submit" class="btn btn-success fw-bold px-3 border-2 border-dark"><i class="fas fa-plus"></i></button>
@@ -501,7 +507,7 @@
                                             </div>
                                             <div>
                                                 <div class="font-Oswald fs-4 text-white d-flex align-items-center gap-2 flex-wrap" style="letter-spacing: 1px;">
-                                                    {{ $assist->name }}
+                                                    {{ $assist->name }} <span class="text-white-50" style="font-size: 1.1rem;">#{{ str_pad($assist->id, 4, '0', STR_PAD_LEFT) }}</span>
 
                                                     {{-- ETIQUETA DE EQUIPO DEL USUARIO --}}
                                                     @if($assist->active_team)
@@ -612,13 +618,13 @@
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body text-center p-4" style="background: var(--sbbl-blue-2);">
-                <p class="text-white fw-bold fs-5 mb-0">¿REALMENTE QUIERES CANCELAR TU ASISTENCIA A LA MISIÓN?</p>
+                <p class="text-white fw-bold fs-5 mb-0">¿REALMENTE QUIERES CANCELAR TU ASISTENCIA AL EVENTO?</p>
             </div>
             <div class="modal-footer border-top border-dark d-flex justify-content-center gap-3" style="background: #000;">
                 <button type="button" class="btn fw-bold bg-dark text-white border border-secondary" data-bs-dismiss="modal">MANTENER POSICIÓN</button>
                 <form method="POST" action="{{ route('events.noassist', ['event' => $event->id]) }}">
                     @method('DELETE') @csrf
-                    <button type="submit" class="btn fw-bold" style="background: var(--shonen-red); color: #fff; border: 2px solid #000;">SÍ, ABORTAR MISIÓN</button>
+                    <button type="submit" class="btn fw-bold" style="background: var(--shonen-red); color: #fff; border: 2px solid #000;">SÍ, SALIR DEL EVENTO</button>
                 </form>
             </div>
         </div>
@@ -808,9 +814,13 @@
         @endif
 
         // --- BOTONES DE COPIAR ---
+        // --- BOTONES DE COPIAR ---
         $('#copyButton').on('click', function() {
-            const names = {!! json_encode($assists->pluck('name')->values()->toArray()) !!}.join('\n');
-            navigator.clipboard ? navigator.clipboard.writeText(names).then(() => alert('NOMBRES DE BLADERS COPIADOS AL PORTAPAPELES.')) : alert('Navegador no compatible');
+            const names = {!! json_encode($assists->map(function($assist) {
+                return $assist->name . '#' . str_pad($assist->id, 4, '0', STR_PAD_LEFT);
+            })->values()->toArray()) !!}.join('\n');
+
+            navigator.clipboard ? navigator.clipboard.writeText(names).then(() => alert('NOMBRES E IDs COPIADOS AL PORTAPAPELES.')) : alert('Navegador no compatible');
         });
 
         $('#copyButtonEmail').on('click', function() {

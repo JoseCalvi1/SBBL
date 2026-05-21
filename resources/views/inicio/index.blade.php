@@ -102,6 +102,54 @@
     .social-hub a { color: #fff; font-size: 1.5rem; margin: 0 10px; transition: all 0.2s; }
     .social-hub a:hover { color: var(--sbbl-gold); transform: scale(1.2) rotate(5deg); }
     .live-dot { width: 10px; height: 10px; background: #fff; border: 2px solid #000; display: inline-block; margin-right: 6px; animation: pulse-red 1s infinite; }
+
+    /* --- ALERTAS DEL SISTEMA (ESTILO SHONEN) --- */
+    @keyframes alert-pulse {
+        0% { box-shadow: 0 0 0 0 rgba(255, 0, 0, 0.7); border-color: #ff0000; }
+        70% { box-shadow: 0 0 10px 10px rgba(255, 0, 0, 0); border-color: var(--shonen-red); }
+        100% { box-shadow: 0 0 0 0 rgba(255, 0, 0, 0); border-color: #ff0000; }
+    }
+
+    .alert-shonen-danger {
+        background: rgba(0, 0, 0, 0.8) !important;
+        border: 3px solid #ff0000 !important;
+        color: #fff !important;
+        font-family: 'Oswald', sans-serif;
+        font-size: 1.2rem;
+        letter-spacing: 1px;
+        box-shadow: 6px 6px 0px rgba(255, 0, 0, 0.5) !important;
+        transform: skewX(-2deg);
+        animation: alert-pulse 2s infinite;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        padding: 15px 20px;
+    }
+
+    .alert-shonen-danger > div {
+        transform: skewX(2deg); /* Enderezamos el texto interior */
+    }
+
+    .alert-shonen-danger a {
+        background: var(--shonen-red);
+        color: #fff !important;
+        padding: 4px 12px;
+        text-decoration: none !important;
+        border: 2px solid #fff;
+        margin-left: 10px;
+        font-weight: 900;
+        transition: 0.2s;
+        text-shadow: 1px 1px 0px #000;
+    }
+
+    .alert-shonen-danger a:hover {
+        background: #fff;
+        color: #000 !important;
+        border-color: var(--shonen-red);
+        text-shadow: none;
+        box-shadow: 3px 3px 0 var(--shonen-red);
+    }
+
 </style>
 @include('database.partials.mainmenu-styles')
 @endsection
@@ -111,9 +159,16 @@
     <div class="container-fluid content-layer pb-5 pt-3">
 
         {{-- 1. ALERTAS DEL SISTEMA --}}
-        @if ((Auth::user() && !Auth::user()->profile->region))
-            <div class="alert alert-shonen alert-shonen-danger text-center rounded-0 mb-4 mx-3">
-                <div><i class="fas fa-exclamation-triangle"></i> ATENCIÓN: REGIÓN NO ASIGNADA. <a href="{{ route('profiles.edit', ['profile' => Auth::user()->id]) }}" class="text-white text-decoration-underline">CONFIGURAR AHORA</a></div>
+        @if (Auth::check() && (!Auth::user()->profile->region_id || !Auth::user()->profile->province_id))
+            <div class="alert alert-shonen alert-shonen-danger mb-4 mx-3" role="alert">
+                <div>
+                    <i class="fas fa-exclamation-triangle text-danger me-2 fa-lg" style="animation: pulse-red 1s infinite;"></i>
+                    <span class="text-warning">ATENCIÓN BLADER:</span>
+                    No tienes una Provincia y Región asignada.
+                    <a href="{{ route('profiles.edit', ['profile' => Auth::user()->id]) }}" class="d-inline-block mt-2 mt-md-0">
+                        <i class="fas fa-cog me-1"></i> CONFIGURAR AHORA
+                    </a>
+                </div>
             </div>
         @endif
 

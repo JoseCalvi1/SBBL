@@ -305,49 +305,51 @@
                     <tbody>
                         @foreach ($subscriptions as $sub)
                             <tr>
-                                <form action="{{ route('admin.subscriptions.update', $sub->id) }}" method="POST">
-                                    @csrf @method('PUT')
-                                    <td class="fw-bold">{{ $sub->user->name ?? 'Desconocido' }}</td>
-                                    <td>
-                                        <select name="plan_id" class="form-control form-control-sm bg-dark text-white border-secondary">
-                                            @foreach($plans as $plan)
-                                                <option value="{{ $plan->id }}" {{ $sub->plan_id == $plan->id ? 'selected' : '' }}>{{ $plan->name }}</option>
-                                            @endforeach
-                                        </select>
-                                    </td>
-                                    <td>
-                                        <select name="period" class="form-control form-control-sm bg-dark text-white border-secondary">
-                                            <option value="monthly" {{ $sub->period == 'monthly' ? 'selected' : '' }}>Mensual</option>
-                                            <option value="annual" {{ $sub->period == 'annual' ? 'selected' : '' }}>Anual</option>
-                                        </select>
-                                    </td>
-                                    <td>
-                                        <select name="status" class="form-control form-control-sm bg-dark text-white border-secondary">
-                                            <option value="active" {{ $sub->status == 'active' ? 'selected' : '' }}>Activa</option>
-                                            <option value="pending" {{ $sub->status == 'pending' ? 'selected' : '' }}>Pendiente</option>
-                                            <option value="canceled" {{ $sub->status == 'canceled' ? 'selected' : '' }}>Cancelada</option>
-                                            <option value="expired" {{ $sub->status == 'expired' ? 'selected' : '' }}>Expirada</option>
-                                        </select>
-                                    </td>
+                                <td class="fw-bold">{{ $sub->user->name ?? 'Desconocido' }}</td>
+                                <td>
+                                    <select form="edit-sub-{{ $sub->id }}" name="plan_id" class="form-control form-control-sm bg-dark text-white border-secondary">
+                                        @foreach($plans as $plan)
+                                            <option value="{{ $plan->id }}" {{ $sub->plan_id == $plan->id ? 'selected' : '' }}>{{ $plan->name }}</option>
+                                        @endforeach
+                                    </select>
+                                </td>
+                                <td>
+                                    <select form="edit-sub-{{ $sub->id }}" name="period" class="form-control form-control-sm bg-dark text-white border-secondary">
+                                        <option value="monthly" {{ $sub->period == 'monthly' ? 'selected' : '' }}>Mensual</option>
+                                        <option value="annual" {{ $sub->period == 'annual' ? 'selected' : '' }}>Anual</option>
+                                    </select>
+                                </td>
+                                <td>
+                                    <select form="edit-sub-{{ $sub->id }}" name="status" class="form-control form-control-sm bg-dark text-white border-secondary">
+                                        <option value="active" {{ $sub->status == 'active' ? 'selected' : '' }}>Activa</option>
+                                        <option value="pending" {{ $sub->status == 'pending' ? 'selected' : '' }}>Pendiente</option>
+                                        <option value="canceled" {{ $sub->status == 'canceled' ? 'selected' : '' }}>Cancelada</option>
+                                        <option value="expired" {{ $sub->status == 'expired' ? 'selected' : '' }}>Expirada</option>
+                                    </select>
+                                </td>
 
-                                    <td>
-                                        <input type="text" name="paypal_subscription_id" value="{{ $sub->paypal_subscription_id }}" class="form-control form-control-sm bg-dark text-white border-secondary" placeholder="Sin ID">
-                                    </td>
+                                <td>
+                                    <input form="edit-sub-{{ $sub->id }}" type="text" name="paypal_subscription_id" value="{{ $sub->paypal_subscription_id }}" class="form-control form-control-sm bg-dark text-white border-secondary" placeholder="Sin ID">
+                                </td>
 
-                                    <td>
-                                        <input type="date" name="ended_at" value="{{ $sub->ended_at ? $sub->ended_at->format('Y-m-d') : '' }}" class="form-control form-control-sm bg-dark text-white border-secondary">
-                                    </td>
-                                    <td class="text-end">
-                                        <div class="btn-group">
-                                            <button type="submit" class="btn btn-sm btn-success" title="Guardar cambios"><i class="fas fa-save"></i></button>
-                                            <button type="button" class="btn btn-sm btn-danger" onclick="confirmDeleteSub('{{ $sub->id }}')" title="Eliminar"><i class="fas fa-trash"></i></button>
-                                        </div>
-                                    </td>
-                                </form>
-                                {{-- Formulario oculto para el borrado --}}
-                                <form id="delete-sub-{{ $sub->id }}" action="{{ route('admin.subscriptions.destroy', $sub->id) }}" method="POST" style="display:none;">
-                                    @csrf @method('DELETE')
-                                </form>
+                                <td>
+                                    <input form="edit-sub-{{ $sub->id }}" type="date" name="ended_at" value="{{ $sub->ended_at ? $sub->ended_at->format('Y-m-d') : '' }}" class="form-control form-control-sm bg-dark text-white border-secondary">
+                                </td>
+                                <td class="text-end">
+                                    {{-- FORMULARIOS OCULTOS EN LA CELDA DE ACCIONES --}}
+                                    <form id="edit-sub-{{ $sub->id }}" action="{{ route('admin.subscriptions.update', $sub->id) }}" method="POST" style="display: none;">
+                                        @csrf @method('PUT')
+                                    </form>
+
+                                    <form id="delete-sub-{{ $sub->id }}" action="{{ route('admin.subscriptions.destroy', $sub->id) }}" method="POST" style="display:none;">
+                                        @csrf @method('DELETE')
+                                    </form>
+
+                                    <div class="btn-group">
+                                        <button type="submit" form="edit-sub-{{ $sub->id }}" class="btn btn-sm btn-success" title="Guardar cambios"><i class="fas fa-save"></i></button>
+                                        <button type="button" class="btn btn-sm btn-danger" onclick="confirmDeleteSub('{{ $sub->id }}')" title="Eliminar"><i class="fas fa-trash"></i></button>
+                                    </div>
+                                </td>
                             </tr>
                         @endforeach
                     </tbody>
