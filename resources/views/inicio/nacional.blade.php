@@ -738,6 +738,25 @@
         </div>
     </div>
 </div>
+<div class="section-container reveal">
+    <h2 class="sec-title" style="border-left-color: var(--neon-gold);">Entrenamiento: Fuerza Bruta</h2>
+    <div class="cyber-card">
+        <p class="stat-desc text-center">¡Libera todo tu poder! Tienes exactamente 5 segundos para tirar de la jareta. Pulsa el botón repetidamente lo más rápido que puedas para alcanzar las máximas Revoluciones Por Minuto (RPM).</p>
+
+        <div id="rpm-container" style="border: 2px solid var(--neon-gold); border-radius: 12px; padding: 30px; background: rgba(0, 0, 0, 0.5); text-align: center; margin-top: 30px; position: relative;">
+
+            <div id="rpm-record" style="position: absolute; top: 20px; right: 20px; font-family: 'Orbitron', sans-serif; font-size: 1rem; color: var(--neon-cyan); font-weight: bold; text-shadow: 0 0 10px rgba(0, 242, 254, 0.5);">RÉCORD: 0 RPM</div>
+
+            <div id="rpm-timer" style="font-family: 'Roboto Mono', monospace; font-size: 2rem; color: var(--text-soft); margin-bottom: 10px;">5.0s</div>
+
+            <div id="rpm-display" style="font-family: 'Orbitron', sans-serif; font-size: clamp(3rem, 10vw, 5rem); color: var(--neon-gold); text-shadow: 0 0 20px rgba(255, 213, 0, 0.5); line-height: 1; transition: transform 0.05s ease;">
+                0 <span style="font-size: 1.5rem; color: var(--text-soft); text-shadow: none;">RPM</span>
+            </div>
+
+            <button id="btn-rpm-action" class="btn-cyber mt-4" style="padding: 20px 40px; font-size: 1.5rem; width: 100%; max-width: 400px; touch-action: manipulation;" onclick="clickRPM()">¡PREPARAR LANZADOR!</button>
+        </div>
+    </div>
+</div>
 
 <div class="section-container text-center reveal" style="padding-bottom: 100px;">
     <h2 class="sec-title" style="border:none; justify-content: center; display: flex;">Lista de Clasificados</h2>
@@ -889,6 +908,87 @@
             levelDisplay.style.textShadow = "0 0 10px rgba(0, 242, 254, 0.5)";
 
             btnElement.innerText = "REINTENTAR";
+        }
+    }
+    // ==========================================
+    // LÓGICA DEL MINIJUEGO: FUERZA BRUTA (RPM)
+    // ==========================================
+    let rpmTimer = 5.0;
+    let rpmClicks = 0;
+    let rpmInterval;
+    let isRpmPlaying = false;
+    let maxRpmRecord = 0;
+    const rpmMultiplier = 180; // Cuántas RPM suma cada clic
+
+    function clickRPM() {
+        const btn = document.getElementById('btn-rpm-action');
+        const display = document.getElementById('rpm-display');
+        const timerDisplay = document.getElementById('rpm-timer');
+        const recordDisplay = document.getElementById('rpm-record');
+
+        // CASO 1: Iniciar el juego
+        if (!isRpmPlaying && rpmTimer === 5.0) {
+            isRpmPlaying = true;
+            rpmClicks = 1;
+
+            btn.innerText = "¡TIRA! ¡TIRA! ¡TIRA!";
+            btn.style.background = "var(--neon-magenta)";
+            btn.style.boxShadow = "0 0 30px rgba(255, 0, 85, 0.8)";
+            btn.style.color = "white";
+
+            updateRpmText(display);
+
+            // Temporizador
+            rpmInterval = setInterval(() => {
+                rpmTimer -= 0.1;
+                if (rpmTimer <= 0) {
+                    endRpmGame(btn, timerDisplay, recordDisplay);
+                } else {
+                    timerDisplay.innerText = rpmTimer.toFixed(1) + "s";
+                }
+            }, 100);
+
+        // CASO 2: Haciendo clics durante el juego
+        } else if (isRpmPlaying) {
+            rpmClicks++;
+            updateRpmText(display);
+
+            // Pequeño efecto de latido en el texto
+            display.style.transform = "scale(1.1)";
+            setTimeout(() => { display.style.transform = "scale(1)"; }, 50);
+
+        // CASO 3: Resetear después de jugar
+        } else if (!isRpmPlaying && rpmTimer <= 0) {
+            rpmTimer = 5.0;
+            rpmClicks = 0;
+            timerDisplay.innerText = "5.0s";
+            display.innerHTML = '0 <span style="font-size: 1.5rem; color: var(--text-soft); text-shadow: none;">RPM</span>';
+            btn.innerText = "¡PREPARAR LANZADOR!";
+        }
+    }
+
+    function updateRpmText(display) {
+        display.innerHTML = (rpmClicks * rpmMultiplier) + ' <span style="font-size: 1.5rem; color: var(--text-soft); text-shadow: none;">RPM</span>';
+    }
+
+    function endRpmGame(btn, timerDisplay, recordDisplay) {
+        clearInterval(rpmInterval);
+        isRpmPlaying = false;
+        rpmTimer = 0.0;
+        timerDisplay.innerText = "0.0s";
+
+        btn.innerText = "VOLVER A INTENTAR";
+        btn.style.background = "var(--neon-cyan)";
+        btn.style.boxShadow = "0 0 20px rgba(0, 242, 254, 0.4)";
+        btn.style.color = "#0a192f";
+
+        // Comprobar Récord
+        let finalRpm = rpmClicks * rpmMultiplier;
+        if (finalRpm > maxRpmRecord) {
+            maxRpmRecord = finalRpm;
+            recordDisplay.innerText = "RÉCORD: " + maxRpmRecord + " RPM";
+            recordDisplay.style.color = "var(--neon-gold)";
+            recordDisplay.style.textShadow = "0 0 15px var(--neon-gold)";
         }
     }
 </script>
