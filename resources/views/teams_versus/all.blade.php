@@ -284,7 +284,7 @@
                     </div>
                 </div>
             </div>
-        @empty
+            @empty
             <div class="col-12 w-100">
                 <div class="text-center py-5 bg-black border border-secondary" style="border-width: 3px !important; box-shadow: 6px 6px 0 #000; transform: skewX(-2deg);">
                     <div style="transform: skewX(2deg);">
@@ -295,6 +295,13 @@
                 </div>
             </div>
         @endforelse
+    </div>
+
+    {{-- BOTONES DE PAGINACIÓN (NUEVO) --}}
+    <div class="d-flex justify-content-center mt-5 mb-3" style="transform: skewX(-2deg);">
+        <div style="transform: skewX(2deg);">
+            {{ $versus->links('pagination::bootstrap-4') }}
+        </div>
     </div>
 
 </div>

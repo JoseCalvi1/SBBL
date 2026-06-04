@@ -1,238 +1,202 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="container-fluid p-0">
-    <div class="christmas-bg">
+<div class="container-fluid p-0 beycon-bg">
 
-        {{-- Copos de nieve --}}
-        @for ($i = 0; $i < 20; $i++)
-            <div class="snowflake" style="left: {{ rand(0,100) }}%; animation-delay: {{ rand(0,10) }}s;">
-                ❄
-            </div>
-        @endfor
+    <div class="container py-5">
+        <div class="main-card mx-auto p-4 p-md-5">
+            <div class="row g-5">
 
-        <div class="main-card mx-auto my-5 p-4">
-            <div class="row g-4">
-
-                {{-- COLUMNA IZQUIERDA --}}
+                {{-- COLUMNA IZQUIERDA: INFO BEYCON --}}
                 <div class="col-md-7">
-                    <h2 class="title mb-3 text-center">
-                        🎄✨ RIFA NAVIDEÑA 2025 ✨🎄
+                    <div class="d-inline-block bg-black text-white px-3 py-1 mb-3 font-Oswald fs-4" style="border: 2px solid var(--shonen-red); box-shadow: 4px 4px 0 #000; transform: skewX(-10deg);">
+                        <span style="display:block; transform: skewX(10deg);"><i class="fas fa-ticket-alt me-2 text-warning"></i> TICKETS OFICIALES</span>
+                    </div>
+
+                    <h2 class="title mb-4 font-Oswald" style="font-size: 3.5rem; text-shadow: 3px 3px 0 var(--shonen-red);">
+                        BEYCON '26
                     </h2>
 
-                    <p class="lead">
-                        Gracias a vuestra colaboración a través de las suscripciones y las Copas Let It Rip,
-                        hemos preparado una rifa para celebrar estas fiestas.
+                    <p class="lead fw-bold text-white mb-4">
+                        Asegura tu asistencia en el mayor evento nacional de Beyblade de España. Adquiere tus entradas para competir, participar en side events y vivir la experiencia SBBL.
                     </p>
 
-                    <p>
-                        Queremos agradecer a la comunidad por su apoyo y, al mismo tiempo, recaudar fondos para el
-                        <strong>Nacional 2026</strong> y futuros eventos.
-                    </p>
+                    <div class="bg-black p-4 border border-secondary mb-4" style="transform: skewX(-2deg); box-shadow: 5px 5px 0 #000;">
+                        <div style="transform: skewX(2deg);">
+                            <h4 class="font-Oswald" style="color: var(--sbbl-gold);">INFORMACIÓN DE LA ENTRADA</h4>
+                            <ul class="list-unstyled mb-0 mt-3 text-white">
+                                <li class="mb-2"><i class="fas fa-check-circle text-success me-2"></i> <strong>Precio:</strong> 5,00€ Entrada + 0,50€ Gastos de gestión (Total: 5,50€).</li>
+                                <li class="mb-2"><i class="fas fa-check-circle text-success me-2"></i> <strong>Límite:</strong> Máximo 5 entradas por cuenta.</li>
+                                <li><i class="fas fa-exclamation-circle text-warning me-2"></i> <strong>Reembolsos:</strong> Aplicable contactando con la organización hasta 2 semanas antes del evento.</li>
+                            </ul>
+                        </div>
+                    </div>
 
-                    <h5 class="mt-4"><strong>📅 Fecha del sorteo:</strong></h5>
-                    <p class="mb-1">🗓️ 19 de diciembre</p>
-                    <p>🎥 Se realizará en directo en nuestro canal de YouTube</p>
+                    <h5 class="mt-4 font-Oswald fs-4 text-white"><i class="fas fa-map-marker-alt text-danger me-2"></i> DATOS DEL EVENTO</h5>
+                    <p class="mb-1 text-white-50">🗓️ <strong>Fecha:</strong> 18 de Julio de 2026</p>
+                    <p class="text-white-50">📍 <strong>Lugar:</strong> Sevilla (Hotel Vértice Aljarafe)</p>
 
-                    <hr class="divider">
-
-                    <h4 class="mb-3">🏆 Premios:</h4>
-
-                    <ul>
-                        <li><strong>1º Premio:</strong> Dran Buster morado, lanzador string morado, 2 botellas, 2 toallas, 2 llaveros, 2 carpetas oficiales</li>
-                        <li class="mt-2"><strong>2º Premio:</strong> Cobalt Dragoon metal coat negro, 2 botellas, 2 toallas, 2 llaveros, 2 carpetas oficiales</li>
-                        <li class="mt-2"><strong>3º Premio:</strong> 1 botella, 1 toalla, 1 llavero, 1 carpeta oficial</li>
-                    </ul>
-
-                    <p class="mt-3 text-center">🌟 ¡Vamos a cerrar el año por todo lo alto! 🌟</p>
                 </div>
 
-                {{-- COLUMNA DERECHA
+                {{-- COLUMNA DERECHA: COMPRA --}}
                 <div class="col-md-5">
-                    <div class="ticket-card">
-                        <h3 class="text-center mb-3">🎫 Compra tus tickets</h3>
+                    <div class="ticket-card h-100 d-flex flex-column justify-content-center">
+                        <h3 class="text-center font-Oswald mb-2" style="font-size: 2rem; color: var(--sbbl-gold); text-shadow: 2px 2px 0 #000;">PASARELA DE PAGO</h3>
+                        <p class="text-center text-white-50 mb-4 fw-bold">1 Ticket = 5,50€</p>
 
-                        <p class="text-center">Solo <strong>3€</strong> cada uno</p>
-
-                        <div class="mb-3">
-                            <label class="mb-2">Cantidad de tickets</label>
-                            <input id="ticketQty" type="number" min="1" value="1" class="form-control">
+                        <div class="mb-4">
+                            <label class="mb-2 text-white font-Oswald fs-5">CANTIDAD (Máx 5):</label>
+                            <input id="ticketQty" type="number" min="1" max="5" value="1" class="form-control form-control-lg text-center fw-bold bg-dark text-white border-secondary" style="font-size: 1.5rem;">
                         </div>
 
                         <div id="paypal-buttons" class="my-3"></div>
-                        <div id="buyMsg" class="mt-3"></div>
-
+                        <div id="buyMsg" class="mt-3 text-center font-Oswald fs-5"></div>
                     </div>
-                </div>--}}
+                </div>
 
             </div>
         </div>
 
         {{-- BOTÓN DE LA MAGIA --}}
-        <div class="text-center my-5">
-            <button id="toggleIconBtn" class="btn btn-magic">
-                <span id="magicIcon">✨</span> VER LA MAGIA
+        <div class="text-center mt-5">
+            <button id="toggleIconBtn" class="btn btn-magic font-Oswald" style="background: aliceblue;box-shadow: 4px 4px 0 #f9f9f9; transform: skewX(-5deg);">
+                <div style="transform: skewX(5deg);">
+                    <span id="magicIcon">✨</span> HAZ LA MAGIA
+                </div>
             </button>
         </div>
 
     </div>
-
 </div>
 @endsection
 
 @section('styles')
 <style>
-/* Fondo general */
-.christmas-bg {
-    background: radial-gradient(circle at top, #2a2340 0%, #1a1528 60%, #181225 100%);
-    padding: 40px 0;
-    position: relative;
-    overflow: hidden;
+/* Fondo general Beycon */
+.beycon-bg {
+    background: radial-gradient(circle at center, var(--sbbl-blue-1) 0%, #000 100%);
+    background-image: repeating-linear-gradient(45deg, rgba(0,0,0,0.1) 0px, rgba(0,0,0,0.1) 10px, transparent 10px, transparent 20px), radial-gradient(circle at center, var(--sbbl-blue-1) 0%, #000 100%);
+    min-height: calc(100vh - 100px);
 }
 
 /* Tarjeta principal */
 .main-card {
-    max-width: 1100px;
-    backdrop-filter: blur(10px);
+    background: var(--sbbl-blue-2);
+    border: 4px solid #000;
+    box-shadow: 10px 10px 0 var(--sbbl-gold);
     color: white;
-}
-
-/* Copos de nieve */
-@keyframes snow {
-    0% { transform: translateY(-10vh); opacity: 1; }
-    100% { transform: translateY(100vh); opacity: 0; }
-}
-.snowflake {
-    position: absolute;
-    top: -25px;
-    color: white;
-    font-size: 1.2em;
-    animation: snow linear infinite;
-    opacity: 0.8;
-}
-.snowflake:nth-child(odd) { animation-duration: 8s; }
-.snowflake:nth-child(even) { animation-duration: 12s; }
-
-/* Títulos */
-.title {
-    font-size: 2rem;
-    font-weight: 900;
-    color: #ffccd5;
-    text-shadow: 0 0 12px rgba(255, 110, 150, 0.9);
-}
-
-/* Divider */
-.divider {
-    border-top: 1px solid rgba(255,255,255,0.3);
 }
 
 /* Tarjeta de compra */
 .ticket-card {
-    background: rgba(255, 255, 255, 0.15);
-    border-radius: 18px;
-    padding: 25px;
-    box-shadow: 0 0 18px rgba(255, 80, 80, 0.25);
+    background: rgba(0, 0, 0, 0.5);
+    border: 3px solid #000;
+    padding: 30px;
+    box-shadow: inset 0 0 20px rgba(0,0,0,0.8);
 }
 
-/* Inputs */
-.form-control {
-    background: rgba(255,255,255,0.25);
-    border: none;
-    color: white;
-}
-.form-control:focus {
-    background: rgba(255,255,255,0.35);
-    box-shadow: 0 0 8px #ff88aa;
-}
-
-/* --- ESTILO DEL BOTÓN DE LA MAGIA (NUEVO) --- */
+/* --- ESTILO DEL BOTÓN DE LA MAGIA --- */
 .btn-magic {
-    /* Base Navideña */
-    background: linear-gradient(135deg, #e91e63 0%, #d81b60 100%); /* Rojo frambuesa */
-    color: white;
-    font-weight: bold;
-    font-size: 1.15rem;
-    padding: 10px 30px;
-    border-radius: 50px;
-
-    /* Borde de caramelo (candy cane) */
-    border: 3px solid #fff;
-    box-shadow: 0 0 15px rgba(233, 30, 99, 0.7); /* Brillo rojo */
+    background: var(--sbbl-gold);
+    color: #000;
+    font-size: 1.5rem;
+    padding: 10px 40px;
+    border: 3px solid #000;
     transition: all 0.2s ease;
-
-    /* Estilo para que el texto no se mueva */
-    line-height: 1;
 }
 
-/* Efecto Hover: Más brillo y escala */
 .btn-magic:hover {
-    background: linear-gradient(135deg, #d81b60 0%, #c2185b 100%);
-    box-shadow: 0 0 25px rgba(233, 30, 99, 1);
-    transform: scale(1.05);
-    color: white; /* Aseguramos que el texto siga siendo blanco */
-    border-color: #fce4ec; /* Borde más brillante en hover */
+    background: var(--shonen-red);
+    color: #fff;
+    box-shadow: 4px 4px 0 var(--sbbl-gold) !important;
 }
 
-/* Efecto de Pulsación (Active/Focus): "Hundir" el botón */
-.btn-magic:active, .btn-magic:focus {
-    transform: scale(0.98);
-    box-shadow: 0 0 5px rgba(233, 30, 99, 0.5);
-    background: #c2185b; /* Tono más oscuro al pulsar */
-}
-
-/* Estilo para el botón cuando la magia está activada (cambio de icono) */
 .btn-magic.active-magic {
-    background: linear-gradient(135deg, #4caf50 0%, #388e3c 100%); /* Cambia a Verde */
-    box-shadow: 0 0 15px rgba(76, 175, 80, 0.7); /* Brillo verde */
-    border-color: #e8f5e9;
+    background: #ff7bac; /* Color rosado bacon */
+    color: #000;
 }
-.btn-magic.active-magic:hover {
-    background: linear-gradient(135deg, #388e3c 0%, #2e7d32 100%);
-    box-shadow: 0 0 25px rgba(76, 175, 80, 1);
+
+/* --- ANIMACIÓN BACON LLOVIENDO --- */
+@keyframes bacon-fall {
+    0% { transform: translateY(-10vh) rotate(0deg); opacity: 1; }
+    100% { transform: translateY(110vh) rotate(360deg); opacity: 0; }
+}
+.bacon-drop {
+    position: fixed;
+    top: -10%;
+    z-index: 9999;
+    font-size: 2.5rem;
+    animation: bacon-fall linear forwards;
+    pointer-events: none;
+    user-select: none;
 }
 </style>
 @endsection
 
 @section('scripts')
-{{-- PASO 1: Cargar el SDK de PayPal primero usando PAYPAL_CLIENT_ID (estandarizado) --}}
+{{-- Cargar el SDK de PayPal --}}
 <script src="https://www.paypal.com/sdk/js?client-id={{ env('PAYPAL_LIVE_CLIENT_ID') }}&currency=EUR"></script>
 
-{{-- PASO 2: Ejecutar el código que usa 'paypal' una vez que el DOM esté listo --}}
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    const toggleBtn = document.getElementById('toggleIconBtn');
-    const magicIcon = document.getElementById('magicIcon'); // Referencia al icono
-    let showingSnow = true;
 
+    // --- LÓGICA DE LA LLUVIA DE BACON ---
+    const toggleBtn = document.getElementById('toggleIconBtn');
+    const magicIcon = document.getElementById('magicIcon');
+    let baconInterval = null;
+
+    toggleBtn.addEventListener('click', () => {
+        if (baconInterval) {
+            // Detener magia
+            clearInterval(baconInterval);
+            baconInterval = null;
+            magicIcon.textContent = '✨';
+            toggleBtn.classList.remove('active-magic');
+
+            // Limpiar bacons de la pantalla
+            document.querySelectorAll('.bacon-drop').forEach(b => b.remove());
+        } else {
+            // Empezar magia
+            magicIcon.textContent = '🥓';
+            toggleBtn.classList.add('active-magic');
+
+            baconInterval = setInterval(() => {
+                const bacon = document.createElement('div');
+                bacon.className = 'bacon-drop';
+                bacon.textContent = '🥓';
+                bacon.style.left = Math.random() * 100 + 'vw';
+                bacon.style.animationDuration = (Math.random() * 3 + 2) + 's'; // Entre 2 y 5 segundos en caer
+                document.body.appendChild(bacon);
+
+                // Limpiar del DOM cuando termina la animación
+                setTimeout(() => {
+                    if (bacon.parentNode) bacon.remove();
+                }, 5000);
+            }, 150); // Caen bacons cada 150ms
+        }
+    });
+
+    // --- LÓGICA DE PAYPAL ---
     const qtyInput = document.getElementById('ticketQty');
     const msg = document.getElementById('buyMsg');
 
-    // LÓGICA DEL BOTÓN DE LA MAGIA
-    toggleBtn.addEventListener('click', () => {
-
-        // 1. Cambia el contenido de los copos
-        document.querySelectorAll('.snowflake').forEach(el => {
-            el.textContent = showingSnow ? '🦎' : '❄';
-        });
-
-        // 2. Cambia el icono del botón y su clase (para el estilo verde)
-        if (showingSnow) {
-            magicIcon.textContent = '🎉';
-            toggleBtn.classList.add('active-magic');
-        } else {
-            magicIcon.textContent = '✨';
-            toggleBtn.classList.remove('active-magic');
-        }
-
-        showingSnow = !showingSnow;
+    // Validación de cantidad en el input
+    qtyInput.addEventListener('change', function() {
+        let val = parseInt(this.value);
+        if (val < 1) this.value = 1;
+        if (val > 5) this.value = 5;
     });
 
-    // LÓGICA DE PAYPAL
     paypal.Buttons({
-        style: { color: 'gold', shape: 'pill', label: 'pay', height: 45 },
+        style: { color: 'gold', shape: 'rect', label: 'pay', height: 45 },
 
-        createOrder: function() {
+        createOrder: function(data, actions) {
             const qty = parseInt(qtyInput.value) || 1;
+
+            if(qty < 1 || qty > 5) {
+                msg.innerHTML = `<div class="text-danger">❌ Solo puedes comprar entre 1 y 5 tickets.</div>`;
+                return;
+            }
 
             return fetch("{{ route('paypal.order') }}", {
                 method: 'POST',
@@ -244,18 +208,16 @@ document.addEventListener('DOMContentLoaded', function() {
             })
             .then(async res => {
                 const data = await res.json();
-
                 if (!res.ok || !data.id) {
-                    msg.innerHTML = `<div class="alert alert-danger">❌ Error creando orden: ${data.error_details ?? data.details ?? 'Desconocido'}</div>`;
+                    msg.innerHTML = `<div class="text-danger">❌ Error creando orden.</div>`;
                     throw new Error("createOrder failed");
                 }
-
                 return data.id;
             });
         },
 
         onApprove: function(data) {
-            msg.innerHTML = `<div class="alert alert-info">⌛ Procesando pago... Por favor, espere.</div>`;
+            msg.innerHTML = `<div class="text-warning">⌛ Procesando pago... Por favor, espere.</div>`;
 
             return fetch("{{ route('paypal.capture') }}", {
                 method: 'POST',
@@ -270,23 +232,23 @@ document.addEventListener('DOMContentLoaded', function() {
 
                 if (result.status === 'success') {
                     msg.innerHTML = `
-                        <div class="alert alert-success">
-                            🎉 <strong>¡Compra completada!</strong><br>
-                            Tickets asignados: <strong>${result.created}</strong><br>
-                            IDs: <small>${result.tickets.join(', ')}</small>
+                        <div class="text-success text-start bg-dark p-3 border border-success">
+                            🎉 <strong>¡COMPRA COMPLETADA!</strong><br>
+                            Entradas: <strong>${result.created}</strong><br>
+                            <small class="text-white-50">${result.tickets.join('<br>')}</small>
                         </div>`;
                 } else {
                     const errorMessage = result.paypal_name ? `${result.paypal_name}: ${result.details}` : result.error;
-                    msg.innerHTML = `<div class="alert alert-danger">❌ Error en la captura: ${errorMessage}</div>`;
+                    msg.innerHTML = `<div class="text-danger">❌ Error: ${errorMessage}</div>`;
                 }
             })
             .catch(error => {
-                msg.innerHTML = `<div class="alert alert-danger">❌ Error de conexión al servidor al capturar el pago.</div>`;
+                msg.innerHTML = `<div class="text-danger">❌ Error de conexión al capturar el pago.</div>`;
             });
         },
 
         onError: function(err) {
-            msg.innerHTML = `<div class="alert alert-danger">❌ Error con PayPal (intente de nuevo).</div>`;
+            msg.innerHTML = `<div class="text-danger">❌ Error en la ventana de PayPal.</div>`;
         }
     }).render('#paypal-buttons');
 });

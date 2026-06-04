@@ -20,12 +20,14 @@ class TeamsVersusController extends Controller
      */
     public function index()
     {
-        $versus = TeamsVersus::whereDate('created_at', '>=', '2025-09-01')
+        // 1. Usamos 'with' para traer los equipos de golpe (Evita N+1)
+        // 2. Paginamos de 15 en 15 o 20 en 20 para no saturar la vista.
+        $versus = TeamsVersus::with(['versus_1', 'versus_2'])
+            ->where('created_at', '>=', '2025-09-01 00:00:00')
             ->orderBy('id', 'DESC')
-            ->get();
+            ->paginate(50);
 
         return view('teams_versus.index', compact('versus'));
-
     }
 
     /**
@@ -35,14 +37,23 @@ class TeamsVersusController extends Controller
      */
     public function show_all()
     {
-        $currentMonth = Carbon::now()->month;
-        $currentYear = Carbon::now()->year;
+        // 1. Ampliamos la memoria por seguridad al renderizar las imágenes
+        ini_set('memory_limit', '1024M');
 
-        $versus = TeamsVersus::orderBy('id', 'DESC')
+        $currentMonth = \Carbon\Carbon::now()->month;
+        $currentYear = \Carbon\Carbon::now()->year;
+
+        // 2. Optimizamos la consulta con "with" seleccionando solo lo necesario
+        // y usamos "paginate" en lugar de "get" para no saturar la vista.
+        $versus = \App\Models\TeamsVersus::with([
+                'versus_1' => function($q) { $q->select('id', 'name', 'logo', 'image'); },
+                'versus_2' => function($q) { $q->select('id', 'name', 'logo', 'image'); }
+            ])
             ->where('status', 'CLOSED')
             ->whereMonth('created_at', $currentMonth)
             ->whereYear('created_at', $currentYear)
-            ->get();
+            ->orderBy('id', 'DESC')
+            ->paginate(12); // <-- Trae las batallas de 12 en 12
 
         return view('teams_versus.all', compact('versus'));
     }

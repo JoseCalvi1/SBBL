@@ -103,7 +103,7 @@ class EventController extends Controller
             'city'              => 'required|string|max:100',
             'location'          => 'required|string|max:255',
             'region_id'         => 'required|integer',
-            'province_id'       => 'required|integer', // <--- NUEVO CAMPO AÑADIDO AQUÍ
+            'province_id'       => 'required|integer',
             'event_date'        => 'required|date',
             'event_time'        => 'required',
             'imagen'            => 'required|string', // Categoría (ranking, quedada...)
@@ -111,10 +111,17 @@ class EventController extends Controller
             'configuration'     => 'required|string',
             'note'              => 'nullable|string',
             'stadiums'          => 'required|integer|min:1',
+            'max_players'       => 'nullable|integer|min:1',
             'has_stadium_limit' => 'nullable',
             // CRÍTICO: Limitar la imagen a 5MB (5120 KB) para evitar error 500
             'image_mod'         => 'nullable|image|mimes:jpeg,png,jpg,webp|max:5120',
         ]);
+
+        // PROTECCIÓN BACKEND: Solo Jueces pueden crear Torneos Oficiales o Copas
+        $categoriasOficiales = ['ranking', 'grancopa', 'simulacro', 'hasbro', 'copaespecial1', 'copaespecial2', 'copaespecial3', 'copaespecial4'];
+        if (in_array($data['imagen'], $categoriasOficiales) && !Auth::user()->hasAnyRole(['admin', 'juez'])) {
+            return back()->withInput()->with('error', '⚠️ Acceso denegado: Solo los Jueces Oficiales de la SBBL pueden crear Eventos de Ranking y Copas Especiales.');
+        }
 
         try {
             // 3. PROCESAMIENTO DE IMAGEN (Redimensión para ahorrar memoria)
@@ -145,7 +152,8 @@ class EventController extends Controller
                 'configuration'     => $data['configuration'],
                 'note'              => $data['note'],
                 'stadiums'          => $data['stadiums'],
-                'has_stadium_limit' => $request->has('has_stadium_limit'), // Checkbox devuelve true/false
+                'max_players'       => $request->input('max_players'),
+                'has_stadium_limit' => $request->has('has_stadium_limit') || $request->filled('max_players'),
                 'created_by'        => Auth::id(),
                 'status'            => 'OPEN',
             ]);
@@ -310,6 +318,7 @@ class EventController extends Controller
             'event_date'        => 'required|date',
             'event_time'        => 'required',
             'stadiums'          => 'required|integer|min:1',
+            'max_players'       => 'nullable|integer|min:1',
             'has_stadium_limit' => 'nullable', // Puede venir como "on", "1" o null
             'image_mod'         => 'nullable|image|mimes:jpeg,png,jpg,webp|max:5120', // Límite 5MB
             // Campos opcionales que no estaban en tu validate original pero se usan
@@ -345,8 +354,8 @@ class EventController extends Controller
                 'date'              => $data['event_date'],
                 'time'              => $data['event_time'],
                 'stadiums'          => $data['stadiums'],
-                // El checkbox solo envía valor si está marcado
-                'has_stadium_limit' => $request->has('has_stadium_limit'),
+                'max_players'       => $request->input('max_players'), // <-- AÑADIDO
+                'has_stadium_limit' => $request->has('has_stadium_limit') || $request->filled('max_players'), // <-- ACTUALIZADO
                 'imagen'            => $rutaImagen,
                 'beys'              => $request->imagen, // Categoría
                 'deck'              => $request->deck,
@@ -483,6 +492,28 @@ class EventController extends Controller
             // --- REGISTRO FINAL EN EL TORNEO ---
             $attached = $event->users()->syncWithoutDetaching([$userId]);
 
+            // 🔥 NUEVO: GUARDADO DEL DECK AL INSCRIBIRSE (Si no es tentativo)
+            if (!$request->has('is_tentative') && $request->has('blade')) {
+                foreach ($request->blade as $assistId => $blades) {
+                    \App\Models\TournamentResult::where('user_id', $assistId)->where('event_id', $event->id)->delete();
+                    foreach ($blades as $index => $blade) {
+                        if(empty($blade)) continue;
+                        \App\Models\TournamentResult::create([
+                            'user_id' => $assistId,
+                            'event_id' => $event->id,
+                            'blade' => $blade,
+                            'assist_blade' => $request->assist_blade[$assistId][$index] ?? null,
+                            'ratchet' => $request->ratchet[$assistId][$index] ?? null,
+                            'bit' => $request->bit[$assistId][$index] ?? null,
+                            'victorias' => 0,
+                            'derrotas' => 0,
+                            'puntos_ganados' => 0,
+                            'puntos_perdidos' => 0,
+                        ]);
+                    }
+                }
+            }
+
             // Comprobamos si realmente se añadió (attached) o si ya existía
             if (count($attached['attached']) > 0) {
                 $message = 'Inscripción realizada con éxito.';
@@ -523,6 +554,11 @@ class EventController extends Controller
 
     public function noassist(Event $event)
     {
+        // 🔥 PROTECCIÓN: Si el torneo está EN CURSO (LIVE) o CERRADO, nadie puede borrarse
+        if ($event->status !== 'OPEN') {
+            return redirect()->back()->with('error', '⚠️ Acción bloqueada: No puedes retirarte de un torneo que ya está en curso o finalizado.');
+        }
+
         $event->users()->detach(Auth::id());
         return redirect()->back();
     }
@@ -532,15 +568,12 @@ class EventController extends Controller
     {
         Event::where('id', $id)->update(['status' => $status]);
 
-        // CHIVATO 1: Ver qué status exacto está llegando
         \Log::info("Cambiando status del evento $id a: [" . $status . "]");
 
-        // Limpiamos espacios y pasamos a minúsculas por si acaso
-        if (trim(strtolower($status)) === 'inscripcion') {
-            \Log::info("¡Entró al IF de inscripción! Llamando a tomarFotoLineups...");
+        // 🔥 Aseguramos que la foto de las alineaciones del Fantasy se tome tanto en INSCRIPCION como en LIVE
+        if (trim(strtolower($status)) === 'inscripcion' || trim(strtolower($status)) === 'live') {
+            \Log::info("¡Torneo iniciado! Llamando a tomarFotoLineups...");
             $this->tomarFotoLineups($id);
-        } else {
-            \Log::info("No entró al IF. El status es diferente a 'inscripcion'.");
         }
     }
 
@@ -721,7 +754,13 @@ class EventController extends Controller
 
     public function estadoTorneo(Request $request, $id, $estado)
     {
-        $statusMap = ['invalidar' => 'INVALID', 'revisar' => 'REVIEW', 'inscripcion' => 'INSCRIPCION'];
+        // 🔥 Añadimos 'comenzar' apuntando al estado 'LIVE'
+        $statusMap = [
+            'invalidar' => 'INVALID',
+            'revisar' => 'REVIEW',
+            'inscripcion' => 'INSCRIPCION',
+            'comenzar' => 'LIVE'
+        ];
 
         if ($estado == "invalidar" && $request->comment) {
             EventJudgeReview::create([
@@ -732,10 +771,11 @@ class EventController extends Controller
 
         if (isset($statusMap[$estado])) {
             $this->actualizarStatus($id, $statusMap[$estado]);
-            $msg = ($estado == 'invalidar') ? 'Evento invalidado' : (($estado == 'revisar') ? 'Evento en revisión' : 'Inscripción cerrada');
+            $msg = ($estado == 'comenzar') ? '¡Torneo iniciado con éxito!' : 'Estado actualizado';
             return redirect()->back()->with('success', $msg);
         }
     }
+
 
     // --- REVIEWS Y SEGUIMIENTO ---
 

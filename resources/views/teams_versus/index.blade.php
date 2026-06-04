@@ -154,6 +154,10 @@
                 </tbody>
             </table>
         </div>
+        <div class="d-flex justify-content-center mt-4">
+            {{-- Para Bootstrap 5 --}}
+            {{ $versus->links('pagination::bootstrap-4') }}
+        </div>
     </div>
 </div>
 @endsection

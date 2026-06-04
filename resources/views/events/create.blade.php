@@ -126,16 +126,19 @@
                             <label for="imagen" class="form-label text-light-muted small text-uppercase fw-bold mb-3">Categoría <span class="text-info">*</span></label>
                             <select name="imagen" id="imagen" class="form-select form-select-lg dark-input p-3 fs-5" required>
                                 <option value="" disabled {{ old('imagen') ? '' : 'selected' }}>Selecciona tipo de evento...</option>
-                                <option value="quedada" {{ old('imagen') == 'quedada' ? 'selected' : '' }}>Quedada (Amistoso)</option>
-                                <option value="ranking" {{ old('imagen') == 'ranking' ? 'selected' : '' }}>Ranking (Oficial)</option>
-                                @if (Auth::user()->hasAnyRole(['admin', 'arbitro']))
-                                    <option value="rankingplus" {{ old('imagen') == 'rankingplus' ? 'selected' : '' }}>Ranking Plus (Árbitros)</option>
+                                <option value="quedada" {{ old('imagen') == 'quedada' ? 'selected' : '' }}>Quedada</option>
+                                <option value="simulacro" {{ old('imagen') == 'simulacro' ? 'selected' : '' }}>Simulacro ranking</option>
+                                <option value="hasbro" {{ old('imagen') == 'hasbro' ? 'selected' : '' }}>Formato Hasbro</option>
+                                @if (Auth::user()->hasAnyRole(['admin', 'juez']))
+                                    <option value="ranking" {{ old('imagen') == 'ranking' ? 'selected' : '' }}>Ranking</option>
+                                    <option value="copaespecial1" {{ old('imagen') == 'copaespecial1' ? 'selected' : '' }}>Copa Split 1</option>
+                                    <option value="copaespecial2" {{ old('imagen') == 'copaespecial2' ? 'selected' : '' }}>Copa Split 2</option>
+                                    <option value="copaespecial3" {{ old('imagen') == 'copaespecial3' ? 'selected' : '' }}>Copa Split 3</option>
+                                    <option value="copaespecial4" {{ old('imagen') == 'copaespecial4' ? 'selected' : '' }}>Copa Split 4</option>
+                                @endif
+                                @if (Auth::user()->hasAnyRole(['admin']))
                                     <option value="grancopa" {{ old('imagen') == 'grancopa' ? 'selected' : '' }}>Gran Copa (Especial)</option>
                                 @endif
-                                <option value="hasbro" {{ old('imagen') == 'hasbro' ? 'selected' : '' }}>Formato Hasbro</option>
-                                <option value="copalloros" {{ old('imagen') == 'copalloros' ? 'selected' : '' }}>Copa Lloros</option>
-                                <option value="copaligera" {{ old('imagen') == 'copaligera' ? 'selected' : '' }}>Copa Ligera</option>
-                                <option value="copapaypal" {{ old('imagen') == 'copapaypal' ? 'selected' : '' }}>Copa Conqueror</option>
                             </select>
                         </div>
                     </div>
@@ -167,24 +170,26 @@
                             </div>
                         </div>
 
-                        <div class="p-4 rounded border border-secondary bg-opacity-10 bg-white shadow-sm">
-                            <div class="row align-items-center">
-                                <div class="col-md-6 mb-3 mb-md-0">
-                                    <label for="stadiums" class="form-label fw-bold text-white mb-1 fs-5">
-                                        <i class="fas fa-dungeon me-2 text-info"></i>Número de Estadios
-                                    </label>
-                                    <div class="text-light-muted small">Define cuántos estadios habrá disponibles para calcular el aforo.</div>
-                                </div>
-                                <div class="col-md-3 mb-3 mb-md-0">
-                                    <input type="number" name="stadiums" id="stadiums" class="form-control form-control-lg dark-input text-center fw-bold fs-4" value="{{ old('stadiums', 1) }}" min="1" required>
-                                </div>
-                                <div class="col-md-3">
-                                    <div class="form-check form-switch d-flex justify-content-md-end align-items-center p-0">
-                                        <input class="form-check-input me-3 mt-0" type="checkbox" role="switch" id="has_stadium_limit" name="has_stadium_limit" value="1" {{ old('has_stadium_limit') ? 'checked' : '' }} style="width: 3.5em; height: 1.75em;">
-                                        <label class="form-check-label text-white fw-bold" for="has_stadium_limit">Límite Auto</label>
-                                    </div>
-                                </div>
+                        <div class="row align-items-center">
+                            <div class="col-md-5 mb-3 mb-md-0">
+                                <label for="stadiums" class="form-label fw-bold text-white mb-1 fs-5">
+                                    <i class="fas fa-dungeon me-2 text-info"></i>Número de Estadios
+                                </label>
+                                <div class="text-light-muted small">Define la capacidad base del evento.</div>
                             </div>
+
+                            <div class="col-md-3 mb-3 mb-md-0">
+                                <input type="number" name="stadiums" id="stadiums" class="form-control form-control-lg dark-input text-center fw-bold fs-4" value="{{ old('stadiums', 1) }}" min="1" required>
+                                <div id="stadium-limit-helper" class="text-info small fw-bold mt-2 text-center">Aforo: 20 plazas</div>
+                            </div>
+
+                            @if(Auth::user()->hasAnyRole(['admin', 'juez']))
+                            <div class="col-md-4">
+                                <label for="max_players" class="form-label text-warning small text-uppercase fw-bold m-0"><i class="fas fa-edit me-1"></i> Sobrescribir Límite (Juez)</label>
+                                <input type="number" name="max_players" id="max_players" class="form-control dark-input mt-1" value="{{ old('max_players') }}" placeholder="Dejar vacío para auto">
+                                <input type="hidden" name="has_stadium_limit" value="1">
+                            </div>
+                            @endif
                         </div>
                     </div>
 
@@ -404,10 +409,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 {val: 'Swiss', txt: 'Suizo'},
                 {val: 'FreeForAll', txt: 'Free For All'}
             ],
-            bx_rank: [
-                {val: 'SingleElimination', txt: 'Eliminación Simple'},
-                {val: 'DoubleElimination', txt: 'Doble Eliminación'}
-            ]
         }
     };
 
@@ -434,10 +435,36 @@ document.addEventListener('DOMContentLoaded', () => {
     // Lógica de negocio (Reglas del Torneo)
     function updateLogic() {
         const mode = document.querySelector('input[name="mode"]:checked')?.value;
-        const type = imagenSelect.value;
-        if(!mode || !type) return;
+        let type = imagenSelect.value;
+        if(!mode) return; // Si no hay modo elegido, salimos
 
-        // Guardar selección actual o buscar el 'old' data value que dejamos en HTML si hubo error
+        // 🔥 1. RESTRICCIÓN DE CATEGORÍA SEGÚN MODALIDAD
+        Array.from(imagenSelect.options).forEach(opt => {
+            // "Quedada" y el placeholder vacío siempre están disponibles
+            if (opt.value === '' || opt.value === 'quedada') {
+                opt.hidden = false;
+                opt.disabled = false;
+            } else {
+                // Si no es Beyblade X, escondemos rankings y copas
+                if (mode !== 'beybladex') {
+                    opt.hidden = true;
+                    opt.disabled = true;
+                } else {
+                    opt.hidden = false;
+                    opt.disabled = false;
+                }
+            }
+        });
+
+        // Si cambió de X a un modo clásico y tenía una copa/ranking, forzamos a Quedada
+        if (mode !== 'beybladex' && type !== 'quedada' && type !== '') {
+            imagenSelect.value = 'quedada';
+            type = 'quedada'; // Actualizamos la variable para que el resto del script lo sepa
+        }
+
+        if(!type) return;
+
+        // Recuperar selects
         let currentDeck = deckSelect.value;
         if (!currentDeck && Array.from(deckSelect.options).find(opt => opt.dataset.old === '1')) {
             currentDeck = Array.from(deckSelect.options).find(opt => opt.dataset.old === '1').value;
@@ -453,24 +480,68 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const isBxRank = (mode === 'beybladex' && (type === 'ranking' || type === 'rankingplus'));
         const deckOpts = isBxRank ? optionsMap.deck.bx_rank : optionsMap.deck.all;
-        const confOpts = isBxRank ? optionsMap.config.bx_rank : optionsMap.config.all;
+        const confOpts = optionsMap.config.all; // Formatos libres
 
-        // Re-llenar y restaurar selección si es posible
         deckOpts.forEach(o => deckSelect.add(new Option(o.txt, o.val, false, o.val === currentDeck)));
         confOpts.forEach(o => configSelect.add(new Option(o.txt, o.val, false, o.val === currentConfig)));
 
-        // Notas automáticas
+        // 🔥 AUTO-RELLENADO PARA COPAS ESPECIALES
+        const nameInput = document.getElementById('name');
         noteInput.readOnly = false;
-        if(type === 'copapaypal') {
-            noteInput.value = "🏆 Bote: 200 SBBL Coins.\n💰 Entrada: 2€.\n⚖️ Arbitraje comunitario.";
-            noteInput.readOnly = true;
-        } else if (type === 'copaligera') {
-            noteInput.value = "🚫 Ban list aplicada: Solo blades ligeros permitidos.";
-            noteInput.readOnly = true;
-        } else if (noteInput.value.includes('Bote:') || noteInput.value.includes('Ban list')) {
-            noteInput.value = "";
+
+        // Plantillas automáticas
+        if(type === 'copaespecial1') {
+            if(!nameInput.value) nameInput.value = "Gran Copa de Split 1";
+            noteInput.value = "Reglamento de la copa de split 1";
+        } else if (type === 'copaespecial2') {
+            if(!nameInput.value) nameInput.value = "Gran Copa de Split 2";
+            noteInput.value = "Reglamento de la copa de split 2";
+        } else if (type === 'copaespecial3') {
+            if(!nameInput.value) nameInput.value = "Gran Copa de Split 3";
+            noteInput.value = "Reglamento de la copa de split 3";
+        } else if (type === 'copaespecial4') { // Corregido: antes ponía copaespecial3 de nuevo
+            if(!nameInput.value) nameInput.value = "Gran Copa de Split 4";
+            noteInput.value = "Reglamento de la copa de split 4";
+        } else if (type === 'hasbro') {
+            if(!nameInput.value) nameInput.value = "Torneo Formato Hasbro";
+            noteInput.value = "🛑 Exclusivo Hasbro: Prohibido usar estadios y piezas de Takara Tomy.";
+        } else if (type === 'simulacro') {
+            if(!nameInput.value) nameInput.value = "Torneo Simulacro Ranking";
+            noteInput.value = "Torneo de simulacro de ranking para aquellas personas que quieran ser Juez.";
+        } else {
+            // Limpiar si el usuario cambia de copa especial a torneo normal
+            if (noteInput.value.includes('Reglamento de la copa') || noteInput.value.includes('🛑 Exclusivo')) {
+                noteInput.value = "";
+                nameInput.value = "";
+            }
         }
     }
+
+    // Cálculo en vivo del aforo de estadios
+    const stadiumsInput = document.getElementById('stadiums');
+    const limitHelper = document.getElementById('stadium-limit-helper');
+    const maxPlayersInput = document.getElementById('max_players');
+
+    function updateCapacityLabel() {
+        if(!stadiumsInput || !limitHelper) return;
+        const s = parseInt(stadiumsInput.value) || 1;
+        let limit = 20;
+
+        if (s === 2) limit = 35;
+        else if (s === 3) limit = 45;
+        else if (s === 4) limit = 55;
+        else if (s >= 5) limit = 64;
+
+        if (maxPlayersInput && maxPlayersInput.value !== "") {
+            limitHelper.innerHTML = `<span class="text-warning">Fijado a ${maxPlayersInput.value} plazas</span>`;
+        } else {
+            limitHelper.innerHTML = `Aforo: ${limit} plazas`;
+        }
+    }
+
+    if(stadiumsInput) stadiumsInput.addEventListener('input', updateCapacityLabel);
+    if(maxPlayersInput) maxPlayersInput.addEventListener('input', updateCapacityLabel);
+    updateCapacityLabel(); // Ejecutar al cargar
 
     // --- NUEVO: Lógica de Regiones y Provincias ---
     function updateProvinces() {

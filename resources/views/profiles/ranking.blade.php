@@ -251,10 +251,13 @@
                             @foreach ($filtered as $index => $blader)
                                 <div class="item {{ $index < 3 ? 'resaltado' : '' }}">
                                     <span class="posicion">{{ $index + 1 }}</span>
-                                    <div class="profile-container">
-                                        <img src="{{ $blader->avatar_url }}" class="blader-image" loading="lazy">
-                                        <img src="{{ $blader->marco_url }}" class="blader-frame" loading="lazy">
-                                    </div>
+                                    @if($blader->team_logo)
+                                        <div class="profile-container">
+                                            <img src="{{ $blader->team_logo }}" class="blader-image" loading="lazy" style="border-radius: 10%;">
+                                        </div>
+                                    @else
+                                        <div></div>
+                                    @endif
                                     <span class="fw-bold text-white text-truncate fs-5">{{ $blader->user->name }}</span>
                                     <span class="text-dim text-truncate">
                                         {{ optional($blader->region)->name ?? '---' }}
@@ -283,10 +286,13 @@
                          @if($limit == 'all' || $index < (int)$limit)
                         <div class="item {{ $index < 3 ? 'resaltado' : '' }}">
                             <span class="posicion">{{ $index + 1 }}</span>
-                             <div class="profile-container">
-                                <img src="{{ $blader->avatar_url }}" class="blader-image" loading="lazy">
-                                <img src="{{ $blader->marco_url }}" class="blader-frame" loading="lazy">
-                            </div>
+                             @if($blader->team_logo)
+                                <div class="profile-container">
+                                    <img src="{{ $blader->team_logo }}" class="blader-image" loading="lazy" style="border-radius: 10%;">
+                                </div>
+                            @else
+                                <div></div>
+                            @endif
                             <span class="fw-bold text-white text-truncate fs-5">{{ $blader->user->name }}</span>
                             <span class="text-dim text-truncate">
                                 {{ $blader->region->name ?? '---' }}

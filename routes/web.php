@@ -6,6 +6,7 @@ use App\Http\Controllers\BeybladeCollectionController;
 use App\Http\Controllers\BeybladeDatabaseController;
 use App\Http\Controllers\CarritoController;
 use App\Http\Controllers\ChatController;
+use App\Http\Controllers\DiscordController;
 use App\Http\Controllers\EventController;
 use App\Http\Controllers\Game\ConquestController;
 use App\Http\Controllers\Game\MarketController;
@@ -90,7 +91,8 @@ Route::domain('fantasy.' . $dominio)->group(function () {
     // La vista de la PWA
     Route::get('/', function () {
         return view('fantasy.app');
-    });
+    })->name('fantasy.index');
+
     Route::get('/home', function () {
         return redirect('/');
     });
@@ -421,5 +423,7 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/sorteo/ganadores', [TicketController::class, 'draw'])->name('tickets.sorteo.draw');
     Route::delete('/sorteo', [TicketController::class, 'reset'])->name('tickets.sorteo.reset');
     Route::get('/dashboard/reviews', [EventController::class, 'reviews_seguimiento'])->name('admin.dashboard.reviews');
+    Route::get('/auth/discord/redirect', [DiscordController::class, 'redirectToDiscord'])->name('discord.login');
+    Route::get('/auth/discord/callback', [DiscordController::class, 'handleDiscordCallback']);
 });
 

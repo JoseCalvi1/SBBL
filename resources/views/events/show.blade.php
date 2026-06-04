@@ -135,6 +135,7 @@
                 <span>
                     @switch($event->status)
                         @case('OPEN') <span class="text-white">🟢 ABIERTO</span> @break
+                        @case('LIVE') <span class="text-warning">🔥 EN CURSO</span> @break
                         @case('INSCRIPCION') <span style="color: var(--sbbl-gold);">🔒 INSCRIPCIÓN CERRADA</span> @break
                         @case('PENDING') <span style="color: var(--sbbl-gold);">⚠️ PENDIENTE DE CALIFICAR</span> @break
                         @case('REVIEW') <span style="color: var(--shonen-cyan);">🔎 EN REVISIÓN</span> @break
@@ -237,10 +238,10 @@
         <div class="col-lg-8 col-md-7">
 
             @if (session('success'))
-                <div class="alert alert-shonen alert-shonen-success mb-4 text-center"><div><i class="fas fa-check-circle me-2"></i>{{ session('success') }}</div></div>
+                <div class="alert alert-shonen alert-shonen-success mb-4 text-center text-white"><div><i class="fas fa-check-circle me-2"></i>{{ session('success') }}</div></div>
             @endif
             @if (session('error'))
-                <div class="alert alert-shonen alert-shonen-danger mb-4 text-center"><div><i class="fas fa-exclamation-circle me-2"></i>{{ session('error') }}</div></div>
+                <div class="alert alert-shonen alert-shonen-danger mb-4 text-center text-white"><div><i class="fas fa-exclamation-circle me-2"></i>{{ session('error') }}</div></div>
             @endif
 
             {{-- REVISIONES Y JUECES --}}
@@ -312,36 +313,66 @@
 
             <div class="participant-card">
                 <div class="card-body p-4 bg-transparent">
-                    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 gap-3">
-                        <h2 class="font-Oswald text-white m-0" style="font-size: 2.5rem; letter-spacing: 1px;">
-                            <i class="fas fa-users me-2" style="color: var(--sbbl-gold);"></i> PARTICIPANTES <span class="badge bg-white text-dark ms-2 border border-2 border-dark" style="font-size: 1.5rem;">{{ $assists->count() }}</span>
-                        </h2>
+                    <div class="mb-4">
+                        {{-- FILA 1: CABECERA Y BOTONES DE ACCIÓN --}}
+                        <div class="d-flex flex-column flex-xl-row justify-content-between align-items-xl-center gap-3 mb-3">
 
-                        <div class="d-flex flex-wrap gap-2">
-                            @if (($event->status == "OPEN") && (Auth::user()->hasAnyRole(['admin', 'arbitro'])) && ($diffInHours <= 24 && $diffInHours >= 0))
-                                <form method="POST" action="{{ route('events.estado', ['event' => $event->id, 'estado' => 'inscripcion']) }}">
-                                    @csrf @method('PUT')
-                                    <button type="submit" class="btn btn-secondary fw-bold border-2 border-dark">CERRAR INSC.</button>
-                                </form>
-                            @endif
+                            {{-- Título --}}
+                            <h2 class="font-Oswald text-white m-0 d-flex align-items-center" style="font-size: 2.5rem; letter-spacing: 1px;">
+                                <i class="fas fa-users me-3" style="color: var(--sbbl-gold);"></i>
+                                PARTICIPANTES
+                                <span class="badge bg-white text-dark ms-3 border border-2 border-dark shadow-sm" style="font-size: 1.5rem;">{{ $assists->count() }}</span>
+                            </h2>
 
-                            @if (($event->status != "CLOSE" && $event->status != "INVALID") && Auth::user()->hasRole('arbitro') || ($event->status == "OPEN" && $event->created_by == Auth::user()->id))
-                                <a href="{{ route('events.edit', ['event' => $event->id]) }}" class="btn btn-light fw-bold border-2 border-dark"><i class="fas fa-edit me-1"></i> EDITAR</a>
-                            @endif
+                            {{-- Botones de Acción Menores --}}
+                            <div class="d-flex flex-wrap align-items-center gap-2">
 
-                            @if ($isUserInscribed && $event->status != "INVALID")
-                                <button type="button" class="btn-shonen btn-shonen-info text-center" data-bs-toggle="modal" data-bs-target="#formModal" style="padding: 5px 15px;">
-                                    <span><i class="fas fa-layer-group me-1"></i> MI DECK</span>
+                                {{-- 🔥 LOGICA DE BOTONES SEGÚN TIPO DE EVENTO --}}
+                                @if (in_array($event->beys, ['ranking', 'rankingplus']))
+                                    {{-- Si es Ranking: Botón de Comenzar Torneo (Solo el día del evento) --}}
+                                    @if ($event->status == "OPEN" && Auth::user()->hasAnyRole(['admin', 'arbitro']) && $event->date->format('Y-m-d') == $hoy)
+                                        <form method="POST" action="{{ route('events.estado', ['event' => $event->id, 'estado' => 'comenzar']) }}" class="m-0">
+                                            @csrf @method('PUT')
+                                            <button type="button" id="comenzarTorneoBtn" class="btn btn-success fw-bold border-2 border-dark py-2">
+                                                <i class="fas fa-play me-1"></i> COMENZAR TORNEO
+                                            </button>
+                                        </form>
+                                    @endif
+                                @else
+                                    {{-- Si es Quedada/Copa: Mantiene el flujo antiguo de Cerrar Inscripciones --}}
+                                    @if (($event->status == "OPEN") && (Auth::user()->hasAnyRole(['admin', 'arbitro'])) && ($diffInHours <= 24 && $diffInHours >= 0))
+                                        <form method="POST" action="{{ route('events.estado', ['event' => $event->id, 'estado' => 'inscripcion']) }}" class="m-0">
+                                            @csrf @method('PUT')
+                                            <button type="submit" class="btn btn-secondary fw-bold border-2 border-dark py-2">
+                                                <i class="fas fa-lock me-1"></i> CERRAR INSC.
+                                            </button>
+                                        </form>
+                                    @endif
+                                @endif
+
+                                @if (($event->status != "CLOSE" && $event->status != "INVALID") && Auth::user()->hasRole('arbitro') || ($event->status == "OPEN" && $event->created_by == Auth::user()->id))
+                                    <a href="{{ route('events.edit', ['event' => $event->id]) }}" class="btn btn-light fw-bold border-2 border-dark py-2">
+                                        <i class="fas fa-edit me-1"></i> EDITAR
+                                    </a>
+                                @endif
+
+                                @if ($isUserInscribed && $event->status != "INVALID")
+                                    <button type="button" class="btn-shonen btn-shonen-info text-center py-2 px-4 shadow-sm" data-bs-toggle="modal" data-bs-target="#formModal">
+                                        <span><i class="fas fa-layer-group me-1"></i> MI DECK</span>
+                                    </button>
+                                @endif
+                            </div>
+
+                        </div>
+
+                        {{-- FILA 2: BOTÓN DE EQUIPOS (Separado y a todo el ancho) --}}
+                        @if(isset($equiposAsistentes) && $equiposAsistentes->isNotEmpty())
+                            <div class="w-100 mt-2">
+                                <button type="button" class="btn-shonen w-100 text-center text-uppercase" style="background: rgba(255, 255, 255, 0.05); color: #fff; border: 2px dashed #fff; padding: 12px; transition: all 0.3s;" data-bs-toggle="modal" data-bs-target="#teamsModal" onmouseover="this.style.background='rgba(255,255,255,0.1)'" onmouseout="this.style.background='rgba(255,255,255,0.05)'">
+                                    <span><i class="fas fa-shield-alt me-2" style="color: var(--shonen-cyan);"></i> VER EQUIPOS REPRESENTADOS ({{ $equiposAsistentes->count() }})</span>
                                 </button>
-                            @endif
-                        </div>
-                    @if(isset($equiposAsistentes) && $equiposAsistentes->isNotEmpty())
-                        <div class="w-100 mt-2">
-                            <button type="button" class="btn-shonen w-100 text-center" style="background: transparent; color: #fff; border-color: #fff; padding: 10px;" data-bs-toggle="modal" data-bs-target="#teamsModal">
-                                <span><i class="fas fa-shield-alt me-2" style="color: var(--shonen-cyan);"></i> VER EQUIPOS REPRESENTADOS ({{ $equiposAsistentes->count() }})</span>
-                            </button>
-                        </div>
-                    @endif
+                            </div>
+                        @endif
                     </div>
 
                     <div class="p-4 mb-4 border border-dark" style="background-color: #000;">
@@ -349,28 +380,36 @@
                         @if($event->status == "OPEN" && $event->date > $hoy)
 
                         {{-- INICIO BLOQUE LIMITES DE ESTADIO --}}
-                        @if($event->has_stadium_limit)
+                        {{-- INICIO BLOQUE LIMITES DE ESTADIO --}}
+                        @if($event->has_stadium_limit || !empty($event->max_players))
                             @php
                                 $limit = 9999;
-                                $limitText = "AFORO ILIMITADO";
-                                $alertColor = "success";
-                                $currentCount = $assists->count();
 
-                                if ($event->stadiums == 1) {
-                                    $limit = 20;
-                                    $limitText = "AFORO ASEGURADO: 20 BLADERS (1 ESTADIO)";
-                                    $alertColor = ($currentCount >= $limit) ? 'danger' : 'success';
-                                } elseif ($event->stadiums == 2) {
-                                    $limit = 30;
-                                    $limitText = "AFORO ASEGURADO: 30 BLADERS (2 ESTADIOS)";
-                                    $alertColor = ($currentCount >= $limit) ? 'danger' : 'info';
-                                } elseif ($event->stadiums == 4) {
-                                    $limit = 45;
-                                    $limitText = "AFORO ASEGURADO: 45 BLADERS (4 ESTADIOS)";
-                                    $alertColor = ($currentCount >= $limit) ? 'danger' : 'info';
+                                // 1. Escala por defecto
+                                if ($event->stadiums == 1) $limit = 20;
+                                elseif ($event->stadiums == 2) $limit = 35;
+                                elseif ($event->stadiums == 3) $limit = 45;
+                                elseif ($event->stadiums == 4) $limit = 55;
+                                elseif ($event->stadiums >= 5) $limit = 64;
+
+                                $limitText = "AFORO ASEGURADO: " . $limit . " BLADERS (" . $event->stadiums . " ESTADIOS)";
+
+                                // 2. Si hay límite manual, manda el Juez
+                                if (!empty($event->max_players)) {
+                                    $limit = $event->max_players;
+                                    $limitText = "AFORO PERSONALIZADO: " . $limit . " BLADERS";
                                 }
 
-                                $shonenColor = $alertColor == 'success' ? '#00ff00' : ($alertColor == 'danger' ? 'var(--shonen-red)' : 'var(--shonen-cyan)');
+                                // 3. Colores de la barra
+                                $currentCount = $assists->count();
+                                $alertColor = ($currentCount >= $limit) ? 'danger' : 'success';
+                                $shonenColor = $alertColor == 'success' ? '#00ff00' : 'var(--shonen-red)';
+
+                                // Pintar en amarillo si está a punto de llenarse (80% de capacidad)
+                                if ($currentCount >= ($limit * 0.8) && $currentCount < $limit) {
+                                    $alertColor = 'warning';
+                                    $shonenColor = 'var(--sbbl-gold)';
+                                }
                             @endphp
 
                             <div class="text-center mb-4 p-3 border" style="border-color: {{ $shonenColor }} !important; background: rgba(255,255,255,0.05);">
@@ -400,12 +439,12 @@
                             {{-- MENSAJE DE AVISO --}}
                             @if(isset($isRegistered) && $isRegistered && in_array($event->beys, ['ranking', 'rankingplus']))
                                 <div class="alert alert-shonen alert-shonen-warning text-center">
-                                    <div><i class="fas fa-exclamation-triangle me-2"></i> YA ESTÁS INSCRITO EN OTRO TORNEO DE RANKING ESTA SEMANA.</div>
+                                    <div class="text-white"><i class="fas fa-exclamation-triangle me-2"></i> YA ESTÁS INSCRITO EN OTRO TORNEO DE RANKING ESTA SEMANA.</div>
                                 </div>
                             @endif
 
                             @php $creator = \App\Models\User::find($event->created_by); @endphp
-                            @if ($creator && !$creator->hasAnyRole(['juez', 'arbitro', 'revisor']))
+                            @if ($creator && !$creator->hasAnyRole(['admin', 'juez']))
                                 <div class="alert alert-shonen alert-shonen-info text-center" style="border-color: #fff !important; color: #fff !important; box-shadow: 4px 4px 0 #fff;">
                                     <div>EVENTO ORGANIZADO POR LA COMUNIDAD. MATERIAL NO GARANTIZADO POR SBBL.</div>
                                 </div>
@@ -417,30 +456,31 @@
                                     <div id="paypal-button-container" class="d-flex justify-content-center"></div>
                                 </div>
                             @else
-                                <form method="POST" action="{{ route('events.assist', ['event' => $event->id]) }}">
-                                    @csrf
-                                    <button type="submit" class="btn-shonen w-100 text-center" style="background: #00ff00; color: #000; border-color: #000; padding: 15px; font-size: 1.8rem;"
-                                        @if(in_array($event->beys, ['ranking', 'rankingplus']) &&
-                                        ((isset($rankingTournamentsLeft) && $rankingTournamentsLeft == 0) || (isset($isRegistered) && $isRegistered)))
-                                        disabled style="background: #555 !important; color: #888 !important; border-color: #333 !important; cursor: not-allowed; box-shadow: none;"
-                                        @endif>
-                                        <span><i class="fas fa-fist-raised me-2"></i> INSCRIBIRSE EN EL EVENTO
-                                        @if(in_array($event->beys, ['ranking', 'rankingplus']) && isset($rankingTournamentsLeft))
-                                            <span class="badge bg-black text-white ms-3 border border-white" style="font-size: 1rem; vertical-align: middle;">Restantes: {{ $rankingTournamentsLeft }}</span>
-                                        @endif
-                                        </span>
-                                    </button>
-                                </form>
+                                {{-- AHORA EL BOTÓN ABRE EL MODAL DIRECTAMENTE --}}
+                                <button type="button" class="btn-shonen w-100 text-center" data-bs-toggle="modal" data-bs-target="#formModal" style="background: #00ff00; color: #000; border-color: #000; padding: 15px; font-size: 1.8rem;"
+                                    @if(in_array($event->beys, ['ranking', 'rankingplus']) &&
+                                    ((isset($rankingTournamentsLeft) && $rankingTournamentsLeft == 0) || (isset($isRegistered) && $isRegistered)))
+                                    disabled style="background: #555 !important; color: #888 !important; border-color: #333 !important; cursor: not-allowed; box-shadow: none;"
+                                    @endif>
+                                    <span><i class="fas fa-fist-raised me-2"></i> INSCRIBIRSE EN EL EVENTO
+                                    @if(in_array($event->beys, ['ranking', 'rankingplus']) && isset($rankingTournamentsLeft))
+                                        <span class="badge bg-black text-white ms-3 border border-white" style="font-size: 1rem; vertical-align: middle;">Restantes: {{ $rankingTournamentsLeft }}</span>
+                                    @endif
+                                    </span>
+                                </button>
                             @endif
 
                         @else
+                            {{-- Si ya está inscrito, permitimos cancelar asistencia SOLO si no está LIVE --}}
                             <div class="text-center">
-                                <button type="button" class="btn-shonen text-center" style="background: var(--shonen-red); color: #fff; padding: 10px 20px;" data-bs-toggle="modal" data-bs-target="#confirmModal">
+                                <button type="button" class="btn-shonen text-center" style="background: var(--shonen-red); color: #fff; padding: 10px 20px;" data-bs-toggle="modal" data-bs-target="#confirmModal" @if($event->status == 'LIVE') disabled style="background: #555 !important; opacity:0.5;" @endif>
                                     <span><i class="fas fa-times-circle me-2"></i> CANCELAR ASISTENCIA</span>
                                 </button>
                             </div>
                         @endif
 
+                    @elseif($event->status == "LIVE")
+                        <div class="text-center text-warning font-Oswald fs-3"><i class="fas fa-stadium text-warning me-2"></i> EL TORNEO ESTÁ EN CURSO. INSCRIPCIONES Y BAJAS BLOQUEADAS.</div>
                     @elseif($event->status != "OPEN")
                         <div class="text-center text-white font-Oswald fs-3">LAS INSCRIPCIONES ESTÁN CERRADAS.</div>
                     @else
@@ -488,10 +528,16 @@
 
                             @php
                                 $limit = 9999;
-                                if ($event->has_stadium_limit) {
+                                if ($event->has_stadium_limit || !empty($event->max_players)) {
                                     if ($event->stadiums == 1) $limit = 20;
-                                    elseif ($event->stadiums == 2) $limit = 30;
-                                    elseif ($event->stadiums == 4) $limit = 45;
+                                    elseif ($event->stadiums == 2) $limit = 35;
+                                    elseif ($event->stadiums == 3) $limit = 45;
+                                    elseif ($event->stadiums == 4) $limit = 55;
+                                    elseif ($event->stadiums >= 5) $limit = 64;
+
+                                    if (!empty($event->max_players)) {
+                                        $limit = $event->max_players;
+                                    }
                                 }
                             @endphp
 
@@ -513,6 +559,27 @@
                                                     @if($assist->active_team)
                                                         <span class="badge font-sans fw-bold" style="background-color: {{ $assist->active_team->color ?? '#475569' }}; font-size: 0.75rem; border: 2px solid #000; letter-spacing: 0;">
                                                             <i class="fas fa-shield-alt me-1"></i>{{ $assist->active_team->name }}
+                                                        </span>
+                                                    @endif
+
+                                                    {{-- ETIQUETA DE EARLY BIRD (Copas) --}}
+                                                    @if(in_array($event->beys, ['copaespecial1', 'copaespecial2', 'copaespecial3', 'copaespecial4', 'grancopa']))
+                                                        @php
+                                                            $fechaInscripcion = \Carbon\Carbon::parse($assist->pivot->created_at);
+                                                            $fechaEvento = \Carbon\Carbon::parse($event->date);
+                                                        @endphp
+                                                        @if($fechaInscripcion->diffInDays($fechaEvento, false) >= 7)
+                                                            <span class="badge bg-success text-white border border-dark font-sans shadow" style="font-size: 0.75rem;">
+                                                                <i class="fas fa-star text-warning me-1"></i> EARLY BIRD
+                                                            </span>
+                                                        @endif
+                                                    @endif
+
+                                                    {{-- ETIQUETA TENTATIVO (No tiene resultados guardados) --}}
+                                                    @php $hasRes = isset($resultsByParticipant[$assist->id]) && count($resultsByParticipant[$assist->id]) > 0; @endphp
+                                                    @if(!$hasRes)
+                                                        <span class="badge bg-warning text-dark border border-dark font-sans shadow" style="font-size: 0.75rem;">
+                                                            ⚠️ FALTA DECK
                                                         </span>
                                                     @endif
 
@@ -546,8 +613,22 @@
                                                 </select>
                                             @endif
 
-                                            @php $hasRes = isset($resultsByParticipant[$assist->id]) && count($resultsByParticipant[$assist->id]) > 0; @endphp
-                                            @if($hasRes)
+                                            @php
+                                                $hasRes = isset($resultsByParticipant[$assist->id]) && count($resultsByParticipant[$assist->id]) > 0;
+
+                                                // 🔥 CONTROL DE PRIVACIDAD DIGITAL
+                                                // Por defecto, si hay deck, se puede ver (por ejemplo, cuando el torneo ya ha terminado)
+                                                $canViewDeck = $hasRes;
+
+                                                // Si el torneo está EN CURSO (LIVE), aplicamos el cifrado de seguridad: Solo Staff puede inspeccionar
+                                                if ($event->status === 'OPEN') {
+                                                    $canViewDeck = !$hasRes && Auth::check() && Auth::user()->hasAnyRole(['admin', 'juez', 'arbitro']);
+                                                } elseif ($event->status === 'LIVE') {
+                                                    $canViewDeck = $hasRes && Auth::check() && Auth::user()->hasAnyRole(['admin', 'juez', 'arbitro']);
+                                                }
+                                            @endphp
+
+                                            @if($canViewDeck)
                                                 <button type="button" class="btn btn-outline-light fw-bold border-2" data-bs-toggle="collapse" data-bs-target="#res-{{ $assist->id }}">
                                                     <i class="fas fa-eye"></i>
                                                 </button>
@@ -704,6 +785,31 @@
 
         $('#formModal').on('shown.bs.modal', function () {
             $('.select2-modal').select2({ theme: 'bootstrap-5', width: '100%', dropdownParent: $('#formModal') });
+        });
+
+        // 🔥 COPIADO AUTOMÁTICO AL COMENZAR EL TORNEO
+        $('#comenzarTorneoBtn').on('click', function(e) {
+            e.preventDefault();
+            const button = $(this);
+
+            // Generamos la lista de strings exacta
+            const names = {!! json_encode($assists->map(function($assist) {
+                return $assist->name . '#' . str_pad($assist->id, 4, '0', STR_PAD_LEFT);
+            })->values()->toArray()) !!}.join('\n');
+
+            if (navigator.clipboard) {
+                navigator.clipboard.writeText(names).then(() => {
+                    alert('🚀 ¡SISTEMA EN LÍNEA!\nLos nombres e IDs de todos los participantes se han copiado al portapapeles.\nYa puedes pegarlos directamente en Challonge.');
+                    // Enviamos el formulario tras aceptar el aviso
+                    button.closest('form').submit();
+                }).catch(err => {
+                    console.error('Error al copiar', err);
+                    button.closest('form').submit();
+                });
+            } else {
+                // Fallback por si el navegador bloquea el portapapeles
+                button.closest('form').submit();
+            }
         });
 
         // --- COLORES DEL CHAT ---

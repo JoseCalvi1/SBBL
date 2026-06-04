@@ -83,16 +83,13 @@
                             <div class="col-md-6">
                                 <label for="imagen" class="form-label text-light-muted small text-uppercase fw-bold">Categoría <span class="text-info">*</span></label>
                                 <select name="imagen" id="imagen" class="form-select form-select-lg dark-input p-3 fs-5" required>
-                                    <option value="quedada" {{ (old('imagen', $event->beys) == 'quedada') ? 'selected' : '' }}>Quedada (Amistoso)</option>
-                                    <option value="ranking" {{ (old('imagen', $event->beys) == 'ranking' || $event->imagen == 'upload-events/rankingx.jpg') ? 'selected' : '' }}>Ranking (Oficial)</option>
-                                    @if (Auth::user()->hasAnyRole(['admin', 'arbitro']))
-                                        <option value="rankingplus" {{ (old('imagen', $event->beys) == 'rankingplus') ? 'selected' : '' }}>Ranking Plus (Árbitros)</option>
+                                    <option value="quedada" {{ (old('imagen', $event->beys) == 'quedada') ? 'selected' : '' }}>Quedada</option>
+                                    <option value="simulacro" {{ (old('imagen', $event->beys) == 'simulacro') ? 'selected' : '' }}>Simulacro ranking</option>
+                                    <option value="hasbro" {{ (old('imagen', $event->beys) == 'hasbro' || $event->imagen == 'hasbro') ? 'selected' : '' }}>Formato Hasbro</option>
+                                    @if (Auth::user()->hasAnyRole(['admin', 'juez']))
+                                        <option value="ranking" {{ (old('imagen', $event->beys) == 'ranking' || $event->imagen == 'upload-events/rankingx.jpg') ? 'selected' : '' }}>Ranking</option>
                                         <option value="grancopa" {{ (old('imagen', $event->beys) == 'grancopa') ? 'selected' : '' }}>Gran Copa (Especial)</option>
                                     @endif
-                                    <option value="hasbro" {{ (old('imagen', $event->beys) == 'hasbro' || $event->imagen == 'hasbro') ? 'selected' : '' }}>Formato Hasbro</option>
-                                    <option value="copalloros" {{ (old('imagen', $event->beys) == 'copalloros') ? 'selected' : '' }}>Copa Lloros</option>
-                                    <option value="copaligera" {{ (old('imagen', $event->beys) == 'copaligera') ? 'selected' : '' }}>Copa Ligera</option>
-                                    <option value="copapaypal" {{ (old('imagen', $event->beys) == 'copapaypal') ? 'selected' : '' }}>Copa Conqueror</option>
                                 </select>
                             </div>
                         </div>
@@ -123,24 +120,28 @@
                             </div>
                         </div>
 
-                        <div class="p-4 rounded border border-secondary bg-opacity-10 bg-white shadow-sm">
-                            <div class="row align-items-center">
-                                <div class="col-md-6 mb-3 mb-md-0">
-                                    <label for="stadiums" class="form-label fw-bold text-white mb-1 fs-5">
-                                        <i class="fas fa-dungeon me-2 text-info"></i>Número de Estadios
-                                    </label>
-                                    <div class="text-light-muted small">Define cuántos estadios habrá disponibles para calcular el aforo.</div>
-                                </div>
-                                <div class="col-md-3 mb-3 mb-md-0">
-                                    <input type="number" name="stadiums" id="stadiums" class="form-control form-control-lg dark-input text-center fw-bold fs-4" value="{{ old('stadiums', $event->stadiums ?? 1) }}" min="1" required>
-                                </div>
-                                <div class="col-md-3">
-                                    <div class="form-check form-switch d-flex justify-content-md-end align-items-center p-0">
-                                        <input class="form-check-input me-3 mt-0" type="checkbox" role="switch" id="has_stadium_limit" name="has_stadium_limit" value="1" {{ old('has_stadium_limit', $event->has_stadium_limit) ? 'checked' : '' }} style="width: 3.5em; height: 1.75em;">
-                                        <label class="form-check-label text-white fw-bold" for="has_stadium_limit">Límite Auto</label>
-                                    </div>
-                                </div>
+                        <div class="row align-items-center">
+                            <div class="col-md-5 mb-3 mb-md-0">
+                                <label for="stadiums" class="form-label fw-bold text-white mb-1 fs-5">
+                                    <i class="fas fa-dungeon me-2 text-info"></i>Número de Estadios
+                                </label>
+                                <div class="text-light-muted small">Define la capacidad base del evento.</div>
                             </div>
+
+                            <div class="col-md-3 mb-3 mb-md-0">
+                                <input type="number" name="stadiums" id="stadiums" class="form-control form-control-lg dark-input text-center fw-bold fs-4" value="{{ old('stadiums', $event->stadiums) }}" min="1" required>
+                                <div id="stadium-limit-helper" class="text-info small fw-bold mt-2 text-center">Aforo: 20 plazas</div>
+                            </div>
+
+                            @if(Auth::user()->hasAnyRole(['admin', 'juez', 'arbitro']))
+                            <div class="col-md-4">
+                                <label for="max_players" class="form-label text-warning small text-uppercase fw-bold m-0"><i class="fas fa-edit me-1"></i> Sobrescribir Límite</label>
+                                <input type="number" name="max_players" id="max_players" class="form-control dark-input mt-1" value="{{ old('max_players', $event->max_players) }}" placeholder="Vacío para auto">
+
+                                {{-- Mantenemos el checkbox oculto para no romper lógica de backend si no ponen límite manual --}}
+                                <input type="hidden" name="has_stadium_limit" value="1">
+                            </div>
+                            @endif
                         </div>
                     </div>
 
@@ -251,6 +252,31 @@ document.addEventListener("DOMContentLoaded", function () {
     const regionSelect = document.getElementById('region_id');
     const provinceSelect = document.getElementById('province_id');
     const oldProvinceId = document.getElementById('old_province_id').value;
+    // Cálculo en vivo del aforo de estadios
+    const stadiumsInput = document.getElementById('stadiums');
+    const limitHelper = document.getElementById('stadium-limit-helper');
+    const maxPlayersInput = document.getElementById('max_players');
+
+    function updateCapacityLabel() {
+        if(!stadiumsInput || !limitHelper) return;
+        const s = parseInt(stadiumsInput.value) || 1;
+        let limit = 20;
+
+        if (s === 2) limit = 35;
+        else if (s === 3) limit = 45;
+        else if (s === 4) limit = 55;
+        else if (s >= 5) limit = 64;
+
+        if (maxPlayersInput && maxPlayersInput.value !== "") {
+            limitHelper.innerHTML = `<span class="text-warning">Fijado a ${maxPlayersInput.value} plazas</span>`;
+        } else {
+            limitHelper.innerHTML = `Aforo: ${limit} plazas`;
+        }
+    }
+
+    if(stadiumsInput) stadiumsInput.addEventListener('input', updateCapacityLabel);
+    if(maxPlayersInput) maxPlayersInput.addEventListener('input', updateCapacityLabel);
+    updateCapacityLabel(); // Ejecutar al cargar
 
     function updateDeckOptions() {
         if (modeSelect.value === "beybladex") {

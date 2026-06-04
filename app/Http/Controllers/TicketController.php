@@ -24,9 +24,10 @@ class TicketController extends Controller
     // Crea la orden de PayPal
     public function createOrder(Request $request)
     {
-        $request->validate(['quantity' => 'required|integer|min:1|max:1000']);
+        // LIMITAMOS A 5 ENTRADAS MAX
+        $request->validate(['quantity' => 'required|integer|min:1|max:5']);
         $quantity = (int) $request->quantity;
-        $unitPrice = 3.00;
+        $unitPrice = 5.50; // PRECIO BEYCON (5€ entrada + 0.50€ gestión)
         $total = number_format($quantity * $unitPrice, 2, '.', '');
 
         $token = $this->getPaypalAccessToken();
@@ -51,7 +52,7 @@ class TicketController extends Controller
                             'value' => $total
                         ],
                         'custom_id' => (string) $quantity,
-                        'description' => "Sorteo Navidad - {$quantity} ticket(s) x 3€"
+                        'description' => "Entrada Beycon - {$quantity} ticket(s)"
                     ]
                 ],
                 'application_context' => [
@@ -137,13 +138,13 @@ class TicketController extends Controller
 
         if ($quantity <= 0) {
             $amount = (float) data_get($data, 'purchase_units.0.payments.captures.0.amount.value', 0);
-            $quantity = (int) round($amount / 3);
+            $quantity = (int) round($amount / 5.50); // CÁLCULO AJUSTADO A 5.50€
         }
 
-        if ($quantity <= 0) {
+        if ($quantity <= 0 || $quantity > 5) {
             return response()->json([
                 'status' => 'error',
-                'error' => 'Cantidad inválida en la orden o error de cálculo'
+                'error' => 'Cantidad inválida en la orden o supera el límite de 5.'
             ], 200);
         }
 
@@ -221,7 +222,7 @@ class TicketController extends Controller
     {
         do {
             $num = str_pad(random_int(0, 999999), 6, '0', STR_PAD_LEFT);
-            $id = 'NAV' . now()->year . '-' . $num;
+            $id = 'BEYCON' . now()->year . '-' . $num; // PREFIJO BEYCON
         } while (Ticket::where('identifier', $id)->exists());
 
         return $id;
@@ -277,9 +278,12 @@ class TicketController extends Controller
         ];
     }
 
+    // ----------------------------------------------------------------------
+    // SORTEO DE TICKETS
+    // ----------------------------------------------------------------------
+
     public function index(Request $request)
     {
-
         // Obtener todos los tickets
         $tickets = Ticket::all()->toArray();
         $totalTickets = count($tickets);
@@ -334,7 +338,4 @@ class TicketController extends Controller
         // Redirigir de nuevo al sorteo
         return redirect()->route('tickets.sorteo')->with('success', 'Rifa reiniciada correctamente.');
     }
-
-
-
 }

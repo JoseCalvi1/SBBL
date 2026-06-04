@@ -143,6 +143,9 @@
         <li class="nav-item">
             <a class="nav-link" id="regional-tab" data-bs-toggle="tab" href="#regional" role="tab"><span><i class="fas fa-map-marked-alt me-2"></i> RADAR REGIONAL</span></a>
         </li>
+        <li class="nav-item">
+            <a class="nav-link" id="discord-tab" data-bs-toggle="tab" href="#discord" role="tab"><span><i class="fab fa-discord me-2" style="color: #5865F2;"></i> DISCORD</span></a>
+        </li>
     </ul>
 
     <div class="tab-content" id="userTabsContent">
@@ -623,6 +626,64 @@
                     <div class="col-md-4"><i class="fas fa-signal text-success me-1"></i> <strong>Saturada (>20):</strong> Indica que se necesita reclutar más Jueces o Árbitros en esa región.</div>
                     <div class="col-md-4"><i class="fas fa-moon text-secondary me-1"></i> <strong>Inactiva:</strong> Regiones sin torneos registrados en el periodo seleccionado.</div>
                 </div>
+            </div>
+        </div>
+
+        {{-- =====================================
+             PESTAÑA 6: DISCORD VINCULADOS
+             ===================================== --}}
+        <div class="tab-pane fade" id="discord" role="tabpanel" aria-labelledby="discord-tab">
+            <div class="mb-4 border-bottom border-secondary pb-3">
+                <h4 class="font-bangers text-white m-0" style="font-size: 2rem;">
+                    <i class="fab fa-discord me-2" style="color: #5865F2;"></i>
+                    BLADERS VINCULADOS A DISCORD
+                </h4>
+                <p class="text-white-50 small m-0 mt-1">Sincronización en vivo. Los nombres se leen directamente del servidor de Discord sin ocupar espacio en la base de datos.</p>
+            </div>
+
+            <div class="table-responsive">
+                <table class="table table-tactical">
+                    <thead>
+                        <tr>
+                            <th>Nombre en la Web</th>
+                            <th>Nombre en Discord</th>
+                            <th>ID Discord</th>
+                            <th>Email</th>
+                            <th class="text-center">Estado</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach ($discordUsers as $dUser)
+                            <tr>
+                                <td class="fw-bold fs-5 text-warning">{{ $dUser->name }}</td>
+                                <td class="fw-bold fs-5 text-info">
+                                    {{-- Aquí está la magia: Cruzamos el ID del usuario con la lista en memoria --}}
+                                    @if(isset($discordNamesMap[$dUser->discord_id]))
+                                        <i class="fab fa-discord me-1" style="color: #5865F2;"></i> {{ $discordNamesMap[$dUser->discord_id] }}
+                                    @else
+                                        <span class="text-white-50 fs-6 fw-normal"><i class="fas fa-ghost me-1"></i> No está en el servidor</span>
+                                    @endif
+                                </td>
+                                <td>{{ $dUser->discord_id }}</td>
+                                <td>{{ $dUser->email }}</td>
+                                <td class="text-center">
+                                    <span class="badge bg-success text-white border border-white px-3 py-2">
+                                        <i class="fas fa-link me-1"></i> VINCULADO
+                                    </span>
+                                </td>
+                            </tr>
+                        @endforeach
+
+                        @if($discordUsers->isEmpty())
+                            <tr>
+                                <td colspan="4" class="text-center text-white-50 p-5">
+                                    <i class="fab fa-discord fs-1 mb-3 d-block" style="color: rgba(255,255,255,0.1);"></i>
+                                    Aún no hay usuarios con su cuenta de Discord vinculada.
+                                </td>
+                            </tr>
+                        @endif
+                    </tbody>
+                </table>
             </div>
         </div>
 

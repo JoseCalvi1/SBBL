@@ -12,8 +12,17 @@ class TournamentResultController extends Controller
 {
     public function store(Request $request, $eventId)
     {
-        // Eliminar resultados existentes del usuario para este evento
-        // Cambiar el 'user_id' por el 'assistId' para borrar los resultados del dueño correcto del deck
+        $userId = Auth::id();
+
+        // 🔥 NUEVO: Si marca tentativo, borramos su deck y volvemos
+        if ($request->has('is_tentative')) {
+            TournamentResult::where('user_id', $userId)
+                            ->where('event_id', $eventId)
+                            ->delete();
+            return redirect()->back()->with('success', 'Inscripción marcada como tentativa. Recuerda rellenar el deck antes del evento.');
+        }
+
+        // Eliminar resultados existentes para guardar los nuevos
         foreach ($request->blade as $assistId => $blades) {
             TournamentResult::where('user_id', $assistId)
                             ->where('event_id', $eventId)
@@ -23,22 +32,24 @@ class TournamentResultController extends Controller
         // Guardar los nuevos resultados
         foreach ($request->blade as $assistId => $blades) {
             foreach ($blades as $index => $blade) {
+                if(empty($blade)) continue; // Evita guardar filas en blanco
+
                 TournamentResult::create([
-                    'user_id' => $assistId,  // Cambiar por el 'assistId' para guardar con el propietario del deck
+                    'user_id' => $assistId,
                     'event_id' => $eventId,
                     'blade' => $blade,
-                    'assist_blade' => $request->assist_blade[$assistId][$index],
-                    'ratchet' => $request->ratchet[$assistId][$index],
-                    'bit' => $request->bit[$assistId][$index],
-                    'victorias' => $request->victorias[$assistId][$index],
-                    'derrotas' => $request->derrotas[$assistId][$index],
-                    'puntos_ganados' => $request->puntos_ganados[$assistId][$index],
-                    'puntos_perdidos' => $request->puntos_perdidos[$assistId][$index],
+                    'assist_blade' => $request->assist_blade[$assistId][$index] ?? null,
+                    'ratchet' => $request->ratchet[$assistId][$index] ?? null,
+                    'bit' => $request->bit[$assistId][$index] ?? null,
+                    'victorias' => $request->victorias[$assistId][$index] ?? 0,
+                    'derrotas' => $request->derrotas[$assistId][$index] ?? 0,
+                    'puntos_ganados' => $request->puntos_ganados[$assistId][$index] ?? 0,
+                    'puntos_perdidos' => $request->puntos_perdidos[$assistId][$index] ?? 0,
                 ]);
             }
         }
 
-        return redirect()->back()->with('success', 'Resultados guardados correctamente.');
+        return redirect()->back()->with('success', 'Deck de combate guardado y registrado correctamente.');
     }
 
 

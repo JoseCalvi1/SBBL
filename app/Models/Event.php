@@ -30,6 +30,7 @@ class Event extends Model
         'iframe',
         'challonge',
         'stadiums',          // Nuevo
+        'max_players',          // Nuevo
         'has_stadium_limit', // Nuevo
     ];
 
@@ -38,6 +39,7 @@ class Event extends Model
     protected $casts = [
         'has_stadium_limit' => 'boolean', // Convierte 1/0 a true/false
         'stadiums' => 'integer',
+        'max_players' => 'integer',
         'date' => 'datetime',             // Permite usar ->format('d/m/Y') en la vista
     ];
 

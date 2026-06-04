@@ -99,6 +99,11 @@
     .evento-banner-text { color: #fff; font-family: 'Oswald', cursive; font-size: 1.4rem; letter-spacing: 1px; margin: 0; }
     .evento-banner-btn { background: var(--sbbl-gold); color: #000; padding: 5px 15px; font-family: 'Oswald', cursive; font-size: 1.2rem; border: 2px solid #000; transition: 0.2s; box-shadow: 2px 2px 0 var(--shonen-red); }
 
+    /* --- BEYCON & FANTASY EXTRAS --- */
+    .beycon-banner { background: linear-gradient(135deg, #000 0%, #1a0000 100%); border-color: var(--shonen-red); padding: 25px !important; }
+    .beycon-banner:hover { box-shadow: 8px 8px 0px var(--sbbl-gold); border-color: var(--sbbl-gold); }
+    .fantasy-card:hover { transform: translate(-2px, -2px); box-shadow: 8px 8px 0px var(--shonen-cyan); border-color: var(--shonen-cyan); }
+
     .social-hub a { color: #fff; font-size: 1.5rem; margin: 0 10px; transition: all 0.2s; }
     .social-hub a:hover { color: var(--sbbl-gold); transform: scale(1.2) rotate(5deg); }
     .live-dot { width: 10px; height: 10px; background: #fff; border: 2px solid #000; display: inline-block; margin-right: 6px; animation: pulse-red 1s infinite; }
@@ -172,16 +177,25 @@
             </div>
         @endif
 
-        {{-- BANNER DE EVENTO NACIONAL --}}
-        <div class="container">
-            <a href="{{ route('inicio.nacional') }}" class="evento-banner">
-                <div class="d-flex align-items-center">
-                    <i class="fas fa-lock text-danger me-3 fs-3" style="animation: pulse-red 1s infinite;"></i>
-                    <p class="evento-banner-text">
-                        Descubre los detalles de la <span style="color: var(--shonen-red);">BEYCON SBBL'26</span>
-                    </p>
+        {{-- BANNER DE EVENTO NACIONAL (BEYCON) --}}
+        <div class="container mb-2">
+            <a href="{{ route('inicio.nacional') }}" class="evento-banner beycon-banner">
+                <div class="d-flex flex-column flex-md-row align-items-center justify-content-between w-100">
+                    <div class="d-flex align-items-center mb-3 mb-md-0">
+                        <div class="conquest-icon-box me-4 d-none d-sm-flex flex-shrink-0" style="background: var(--shonen-red); border-color: #fff; box-shadow: 3px 3px 0 #fff;">
+                            <i class="fas fa-ticket-alt fa-2x text-white"></i>
+                        </div>
+                        <div>
+                            <p class="evento-banner-text text-start mb-0" style="font-size: 1.1rem; color: var(--sbbl-gold); letter-spacing: 2px;">EL MAYOR EVENTO DEL AÑO EN SEVILLA</p>
+                            <h2 class="text-white font-Oswald mb-0" style="font-size: 3rem; text-shadow: 3px 3px 0 var(--shonen-red); line-height: 1;">
+                                BEYCON '26 <span class="fs-4 text-white-50" style="text-shadow: none;">- 18 DE JULIO</span>
+                            </h2>
+                        </div>
+                    </div>
+                    <span class="evento-banner-btn fs-5 px-4 py-3 text-white fw-bold" style="background: var(--shonen-red); border-color: #fff;">
+                        VER DETALLES <i class="fas fa-chevron-right ms-2"></i>
+                    </span>
                 </div>
-                <span class="evento-banner-btn">Ver Detalles <i class="fas fa-chevron-right ms-1"></i></span>
             </a>
         </div>
 
@@ -208,9 +222,9 @@
                             </div>
                         </div>
                         <div class="timeline-dates">
-                            <span>22 JUN 2025</span>
-                            <span class="text-center" style="color: var(--sbbl-gold);">TEMP. 2</span>
-                            <span>31 MAY 2026</span>
+                            <span>1 JUN 2026</span>
+                            <span class="text-center" style="color: var(--sbbl-gold);">TEMP. 3</span>
+                            <span>31 MAY 2027</span>
                         </div>
 
                         <hr class="border-dark my-4" style="border-width: 3px; opacity: 1;">
@@ -245,34 +259,59 @@
                 </div>
             </div>
 
-            {{-- BOTÓN DE DESPLIEGUE: MODO CONQUISTA --}}
+            {{-- MODOS DE JUEGO EXTRAS: CONQUISTA Y FANTASY --}}
             <div class="container mt-4 px-0">
-                <div class="row">
-                    <div class="col-12">
-                        <a target="_blank" href="{{ route('conquest.index') }}" class="conquest-card p-4 d-flex flex-column flex-md-row align-items-center justify-content-between">
-                            <div class="conquest-content d-flex align-items-center mb-3 mb-md-0">
-                                <div class="conquest-icon-box me-4 d-none d-sm-flex flex-shrink-0">
+                <div class="row g-4">
+
+                    {{-- MITAD IZQUIERDA: MODO CONQUISTA --}}
+                    <div class="col-md-6">
+                        <a target="_blank" href="{{ route('conquest.index') }}" class="conquest-card p-4 h-100 d-flex flex-column justify-content-between">
+                            <div class="conquest-content d-flex align-items-center mb-4">
+                                <div class="conquest-icon-box me-3 d-none d-sm-flex flex-shrink-0">
                                     <i class="fas fa-map-marked-alt fa-2x"></i>
                                 </div>
                                 <div>
                                     <div class="d-flex align-items-center mb-1">
-                                        <h3 class="text-white m-0 me-3 font-Oswald fs-2" style="text-shadow: 2px 2px 0 #000;">MODO CONQUISTA</h3>
-                                        <span class="badge bg-dark border border-2 border-white text-white font-Oswald fs-6">
-                                            <span class="live-dot"></span> GUERRA ACTIVA
-                                        </span>
+                                        <h3 class="text-white m-0 me-2 font-Oswald fs-3" style="text-shadow: 2px 2px 0 #000;">MODO CONQUISTA</h3>
+                                        <span class="live-dot" style="margin-right: 0;"></span>
                                     </div>
-                                    <p class="text-white mb-2 fw-bold" style="max-width: 550px; line-height: 1.4; text-shadow: 1px 1px 0 #000;">
-                                        El mapa de España está en disputa. Únete a una facción, compite en torneos para ganar influencia y capturar territorios reales.
+                                    <p class="text-white mb-0 fw-bold small" style="line-height: 1.3; text-shadow: 1px 1px 0 #000;">
+                                        El mapa está en disputa. Únete a una facción, compite y captura territorios reales en España.
                                     </p>
                                 </div>
                             </div>
-                            <div class="conquest-content text-end">
-                                <span class="btn px-4 py-2" style="color: var(--sbbl-gold)">
-                                    Ver Mapa Táctico <i class="fas fa-chevron-right ms-2"></i>
+                            <div class="conquest-content text-end mt-auto">
+                                <span class="btn px-3 py-1 fw-bold" style="color: var(--sbbl-gold); border: 2px solid var(--sbbl-gold); background: #000; border-radius: 0;">
+                                    Ver Mapa Táctico <i class="fas fa-chevron-right ms-1"></i>
                                 </span>
                             </div>
                         </a>
                     </div>
+
+                    {{-- MITAD DERECHA: SBBL FANTASY --}}
+                    <div class="col-md-6">
+                        <a href="{{ route('fantasy.index') }}" class="conquest-card fantasy-card p-4 h-100 d-flex flex-column justify-content-between" style="border-color: #000; box-shadow: 6px 6px 0px var(--shonen-cyan); background-image: repeating-linear-gradient(-45deg, rgba(0,0,0,0.1) 0px, rgba(0,0,0,0.1) 10px, transparent 10px, transparent 20px);">
+                            <div class="conquest-content d-flex align-items-center mb-4">
+                                <div class="conquest-icon-box me-3 d-none d-sm-flex flex-shrink-0" style="background: var(--shonen-cyan); box-shadow: 3px 3px 0 #000;">
+                                    <i class="fas fa-users-cog fa-2x text-dark"></i>
+                                </div>
+                                <div>
+                                    <div class="d-flex align-items-center mb-1">
+                                        <h3 class="text-white m-0 me-2 font-Oswald fs-3" style="text-shadow: 2px 2px 0 #000;">SBBL FANTASY</h3>
+                                    </div>
+                                    <p class="text-white mb-0 fw-bold small" style="line-height: 1.3; text-shadow: 1px 1px 0 #000;">
+                                        Prueba la versión BETA ahora y conviértete en sponsor. Arma tu equipo ideal con los mejores Bladers del ranking y compite por la victoria.
+                                    </p>
+                                </div>
+                            </div>
+                            <div class="conquest-content text-end mt-auto">
+                                <span class="btn px-3 py-1 fw-bold" style="color: var(--shonen-cyan); border: 2px solid var(--shonen-cyan); background: #000; border-radius: 0;">
+                                    Jugar Ahora <i class="fas fa-chevron-right ms-1"></i>
+                                </span>
+                            </div>
+                        </a>
+                    </div>
+
                 </div>
             </div>
 
@@ -600,9 +639,9 @@
 
         // Season Logic
         const today = new Date();
-        const startPre = new Date("2025-06-22");
-        const startSeason = new Date("2025-09-01");
-        const endSeason = new Date("2026-05-31");
+        const startPre = new Date("2026-06-01");    // Inicio Pretemporada
+        const startSeason = new Date("2026-09-01"); // Inicio Temporada Regular
+        const endSeason = new Date("2027-05-31");   // Fin de Temporada 3
 
         const totalDuration = (endSeason - startPre) / (1000 * 60 * 60 * 24);
         const elapsedDays = (today - startPre) / (1000 * 60 * 60 * 24);
@@ -612,15 +651,19 @@
         if (today < startPre) {
             statusText = "⏳ ESPERANDO INICIO...";
         } else if (today >= startPre && today < startSeason) {
+            // Fase de Pretemporada (Junio - Agosto)
             prePercent = (elapsedDays / totalDuration) * 100;
-            statusText = "🔧 PRE-TEMPORADA";
+            statusText = "🔧 PRE-TEMPORADA 3";
         } else if (today >= startSeason && today <= endSeason) {
+            // Fase de Temporada Regular (Septiembre - Mayo)
             prePercent = ((startSeason - startPre) / (endSeason - startPre)) * 100;
             const totalProgress = (elapsedDays / totalDuration) * 100;
             seasonPercent = totalProgress - prePercent;
-            statusText = "🔥 TEMPORADA 2 ACTIVA";
+            statusText = "🔥 TEMPORADA 3 ACTIVA";
         } else {
-            prePercent = 20; seasonPercent = 80;
+            // Temporada Terminada
+            prePercent = ((startSeason - startPre) / (endSeason - startPre)) * 100;
+            seasonPercent = 100 - prePercent;
             statusText = "✅ CICLO COMPLETADO";
         }
 
