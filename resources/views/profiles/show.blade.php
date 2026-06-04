@@ -293,6 +293,27 @@
 
     </div> {{-- Fin Grid Principal --}}
 
+    <div class="card bg-dark border-secondary mt-5 mb-4">
+        <div class="card-body p-4">
+            <h4 class="text-white font-Oswald mb-3"><i class="fab fa-discord" style="color: #5865F2;"></i> CONEXIÓN CON DISCORD</h4>
+
+            @if(Auth::user()->discord_id)
+                <div class="alert alert-success bg-success bg-opacity-10 border-success text-white d-flex align-items-center">
+                    <i class="fas fa-check-circle fs-3 me-3 text-success"></i>
+                    <div>
+                        <h5 class="fw-bold m-0">¡Cuenta Vinculada!</h5>
+                        <p class="m-0 small text-light-muted">Tu cuenta está sincronizada. Tienes acceso a los canales exclusivos del servidor.</p>
+                    </div>
+                </div>
+            @else
+                <p class="text-light-muted">Vincula tu cuenta de Discord para desbloquear automáticamente los canales de torneos, compra-venta y chat general de la Liga.</p>
+                <a href="{{ route('discord.login') }}" class="btn fw-bold px-4 py-2" style="background-color: #5865F2; color: #fff;">
+                    <i class="fab fa-discord me-2"></i> VINCULAR CUENTA DE DISCORD
+                </a>
+            @endif
+        </div>
+    </div>
+
     {{-- 3. SECCIÓN INFERIOR: HISTORIAL DE MISIONES (Eventos) --}}
     <div class="mt-5">
         <div class="command-panel p-4">

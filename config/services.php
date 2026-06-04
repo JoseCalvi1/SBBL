@@ -32,6 +32,13 @@ return [
     'discord' => [
         'announcements' => env('DISCORD_ANNOUNCEMENTS_WEBHOOK'),
         'warfeed' => env('DISCORD_WARFEED_WEBHOOK'),
+        'client_id' => env('DISCORD_CLIENT_ID'),
+        'client_secret' => env('DISCORD_CLIENT_SECRET'),
+        'redirect' => env('DISCORD_REDIRECT_URI'),
+        // Añadimos esto para tenerlo centralizado cuando usemos el bot
+        'bot_token' => env('DISCORD_BOT_TOKEN'),
+        'guild_id' => env('DISCORD_GUILD_ID'),
+        'role_id' => env('DISCORD_VIP_ROLE_ID'),
     ],
     'mailjet' => [
         'key' => env('MAILJET_APIKEY'),

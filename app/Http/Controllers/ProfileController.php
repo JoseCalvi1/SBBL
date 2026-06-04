@@ -315,10 +315,37 @@ class ProfileController extends Controller
             ];
         })->sortByDesc('total_players');
 
+        // 6. USUARIOS VINCULADOS A DISCORD (Sin usar campos nuevos en BD)
+        $discordUsers = \App\Models\User::whereNotNull('discord_id')->orderBy('name')->get();
+
+        $guildId = config('services.discord.guild_id');
+        $botToken = config('services.discord.bot_token');
+
+        // Aquí guardaremos el cruce [ID => Nombre de Discord]
+        $discordNamesMap = [];
+
+        if ($guildId && $botToken) {
+            // Hacemos 1 sola petición a Discord pidiendo la lista de miembros
+            $response = \Illuminate\Support\Facades\Http::withHeaders([
+                'Authorization' => "Bot {$botToken}",
+            ])->get("https://discord.com/api/v10/guilds/{$guildId}/members?limit=1000");
+
+            if ($response->successful()) {
+                $members = $response->json();
+                foreach ($members as $member) {
+                    $id = $member['user']['id'];
+                    // Cogemos el apodo del servidor, o si no tiene, su nombre global
+                    $name = $member['nick'] ?? $member['user']['global_name'] ?? $member['user']['username'];
+                    $discordNamesMap[$id] = $name;
+                }
+            }
+        }
+
         return view('profiles.indexAdmin', compact(
             'profiles', 'allUsers', 'subscriptions', 'selectedBlader',
             'bladerHistory', 'selectedBladerId', 'granCopaEvents',
-            'treasuryStats', 'plans', 'regionalStats', 'radarMonth', 'radarYear'
+            'treasuryStats', 'plans', 'regionalStats', 'radarMonth', 'radarYear',
+            'discordUsers', 'discordNamesMap' // <-- Añadimos estas dos variables
         ));
     }
 
@@ -699,54 +726,77 @@ class ProfileController extends Controller
         //
     }
 
-        public function ranking(Request $request)
+    public function ranking(Request $request)
     {
-        ini_set('memory_limit', '1024M'); // Seguridad extra, por si acaso
+        ini_set('memory_limit', '1024M'); // Seguridad extra
 
-        // Valores de filtros
-        $limit = $request->input('limit', 25); // Valor por defecto: 25
+        // 1. LIMPIEZA DE FILTROS
+        $limit = $request->input('limit', 25);
         if ($limit !== 'all') {
             $limit = (int) $limit;
         }
-        $region = $request->input('region', null);
-        $province = $request->input('province', null); // <--- NUEVO FILTRO PROVINCIA
 
-        // Función para generar cada ranking
-        $getBladersByPoints = function ($column) use ($limit, $region, $province) {
-            return \App\Models\Profile::with(['user.teams', 'region', 'province'])
-                ->when($region, function ($query) use ($region) {
-                    return $query->whereHas('region', function ($q) use ($region) {
-                        $q->where('name', $region);
+        $region = $request->input('region');
+        $region = ($region === 'all' || trim($region) === '') ? null : $region;
+
+        $province = $request->input('province');
+        $province = ($province === 'all' || trim($province) === '') ? null : $province;
+
+        // 2. EL INTERRUPTOR DE SEGURIDAD (LA MAGIA)
+        // Solo cargamos los logos en Base64 si NO estamos pidiendo toda la base de datos entera
+        $loadImages = ($limit !== 'all');
+
+        // 3. FUNCIÓN PARA GENERAR RANKINGS
+        $getBladersByPoints = function ($column) use ($limit, $region, $province, $loadImages) {
+
+            // Preparamos la consulta base especificando las tablas para evitar ambigüedades
+            $query = \App\Models\Profile::with([
+                'user' => function($q) { $q->select('users.id', 'users.name'); },
+                'region' => function($q) { $q->select('regions.id', 'regions.name'); },
+                'province' => function($q) { $q->select('provinces.id', 'provinces.name'); }
+            ])->select('profiles.id', 'profiles.user_id', 'profiles.region_id', 'profiles.province_id', 'profiles.' . $column);
+
+            // Si es seguro cargar imágenes, especificamos 'teams.id' para que SQL no se confunda
+            if ($loadImages) {
+                $query->with(['user.teams' => function($q) {
+                    $q->select('teams.id', 'teams.logo');
+                }]);
+            }
+
+            return $query->when($region, function ($q) use ($region) {
+                    return $q->whereHas('region', function ($q2) use ($region) {
+                        $q2->where('regions.name', $region);
                     });
                 })
-                ->when($province, function ($query) use ($province) { // <--- LÓGICA DE FILTRADO
-                    return $query->where('province_id', $province);
+                ->when($province, function ($q) use ($province) {
+                    return $q->where('profiles.province_id', $province);
                 })
-                ->where($column, '!=', 0)
-                ->orderBy($column, 'DESC')
-                ->orderBy('id', 'ASC')
-                ->when($limit !== 'all', function ($query) use ($limit) {
-                    return $query->take($limit);
+                ->where('profiles.' . $column, '!=', 0)
+                ->orderBy('profiles.' . $column, 'DESC')
+                ->orderBy('profiles.id', 'ASC')
+                ->when($limit !== 'all', function ($q) use ($limit) {
+                    return $q->take($limit);
                 })
                 ->get()
-                ->map(function ($blader) {
-                    if ($blader->user->teams->isNotEmpty() && $blader->user->teams->first()->logo) {
+                ->map(function ($blader) use ($loadImages) {
+                    $blader->team_logo = null;
+
+                    if ($loadImages && $blader->user && $blader->user->teams->isNotEmpty() && $blader->user->teams->first()->logo) {
                         $blader->team_logo = 'data:image/png;base64,' . $blader->user->teams->first()->logo;
-                    } else {
-                        $blader->team_logo = null;
+                        unset($blader->user->teams);
                     }
+
                     return $blader;
                 });
         };
 
-        // Rankings por temporada/sistema
+        // 4. GENERACIÓN DE LOS RANKINGS
         $bladers_points     = $getBladersByPoints('points');       // Season 1
         $bladers_points_s2  = $getBladersByPoints('points_s2');    // Season 2
         $bladers_points_s3  = $getBladersByPoints('points_s3');    // Season 3
         $bladers_points_x1  = $getBladersByPoints('points_x1');    // Beyblade X 1
         $bladers_points_x2  = $getBladersByPoints('points_x2');    // Beyblade X 2
 
-        // Cargar todas las regiones CON sus provincias para el JS de la vista
         $regionsWithProvinces = \App\Models\Region::with('provinces')->orderBy('name')->get();
 
         return view('profiles.ranking', [
@@ -757,7 +807,7 @@ class ProfileController extends Controller
             'bladers_points_x2' => $bladers_points_x2,
             'limit' => $limit,
             'region' => $region,
-            'province' => $province, // Pasamos la provincia seleccionada a la vista
+            'province' => $province,
             'regionsWithProvinces' => $regionsWithProvinces,
         ]);
     }

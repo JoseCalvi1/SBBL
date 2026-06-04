@@ -30,7 +30,7 @@ private static $installed = array (
     'aliases' => 
     array (
     ),
-    'reference' => '6864c2ed2fbb9fcc5d574408ba66221f771c34c7',
+    'reference' => 'fd11dc64af2df7093c59cff9cf4c6c4367bc7f65',
     'name' => 'laravel/laravel',
   ),
   'versions' => 
@@ -183,6 +183,15 @@ private static $installed = array (
       array (
       ),
       'reference' => 'fdf92f03e150ed84d5967a833ae93abffac0315b',
+    ),
+    'firebase/php-jwt' => 
+    array (
+      'pretty_version' => 'v7.0.5',
+      'version' => '7.0.5.0',
+      'aliases' => 
+      array (
+      ),
+      'reference' => '47ad26bab5e7c70ae8a6f08ed25ff83631121380',
     ),
     'fruitcake/laravel-cors' => 
     array (
@@ -478,7 +487,7 @@ private static $installed = array (
       'aliases' => 
       array (
       ),
-      'reference' => '6864c2ed2fbb9fcc5d574408ba66221f771c34c7',
+      'reference' => 'fd11dc64af2df7093c59cff9cf4c6c4367bc7f65',
     ),
     'laravel/sail' => 
     array (
@@ -488,6 +497,15 @@ private static $installed = array (
       array (
       ),
       'reference' => '51ecfe0f048f8f8e6c5617e02a1f67ca22817c98',
+    ),
+    'laravel/socialite' => 
+    array (
+      'pretty_version' => 'v5.27.0',
+      'version' => '5.27.0.0',
+      'aliases' => 
+      array (
+      ),
+      'reference' => '40e0757a75637c7b2dff05d3286b0d8fc25e5c0e',
     ),
     'laravel/tinker' => 
     array (
@@ -551,6 +569,15 @@ private static $installed = array (
       array (
       ),
       'reference' => '3b9dff8aaf7323590c1d2e443db701eb1f9aa0d3',
+    ),
+    'league/oauth1-client' => 
+    array (
+      'pretty_version' => 'v1.11.0',
+      'version' => '1.11.0.0',
+      'aliases' => 
+      array (
+      ),
+      'reference' => 'f9c94b088837eb1aae1ad7c4f23eb65cc6993055',
     ),
     'mockery/mockery' => 
     array (
@@ -644,6 +671,24 @@ private static $installed = array (
       ),
       'reference' => '06e2ebd25f2869e54a306dda991f7db58066f7f6',
     ),
+    'paragonie/constant_time_encoding' => 
+    array (
+      'pretty_version' => 'v3.1.3',
+      'version' => '3.1.3.0',
+      'aliases' => 
+      array (
+      ),
+      'reference' => 'd5b01a39b3415c2cd581d3bd3a3575c1ebbd8e77',
+    ),
+    'paragonie/random_compat' => 
+    array (
+      'pretty_version' => 'v9.99.100',
+      'version' => '9.99.100.0',
+      'aliases' => 
+      array (
+      ),
+      'reference' => '996434e5492cb4c3edcb9168db6fbb1359ef965a',
+    ),
     'phar-io/manifest' => 
     array (
       'pretty_version' => '2.0.3',
@@ -697,6 +742,15 @@ private static $installed = array (
       array (
       ),
       'reference' => '994ecccd8f3283ecf5ac33254543eb0ac946d525',
+    ),
+    'phpseclib/phpseclib' => 
+    array (
+      'pretty_version' => '3.0.52',
+      'version' => '3.0.52.0',
+      'aliases' => 
+      array (
+      ),
+      'reference' => '2adaefc83df2ec548558307690f376dd7d4f4fce',
     ),
     'phpspec/prophecy' => 
     array (
@@ -1053,6 +1107,24 @@ private static $installed = array (
       array (
       ),
       'reference' => 'c6c1022351a901512170118436c764e473f6de8c',
+    ),
+    'socialiteproviders/discord' => 
+    array (
+      'pretty_version' => '4.2.0',
+      'version' => '4.2.0.0',
+      'aliases' => 
+      array (
+      ),
+      'reference' => 'c71c379acfdca5ba4aa65a3db5ae5222852a919c',
+    ),
+    'socialiteproviders/manager' => 
+    array (
+      'pretty_version' => 'v4.7.0',
+      'version' => '4.7.0.0',
+      'aliases' => 
+      array (
+      ),
+      'reference' => 'ab0691b82cec77efd90154c78f1854903455c82f',
     ),
     'srmklive/paypal' => 
     array (
