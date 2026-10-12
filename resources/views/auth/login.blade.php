@@ -61,6 +61,23 @@
                 <form method="POST" action="{{ route('login') }}">
                     @csrf
 
+                    {{-- CAPTURA DE ERRORES GLOBALES --}}
+                    @if ($errors->any())
+                        <div class="alert alert-danger mb-4">
+                            <ul class="mb-0">
+                                @foreach ($errors->all() as $error)
+                                    <li><i class="fas fa-exclamation-triangle me-1"></i> {{ $error }}</li>
+                                @endforeach
+                            </ul>
+                        </div>
+                    @endif
+
+                    @if(session('error'))
+                        <div class="alert alert-danger mb-4">
+                            <i class="fas fa-exclamation-triangle me-1"></i> {{ session('error') }}
+                        </div>
+                    @endif
+
                     {{-- Email --}}
                     <div class="mb-3">
                         <label for="email" class="form-label">Correo electrónico</label>

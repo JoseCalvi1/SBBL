@@ -44,13 +44,20 @@
                         <h3 class="text-center font-Oswald mb-2" style="font-size: 2rem; color: var(--sbbl-gold); text-shadow: 2px 2px 0 #000;">PASARELA DE PAGO</h3>
                         <p class="text-center text-white-50 mb-4 fw-bold">1 Ticket = 5,50€</p>
 
-                        <div class="mb-4">
-                            <label class="mb-2 text-white font-Oswald fs-5">CANTIDAD (Máx 5):</label>
-                            <input id="ticketQty" type="number" min="1" max="5" value="1" class="form-control form-control-lg text-center fw-bold bg-dark text-white border-secondary" style="font-size: 1.5rem;">
-                        </div>
+                        @if($soldOut)
+                            <div class="alert alert-danger bg-danger bg-opacity-10 border border-danger text-center p-4 mt-3">
+                                <h4 class="fw-bold mb-0 text-white"><i class="fas fa-times-circle me-2"></i> ¡ENTRADAS AGOTADAS (SOLD OUT)!</h4>
+                                <p class="text-white-50 mt-2 mb-0">Se ha alcanzado el aforo máximo para la BeyCon.</p>
+                            </div>
+                        @else
+                            <div class="mb-4">
+                                <label class="mb-2 text-white font-Oswald fs-5">CANTIDAD (Máx 5):</label>
+                                <input id="ticketQty" type="number" min="1" max="5" value="1" class="form-control form-control-lg text-center fw-bold bg-dark text-white border-secondary" style="font-size: 1.5rem;">
+                            </div>
 
-                        <div id="paypal-buttons" class="my-3"></div>
-                        <div id="buyMsg" class="mt-3 text-center font-Oswald fs-5"></div>
+                            <div id="paypal-buttons" class="my-3"></div>
+                            <div id="buyMsg" class="mt-3 text-center font-Oswald fs-5"></div>
+                        @endif
                     </div>
                 </div>
 

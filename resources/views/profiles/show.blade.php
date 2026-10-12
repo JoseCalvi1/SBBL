@@ -219,7 +219,7 @@
                                 </div>
                                 <div class="col-sm-6">
                                     <div class="stat-box border-secondary">
-                                        <span class="stat-value" style="color: var(--shonen-cyan);">{{ $profile->points_x2 }}</span>
+                                        <span class="stat-value" style="color: var(--shonen-cyan);">{{ $profile->points_x3 }}</span>
                                         <span class="stat-label text-white">Puntos de Rango</span>
                                     </div>
                                 </div>

@@ -190,6 +190,7 @@
                         <div class="col-6 col-md-3">
                             <label>MIN. BATALLAS</label>
                             <select name="min_partidas" class="form-select form-select-sm" onchange="this.form.submit()">
+                                <option value="1" {{ $minPartidas == 1 ? 'selected' : '' }}>1+ Enfrentamientos</option>
                                 <option value="10" {{ $minPartidas == 10 ? 'selected' : '' }}>10+ Enfrentamientos</option>
                                 <option value="30" {{ $minPartidas == 30 ? 'selected' : '' }}>30+ Enfrentamientos</option>
                                 <option value="50" {{ $minPartidas == 50 ? 'selected' : '' }}>50+ Enfrentamientos</option>
@@ -276,6 +277,13 @@
                         <td class="py-3 ps-4 border-0">
                             <div class="d-flex flex-column">
                                 <span class="combo-name">{{ $stat->blade }}</span>
+                                @if($stat->over_blade && $stat->over_blade != '-')
+                                    <div class="my-1">
+                                        <span class="badge bg-black text-white border border-info" style="font-size: 0.7rem; transform: skewX(-10deg);">
+                                            <span style="display:block; transform:skewX(10deg);"><i class="fas fa-link me-1"></i> {{ $stat->over_blade }}</span>
+                                        </span>
+                                    </div>
+                                @endif
                                 @if($stat->assist_blade && $stat->assist_blade != '-')
                                     <div class="my-1">
                                         <span class="badge bg-black text-white border border-info" style="font-size: 0.7rem; transform: skewX(-10deg);">

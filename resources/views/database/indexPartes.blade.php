@@ -183,6 +183,32 @@
                 @endforeach
             </div>
         </div>
+
+        <!-- Over Blade Section -->
+        <div class="col-md-6">
+            <h3>Over Blades</h3>
+            <form action="{{ route('overBlade.store') }}" method="POST" class="mb-3">
+                @csrf
+                <input type="text" name="nombre" class="form-control" placeholder="Nombre del Over Blade" required>
+                <input type="hidden" name="type" class="form-control" value="OverBlade">
+                <button type="submit" class="btn btn-primary mt-2 w-100">Crear Over Blade</button>
+            </form>
+            <div id="ratchets-list">
+                @foreach ($overBlades as $overBlade)
+                    <div class="part-item">
+                        <span>{{ $overBlade->nombre }}<br>({{ ($overBlade->recolor == false ? 'Base' : 'Recolor') }})</span>
+                        <div>
+                            @if (!empty($overBlade->nombre) && empty($overBlade->imagen)) <!-- Asegúrate de agregar las condiciones correctas para los otros campos -->
+                                <a href="{{ route('overBlade.edit', $overBlade->id) }}" class="btn btn-info btn-sm">Completar</a>
+                            @else
+                                <a href="{{ route('overBlade.edit', $overBlade->id) }}" class="btn btn-warning btn-sm">Editar</a>
+                            @endif
+                            <button class="btn btn-danger btn-sm delete-btn" data-toggle="modal" data-target="#deleteConfirmationModal" data-id="{{ $overBlade->id }}" data-type="overBlade" data-name="{{ $overBlade->nombre }}">Eliminar</button>
+                        </div>
+                    </div>
+                @endforeach
+            </div>
+        </div>
     </div>
 </div>
 

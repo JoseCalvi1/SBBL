@@ -126,16 +126,31 @@
                             <label for="imagen" class="form-label text-light-muted small text-uppercase fw-bold mb-3">Categoría <span class="text-info">*</span></label>
                             <select name="imagen" id="imagen" class="form-select form-select-lg dark-input p-3 fs-5" required>
                                 <option value="" disabled {{ old('imagen') ? '' : 'selected' }}>Selecciona tipo de evento...</option>
-                                <option value="quedada" {{ old('imagen') == 'quedada' ? 'selected' : '' }}>Quedada</option>
-                                <option value="simulacro" {{ old('imagen') == 'simulacro' ? 'selected' : '' }}>Simulacro ranking</option>
-                                <option value="hasbro" {{ old('imagen') == 'hasbro' ? 'selected' : '' }}>Formato Hasbro</option>
+                                <option value="quedada" {{ old('imagen') == 'quedada' ? 'selected' : '' }}>Quedada (Tus propias reglas)</option>
+                                <option value="simulacro" {{ old('imagen') == 'simulacro' ? 'selected' : '' }}>Simulacro ranking (Formato ranking sin puntuar)</option>
+                                <option value="hasbro" {{ old('imagen') == 'hasbro' ? 'selected' : '' }}>Formato Hasbro (Estadio y normativa Hasbro)</option>
+
+                                {{-- Ranking exclusivo para Admin y Jueces --}}
                                 @if (Auth::user()->hasAnyRole(['admin', 'juez']))
                                     <option value="ranking" {{ old('imagen') == 'ranking' ? 'selected' : '' }}>Ranking</option>
-                                    <option value="copaespecial1" {{ old('imagen') == 'copaespecial1' ? 'selected' : '' }}>Copa Split 1</option>
-                                    <option value="copaespecial2" {{ old('imagen') == 'copaespecial2' ? 'selected' : '' }}>Copa Split 2</option>
-                                    <option value="copaespecial3" {{ old('imagen') == 'copaespecial3' ? 'selected' : '' }}>Copa Split 3</option>
-                                    <option value="copaespecial4" {{ old('imagen') == 'copaespecial4' ? 'selected' : '' }}>Copa Split 4</option>
                                 @endif
+
+                                {{-- Split 1: Septiembre (9), Octubre (10), Noviembre (11) --}}
+                                @if (Auth::user()->hasAnyRole(['admin', 'juez']) || in_array(now()->month, [9, 10, 11]))
+                                    <option value="copaespecial1" {{ old('imagen') == 'copaespecial1' ? 'selected' : '' }}>Copa Split 1</option>
+                                @endif
+
+                                {{-- Split 2: Diciembre (12), Enero (1), Febrero (2) --}}
+                                @if (Auth::user()->hasAnyRole(['admin', 'juez']) || in_array(now()->month, [12, 1, 2]))
+                                    <option value="copaespecial2" {{ old('imagen') == 'copaespecial2' ? 'selected' : '' }}>Copa Split 2</option>
+                                @endif
+
+                                {{-- Split 3: Marzo (3), Abril (4), Mayo (5) --}}
+                                @if (Auth::user()->hasAnyRole(['admin', 'juez']) || in_array(now()->month, [3, 4, 5]))
+                                    <option value="copaespecial3" {{ old('imagen') == 'copaespecial3' ? 'selected' : '' }}>Copa Split 3</option>
+                                @endif
+
+                                {{-- Gran Copa exclusiva para Admin --}}
                                 @if (Auth::user()->hasAnyRole(['admin']))
                                     <option value="grancopa" {{ old('imagen') == 'grancopa' ? 'selected' : '' }}>Gran Copa (Especial)</option>
                                 @endif
@@ -492,14 +507,109 @@ document.addEventListener('DOMContentLoaded', () => {
         // Plantillas automáticas
         if(type === 'copaespecial1') {
             if(!nameInput.value) nameInput.value = "Gran Copa de Split 1";
-            noteInput.value = "Reglamento de la copa de split 1";
+            noteInput.value = `<div class="reglamento-box mb-4">
+            <h5 class="text-primary fw-bold mb-4">🏆 REGLAMENTO OFICIAL - COPA SPLIT 1</h5>
+
+            <div class="mb-3">
+                <h6 class="fw-bold mb-1">1. Formato de Torneo</h6>
+                <p>[Ej: Suizo + Corte a Top 8]</p>
+            </div>
+
+            <div class="mb-3">
+                <h6 class="fw-bold mb-1">2. Normativa</h6>
+                <p>Se aplicará el reglamento oficial vigente de la SBBL/FEBB.</p>
+            </div>
+
+            <div class="mb-3">
+                <h6 class="fw-bold mb-1">3. Puntuación</h6>
+                <p>[Detallar puntos otorgados para el ranking del Split 1].</p>
+            </div>
+
+            <div class="mb-3">
+                <h6 class="fw-bold mb-1">4. Restricciones</h6>
+                <p>[Especificar si hay combos o piezas limitadas en esta fase].</p>
+            </div>
+
+            <div class="mb-4">
+                <h6 class="fw-bold mb-1">5. Estadios</h6>
+                <p>[Indicar estadios permitidos para este evento].</p>
+            </div>
+
+            <div class="alert alert-warning small py-2 mb-0">
+                <strong>* Nota:</strong> El cierre de inscripciones se realizará 24 horas antes del torneo.
+            </div>
+        </div>`;
+
         } else if (type === 'copaespecial2') {
             if(!nameInput.value) nameInput.value = "Gran Copa de Split 2";
-            noteInput.value = "Reglamento de la copa de split 2";
+            noteInput.value = `<div class="reglamento-box mb-4">
+            <h5 class="text-primary fw-bold mb-4">🏆 REGLAMENTO OFICIAL - COPA SPLIT 2</h5>
+
+            <div class="mb-3">
+                <h6 class="fw-bold mb-1">1. Formato de Torneo</h6>
+                <p>[Ej: Grupos + Eliminatoria Doble]</p>
+            </div>
+
+            <div class="mb-3">
+                <h6 class="fw-bold mb-1">2. Normativa</h6>
+                <p>Se aplicará el reglamento oficial vigente de la SBBL/FEBB.</p>
+            </div>
+
+            <div class="mb-3">
+                <h6 class="fw-bold mb-1">3. Puntuación</h6>
+                <p>[Detallar puntos otorgados para el ranking del Split 2].</p>
+            </div>
+
+            <div class="mb-3">
+                <h6 class="fw-bold mb-1">4. Restricciones</h6>
+                <p>[Especificar si hay combos o piezas limitadas en esta fase].</p>
+            </div>
+
+            <div class="mb-4">
+                <h6 class="fw-bold mb-1">5. Estadios</h6>
+                <p>[Indicar estadios permitidos para este evento].</p>
+            </div>
+
+            <div class="alert alert-warning small py-2 mb-0">
+                <strong>* Nota:</strong> El cierre de inscripciones se realizará 24 horas antes del torneo.
+            </div>
+        </div>`;
+
         } else if (type === 'copaespecial3') {
             if(!nameInput.value) nameInput.value = "Gran Copa de Split 3";
-            noteInput.value = "Reglamento de la copa de split 3";
-        } else if (type === 'copaespecial4') { // Corregido: antes ponía copaespecial3 de nuevo
+            noteInput.value = `<div class="reglamento-box mb-4">
+            <h5 class="text-primary fw-bold mb-4">🏆 REGLAMENTO OFICIAL - COPA SPLIT 3</h5>
+
+            <div class="mb-3">
+                <h6 class="fw-bold mb-1">1. Formato de Torneo</h6>
+                <p>[Ej: Bracket de Eliminación Directa]</p>
+            </div>
+
+            <div class="mb-3">
+                <h6 class="fw-bold mb-1">2. Normativa</h6>
+                <p>Se aplicará el reglamento oficial vigente de la SBBL/FEBB.</p>
+            </div>
+
+            <div class="mb-3">
+                <h6 class="fw-bold mb-1">3. Puntuación</h6>
+                <p>[Detallar puntos otorgados para el ranking del Split 3].</p>
+            </div>
+
+            <div class="mb-3">
+                <h6 class="fw-bold mb-1">4. Restricciones</h6>
+                <p>[Especificar si hay combos o piezas limitadas en esta fase].</p>
+            </div>
+
+            <div class="mb-4">
+                <h6 class="fw-bold mb-1">5. Clasificación</h6>
+                <p>[Detallar si este split otorga pases directos a la Gran Copa].</p>
+            </div>
+
+            <div class="alert alert-warning small py-2 mb-0">
+                <strong>* Nota:</strong> El cierre de inscripciones se realizará 24 horas antes del torneo.
+            </div>
+        </div>`;
+        } else if (type === 'copaespecial4') {
             if(!nameInput.value) nameInput.value = "Gran Copa de Split 4";
             noteInput.value = "Reglamento de la copa de split 4";
         } else if (type === 'hasbro') {

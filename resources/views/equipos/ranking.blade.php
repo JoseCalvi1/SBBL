@@ -224,7 +224,7 @@
         @forelse($teams as $key => $team)
 
             @php
-                $division = divisionTeamBX2($team->points_x2);
+                $division = divisionTeamBX2($team->points_x3);
                 $bgImage = $team->image ? "data:image/png;base64,{$team->image}" : asset('images/FONDO_BX.webp');
             @endphp
 
@@ -243,7 +243,7 @@
                     <div class="team-info">
                         <div class="team-name text-truncate" title="{{ $team->name }}">{{ $team->name }}</div>
                         <div class="team-points">
-                            {{ $team->points_x2 }} PTS
+                            {{ $team->points_x3 }} PTS
                             <span class="div-badge">{{ $division }}</span>
                         </div>
                     </div>

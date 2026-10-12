@@ -76,56 +76,69 @@ class TeamsVersusController extends Controller
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-public function store(Request $request)
-{
-    $team_id_1 = $request->input('team_id_1');
-    $team_id_2 = $request->input('team_id_2');
+    public function store(Request $request)
+    {
+        $team_id_1 = $request->input('team_id_1');
+        $team_id_2 = $request->input('team_id_2');
 
-    $primer_dia_mes_actual = Carbon::now()->startOfMonth();
-    $ultimo_dia_mes_actual = Carbon::now()->endOfMonth();
+        $primer_dia_mes_actual = Carbon::now()->startOfMonth();
+        $ultimo_dia_mes_actual = Carbon::now()->endOfMonth();
 
-    $se_enfrentaron = TeamsVersus::where(function($query) use ($team_id_1, $team_id_2) {
-        $query->where(function($q) use ($team_id_1, $team_id_2) {
-            $q->where('team_id_1', $team_id_1)
-              ->where('team_id_2', $team_id_2);
+        // 1. Comprobar límite máximo de 5 duelos por equipo al mes
+        $partidas_equipo_1 = TeamsVersus::where(function($q) use ($team_id_1) {
+            $q->where('team_id_1', $team_id_1)->orWhere('team_id_2', $team_id_1);
+        })->whereBetween('created_at', [$primer_dia_mes_actual, $ultimo_dia_mes_actual])->count();
+
+        $partidas_equipo_2 = TeamsVersus::where(function($q) use ($team_id_2) {
+            $q->where('team_id_1', $team_id_2)->orWhere('team_id_2', $team_id_2);
+        })->whereBetween('created_at', [$primer_dia_mes_actual, $ultimo_dia_mes_actual])->count();
+
+        if ($partidas_equipo_1 >= 5 || $partidas_equipo_2 >= 5) {
+            return redirect()->back()->with('error', 'El máximo de duelos de equipos por mes es 5. Uno de estos equipos ya ha alcanzado el límite.');
+        }
+
+        $se_enfrentaron = TeamsVersus::where(function($query) use ($team_id_1, $team_id_2) {
+            $query->where(function($q) use ($team_id_1, $team_id_2) {
+                $q->where('team_id_1', $team_id_1)
+                ->where('team_id_2', $team_id_2);
+            })
+            ->orWhere(function($q) use ($team_id_1, $team_id_2) {
+                $q->where('team_id_1', $team_id_2)
+                ->where('team_id_2', $team_id_1);
+            });
         })
-        ->orWhere(function($q) use ($team_id_1, $team_id_2) {
-            $q->where('team_id_1', $team_id_2)
-              ->where('team_id_2', $team_id_1);
-        });
-    })
-    ->whereBetween('created_at', [$primer_dia_mes_actual, $ultimo_dia_mes_actual])
-    ->where('matchup', $request->input('modalidad'))
-    ->exists();
+        ->whereBetween('created_at', [$primer_dia_mes_actual, $ultimo_dia_mes_actual])
+        ->where('matchup', $request->input('modalidad'))
+        ->exists();
 
-    if ($se_enfrentaron) {
-        return redirect()->back()->with('error', 'Estos equipos ya se han enfrentado una vez este mes');
+        if ($se_enfrentaron) {
+            return redirect()->back()->with('error', 'Estos equipos ya se han enfrentado una vez este mes');
+        }
+
+        $data = $request->validate([
+            'team_id_1' => 'required',
+            'team_id_2' => 'required',
+            'result_1'  => 'required',
+            'result_2'  => 'required',
+            'url'       => Auth::user()->hasRole('juez') ? 'nullable|url' : 'required|url',
+            'modalidad' => 'required',
+        ]);
+
+        DB::table('teams_versus')->insert([
+            'team_id_1'  => $data['team_id_1'],
+            'team_id_2'  => $data['team_id_2'],
+            'result_1'   => $data['result_1'],
+            'result_2'   => $data['result_2'],
+            'matchup'    => $data['modalidad'],
+            'url'        => $data['url'] ?? null,
+            'status'     => 'OPEN',
+            'created_at' => \Carbon\Carbon::now(),
+        ]);
+
+        // 🔁 Redirige en lugar de renderizar
+        return redirect()->route('teams_versus.all')
+            ->with('success', 'Duelo añadido correctamente');
     }
-
-    $data = $request->validate([
-        'team_id_1' => 'required',
-        'team_id_2' => 'required',
-        'result_1'  => 'required',
-        'result_2'  => 'required',
-        'url'       => Auth::user()->hasRole('juez') ? 'nullable|url' : 'required|url',
-        'modalidad' => 'required',
-    ]);
-
-    DB::table('teams_versus')->insert([
-        'team_id_1'  => $data['team_id_1'],
-        'team_id_2'  => $data['team_id_2'],
-        'result_1'   => $data['result_1'],
-        'result_2'   => $data['result_2'],
-        'matchup'    => $data['modalidad'],
-        'url'        => $data['url'] ?? null,
-        'status'     => 'OPEN',
-        'created_at' => \Carbon\Carbon::now(),
-    ]);
-
-    // 🔁 Redirige en lugar de renderizar
-    return redirect()->route('teams_versus.all')
-        ->with('success', 'Duelo añadido correctamente');
-}
 
 
     /**
@@ -202,7 +215,7 @@ public function store(Request $request)
         $winnerId = ($duel->result_1 > $duel->result_2) ? $duel->team_id_1 : $duel->team_id_2;
 
         // Modificar el modo según la condición
-        $mode = 'points_x2';
+        $mode = 'points_x3';
 
         // Incrementar los puntos al equipo ganador
         DB::table('teams')
@@ -233,7 +246,7 @@ public function store(Request $request)
                 $winnerTeam = \App\Models\Team::find($winnerTeamId);
                 if ($winnerTeam) {
                     // OJO: Cambia 'puntos' por el nombre real de tu columna si es diferente (ej: 'points', 'score')
-                    $winnerTeam->decrement('points_x2');
+                    $winnerTeam->decrement('points_x3');
                 }
             }
         }
@@ -262,7 +275,7 @@ public function store(Request $request)
             if ($winnerTeamId) {
                 $winnerTeam = \App\Models\Team::find($winnerTeamId);
                 if ($winnerTeam) {
-                    $winnerTeam->decrement('points_x2'); // Cambia 'puntos' si es necesario
+                    $winnerTeam->decrement('points_x'); // Cambia 'puntos' si es necesario
                 }
             }
         }

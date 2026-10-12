@@ -18,15 +18,37 @@ class TicketController extends Controller
         if (!env('PAYPAL_LIVE_CLIENT_ID')) {
             abort(500, 'PAYPAL_LIVE_CLIENT_ID no configurado en el entorno.');
         }
-        return view('tickets.buy');
+
+        // --- CONTROL DE AFORO ---
+        // Contamos cuántas entradas de la Beycon se han vendido ya
+        $soldTickets = Ticket::where('identifier', 'like', 'BEYCON%')->count();
+        $soldOut = $soldTickets >= 130;
+
+        // Pasamos la variable $soldOut a la vista por si quieres ocultar el botón en el futuro
+        return view('tickets.buy', compact('soldOut'));
     }
 
     // Crea la orden de PayPal
     public function createOrder(Request $request)
     {
-        // LIMITAMOS A 5 ENTRADAS MAX
+        // LIMITAMOS A 5 ENTRADAS MAX POR COMPRA
         $request->validate(['quantity' => 'required|integer|min:1|max:5']);
         $quantity = (int) $request->quantity;
+
+        // --- CONTROL DE AFORO ---
+        $soldTickets = Ticket::where('identifier', 'like', 'BEYCON%')->count();
+        $available = 130 - $soldTickets;
+
+        if ($quantity > $available) {
+            return response()->json([
+                'error_details' => 'Aforo superado.',
+                'details' => $available > 0
+                    ? "Solo quedan {$available} entradas disponibles."
+                    : "Las entradas están agotadas (Sold Out)."
+            ], 400); // Devolvemos error 400 para que el frontend lo capture
+        }
+        // ------------------------
+
         $unitPrice = 5.50; // PRECIO BEYCON (5€ entrada + 0.50€ gestión)
         $total = number_format($quantity * $unitPrice, 2, '.', '');
 
@@ -147,6 +169,17 @@ class TicketController extends Controller
                 'error' => 'Cantidad inválida en la orden o supera el límite de 5.'
             ], 200);
         }
+
+        // --- CONTROL DE AFORO FINAL (Seguridad Anti-Concurrencia) ---
+        $soldTickets = Ticket::where('identifier', 'like', 'BEYCON%')->count();
+        if ($soldTickets + $quantity > 130) {
+            Log::error('OVERSELL PREVENTED', ['user' => $request->user()->id, 'qty' => $quantity]);
+            return response()->json([
+                'status' => 'error',
+                'error' => 'Lo sentimos, las entradas se acaban de agotar mientras realizabas el pago. Por favor, contacta con la administración de SBBL para tu reembolso inmediato.'
+            ], 200);
+        }
+        // ------------------------------------------------------------
 
         $user = $request->user();
 

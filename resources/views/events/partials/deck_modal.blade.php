@@ -28,7 +28,12 @@
                         </div>
                     @endif
 
-                    <form method="POST" action="{{ $formAction }}" id="deckForm">
+                    <div class="alert alert-info border-info bg-info bg-opacity-10 text-white p-4 shadow-sm mb-4">
+                            <h5 class="fw-bold mb-2"><i class="fas fa-exclamation-triangle me-2 text-warning"></i> BEYS COMPLETOS</h5>
+                            <p class="mb-0">Para los combos que no utilicen ratchet o bit se han creado las opciones UX Expanded y Without Bit respetivamente.</p>
+                        </div>
+
+                    <form method="POST" action="{{ $formAction }}" id="deckForm" novalidate>
                         @csrf
 
                         {{-- SECCIÓN TENTATIVO --}}
@@ -94,6 +99,18 @@
                                                 </div>
 
                                                 <div class="col-12">
+                                                    <label class="form-label small text-uppercase text-light fw-bold mb-1">Over (Opcional)</label>
+                                                    <select class="form-select select2-modal deck-input" id="over_{{ $index }}" name="over_blade[{{ Auth::id() }}][]">
+                                                        <option value="">-</option>
+                                                        @foreach($overBladeOptions as $option)
+                                                            <option value="{{ $option }}" {{ (isset($results[$index-1]) && $results[$index-1]->over_blade == $option) ? 'selected' : '' }}>
+                                                                {{ $option }}
+                                                            </option>
+                                                        @endforeach
+                                                    </select>
+                                                </div>
+
+                                                <div class="col-12">
                                                     <label class="form-label small text-uppercase text-light fw-bold mb-1">Assist (Opcional)</label>
                                                     <select class="form-select select2-modal deck-input" id="assist_{{ $index }}" name="assist_blade[{{ Auth::id() }}][]">
                                                         <option value="">-</option>
@@ -107,42 +124,55 @@
 
                                                 {{-- Solo mostramos estadísticas si YA está inscrito y estamos en fase de resultados --}}
                                                 @if($isUserInscribed && $event->status != 'OPEN')
-                                                <div class="col-12 mt-4 pt-3 border-top border-secondary">
-                                                    <h6 class="small text-uppercase text-muted fw-bold mb-3"><i class="fas fa-chart-bar me-1"></i> Estadísticas Post-Torneo</h6>
-                                                    <div class="row g-2">
-                                                        <div class="col-6">
-                                                            <label class="form-label small text-white mb-0">Victorias</label>
-                                                            <input type="number" class="form-control form-control-sm bg-dark text-white border-secondary" name="victorias[{{ Auth::id() }}][]" value="{{ isset($results[$index-1]) ? $results[$index-1]->victorias : 0 }}" min="0">
-                                                        </div>
-                                                        <div class="col-6">
-                                                            <label class="form-label small text-white mb-0">Derrotas</label>
-                                                            <input type="number" class="form-control form-control-sm bg-dark text-white border-secondary" name="derrotas[{{ Auth::id() }}][]" value="{{ isset($results[$index-1]) ? $results[$index-1]->derrotas : 0 }}" min="0">
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                                @else
-                                                    {{-- Campos ocultos a 0 para que la base de datos no dé error al apuntarse por 1ra vez --}}
-                                                    <input type="hidden" name="victorias[{{ Auth::id() }}][]" value="{{ isset($results[$index-1]) ? $results[$index-1]->victorias : 0 }}">
-                                                    <input type="hidden" name="derrotas[{{ Auth::id() }}][]" value="{{ isset($results[$index-1]) ? $results[$index-1]->derrotas : 0 }}">
-                                                    <input type="hidden" name="puntos_ganados[{{ Auth::id() }}][]" value="0">
-                                                    <input type="hidden" name="puntos_perdidos[{{ Auth::id() }}][]" value="0">
-                                                @endif
+    <div class="col-12 mt-4 pt-3 border-top border-secondary">
+        <h6 class="small text-uppercase text-muted fw-bold mb-3"><i class="fas fa-chart-bar me-1"></i> Estadísticas Post-Torneo</h6>
+
+        <div class="row g-2 mb-3">
+            <div class="col-6">
+                <label class="form-label small text-white mb-0">Victorias</label>
+                <input type="number" class="form-control form-control-sm bg-dark text-white border-secondary" name="victorias[{{ Auth::id() }}][]" value="{{ isset($results[$index-1]) ? $results[$index-1]->victorias : 0 }}" min="0">
+            </div>
+            <div class="col-6">
+                <label class="form-label small text-white mb-0">Derrotas</label>
+                <input type="number" class="form-control form-control-sm bg-dark text-white border-secondary" name="derrotas[{{ Auth::id() }}][]" value="{{ isset($results[$index-1]) ? $results[$index-1]->derrotas : 0 }}" min="0">
+            </div>
+        </div>
+
+        <div class="row g-2">
+            <div class="col-6">
+                <label class="form-label small text-white mb-0">Pts Ganados</label>
+                <input type="number" class="form-control form-control-sm bg-dark text-white border-secondary" name="puntos_ganados[{{ Auth::id() }}][]" value="{{ isset($results[$index-1]) ? $results[$index-1]->puntos_ganados : 0 }}" min="0">
+            </div>
+            <div class="col-6">
+                <label class="form-label small text-white mb-0">Pts Perdidos</label>
+                <input type="number" class="form-control form-control-sm bg-dark text-white border-secondary" name="puntos_perdidos[{{ Auth::id() }}][]" value="{{ isset($results[$index-1]) ? $results[$index-1]->puntos_perdidos : 0 }}" min="0">
+            </div>
+        </div>
+    </div>
+@else
+    {{-- Campos ocultos a 0 para que la base de datos no dé error al apuntarse por 1ra vez --}}
+    <input type="hidden" name="victorias[{{ Auth::id() }}][]" value="0">
+    <input type="hidden" name="derrotas[{{ Auth::id() }}][]" value="0">
+    <input type="hidden" name="puntos_ganados[{{ Auth::id() }}][]" value="0">
+    <input type="hidden" name="puntos_perdidos[{{ Auth::id() }}][]" value="0">
+@endif
                                             </div>
                                         </div>
                                     </div>
                                 </div>
                             @endforeach
                         </div>
+                        <div class="modal-footer border-top border-secondary justify-content-start" style="background-color: #1e293b;">
+                            <button type="button" class="btn fw-bold bg-dark text-white border-secondary px-4" data-bs-dismiss="modal">CANCELAR</button>
+                            <button type="submit" class="btn btn-success fw-bold px-5 font-Oswald fs-5" id="submitDeckBtn">
+                                <i class="fas fa-save me-2"></i> {{ $isUserInscribed ? 'GUARDAR DECK' : 'CONFIRMAR INSCRIPCIÓN' }}
+                            </button>
+                        </div>
                     </form>
                 </div>
             </div>
 
-            <div class="modal-footer border-top border-secondary justify-content-start" style="background-color: #1e293b;">
-                <button type="button" class="btn fw-bold bg-dark text-white border-secondary px-4" data-bs-dismiss="modal">CANCELAR</button>
-                <button type="submit" form="deckForm" class="btn btn-success fw-bold px-5 font-Oswald fs-5" id="submitDeckBtn">
-                    <i class="fas fa-save me-2"></i> {{ $isUserInscribed ? 'GUARDAR DECK' : 'CONFIRMAR INSCRIPCIÓN' }}
-                </button>
-            </div>
+
         </div>
     </div>
 </div>
@@ -171,6 +201,7 @@
                 submitBtn.classList.replace('text-dark', 'text-white');
                 inputs.forEach(input => {
                     if(!input.id.includes('assist')) input.setAttribute('required', 'required');
+                    if(!input.id.includes('over')) input.setAttribute('required', 'required');
                 });
             }
         }

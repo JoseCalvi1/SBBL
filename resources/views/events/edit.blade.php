@@ -88,8 +88,11 @@
                                     <option value="hasbro" {{ (old('imagen', $event->beys) == 'hasbro' || $event->imagen == 'hasbro') ? 'selected' : '' }}>Formato Hasbro</option>
                                     @if (Auth::user()->hasAnyRole(['admin', 'juez']))
                                         <option value="ranking" {{ (old('imagen', $event->beys) == 'ranking' || $event->imagen == 'upload-events/rankingx.jpg') ? 'selected' : '' }}>Ranking</option>
+                                    @endif
+                                    @if (Auth::user()->hasAnyRole(['admin', 'juez']))
                                         <option value="grancopa" {{ (old('imagen', $event->beys) == 'grancopa') ? 'selected' : '' }}>Gran Copa (Especial)</option>
                                     @endif
+
                                 </select>
                             </div>
                         </div>

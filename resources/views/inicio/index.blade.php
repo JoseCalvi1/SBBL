@@ -178,26 +178,30 @@
         @endif
 
         {{-- BANNER DE EVENTO NACIONAL (BEYCON) --}}
-        <div class="container mb-2">
-            <a href="{{ route('inicio.nacional') }}" class="evento-banner beycon-banner">
-                <div class="d-flex flex-column flex-md-row align-items-center justify-content-between w-100">
-                    <div class="d-flex align-items-center mb-3 mb-md-0">
-                        <div class="conquest-icon-box me-4 d-none d-sm-flex flex-shrink-0" style="background: var(--shonen-red); border-color: #fff; box-shadow: 3px 3px 0 #fff;">
-                            <i class="fas fa-ticket-alt fa-2x text-white"></i>
-                        </div>
-                        <div>
-                            <p class="evento-banner-text text-start mb-0" style="font-size: 1.1rem; color: var(--sbbl-gold); letter-spacing: 2px;">EL MAYOR EVENTO DEL AÑO EN SEVILLA</p>
-                            <h2 class="text-white font-Oswald mb-0" style="font-size: 3rem; text-shadow: 3px 3px 0 var(--shonen-red); line-height: 1;">
-                                BEYCON '26 <span class="fs-4 text-white-50" style="text-shadow: none;">- 18 DE JULIO</span>
-                            </h2>
-                        </div>
-                    </div>
-                    <span class="evento-banner-btn fs-5 px-4 py-3 text-white fw-bold" style="background: var(--shonen-red); border-color: #fff;">
-                        VER DETALLES <i class="fas fa-chevron-right ms-2"></i>
-                    </span>
+<div class="container mb-2">
+    <!-- Contenedor principal que envuelve AMBAS partes -->
+    <div class="evento-banner beycon-banner p-0 overflow-hidden shadow-sm" style="border-radius: 8px;">
+
+        <!-- 1. Enlace Principal de la Beycon -->
+        <a href="{{ route('nacional.inicio') }}" class="d-flex flex-column flex-md-row align-items-center justify-content-between w-100 text-decoration-none p-3 p-md-4">
+            <div class="d-flex align-items-center mb-3 mb-md-0">
+                <div class="conquest-icon-box me-4 d-none d-sm-flex flex-shrink-0" style="background: var(--shonen-red); border-color: #fff; box-shadow: 3px 3px 0 #fff;">
+                    <i class="fas fa-ticket-alt fa-2x text-white"></i>
                 </div>
-            </a>
-        </div>
+                <div class="flex-grow-1">
+                    <h2 class="text-white font-Oswald mb-0" style="font-size: 3rem; text-shadow: 3px 3px 0 var(--shonen-red); line-height: 1;">
+                        PORTAL DEL NACIONAL <br><span class="fs-4 text-white-50" style="text-shadow: none;">- REVIVE LOS EVENTOS NACIONALES DE LA SBBL </span>
+                    </h2>
+                </div>
+            </div>
+            <span class="evento-banner-btn fs-5 px-4 py-3 text-white fw-bold" style="background: var(--shonen-red); border-color: #fff; text-shadow: none;">
+                VER DETALLES <i class="fas fa-chevron-right ms-2"></i>
+            </span>
+        </a>
+
+    </div>
+</div>
+
 
         {{-- 2. HERO DASHBOARD --}}
         <div class="container mt-4">
@@ -253,7 +257,7 @@
                 <div class="col-lg-5">
                     <div class="command-panel p-0 h-100" style="border: 3px solid #000;">
                         <div class="ratio ratio-16x9 h-100">
-                            <iframe src="https://www.youtube.com/embed/wkFnz8kPs3M?si=Dot6IDj6hHy7WqLc" title="SBBL Video" allowfullscreen></iframe>
+                            <iframe src="https://www.youtube.com/embed/kQSOQocppjg?si=YqQlJx1y0X8Q_IHa" title="SBBL Video" allowfullscreen></iframe>
                         </div>
                     </div>
                 </div>
@@ -415,7 +419,7 @@
                                         <div class="rank-number">#{{ $pos }}</div>
                                     </div>
                                     <div class="text-white fw-bold text-truncate" style="max-width: 100px;">{{ $blader->user->name }}</div>
-                                    <div class="font-Oswald" style="color: var(--sbbl-gold); font-size: 1.2rem;">{{ $blader->points_x2 }} pts</div>
+                                    <div class="font-Oswald" style="color: var(--sbbl-gold); font-size: 1.2rem;">{{ $blader->points_x3 }} pts</div>
                                 </div>
                             @endforeach
                         </div>
@@ -428,7 +432,7 @@
                                         <img src="{{ $blader->avatar_url }}" class="me-2" width="35" height="35" style="border: 2px solid var(--sbbl-gold); border-radius: 50%; object-fit: cover;">
                                         <span class="text-white fw-bold">{{ $blader->user->name }}</span>
                                     </div>
-                                    <span class="font-Oswald fs-5" style="color: var(--sbbl-gold); text-shadow: 1px 1px 0 #000;">{{ $blader->points_x2 }} pts</span>
+                                    <span class="font-Oswald fs-5" style="color: var(--sbbl-gold); text-shadow: 1px 1px 0 #000;">{{ $blader->points_x3 }} pts</span>
                                 </div>
                             @endforeach
                         </div>
@@ -452,7 +456,7 @@
                                     </div>
                                     <span class="fw-bold text-white">{{ $team->name }}</span>
                                 </div>
-                                <span class="badge bg-black text-white border border-secondary font-Oswald fs-6" style="border-radius: 0;">{{ $team->points_x2 }} pts</span>
+                                <span class="badge bg-black text-white border border-secondary font-Oswald fs-6" style="border-radius: 0;">{{ $team->points_x3 }} pts</span>
                             </div>
                             @endforeach
                         </div>
@@ -546,9 +550,9 @@
                 </div>
 
                 <div class="d-flex justify-content-center gap-3 mt-3">
-                    <a href="https://paypal.me/AsocSBBL" target="_blank" class="btn" style="border-radius: 0; border: 3px solid #000; font-family: 'Oswald', cursive; font-size: 1.5rem; background: var(--sbbl-gold); color: #000; box-shadow: 4px 4px 0 #000; transform: skewX(-5deg);">
+                    <!--<a href="https://paypal.me/AsocSBBL" target="_blank" class="btn" style="border-radius: 0; border: 3px solid #000; font-family: 'Oswald', cursive; font-size: 1.5rem; background: var(--sbbl-gold); color: #000; box-shadow: 4px 4px 0 #000; transform: skewX(-5deg);">
                         <span style="display: block; transform: skewX(5deg);"><i class="fab fa-paypal me-2"></i> Apoyar Proyecto</span>
-                    </a>
+                    </a>-->
                 </div>
 
                 <div class="row justify-content-center mt-5 g-4">
@@ -640,7 +644,7 @@
         // Season Logic
         const today = new Date();
         const startPre = new Date("2026-06-01");    // Inicio Pretemporada
-        const startSeason = new Date("2026-09-01"); // Inicio Temporada Regular
+        const startSeason = new Date("2026-09-04"); // Inicio Temporada Regular
         const endSeason = new Date("2027-05-31");   // Fin de Temporada 3
 
         const totalDuration = (endSeason - startPre) / (1000 * 60 * 60 * 24);
@@ -653,7 +657,7 @@
         } else if (today >= startPre && today < startSeason) {
             // Fase de Pretemporada (Junio - Agosto)
             prePercent = (elapsedDays / totalDuration) * 100;
-            statusText = "🔧 PRE-TEMPORADA 3";
+            statusText = "🔧 PRE-TEMPORADA 3 ¿Qué temporada 3?";
         } else if (today >= startSeason && today <= endSeason) {
             // Fase de Temporada Regular (Septiembre - Mayo)
             prePercent = ((startSeason - startPre) / (endSeason - startPre)) * 100;

@@ -438,7 +438,7 @@
                                 <div class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">
                                     <a class="dropdown-item" href="{{ route('profiles.ranking') }}"><i class="fas fa-trophy me-2"></i> Rankings</a>
                                     <a class="dropdown-item" href="{{ route('profiles.splits') }}"><i class="fas fa-code-branch me-2"></i> Splits</a>
-                                    <a class="dropdown-item" href="{{ route('inicio.rules') }}"><i class="fas fa-gavel me-2"></i> Reglamento</a>
+                                    <a class="dropdown-item" href="https://sbbl.es/blog/reglamento-s3-v1"><i class="fas fa-gavel me-2"></i> Reglamento</a>
                                     <a class="dropdown-item" href="{{ route('inicio.stats') }}"><i class="fas fa-chart-bar me-2"></i> Estadísticas</a>
                                     <a class="dropdown-item" href="{{ route('combates') }}"><i class="fas fa-bullseye me-2"></i> Combates</a>
                                 </div>
@@ -644,7 +644,7 @@
                 @endif
             </div>
 
-            <div class="subscription-button" id="subscriptionButton" onclick="window.location.href='{{ route('planes.index') }}'">
+            <!--<div class="subscription-button" id="subscriptionButton" onclick="window.location.href='{{ route('planes.index') }}'">
                 <div>
                     <i class="fas fa-credit-card me-2"></i>
                     <span class="d-none d-md-inline font-weight-bold">AURA SBBL</span>
@@ -653,7 +653,7 @@
                     <h4>¡DESBLOQUEA TU AURA!</h4>
                     <p>Obtén acceso a estadísticas avanzadas y contenido exclusivo con nuestras suscripciones.</p>
                 </div>
-            </div>
+            </div>-->
 
             @if (isset($cantidadCarrito) && $cantidadCarrito != 0)
                 <a href="{{ route('carrito.show') }}" class="cart-floating-btn">
@@ -700,7 +700,7 @@
                             <li><a href="{{ route('inicio.events') }}">Calendario de Misiones</a></li>
                             <li><a href="{{ route('profiles.ranking') }}">Rankings Oficiales</a></li>
                             <li><a href="{{ route('profiles.splits') }}">Temporadas</a></li>
-                            <li><a href="{{ route('inicio.rules') }}">Reglamento</a></li>
+                            <li><a href="https://sbbl.es/blog/reglamento-s3-v1">Reglamento</a></li>
                         </ul>
                     </div>
 

@@ -447,6 +447,7 @@ document.addEventListener('DOMContentLoaded', () => {
             let profileUrl = `/blader/${slug}-${paddedId}`;
 
             statsSection = `
+
                 <div class="p-4" style="background: rgba(0,0,0,0.5); border-bottom: 3px solid #000;">
                     <h5 class="font-Oswald" style="color: var(--sbbl-gold); font-size: 1.5rem; text-shadow: 2px 2px 0 #000;">Temporada 2 (25/26)</h5>
                     <div class="d-flex justify-content-center gap-4 mb-3">

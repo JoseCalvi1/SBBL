@@ -115,6 +115,22 @@
         background: #000; color: var(--sbbl-gold); border-bottom: 4px solid var(--shonen-red);
         padding: 10px 20px;
     }
+
+    /* Asegurar que el desplegable de Select2 flote por encima de todo y permita scroll */
+    .select2-dropdown {
+        z-index: 1070 !important; /* El modal de BS5 tiene 1055, esto asegura que esté por encima */
+    }
+
+    /* Forzar barra de scroll si hay muchos elementos */
+    .select2-results__options {
+        max-height: 300px !important; /* Altura máxima antes de hacer scroll */
+        overflow-y: auto !important;
+    }
+
+    /* Forzar que la caja de búsqueda se muestre correctamente */
+    .select2-search--dropdown .select2-search__field {
+        display: block !important;
+    }
 </style>
 @endsection
 
@@ -202,7 +218,7 @@
 
                     <div class="d-grid gap-3 mt-4">
                         @if(in_array($event->beys, ['ranking', 'rankingplus']))
-                            <a href="{{ route('inicio.rules') }}" target="_blank" class="btn-shonen btn-shonen-info text-center w-100" style="padding: 10px;">
+                            <a href="https://sbbl.es/blog/reglamento-s3-v1" target="_blank" class="btn-shonen btn-shonen-info text-center w-100" style="padding: 10px;">
                                 <span><i class="fas fa-book me-1"></i> REGLAMENTO OFICIAL</span>
                             </a>
                         @endif
@@ -318,10 +334,14 @@
                         <div class="d-flex flex-column flex-xl-row justify-content-between align-items-xl-center gap-3 mb-3">
 
                             {{-- Título --}}
-                            <h2 class="font-Oswald text-white m-0 d-flex align-items-center" style="font-size: 2.5rem; letter-spacing: 1px;">
-                                <i class="fas fa-users me-3" style="color: var(--sbbl-gold);"></i>
-                                PARTICIPANTES
-                                <span class="badge bg-white text-dark ms-3 border border-2 border-dark shadow-sm" style="font-size: 1.5rem;">{{ $assists->count() }}</span>
+                            <h2 class="font-Oswald text-white m-0 d-flex flex-wrap align-items-center gap-2 gap-sm-3"
+                                style="font-size: clamp(1.5rem, 4vw, 2.5rem); letter-spacing: 1px;">
+                                <i class="fas fa-users" style="color: var(--sbbl-gold);"></i>
+                                <span>PARTICIPANTES</span>
+                                <span class="badge bg-white text-dark border border-2 border-dark shadow-sm align-middle"
+                                    style="font-size: clamp(1rem, 2.5vw, 1.5rem);">
+                                    {{ $assists->count() }}
+                                </span>
                             </h2>
 
                             {{-- Botones de Acción Menores --}}
@@ -350,13 +370,13 @@
                                     @endif
                                 @endif
 
-                                @if (($event->status != "CLOSE" && $event->status != "INVALID") && Auth::user()->hasRole('arbitro') || ($event->status == "OPEN" && $event->created_by == Auth::user()->id))
+                                @if (($event->status != "CLOSE" && $event->status != "INVALID") && Auth::user()->hasRole('arbitro') || (($event->status != "CLOSE" && $event->status != "INVALID") && $event->created_by == Auth::user()->id))
                                     <a href="{{ route('events.edit', ['event' => $event->id]) }}" class="btn btn-light fw-bold border-2 border-dark py-2">
                                         <i class="fas fa-edit me-1"></i> EDITAR
                                     </a>
                                 @endif
 
-                                @if ($isUserInscribed && $event->status != "INVALID")
+                                @if ($isUserInscribed && ($event->status != "INVALID" || $event->status != "LIVE" || $event->status != "CLOSE"))
                                     <button type="button" class="btn-shonen btn-shonen-info text-center py-2 px-4 shadow-sm" data-bs-toggle="modal" data-bs-target="#formModal">
                                         <span><i class="fas fa-layer-group me-1"></i> MI DECK</span>
                                     </button>
@@ -450,7 +470,7 @@
                                 </div>
                             @endif
 
-                            @if($event->beys === "grancopa" || $event->beys === "copapaypal")
+                            @if($event->beys === "copapaypal")
                                 <div class="text-center p-4 border border-secondary" style="background: #111;">
                                     <p class="text-white font-Oswald fs-3 mb-3">COSTE DE INSCRIPCIÓN: <span style="color: var(--sbbl-gold);">{{ $event->beys === "grancopa" ? '5€' : '2€' }}</span></p>
                                     <div id="paypal-button-container" class="d-flex justify-content-center"></div>
@@ -598,7 +618,7 @@
                                         </div>
 
                                         <div class="d-flex align-items-center gap-2">
-                                            @if (($event->status != "CLOSE" && $event->status != "INVALID") && Auth::user()->hasRole('arbitro') || ($event->status == "OPEN" && $event->created_by == Auth::user()->id))
+                                            @if (($event->status != "CLOSE" && $event->status != "INVALID") && Auth::user()->hasRole('arbitro') || (($event->status != "CLOSE" && $event->status != "INVALID") && $event->created_by == Auth::user()->id))
                                                 <input type="hidden" name="participantes[{{ $assist->id }}][id]" value="{{ $assist->id }}">
                                                 <select class="form-select fw-bold bg-black text-white border-2 border-secondary" style="width: 140px;" name="participantes[{{ $assist->id }}][puesto]">
                                                     <option value="participante" {{ $assist->pivot->puesto == 'participante' ? 'selected' : '' }}>Participante</option>
@@ -609,6 +629,9 @@
                                                     @if($totalParticipantes >= 17) <option value="cuarto" {{ $assist->pivot->puesto == 'cuarto' ? 'selected' : '' }}>4º Lugar</option> @endif
                                                     @if($totalParticipantes >= 25) <option value="quinto" {{ $assist->pivot->puesto == 'quinto' ? 'selected' : '' }}>5º Lugar</option> @endif
                                                     @if($totalParticipantes >= 33) <option value="septimo" {{ $assist->pivot->puesto == 'septimo' ? 'selected' : '' }}>7º Lugar</option> @endif
+                                                    @if($totalParticipantes >= 41) <option value="noveno" {{ $assist->pivot->puesto == 'noveno' ? 'selected' : '' }}>9º Lugar</option> @endif
+                                                    @if($totalParticipantes >= 49) <option value="treceavo" {{ $assist->pivot->puesto == 'treceavo' ? 'selected' : '' }}>13º Lugar</option> @endif
+                                                    @if($totalParticipantes >= 57) <option value="diecisieteavo" {{ $assist->pivot->puesto == 'diecisieteavo' ? 'selected' : '' }}>17º Lugar</option> @endif
                                                     <option value="nopresentado" {{ $assist->pivot->puesto == 'nopresentado' ? 'selected' : '' }}>No Pres.</option>
                                                 </select>
                                             @endif
@@ -622,13 +645,13 @@
 
                                                 // Si el torneo está EN CURSO (LIVE), aplicamos el cifrado de seguridad: Solo Staff puede inspeccionar
                                                 if ($event->status === 'OPEN') {
-                                                    $canViewDeck = !$hasRes && Auth::check() && Auth::user()->hasAnyRole(['admin', 'juez', 'arbitro']);
+                                                    $canViewDeck = !$hasRes && Auth::check() && Auth::user()->hasAnyRole(['admin', 'juez']);
                                                 } elseif ($event->status === 'LIVE') {
-                                                    $canViewDeck = $hasRes && Auth::check() && Auth::user()->hasAnyRole(['admin', 'juez', 'arbitro']);
+                                                    $canViewDeck = $hasRes && Auth::check() && Auth::user()->hasAnyRole(['admin', 'juez']);
                                                 }
                                             @endphp
 
-                                            @if($canViewDeck)
+                                            @if($canViewDeck && Auth::user()->hasAnyRole(['admin', 'juez']))
                                                 <button type="button" class="btn btn-outline-light fw-bold border-2" data-bs-toggle="collapse" data-bs-target="#res-{{ $assist->id }}">
                                                     <i class="fas fa-eye"></i>
                                                 </button>
@@ -642,7 +665,7 @@
                                                 @foreach($resultsByParticipant[$assist->id] as $res)
                                                     <div class="d-flex flex-wrap gap-2 border-bottom border-dark pb-2 mb-2">
                                                         <span class="text-white font-Oswald fs-5" style="letter-spacing: 1px; color: var(--sbbl-gold) !important;">{{ $res->blade }}</span>
-                                                        <span><i class="fas fa-plus text-secondary mx-1" style="font-size: 0.7rem;"></i> {{ $res->assist_blade }} <span class="mx-2 text-secondary">|</span> {{ $res->ratchet }} <span class="text-secondary mx-1">·</span> {{ $res->bit }}</span>
+                                                        <span><i class="fas fa-plus text-secondary mx-1" style="font-size: 0.7rem;"></i> {{ $res->over_blade }} <span class="mx-2 text-secondary">|</span> {{ $res->assist_blade }} <span class="mx-2 text-secondary">|</span> {{ $res->ratchet }} <span class="text-secondary mx-1">·</span> {{ $res->bit }}</span>
                                                     </div>
                                                 @endforeach
                                             @endif
@@ -651,7 +674,7 @@
                                 </div>
                             @endforeach
 
-                            @if (($event->status != "CLOSE" && $event->status != "INVALID") && Auth::user()->hasRole('arbitro') || ($event->status == "OPEN" && $event->created_by == Auth::user()->id))
+                            @if (($event->status != "CLOSE" && $event->status != "INVALID") && Auth::user()->hasRole('arbitro') || (($event->status != "CLOSE" && $event->status != "INVALID") && $event->created_by == Auth::user()->id))
                                 <div class="mt-4 p-4 border border-dark" style="background: #000;">
                                     <h5 class="font-Oswald text-white fs-3 mb-3"><i class="fas fa-lock me-2" style="color: var(--shonen-red);"></i>CIERRE DE TORNEO</h5>
 
@@ -783,8 +806,16 @@
         // 1. Inicializar Select2
         $('.select2').not('.select2-modal').select2({ theme: 'bootstrap-5', width: '100%' });
 
+        // 1. Quitar la restricción de foco de Bootstrap 5 para que funcione el buscador
+        $.fn.modal.Constructor.Default.focus = false;
+
         $('#formModal').on('shown.bs.modal', function () {
-            $('.select2-modal').select2({ theme: 'bootstrap-5', width: '100%', dropdownParent: $('#formModal') });
+            $('.select2-modal').select2({
+                theme: 'bootstrap-5',
+                width: '100%',
+                // 2. Colgar el desplegable directamente del modal-content (o quitar dropdownParent directamente)
+                dropdownParent: $('#formModal .modal-content')
+            });
         });
 
         // 🔥 COPIADO AUTOMÁTICO AL COMENZAR EL TORNEO
@@ -849,8 +880,7 @@
         setTimeout(() => { applyColors($('#app strong, #app b, #app .fw-bold')); }, 1000);
 
         // --- PAYPAL CONFIGURACIÓN ---
-        // --- PAYPAL CONFIGURACIÓN ---
-        @if(in_array($event->beys, ["grancopa", "copapaypal"]))
+        @if(in_array($event->beys, ["copapaypal"]))
             if (document.getElementById('paypal-button-container')) {
                 const amount = "{{ $event->beys === 'grancopa' ? '5.00' : '2.00' }}";
 

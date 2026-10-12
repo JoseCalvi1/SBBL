@@ -1,93 +1,171 @@
 <?php
 
 namespace App\Http\Controllers;
+
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
-
-
 use Illuminate\Http\Request;
 use App\Models\Team;
 use App\Models\User;
 use App\Models\Invitation;
+use App\Models\Region;
 
 class TeamController extends Controller
 {
-    // Mostrar todos los equipos
+    /**
+     * MÉTODOS PRIVADOS DE OPTIMIZACIÓN
+     * Comprime y redimensiona la imagen ANTES de pasarla a Base64
+     * Esto salva tu memoria RAM y el espacio de tu base de datos.
+     */
+    private function resizeAndEncodeImage($file, $maxWidth = 800)
+    {
+        $info = getimagesize($file);
+        $width = $info[0];
+        $height = $info[1];
+        $type = $info[2];
+
+        // Calcular nuevas dimensiones
+        $newWidth = $width > $maxWidth ? $maxWidth : $width;
+        $newHeight = round($height * ($newWidth / $width));
+
+        $newImg = imagecreatetruecolor($newWidth, $newHeight);
+
+        // Mantener transparencias
+        if ($type == IMAGETYPE_PNG || $type == IMAGETYPE_WEBP) {
+            imagealphablending($newImg, false);
+            imagesavealpha($newImg, true);
+        }
+
+        // Crear imagen desde origen
+        switch ($type) {
+            case IMAGETYPE_JPEG: $source = imagecreatefromjpeg($file); break;
+            case IMAGETYPE_PNG:  $source = imagecreatefrompng($file); break;
+            case IMAGETYPE_WEBP: $source = imagecreatefromwebp($file); break;
+            default: return base64_encode(file_get_contents($file)); // Fallback
+        }
+
+        imagecopyresampled($newImg, $source, 0, 0, 0, 0, $newWidth, $newHeight, $width, $height);
+
+        ob_start();
+        if ($type == IMAGETYPE_PNG) {
+            imagepng($newImg, null, 8); // Compresión PNG
+        } elseif ($type == IMAGETYPE_WEBP) {
+            imagewebp($newImg, null, 80); // Calidad WebP
+        } else {
+            imagejpeg($newImg, null, 80); // Calidad JPG
+        }
+
+        $imageString = ob_get_clean();
+        imagedestroy($newImg);
+        imagedestroy($source);
+
+        return base64_encode($imageString);
+    }
+
+    // =========================================================
+    // MÉTODOS PÚBLICOS
+    // =========================================================
+
+    // Mostrar el nuevo Centro de Mando / Landing de Equipos
     public function index(Request $request)
     {
         $user = Auth::user();
+        $regiones = Region::select('id', 'name')->get();
+        $regionFilter = $request->query('region', $user->profile->region_id ?? null);
 
-        // Obtener todas las regiones para el filtro
-        $regiones = DB::table('regions')->select('id', 'name')->get();
+        // 1. ESTADÍSTICAS GLOBALES PARA LA LANDING
+        $stats = [
+            'total_teams' => Team::where('status', 'accepted')->count(),
+            'total_players' => DB::table('team_user')->count(),
+            'total_duels' => DB::table('teams_versus')->where('status', 'CLOSED')->where('created_at', '>=', '2026-09-01 00:00:00')->count(),
+        ];
 
-        // Por defecto mostrar equipos de la región del usuario
-        $regionId = null;
-        if ($user && $user->profile) {
-            $regionId = $user->profile->region_id;
+        // 2. EQUIPO DEL USUARIO ACTUAL (Para el panel destacado)
+        $myTeam = null;
+        if ($user && $user->teams->isNotEmpty()) {
+            $myTeam = $user->teams->first(); // Asumiendo que el usuario tiene un equipo activo principal
         }
 
-        // Permitir filtro por región desde request (ejemplo ?region=3 o ?region=all)
-        $regionFilter = $request->query('region', $regionId);
+        // 3. TOP 3 EQUIPOS (Para el podio en la landing)
+        $topTeams = Team::where('status', 'accepted')
+                        ->where('points_x3', '>', 0)
+                        ->orderByDesc('points_x3')
+                        ->take(3)
+                        ->get(['id', 'name', 'logo', 'points_x3']);
 
-        $query = DB::table('teams')
-            ->join('users', 'teams.captain_id', '=', 'users.id')
-            ->join('profiles', 'users.id', '=', 'profiles.user_id')
-            ->join('regions', 'profiles.region_id', '=', 'regions.id')
-            ->select('teams.id', 'teams.name', 'teams.description', 'teams.logo', 'teams.image', 'regions.name as region_name')
-            ->where('teams.status', 'accepted');
+        // 4. LISTADO OPTIMIZADO (Paginación vital para la memoria RAM)
+        $query = Team::with('captain.profile.region') // Eager loading
+                    ->where('status', 'accepted')
+                    ->orderBy('name');
 
         if ($regionFilter && $regionFilter !== 'all') {
-            $query->where('profiles.region_id', $regionFilter);
+            $query->whereHas('captain.profile', function($q) use ($regionFilter) {
+                $q->where('region_id', $regionFilter);
+            });
         }
 
-        $equipos = $query->get()->map(function ($equipo) {
-            return (array) $equipo;
+        // Usamos paginate en lugar de get() para no reventar la RAM con las imágenes Base64
+        $equipos = $query->paginate(12)->appends(['region' => $regionFilter]);
+
+        return view('equipos.index', compact('equipos', 'regiones', 'regionFilter', 'stats', 'myTeam', 'topTeams'));
+    }
+
+    public function indexAdmin(Request $request)
+{
+    // 1. Recoger filtros del Request
+    $regionFilter = $request->input('region', 'all');
+    $statusFilter = $request->input('status', 'all');
+
+    // 2. Consulta OPTIMIZADA: Solo seleccionamos las columnas de texto, EXCLUYENDO 'image' y 'logo'
+    $query = Team::with('captain.profile.region')
+                 ->select('id', 'name', 'description', 'status', 'captain_id');
+
+    // 3. Aplicar Filtro de Estado
+    if ($statusFilter !== 'all') {
+        $query->where('status', $statusFilter);
+    }
+
+    // 4. Aplicar Filtro de Región
+    if ($regionFilter !== 'all') {
+        $query->whereHas('captain.profile', function($q) use ($regionFilter) {
+            $q->where('region_id', $regionFilter);
         });
-
-        return view('equipos.index', compact('equipos', 'regiones', 'regionFilter'));
     }
 
+    // 5. Ordenar y Paginar (de 15 en 15)
+    $equipos = $query->orderBy('status', 'asc')
+                     ->orderBy('name', 'asc')
+                     ->paginate(15)
+                     ->appends([
+                         'region' => $regionFilter,
+                         'status' => $statusFilter
+                     ]);
 
+    // 6. Obtener regiones para el desplegable
+    $regiones = \App\Models\Region::select('id', 'name')->orderBy('name')->get();
 
-    public function indexAdmin()
-    {
-        $equipos = Team::orderBy('status', 'asc')->orderBy('name', 'asc')->get();
-        return view('equipos.indexAdmin', compact('equipos'));
-    }
+    return view('equipos.indexAdmin', compact('equipos', 'regiones', 'regionFilter', 'statusFilter'));
+}
 
-    // Mostrar el formulario para crear un nuevo equipo
     public function create()
     {
         return view('equipos.create');
     }
 
-    // Almacenar un nuevo equipo
     public function store(Request $request)
     {
         $request->validate([
-            'name' => 'required',
-            'description' => 'required',
-            'image' => 'image|mimes:jpeg,png,jpg,gif|max:2048', // Validación de la imagen
-            // Agrega aquí validaciones adicionales según tus necesidades
+            'name' => 'required|unique:teams,name',
+            'description' => 'required|max:1000',
+            'image' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:5120', // Máx 5MB antes de comprimir
+            'logo' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048',
         ]);
 
-        // Procesamiento de la imagen
-        if ($request->hasFile('image')) {
-            $imageData = base64_encode(file_get_contents($request->file('image')));
-        } else {
-            $imageData = null;
-        }
+        $imageData = $request->hasFile('image') ? $this->resizeAndEncodeImage($request->file('image'), 1200) : null;
+        $logoData = $request->hasFile('logo') ? $this->resizeAndEncodeImage($request->file('logo'), 400) : null;
 
-        if ($request->hasFile('logo')) {
-            $logoData = base64_encode(file_get_contents($request->file('logo')));
-        } else {
-            $logoData = null;
-        }
+        $userId = Auth::id();
 
-        // Obtenemos el ID del usuario autenticado y lo asignamos como captain_id del equipo
-        $userId = Auth::user()->id;
-
-        // Crear el equipo con los datos proporcionados
         $equipo = Team::create([
             'name' => $request->name,
             'description' => $request->description,
@@ -95,26 +173,26 @@ class TeamController extends Controller
             'image' => $imageData,
             'logo' => $logoData,
             'status' => 'pending',
-            // Añade aquí más campos si es necesario
+            'points_x3' => 0 // Aseguramos que empiezan a 0 para el mercado de fichajes
         ]);
 
-        // Añadir el usuario como miembro y capitán del equipo en la tabla intermedia
         $equipo->members()->attach($userId, ['is_captain' => true]);
 
         return redirect()->route('equipos.index')
-            ->with('success', 'Equipo creado exitosamente.');
+            ->with('success', 'Equipo creado exitosamente. Pendiente de validación arbitral.');
     }
 
     public function show(Team $equipo)
     {
-        // Obtener los miembros del equipo
+        // Optimización: Cargar relaciones necesarias de una vez
+        $equipo->load('members.profile.region');
         $miembros = $equipo->members;
 
-        // Obtener todos los usuarios disponibles para agregar al equipo (excepto los que ya son miembros)
-        $users = User::whereNotIn('id', $miembros->pluck('id'))->orderBy('name', 'ASC')->get();
+        // Optimización: Limitar usuarios disponibles para invitar (solo los que no tienen equipo)
+        $users = User::whereDoesntHave('teams')->orderBy('name', 'ASC')->get(['id', 'name']);
 
         $totalPoints = $miembros->sum(function ($miembro) {
-            return $miembro->profile->points_x2 ?? 0;
+            return $miembro->profile->points_x3 ?? 0;
         });
 
         return view('equipos.show', compact('equipo', 'miembros', 'users', 'totalPoints'));
@@ -122,79 +200,50 @@ class TeamController extends Controller
 
     public function ranking_teams()
     {
-        // Obtener los equipos ordenados por puntuación de forma descendente
-        $teams = Team::orderBy('points_x2', 'desc')->where('points_x2','>',0)->get();
+        $teams = Team::orderByDesc('points_x3')
+                     ->orderBy('name')
+                     ->where('points_x3', '>', 0)
+                     ->get(['id', 'name', 'logo', 'image', 'points_x3']); // Seleccionar solo lo necesario
 
-        // Pasar los datos a la vista 'ranking'
         return view('equipos.ranking', compact('teams'));
     }
 
-    // Mostrar el formulario para editar un equipo
     public function edit(Team $equipo)
     {
         return view('equipos.edit', compact('equipo'));
     }
 
-    // Actualizar un equipo
     public function update(Request $request, Team $equipo)
     {
         $request->validate([
-            'name' => 'required',
-            'description' => 'required',
-            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
-            'logo' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
-            // Agrega aquí validaciones adicionales según tus necesidades
+            'name' => 'required|unique:teams,name,' . $equipo->id,
+            'description' => 'required|max:1000',
+            'image' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:5120',
+            'logo' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048',
         ]);
 
-        // Almacenar las imágenes actuales antes de actualizar el equipo
-        $currentImage = $equipo->image;
-        $currentLogo = $equipo->logo;
-
-        // Procesar la imagen si se proporciona un nuevo archivo
         if ($request->hasFile('image')) {
-            $imageData = base64_encode(file_get_contents($request->file('image')));
-            $equipo->image = $imageData;
+            $equipo->image = $this->resizeAndEncodeImage($request->file('image'), 1200);
         }
 
-        // Procesar el logo si se proporciona un nuevo archivo
         if ($request->hasFile('logo')) {
-            $logoData = base64_encode(file_get_contents($request->file('logo')));
-            $equipo->logo = $logoData;
+            $equipo->logo = $this->resizeAndEncodeImage($request->file('logo'), 400);
         }
 
-        // Actualizar el equipo con los datos proporcionados
         $equipo->update([
             'name' => $request->name,
             'description' => $request->description,
             'status' => 'updated',
-            // No es necesario actualizar la imagen o el logo aquí
         ]);
 
-        // Restaurar la imagen actual si el formulario se envía sin seleccionar un nuevo archivo de imagen
-        if (!$request->hasFile('image') && $currentImage !== null) {
-            $equipo->image = $currentImage;
-        }
-
-        // Restaurar el logo actual si el formulario se envía sin seleccionar un nuevo archivo de logo
-        if (!$request->hasFile('logo') && $currentLogo !== null) {
-            $equipo->logo = $currentLogo;
-        }
-
-        $equipo->save();
-
         return redirect()->route('equipos.index')
-            ->with('success', 'Equipo actualizado exitosamente.');
+            ->with('success', 'Equipo actualizado exitosamente. Los cambios están bajo revisión.');
     }
 
-
-
-    // Eliminar un equipo
     public function destroy(Team $equipo)
     {
         $equipo->delete();
-
-        return redirect()->route('equipos.index')
-            ->with('success', 'Equipo eliminado exitosamente.');
+        return redirect()->route('equipos.index')->with('success', 'Equipo eliminado exitosamente.');
     }
 
     public function addMember(Request $request, Team $equipo)
@@ -204,67 +253,46 @@ class TeamController extends Controller
             'is_captain' => 'required|boolean',
         ]);
 
-        // Comenzamos una transacción para asegurar consistencia en caso de error
         DB::transaction(function() use ($request, $equipo) {
-            // Verificamos si el nuevo miembro será capitán
             if ($request->is_captain) {
-                // Revocamos la capitanía del capitán actual
                 $equipo->members()->updateExistingPivot($equipo->captain_id, ['is_captain' => false]);
-                // Actualizamos el ID del capitán en el equipo
                 $equipo->captain_id = $request->user_id;
                 $equipo->save();
             }
-
-            // Añadimos al nuevo miembro
             $equipo->members()->attach($request->user_id, ['is_captain' => $request->is_captain]);
         });
 
-        return redirect()->route('equipos.show', $equipo)
-            ->with('success', 'Miembro añadido exitosamente.');
+        return redirect()->route('equipos.show', $equipo)->with('success', 'Miembro añadido exitosamente.');
     }
-
 
     public function removeMember(Team $equipo, User $user)
     {
         $equipo->members()->detach($user->id);
-
-        return redirect()->route('equipos.show', $equipo)
-            ->with('success', 'Miembro eliminado exitosamente.');
+        return redirect()->route('equipos.show', $equipo)->with('success', 'Miembro eliminado exitosamente.');
     }
 
     public function changeCaptain(Request $request, Team $equipo, User $miembro)
     {
         DB::transaction(function() use ($equipo, $miembro) {
-            // Revocar capitanía del capitán actual
             $equipo->members()->updateExistingPivot($equipo->captain_id, ['is_captain' => false]);
-
-            // Asignar nuevo capitán
             $equipo->members()->updateExistingPivot($miembro->id, ['is_captain' => true]);
-
-            // Actualizar el campo captain_id en el equipo
             $equipo->captain_id = $miembro->id;
             $equipo->save();
         });
 
-        return redirect()->route('equipos.show', $equipo)
-            ->with('success', 'Capitán actualizado exitosamente.');
+        return redirect()->route('equipos.show', $equipo)->with('success', 'Capitán actualizado exitosamente.');
     }
 
     public function leaveTeam(Request $request, Team $equipo)
     {
-        $userId = Auth::user()->id;
+        $userId = Auth::id();
 
-        // Verificar que el usuario no es el capitán
         if ($equipo->captain_id == $userId) {
-            return redirect()->route('equipos.show', $equipo)
-                ->with('error', 'El capitán no puede dejar el equipo.');
+            return redirect()->route('equipos.show', $equipo)->with('error', 'El capitán no puede dejar el equipo sin transferir el mando.');
         }
 
-        // Remover al usuario del equipo
         $equipo->members()->detach($userId);
-
-        return redirect()->route('equipos.index')
-            ->with('success', 'Has dejado el equipo exitosamente.');
+        return redirect()->route('equipos.index')->with('success', 'Has dejado el equipo exitosamente.');
     }
 
     public function sendInvitation(Request $request, Team $equipo)
@@ -273,28 +301,23 @@ class TeamController extends Controller
             'user_id' => 'required|exists:users,id',
         ]);
 
+        // Evitar invitaciones duplicadas
+        if (Invitation::where('team_id', $equipo->id)->where('user_id', $request->user_id)->exists()) {
+            return redirect()->route('equipos.show', $equipo)->with('error', 'Este usuario ya tiene una invitación pendiente de este equipo.');
+        }
+
         Invitation::create([
             'team_id' => $equipo->id,
             'user_id' => $request->user_id,
             'accepted' => null,
         ]);
 
-        return redirect()->route('equipos.show', $equipo)
-            ->with('success', 'Invitación enviada exitosamente.');
+        return redirect()->route('equipos.show', $equipo)->with('success', 'Invitación enviada exitosamente.');
     }
 
     public function acceptInvitation(Team $equipo)
     {
-        // Verificar si el equipo ya tiene el número máximo de miembros
-        if ($equipo->members->count() >= 6) {
-            return redirect()->back()->with('error', 'El equipo ya tiene el número máximo de miembros.');
-        }
-
-        // Actualizar el estado de la invitación
         $equipo->update(['status' => 'accepted']);
-
-        return redirect()->back()->with('success', 'Invitación aceptada exitosamente.');
+        return redirect()->back()->with('success', 'Cambios aceptados correctamente.');
     }
-
-
 }

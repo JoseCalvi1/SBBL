@@ -14,39 +14,61 @@ class TournamentResultController extends Controller
     {
         $userId = Auth::id();
 
-        // 🔥 NUEVO: Si marca tentativo, borramos su deck y volvemos
+        // 1. Si marca tentativo, borramos registros y salimos (NO VALIDA NADA MÁS)
         if ($request->has('is_tentative')) {
             TournamentResult::where('user_id', $userId)
                             ->where('event_id', $eventId)
                             ->delete();
-            return redirect()->back()->with('success', 'Inscripción marcada como tentativa. Recuerda rellenar el deck antes del evento.');
+            return redirect()->back()->with('success', 'Inscripción marcada como tentativa.');
         }
 
-        // Eliminar resultados existentes para guardar los nuevos
-        foreach ($request->blade as $assistId => $blades) {
-            TournamentResult::where('user_id', $assistId)
-                            ->where('event_id', $eventId)
-                            ->delete();
-        }
+        // 2. VALIDAMOS ADAPTÁNDONOS A TU HTML (Usando el ID del usuario dinámicamente)
+        $request->validate([
+            "blade.{$userId}" => 'required|array|min:3',
+            "blade.{$userId}.*" => 'required|string',
+            "ratchet.{$userId}" => 'required|array|min:3',
+            "ratchet.{$userId}.*" => 'required|string',
+            "bit.{$userId}" => 'required|array|min:3',
+            "bit.{$userId}.*" => 'required|string',
+        ], [
+            "blade.{$userId}.*.required" => 'Debes rellenar los 3 Blades de tu combo.',
+            "ratchet.{$userId}.*.required" => 'Debes rellenar los 3 Ratchets de tu combo.',
+            "bit.{$userId}.*.required" => 'Debes rellenar los 3 Bits de tu combo.',
+        ]);
 
-        // Guardar los nuevos resultados
-        foreach ($request->blade as $assistId => $blades) {
-            foreach ($blades as $index => $blade) {
-                if(empty($blade)) continue; // Evita guardar filas en blanco
+        // 3. Borramos lo que tuviera antes ese usuario en ese evento
+        TournamentResult::where('user_id', $userId)
+                        ->where('event_id', $eventId)
+                        ->delete();
 
-                TournamentResult::create([
-                    'user_id' => $assistId,
-                    'event_id' => $eventId,
-                    'blade' => $blade,
-                    'assist_blade' => $request->assist_blade[$assistId][$index] ?? null,
-                    'ratchet' => $request->ratchet[$assistId][$index] ?? null,
-                    'bit' => $request->bit[$assistId][$index] ?? null,
-                    'victorias' => $request->victorias[$assistId][$index] ?? 0,
-                    'derrotas' => $request->derrotas[$assistId][$index] ?? 0,
-                    'puntos_ganados' => $request->puntos_ganados[$assistId][$index] ?? 0,
-                    'puntos_perdidos' => $request->puntos_perdidos[$assistId][$index] ?? 0,
-                ]);
-            }
+        // 4. Extraemos los arrays específicos del usuario actual desde el Request
+        $blades          = $request->input("blade.{$userId}", []);
+        $ratchets        = $request->input("ratchet.{$userId}", []);
+        $bits            = $request->input("bit.{$userId}", []);
+        $overBlades      = $request->input("over_blade.{$userId}", []);
+        $assistBlades    = $request->input("assist_blade.{$userId}", []);
+        $victorias       = $request->input("victorias.{$userId}", []);
+        $derrotas        = $request->input("derrotas.{$userId}", []);
+        $puntosGanados   = $request->input("puntos_ganados.{$userId}", []);
+        $puntosPerdidos  = $request->input("puntos_perdidos.{$userId}", []);
+
+        // 5. Guardamos los nuevos combos en la base de datos
+        foreach ($blades as $index => $blade) {
+            if (empty($blade)) continue; // Evita guardar filas en blanco por seguridad
+
+            TournamentResult::create([
+                'user_id'         => $userId,
+                'event_id'        => $eventId,
+                'blade'           => $blade,
+                'over_blade'      => $overBlades[$index] ?? null,
+                'assist_blade'    => $assistBlades[$index] ?? null,
+                'ratchet'         => $ratchets[$index] ?? null,
+                'bit'             => $bits[$index] ?? null,
+                'victorias'       => $victorias[$index] ?? 0,
+                'derrotas'        => $derrotas[$index] ?? 0,
+                'puntos_ganados'  => $puntosGanados[$index] ?? 0,
+                'puntos_perdidos' => $puntosPerdidos[$index] ?? 0,
+            ]);
         }
 
         return redirect()->back()->with('success', 'Deck de combate guardado y registrado correctamente.');
@@ -67,6 +89,7 @@ class TournamentResultController extends Controller
             'user_id' => $user->id,
             'versus_id' => $versusId,
             'blade' => $blade,
+            'over_blade' => $request->over_blade[$index],
             'assist_blade' => $request->assist_blade[$index],
             'ratchet' => $request->ratchet[$index],
             'bit' => $request->bit[$index],
@@ -91,11 +114,14 @@ class TournamentResultController extends Controller
 
     // 2. Listas para los selects
     $parts = DB::table('tournament_results')
-        ->select('blade', 'assist_blade', 'ratchet', 'bit')
+        ->select('blade', 'over_blade', 'assist_blade', 'ratchet', 'bit')
         ->distinct()
         ->get();
 
     $blades = $parts->pluck('blade')->unique()->sort()->values();
+    $overBlades = $parts->pluck('over_blade')->unique()
+        ->filter(fn($v) => $v !== '-- Selecciona un over blade --')
+        ->sort()->values();
     $assistBlades = $parts->pluck('assist_blade')->unique()
         ->filter(fn($v) => $v !== '-- Selecciona un assist blade --')
         ->sort()->values();
@@ -106,6 +132,7 @@ class TournamentResultController extends Controller
     $query = DB::table('tournament_results')
         ->select(
             'blade',
+            DB::raw("CASE WHEN over_blade LIKE '%Selecciona%' OR over_blade IS NULL THEN '-' ELSE over_blade END as over_blade"),
             DB::raw("CASE WHEN assist_blade LIKE '%Selecciona%' OR assist_blade IS NULL THEN '-' ELSE assist_blade END as assist_blade"),
             'ratchet',
             'bit',
@@ -127,6 +154,7 @@ class TournamentResultController extends Controller
 
     // 4. Aplicar Filtros
     if ($request->filled('blade')) $query->where('blade', $request->blade);
+    if ($request->filled('over_blade')) $query->where('over_blade', $request->over_blade);
     if ($request->filled('assist_blade')) $query->where('assist_blade', $request->assist_blade);
     if ($request->filled('ratchet')) $query->where('ratchet', $request->ratchet);
     if ($request->filled('bit')) $query->where('bit', $request->bit);
@@ -139,7 +167,7 @@ class TournamentResultController extends Controller
 
     // 5. Agrupación y Ejecución
     $beybladeStats = $query
-        ->groupBy('blade', 'assist_blade', 'ratchet', 'bit')
+        ->groupBy('blade', 'over_blade', 'assist_blade', 'ratchet', 'bit')
         ->havingRaw('(SUM(victorias) + SUM(derrotas)) >= ?', [$minPartidas])
         ->orderBy($sort, $order)
         ->get();
@@ -147,16 +175,19 @@ class TournamentResultController extends Controller
     // ====================================================================
     // 6. LÓGICA DEL TOP 5 SEMANAL (TENDENCIAS) DE COMBOS
     // ====================================================================
-    $inicioEstaSemana = Carbon::now()->startOfWeek()->format('Y-m-d');
-    $finEstaSemana = Carbon::now()->endOfWeek()->format('Y-m-d');
+    // Desplazamos el marco temporal una semana hacia atrás
     $inicioSemanaPasada = Carbon::now()->subWeek()->startOfWeek()->format('Y-m-d');
     $finSemanaPasada = Carbon::now()->subWeek()->endOfWeek()->format('Y-m-d');
+
+    $inicioHaceDosSemanas = Carbon::now()->subWeeks(2)->startOfWeek()->format('Y-m-d');
+    $finHaceDosSemanas = Carbon::now()->subWeeks(2)->endOfWeek()->format('Y-m-d');
 
     // Función auxiliar para sacar los COMBOS completos más usados
     $getTopCombos = function($inicio, $fin) {
         $data = DB::table('tournament_results')
             ->select(
                 'blade',
+                DB::raw("CASE WHEN over_blade LIKE '%Selecciona%' OR over_blade IS NULL THEN '-' ELSE over_blade END as over_blade"),
                 DB::raw("CASE WHEN assist_blade LIKE '%Selecciona%' OR assist_blade IS NULL THEN '-' ELSE assist_blade END as assist_blade"),
                 'ratchet',
                 'bit',
@@ -166,7 +197,7 @@ class TournamentResultController extends Controller
             ->whereDate('created_at', '<=', $fin)
             ->where('blade', '!=', '')
             ->where('blade', 'NOT LIKE', '%Selecciona%')
-            ->groupBy('blade', 'assist_blade', 'ratchet', 'bit')
+            ->groupBy('blade', 'over_blade', 'assist_blade', 'ratchet', 'bit')
             ->orderByDesc('usos')
             ->get();
 
@@ -174,6 +205,9 @@ class TournamentResultController extends Controller
         foreach ($data as $item) {
             // Construimos el nombre completo del combo
             $nombreCombo = $item->blade;
+            if ($item->over_blade !== '-') {
+                $nombreCombo .= ' + ' . $item->over_blade;
+            }
             if ($item->assist_blade !== '-') {
                 $nombreCombo .= ' + ' . $item->assist_blade;
             }
@@ -184,21 +218,24 @@ class TournamentResultController extends Controller
         return $formateado;
     };
 
-    $combosEstaSemana = $getTopCombos($inicioEstaSemana, $finEstaSemana);
+    // Obtenemos los datos comparando la semana pasada vs hace dos semanas
     $combosSemanaPasada = $getTopCombos($inicioSemanaPasada, $finSemanaPasada);
+    $combosHaceDosSemanas = $getTopCombos($inicioHaceDosSemanas, $finHaceDosSemanas);
 
-    $topCombosEstaSemana = array_slice($combosEstaSemana, 0, 5, true); // Tomar solo los 5 primeros
+    $topCombosSemanaPasada = array_slice($combosSemanaPasada, 0, 5, true); // Tomar solo los 5 primeros
     $topSemanal = [];
     $posicionActual = 1;
 
-    foreach ($topCombosEstaSemana as $nombre => $usos) {
+    foreach ($topCombosSemanaPasada as $nombre => $usos) {
         $tendencia = 'new';
         $claseTendencia = 'text-info';
         $iconoTendencia = '✨'; // Nuevo en el top
 
         $posicionPasada = 1;
         $encontrado = false;
-        foreach ($combosSemanaPasada as $nombrePasado => $usosPasado) {
+
+        // Comparamos contra el listado de hace dos semanas
+        foreach ($combosHaceDosSemanas as $nombrePasado => $usosPasado) {
             if ($nombre === $nombrePasado) {
                 $encontrado = true;
                 break;
@@ -401,7 +438,7 @@ class TournamentResultController extends Controller
             ->when($bitFilter, function ($query) use ($bitFilter) {
                 return $query->where('bit', $bitFilter);
             })
-            ->groupBy('blade', 'assist_blade', 'ratchet', 'bit')
+            ->groupBy('blade', 'over_blade', 'assist_blade', 'ratchet', 'bit')
             ->havingRaw('SUM(victorias) + SUM(derrotas) >= 10')
             ->orderBy($sort, $order)
             ->get();

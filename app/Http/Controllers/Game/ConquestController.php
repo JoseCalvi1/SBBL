@@ -86,7 +86,7 @@ class ConquestController extends Controller
             // Pasamos $startDate a la función para que calcule torneos desde esa fecha
             $userTurnPoints = $this->calculateUserTournamentPoints($uid, $startDate);
 
-            $teamPoints = $teamsCache[$tid]->points_x2 ?? 0;
+            $teamPoints = $teamsCache[$tid]->points_x3 ?? 0;
             $multiplier = 1 + ($teamPoints / 2000);
             $damage = round((10 + $userTurnPoints) * $multiplier);
 
@@ -116,7 +116,7 @@ class ConquestController extends Controller
 
             $teamId = $user->active_team->id ?? $user->active_team;
             $teamData = $teamsCache[$teamId] ?? null;
-            $teamPointsVal = $teamData ? $teamData->points_x2 : 0;
+            $teamPointsVal = $teamData ? $teamData->points_x3 : 0;
             $myMultiplier = 1 + ($teamPointsVal / 2000);
 
             $myPower = round((10 + $myPoints) * $myMultiplier);

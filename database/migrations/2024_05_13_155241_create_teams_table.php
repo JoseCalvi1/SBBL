@@ -19,6 +19,7 @@ class CreateTeamsTable extends Migration
             $table->text('description');
             $table->integer('points_x1')->default(0);
             $table->integer('points_x2')->default(0);
+            $table->integer('points_x3')->default(0);
             $table->longText('image')->nullable();
             $table->longText('logo')->nullable();
             $table->string('color', 7)->default('#333333');

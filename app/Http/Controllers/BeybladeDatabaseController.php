@@ -6,6 +6,7 @@ use App\Models\AssistBlade;
 use App\Models\Blade;
 use App\Models\Ratchet;
 use App\Models\Bit;
+use App\Models\OverBlade;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -82,11 +83,12 @@ class BeybladeDatabaseController extends Controller
     public function indexPartes()
     {
         $blades = Blade::all()->sortBy('nombre_takara');
+        $overBlades = OverBlade::all()->sortBy('nombre');
         $assistBlades = AssistBlade::all()->sortBy('nombre');
         $ratchets = Ratchet::all()->sortBy('nombre');
         $bits = Bit::all()->sortBy('nombre');
 
-        return view('database.indexPartes', compact('blades', 'assistBlades', 'ratchets', 'bits'));
+        return view('database.indexPartes', compact('blades', 'overBlades', 'assistBlades', 'ratchets', 'bits'));
     }
 
     /**
@@ -99,7 +101,7 @@ class BeybladeDatabaseController extends Controller
     {
         $request->validate([
             'nombre' => 'required|string|max:255',
-            'type' => 'required|in:Blade,Ratchet,Bit,AssistBlade',
+            'type' => 'required|in:Blade,Ratchet,Bit,AssistBlade,OverBlade',
         ]);
 
         $type = $request->type;
@@ -122,6 +124,11 @@ class BeybladeDatabaseController extends Controller
                         'nombre' => $name,
                     ]);
                     break;
+                    case 'OverBlade':
+                        $part = OverBlade::create([
+                            'nombre' => $name,
+                        ]);
+                        break;
                     case 'AssistBlade':
                         $part = AssistBlade::create([
                             'nombre' => $name,
@@ -157,6 +164,9 @@ class BeybladeDatabaseController extends Controller
                 break;
             case 'bits':
                 $part = Bit::findOrFail($id);
+                break;
+            case 'overblades':
+                $part = OverBlade::findOrFail($id);
                 break;
             case 'assistblades':
                 $part = AssistBlade::findOrFail($id);

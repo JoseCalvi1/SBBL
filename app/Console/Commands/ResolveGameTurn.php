@@ -288,7 +288,7 @@ class ResolveGameTurn extends Command
             $userPoints += $pointsTable[$index] ?? 1;
         }
 
-        $teamPoints = $teamsCache[$teamId]->points_x2 ?? 0;
+        $teamPoints = $teamsCache[$teamId]->points_x3 ?? 0;
         $rankMultiplier = 1 + ($teamPoints / 100);
 
         return (10 + $userPoints) * $rankMultiplier;

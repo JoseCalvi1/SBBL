@@ -105,26 +105,26 @@
 
             {{-- HISTÓRICO: 2025 --}}
             <div class="col-md-6 col-lg-5">
-                <div class="mission-card mission-archive">
-                    <h2 class="year-title">2025</h2>
-                    <p class="text-white-50 fw-bold mb-4 fs-5">EL GRAN NACIONAL</p>
-                    <a href="{{ route('nacional.show_2025') }}" class="btn-shonen btn-shonen-warning w-75 text-center">
-                        <span><i class="fas fa-folder-open me-2"></i> VER EVENTO</span>
-                    </a>
-                </div>
-            </div>
+    <div class="mission-card mission-archive">
+        <h2 class="year-title">2025</h2>
+        <p class="text-white-50 fw-bold mb-4 fs-5">EL GRAN NACIONAL</p>
+        <a href="{{ route('nacional.show_year', ['year' => '2025']) }}" class="btn-shonen btn-shonen-warning w-75 text-center">
+            <span><i class="fas fa-folder-open me-2"></i> VER EVENTO</span>
+        </a>
+    </div>
+</div>
 
-            {{-- MISIÓN ACTUAL: 2026 --}}
-            <div class="col-md-6 col-lg-5">
-                <div class="mission-card mission-active">
-                    <div class="badge-active">AÑO EN CURSO</div>
-                    <h2 class="year-title">2026</h2>
-                    <p class="text-info fw-bold mb-4 fs-5">LA BEYCON</p>
-                    <a href="{{ route('nacional.show_2026') }}" class="btn-shonen w-75 text-center" style="background: var(--shonen-cyan); color: #000; border-color:#000;">
-                        <span><i class="fas fa-bolt me-2"></i> ENTRAR</span>
-                    </a>
-                </div>
-            </div>
+{{-- MISIÓN ACTUAL: 2026 --}}
+<div class="col-md-6 col-lg-5">
+    <div class="mission-card mission-active">
+        <div class="badge-active">AÑO EN CURSO</div>
+        <h2 class="year-title">2026</h2>
+        <p class="text-info fw-bold mb-4 fs-5">LA BEYCON</p>
+        <a href="{{ route('nacional.show_year', ['year' => '2026']) }}" class="btn-shonen w-75 text-center" style="background: var(--shonen-cyan); color: #000; border-color:#000;">
+            <span><i class="fas fa-bolt me-2"></i> ENTRAR</span>
+        </a>
+    </div>
+</div>
 
         </div>
     </div>

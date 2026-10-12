@@ -43,7 +43,7 @@ class ProfileController extends Controller
             })
             ->where(function ($query) {
                 $query->where('profiles.points_x2', '<>', 0)
-                    ->orWhere('profiles.points_s3', '<>', 0)
+                    ->orWhere('profiles.points_x3', '<>', 0)
                     ->orWhereNotNull('profiles.imagen');
             })
             ->leftJoin('subscriptions', function($join) {
@@ -116,10 +116,10 @@ class ProfileController extends Controller
                 $value = $isFreeAgent == '1';
                 $query->where('profiles.free_agent', $value);
             })
-            // Lógica de visibilidad (points_x2, points_s3 o imagen)
+            // Lógica de visibilidad (points_x2, points_x3 o imagen)
             ->where(function ($query) {
                 $query->where('profiles.points_x2', '<>', 0)
-                      ->orWhere('profiles.points_s3', '<>', 0)
+                      ->orWhere('profiles.points_x3', '<>', 0)
                       ->orWhereNotNull('profiles.imagen');
             })
             // Tu lógica de LEFT JOIN para la suscripción activa
@@ -429,7 +429,7 @@ class ProfileController extends Controller
 
     public function indexAdminX()
     {
-        $profiles = Profile::orderBy('points_x2', 'DESC')->get();
+        $profiles = Profile::orderBy('points_x3', 'DESC')->get();
 
         return view('profiles.indexAdminX', compact('profiles'));
     }
@@ -680,11 +680,11 @@ class ProfileController extends Controller
 
         // Validar
         $data = request()->validate([
-            'points_x2' => 'required',
+            'points_x3' => 'required',
         ]);
 
         // Asignar los valores
-        $profile->points_x2 = $data['points_x2'];
+        $profile->points_x3 = $data['points_x3'];
 
         $profile->save();
 
@@ -697,14 +697,14 @@ class ProfileController extends Controller
     {
         // Validar que todos los puntos sean numéricos y opcionales
         $data = $request->validate([
-            'points_x2.*' => 'nullable|numeric',
+            'points_x3.*' => 'nullable|numeric',
         ]);
 
         // Iterar sobre los perfiles y actualizar los puntos
-        foreach ($request->input('points_x2', []) as $profileId => $points) {
+        foreach ($request->input('points_x3', []) as $profileId => $points) {
             $profile = Profile::find($profileId);
             if ($profile) {
-                $profile->points_x2 = $points;
+                $profile->points_x3 = $points;
                 $profile->save();
             }
         }
@@ -727,90 +727,60 @@ class ProfileController extends Controller
     }
 
     public function ranking(Request $request)
-    {
-        ini_set('memory_limit', '1024M'); // Seguridad extra
-
-        // 1. LIMPIEZA DE FILTROS
-        $limit = $request->input('limit', 25);
-        if ($limit !== 'all') {
-            $limit = (int) $limit;
-        }
-
-        $region = $request->input('region');
-        $region = ($region === 'all' || trim($region) === '') ? null : $region;
-
-        $province = $request->input('province');
-        $province = ($province === 'all' || trim($province) === '') ? null : $province;
-
-        // 2. EL INTERRUPTOR DE SEGURIDAD (LA MAGIA)
-        // Solo cargamos los logos en Base64 si NO estamos pidiendo toda la base de datos entera
-        $loadImages = ($limit !== 'all');
-
-        // 3. FUNCIÓN PARA GENERAR RANKINGS
-        $getBladersByPoints = function ($column) use ($limit, $region, $province, $loadImages) {
-
-            // Preparamos la consulta base especificando las tablas para evitar ambigüedades
-            $query = \App\Models\Profile::with([
-                'user' => function($q) { $q->select('users.id', 'users.name'); },
-                'region' => function($q) { $q->select('regions.id', 'regions.name'); },
-                'province' => function($q) { $q->select('provinces.id', 'provinces.name'); }
-            ])->select('profiles.id', 'profiles.user_id', 'profiles.region_id', 'profiles.province_id', 'profiles.' . $column);
-
-            // Si es seguro cargar imágenes, especificamos 'teams.id' para que SQL no se confunda
-            if ($loadImages) {
-                $query->with(['user.teams' => function($q) {
-                    $q->select('teams.id', 'teams.logo');
-                }]);
-            }
-
-            return $query->when($region, function ($q) use ($region) {
-                    return $q->whereHas('region', function ($q2) use ($region) {
-                        $q2->where('regions.name', $region);
-                    });
-                })
-                ->when($province, function ($q) use ($province) {
-                    return $q->where('profiles.province_id', $province);
-                })
-                ->where('profiles.' . $column, '!=', 0)
-                ->orderBy('profiles.' . $column, 'DESC')
-                ->orderBy('profiles.id', 'ASC')
-                ->when($limit !== 'all', function ($q) use ($limit) {
-                    return $q->take($limit);
-                })
-                ->get()
-                ->map(function ($blader) use ($loadImages) {
-                    $blader->team_logo = null;
-
-                    if ($loadImages && $blader->user && $blader->user->teams->isNotEmpty() && $blader->user->teams->first()->logo) {
-                        $blader->team_logo = 'data:image/png;base64,' . $blader->user->teams->first()->logo;
-                        unset($blader->user->teams);
-                    }
-
-                    return $blader;
-                });
-        };
-
-        // 4. GENERACIÓN DE LOS RANKINGS
-        $bladers_points     = $getBladersByPoints('points');       // Season 1
-        $bladers_points_s2  = $getBladersByPoints('points_s2');    // Season 2
-        $bladers_points_s3  = $getBladersByPoints('points_s3');    // Season 3
-        $bladers_points_x1  = $getBladersByPoints('points_x1');    // Beyblade X 1
-        $bladers_points_x2  = $getBladersByPoints('points_x2');    // Beyblade X 2
-
-        $regionsWithProvinces = \App\Models\Region::with('provinces')->orderBy('name')->get();
-
-        return view('profiles.ranking', [
-            'bladers_points' => $bladers_points,
-            'bladers_points_s2' => $bladers_points_s2,
-            'bladers_points_s3' => $bladers_points_s3,
-            'bladers_points_x1' => $bladers_points_x1,
-            'bladers_points_x2' => $bladers_points_x2,
-            'limit' => $limit,
-            'region' => $region,
-            'province' => $province,
-            'regionsWithProvinces' => $regionsWithProvinces,
-        ]);
+{
+    // 1. LIMPIEZA DE FILTROS
+    $limit = $request->input('limit', 25);
+    if ($limit !== 'all') {
+        $limit = (int) $limit;
     }
+
+    $region = $request->input('region');
+    $region = ($region === 'all' || trim($region) === '') ? null : $region;
+
+    $province = $request->input('province');
+    $province = ($province === 'all' || trim($province) === '') ? null : $province;
+
+    // 2. FUNCIÓN PARA GENERAR RANKINGS (Optimizada sin carga de imágenes)
+    $getBladersByPoints = function ($column) use ($limit, $region, $province) {
+        return \App\Models\Profile::with([
+            'user' => function($q) { $q->select('users.id', 'users.name'); },
+            'region' => function($q) { $q->select('regions.id', 'regions.name'); },
+            'province' => function($q) { $q->select('provinces.id', 'provinces.name'); }
+        ])
+        ->select('profiles.id', 'profiles.user_id', 'profiles.region_id', 'profiles.province_id', 'profiles.' . $column)
+        ->when($region, function ($q) use ($region) {
+            return $q->whereHas('region', function ($q2) use ($region) {
+                $q2->where('regions.name', $region);
+            });
+        })
+        ->when($province, function ($q) use ($province) {
+            return $q->where('profiles.province_id', $province);
+        })
+        ->where('profiles.' . $column, '!=', 0)
+        ->orderBy('profiles.' . $column, 'DESC')
+        ->orderBy('profiles.id', 'ASC')
+        ->when($limit !== 'all', function ($q) use ($limit) {
+            return $q->take($limit);
+        })
+        ->get(); // Retorno directo, sin maps pesados en memoria
+    };
+
+    // 3. GENERACIÓN DE LOS RANKINGS
+    $bladers_points    = $getBladersByPoints('points');       // Season 1
+    $bladers_points_s2 = $getBladersByPoints('points_s2');    // Season 2
+    $bladers_points_s3 = $getBladersByPoints('points_s3');    // Season 3
+    $bladers_points_x1 = $getBladersByPoints('points_x1');    // Beyblade X 1
+    $bladers_points_x2 = $getBladersByPoints('points_x2');    // Beyblade X 2
+    $bladers_points_x3 = $getBladersByPoints('points_x3');    // Beyblade X 3
+
+    $regionsWithProvinces = \App\Models\Region::with('provinces')->orderBy('name')->get();
+
+    return view('profiles.ranking', compact(
+        'bladers_points', 'bladers_points_s2', 'bladers_points_s3',
+        'bladers_points_x1', 'bladers_points_x2', 'bladers_points_x3',
+        'limit', 'region', 'province', 'regionsWithProvinces'
+    ));
+}
 
 
 
@@ -861,18 +831,31 @@ class ProfileController extends Controller
 
     public function rankingPorSplits()
     {
+        // Fechas genéricas Temporada 3 (2026-2027)
+        // Puedes cambiar los nombres a la izquierda cuando los decidas.
         $splits = [
-            'Pretemporada' => ['2025-06-22', '2025-08-31'],
-            'Split inicial' => ['2025-09-01', '2025-09-30'],
-            'Split Let It R.I.P.' => ['2025-10-01', '2025-11-30'],
-            'Split XMAS' => ['2025-12-01', '2026-01-31'],
-            'Split Ligera Revival' => ['2026-02-01', '2026-03-31'],
-            'Split ATTACK ONLY' => ['2026-04-01', '2026-05-31'],
+            'Split CX'      => ['2026-09-04', '2026-11-30'],
+            'Split 2'      => ['2026-12-01', '2027-02-28'],
+            'Split 3'      => ['2027-03-01', '2027-05-30'],
         ];
 
         $data = [];
+        $hoy = \Carbon\Carbon::now()->startOfDay();
+        $activeSplitIndex = 0; // Por defecto empezamos en el primero
+        $index = 0;
 
         foreach ($splits as $nombre => [$start, $end]) {
+
+            // LÓGICA AUTOMÁTICA DE PESTAÑAS:
+            // Si hoy está entre el inicio y el fin del split, este es el activo.
+            if ($hoy->between($start, $end)) {
+                $activeSplitIndex = $index;
+            } elseif ($hoy->greaterThan($end)) {
+                // Si ya pasamos este split, marcamos este como activo temporalmente.
+                // Así, si la temporada termina, se quedará fijo en el último (Split 5).
+                $activeSplitIndex = $index;
+            }
+
             $data[$nombre] = DB::table('points_log')
                 ->join('events', 'points_log.event_id', '=', 'events.id')
                 ->join('users', 'points_log.user_id', '=', 'users.id')
@@ -882,9 +865,12 @@ class ProfileController extends Controller
                 ->groupBy('users.id', 'users.name')
                 ->orderByDesc('total_puntos')
                 ->get();
+
+            $index++;
         }
 
-        return view('profiles.splits', compact('data', 'splits'));
+        // Pasamos a la vista tanto los datos como el número del split activo
+        return view('profiles.splits', compact('data', 'splits', 'activeSplitIndex'));
     }
 
 
@@ -962,7 +948,7 @@ class ProfileController extends Controller
                 if ($team) {
                     $teamName = $team->name;
                     $teamLogoData = $team->logo;
-                    $teamPoints = $team->points_x2;
+                    $teamPoints = $team->points_x3;
                 }
             }
         }
@@ -972,6 +958,7 @@ class ProfileController extends Controller
             'region' => $blader->region->name ?? 'No definida',
             'puntos_x1' => $blader->points_x1 ?? 0,
             'puntos_x2' => $blader->points_x2 ?? 0,
+            'puntos_x3' => $blader->points_x3 ?? 0,
             'subtitulo' => $blader->subtitulo,
             'imagen' => asset('storage/' . ($blader->imagen ?? 'upload-profiles/Base/DranDagger.webp')),
             'marco' => asset('storage/' . ($blader->marco ?? 'upload-profiles/Marcos/BaseBlue.png')),
@@ -1112,6 +1099,8 @@ public function showPublic($slug)
                 $puntosBase = $user->profile->points_x1; // O 'points' si es la antigua
             } elseif ($tempNombre == 'Temporada 2') {
                 $puntosBase = $user->profile->points_x2;
+            } elseif ($tempNombre == 'Temporada 3') {
+                $puntosBase = $user->profile->points_x3;
             }
 
             $statsPorTemporada[$tempNombre] = array(

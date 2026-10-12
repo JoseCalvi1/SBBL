@@ -1,11 +1,11 @@
 @extends('layouts.app')
 
-@section('title', 'Splits Season 2')
+@section('title', 'Splits Season 3')
 
 @section('styles')
 <style>
     /* ====================================================================
-       ESTILOS ESPECÍFICOS: SPLITS SHONEN (Hereda del layout)
+       ESTILOS ESPECÍFICOS: SPLITS TEMÁTICOS (Hereda del layout)
        ==================================================================== */
 
     /* ── TÍTULO DE PÁGINA ── */
@@ -26,6 +26,7 @@
         justify-content: center;
     }
     .nav-tabs .nav-item { margin-bottom: -4px; }
+
     .nav-tabs .nav-link {
         background: #000;
         color: #fff;
@@ -38,16 +39,21 @@
         transition: 0.2s;
         padding: 10px 20px;
     }
+
+    /* Hover y Active usan la variable dinámica --theme-main y --theme-shadow */
     .nav-tabs .nav-link:hover {
-        background: var(--sbbl-blue-3);
-        color: var(--sbbl-gold);
+        background: rgba(255,255,255,0.05);
+        color: var(--theme-main);
+        border-color: var(--theme-main);
     }
     .nav-tabs .nav-link.active {
-        background: var(--sbbl-gold);
-        color: #000;
-        border-bottom-color: var(--sbbl-gold);
-        box-shadow: 4px -4px 0 var(--shonen-red);
+        background: var(--theme-main);
+        color: #000 !important;
+        border-bottom-color: var(--theme-main);
+        box-shadow: 4px -4px 0 var(--theme-shadow);
     }
+    /* Iconos dentro de la pestaña activa se vuelven negros para contrastar */
+    .nav-tabs .nav-link.active i { color: #000 !important; }
 
     /* ── ESTRUCTURA DE TABLA (GRID SHONEN) ── */
     .split-container {
@@ -57,6 +63,7 @@
         padding: 20px;
         max-width: 800px;
         margin: 0 auto;
+        transition: border-color 0.3s;
     }
 
     .item {
@@ -71,19 +78,19 @@
         transform: skewX(-2deg);
         transition: 0.2s;
     }
-    .item > * { transform: skewX(2deg); } /* Des-inclinar contenido */
+    .item > * { transform: skewX(2deg); }
 
     .item:hover:not(.encabezado) {
         transform: translate(-3px, -3px) skewX(-2deg);
         box-shadow: 6px 6px 0 rgba(0,0,0,0.8);
-        border-color: var(--sbbl-gold);
+        border-color: var(--theme-main);
         background: #000;
     }
 
     .encabezado {
         background: var(--sbbl-blue-1) !important;
         border: 3px solid #000 !important;
-        color: var(--sbbl-gold) !important;
+        color: var(--theme-main) !important;
         font-family: 'Oswald', cursive;
         font-size: 1.3rem;
         letter-spacing: 2px;
@@ -92,7 +99,7 @@
     }
     .encabezado:hover { transform: skewX(-2deg) !important; box-shadow: 4px 4px 0 #000 !important; }
 
-    /* Textos internos */
+    /* Textos internos adaptables al tema */
     .posicion {
         font-family: 'Oswald', cursive;
         font-size: 1.8rem;
@@ -100,7 +107,7 @@
         color: #fff;
         text-shadow: 2px 2px 0 #000;
     }
-    .resaltado .posicion { color: var(--sbbl-gold); font-size: 2.2rem; }
+    .resaltado .posicion { color: var(--theme-main); font-size: 2.2rem; }
 
     .jugador-name {
         font-family: 'Montserrat', sans-serif;
@@ -115,7 +122,7 @@
         font-family: 'Oswald', cursive;
         font-size: 1.8rem;
         letter-spacing: 1px;
-        color: var(--sbbl-gold);
+        color: var(--theme-main);
         text-shadow: 2px 2px 0 #000;
         text-align: right;
     }
@@ -135,21 +142,36 @@
 
     <div class="text-center mb-5 mt-2">
         <h1 class="page-title">
-            <i class="fas fa-code-branch me-2 text-white" style="text-shadow: none;"></i> RANKING POR SPLITS
+            <i class="fas fa-code-branch me-2 text-white" style="text-shadow: none;"></i> RANKING POR SPLITS - SEASON 3
         </h1>
     </div>
+
+    {{-- DICCIONARIO DE TEMÁTICAS BASADO EN EL HISTÓRICO DE LA LIGA --}}
+    @php
+        $tematicas = [
+            0 => ['color' => '#00ffcc', 'shadow' => '#008080', 'icon' => 'fas fa-wrench'],       // Pretemporada (Cian / Ajustes)
+            1 => ['color' => '#ffd700', 'shadow' => '#cc0000', 'icon' => 'fas fa-bolt'],         // Inicial (Dorado / Rayo de inicio)
+            2 => ['color' => '#b400ff', 'shadow' => '#4a0080', 'icon' => 'fas fa-ghost'],        // Let it R.I.P (Morado / Fantasma - Halloween)
+            3 => ['color' => '#ff3333', 'shadow' => '#800000', 'icon' => 'fas fa-gift'],         // XMAS (Rojo / Regalo - Navidad)
+            4 => ['color' => '#e2e8f0', 'shadow' => '#718096', 'icon' => 'fas fa-sync-alt'],     // Ligera Revival (Plateado / Reinicio)
+            5 => ['color' => '#ff5500', 'shadow' => '#8b0000', 'icon' => 'fas fa-fire-alt'],     // Attack Only (Naranja-Fuego / Ataque)
+        ];
+    @endphp
 
     {{-- NAVEGACIÓN DE TABS (SPLITS) --}}
     <ul class="nav nav-tabs" id="splitTabs" role="tablist">
         @foreach($splits as $nombre => $rango)
+            @php $tema = $tematicas[$loop->index] ?? $tematicas[1]; @endphp
             <li class="nav-item" role="presentation">
-                <button class="nav-link @if ($loop->index === 5) active @endif"
+                {{-- Inyectamos las variables CSS dinámicas en el style inline del botón --}}
+                <button class="nav-link @if ($loop->index === $activeSplitIndex) active @endif"
                         id="tab-{{ $loop->index }}"
                         data-bs-toggle="tab"
                         data-bs-target="#content-{{ $loop->index }}"
                         type="button"
-                        role="tab">
-                    <span>{{ mb_strtoupper($nombre) }}</span>
+                        role="tab"
+                        style="--theme-main: {{ $tema['color'] }}; --theme-shadow: {{ $tema['shadow'] }};">
+                    <span><i class="{{ $tema['icon'] }} me-2" style="color: {{ $tema['color'] }};"></i>{{ mb_strtoupper($nombre) }}</span>
                 </button>
             </li>
         @endforeach
@@ -158,11 +180,15 @@
     {{-- CONTENIDO DE LOS SPLITS --}}
     <div class="tab-content mt-4" id="splitTabsContent">
         @foreach($splits as $nombre => $rango)
-            <div class="tab-pane fade @if ($loop->index === 5) show active @endif"
-                 id="content-{{ $loop->index }}"
-                 role="tabpanel">
+            @php $tema = $tematicas[$loop->index] ?? $tematicas[1]; @endphp
 
-                <div class="split-container">
+            {{-- Inyectamos las variables CSS dinámicas en el contenedor principal del panel --}}
+            <div class="tab-pane fade @if ($loop->index === $activeSplitIndex) show active @endif"
+                 id="content-{{ $loop->index }}"
+                 role="tabpanel"
+                 style="--theme-main: {{ $tema['color'] }}; --theme-shadow: {{ $tema['shadow'] }};">
+
+                <div class="split-container" style="border-color: rgba( {{ hexdec(substr($tema['color'],1,2)) }}, {{ hexdec(substr($tema['color'],3,2)) }}, {{ hexdec(substr($tema['color'],5,2)) }}, 0.3 );">
 
                     {{-- Encabezado de la Grid --}}
                     <div class="item encabezado">
@@ -182,7 +208,7 @@
                         {{-- Estado Vacío --}}
                         <div class="text-center py-5 bg-black border border-secondary mt-3" style="transform: skewX(-2deg);">
                             <div style="transform: skewX(2deg);">
-                                <i class="fas fa-ghost fa-3x mb-3 text-secondary"></i>
+                                <i class="{{ $tema['icon'] }} fa-3x mb-3" style="color: var(--theme-main); opacity: 0.5;"></i>
                                 <h4 class="font-Oswald text-white" style="font-size: 2rem; letter-spacing: 1px;">SIN DATOS EN ESTE SPLIT</h4>
                                 <p class="text-white fw-bold mb-0">Aún no hay batallas registradas en este periodo.</p>
                             </div>

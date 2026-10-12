@@ -60,6 +60,23 @@
                 <form method="POST" action="{{ route('register') }}" novalidate>
                     @csrf
 
+                    {{-- CAPTURA DE ERRORES GLOBALES --}}
+                    @if ($errors->any())
+                        <div class="alert alert-danger mb-4">
+                            <ul class="mb-0">
+                                @foreach ($errors->all() as $error)
+                                    <li><i class="fas fa-exclamation-triangle me-1"></i> {{ $error }}</li>
+                                @endforeach
+                            </ul>
+                        </div>
+                    @endif
+
+                    @if(session('error'))
+                        <div class="alert alert-danger mb-4">
+                            <i class="fas fa-exclamation-triangle me-1"></i> {{ session('error') }}
+                        </div>
+                    @endif
+
                     {{-- Nombre --}}
                     <div class="mb-3">
                         <label for="name" class="form-label">Nombre de usuario</label>

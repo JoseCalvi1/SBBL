@@ -220,11 +220,11 @@
         <i class="fas fa-sd-card mb-3" style="font-size: 4rem; color: var(--shonen-cyan); filter: drop-shadow(0 0 10px rgba(0,255,204,0.5));"></i>
         <h3 class="cta-title">¿TIENES MÁS RECUERDOS?</h3>
         <p class="text-white-50 fw-bold fs-5 mb-4" style="max-width: 700px; margin: 0 auto;">
-            Si capturaste momentos épicos durante la batalla y quieres que formen parte del Archivo Histórico de la SBBL, envíanos tu material.
+            Si capturaste momentos épicos durante la batalla y quieres que formen parte del Archivo Histórico de la SBBL, envíanos tu material a info@sbbl.es.
         </p>
 
         <a href="mailto:admin@sbbl.es?subject=Fotos%20Nacional%202025" class="btn-shonen px-4 py-3" style="background: var(--shonen-cyan); color: #000; border-color: #000; font-size: clamp(1rem, 3vw, 1.5rem);">
-            <span><i class="fas fa-envelope-open-text me-2"></i> ENVIAR FOTOS AL ALTO MANDO</span>
+            <span><i class="fas fa-envelope-open-text me-2"></i> ENVIAR FOTOS</span>
         </a>
     </div>
 

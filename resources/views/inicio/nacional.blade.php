@@ -440,9 +440,9 @@
             </div>
 
             {{-- Botón de registro --}}
-            <a href="https://forms.gle/ZWugRhfrr9vLAavQ6" target="_blank" class="btn-cyber mt-2 d-inline-block">
+            <!--<a href="https://forms.gle/ZWugRhfrr9vLAavQ6" target="_blank" class="btn-cyber mt-2 d-inline-block">
                <i class="fas fa-user-plus me-2"></i> REGISTRO DE BLADERS
-            </a>
+            </a>-->
         </div>
 
     </div>
@@ -476,24 +476,39 @@
 </div>
 
 <div class="section-container reveal">
-    <h2 class="sec-title">Pases de Acceso (No Participantes)</h2>
+    <h2 class="sec-title">Pases de Acceso y Merchandising</h2>
     <div class="row g-4 mt-2">
-        <div class="col-md-6">
-            <div class="cyber-card text-center h-100" style="border-top: 3px solid rgba(255,255,255,0.3);">
-                <h4 style="color: #fff; font-family: 'Orbitron';">PASE ASISTENTE</h4>
-                <p class="stat-desc mt-3">Acceso al recinto para no participantes de los Nacionales. Incluye acceso a tiendas y Side Events.</p>
-                <span class="price-tag">5€</span>
-            </div>
-        </div>
-        <div class="col-md-6" style="position: relative;">
-            <h4 class="coming-soon-text" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 10; font-family: 'Orbitron'; color: white; text-shadow: 0 0 15px var(--neon-gold), 0 0 30px #000; text-align: center; width: 100%; pointer-events: none;">PRÓXIMAMENTE</h4>
 
-            <div class="cyber-card text-center h-100" style="border-top: 3px solid var(--neon-gold); filter: blur(8px); pointer-events: none; user-select: none; opacity: 0.4;">
-                <h4 style="color: var(--neon-gold); font-family: 'Orbitron';">PACK VIP SBBL</h4>
-                <p class="stat-desc mt-3">Pase de acceso completo + Pack de Merchandising oficial de la SBBL.</p>
-                <span class="price-tag" style="color: var(--neon-gold);">15€</span>
+        <div class="col-md-6">
+            <div class="cyber-card text-center h-100 d-flex flex-column justify-content-between" style="border-top: 3px solid var(--neon-gold);">
+                <div>
+                    <h4 style="color: var(--neon-gold); font-family: 'Orbitron';">ENTRADA BEYCON SBBL'26</h4>
+                    <p class="stat-desc mt-3">Acceso al recinto para no participantes de los Nacionales. Incluye acceso a tiendas y Side Events.</p>
+                </div>
+                <div class="mt-4">
+                    <span class="price-tag d-block mb-3" style="color: var(--neon-gold); font-size: 1.8rem; font-weight: bold; text-shadow: 0 0 10px var(--neon-gold);">5,50€</span>
+                    <a href="{{ route('tickets.buy') }}" class="btn w-100 py-3 fw-bold text-uppercase" style="background: var(--neon-gold); color: #000; font-family: 'Orbitron'; font-size: 1.2rem; border-radius: 0; border: 2px solid #000;">
+                        <i class="fas fa-ticket-alt me-2"></i> ADQUIRIR ENTRADA
+                    </a>
+                </div>
             </div>
         </div>
+
+        <div class="col-md-6">
+            <div class="cyber-card text-center h-100 d-flex flex-column justify-content-between" style="border-top: 3px solid var(--neon-cyan);">
+                <div>
+                    <h4 style="color: var(--neon-cyan); font-family: 'Orbitron';">PREVENTA CAMISETAS</h4>
+                    <p class="stat-desc mt-3">Camisetas exclusivas y personalizadas de la BeyCon '26. Reserva la tuya antes del evento.</p>
+                </div>
+                <div class="mt-4">
+                    <span class="price-tag d-block mb-3" style="color: var(--neon-cyan); font-size: 1.8rem; font-weight: bold; text-shadow: 0 0 10px var(--neon-cyan);">Exclusivo</span>
+                    <a href="{{ route('carrito.index') }}" class="btn w-100 py-3 fw-bold text-uppercase" style="background: var(--neon-cyan); color: #000; font-family: 'Orbitron'; font-size: 1.2rem; border-radius: 0; border: 2px solid #000;">
+                        <i class="fas fa-tshirt me-2"></i> IR A LA TIENDA
+                    </a>
+                </div>
+            </div>
+        </div>
+
     </div>
 </div>
 
@@ -592,6 +607,7 @@
                     <li><strong style="color: #00FFAA">Desarrollo:</strong> Duelos directos (1ºvs1º, 2ºvs2º...). Si un equipo tiene menos jugadores, rotará de nuevo desde su 1º jugador sin cambiar el orden.</li>
                     <li><strong style="color: #00FFAA">Victoria global:</strong> Gana el equipo con más puntuación al finalizar todos los cruces.</li>
                     <li><strong style="color: #00FFAA">Desempate:</strong> Batalla final a un duelo entre capitanes (o el jugador 1º en su ausencia) con su combo seleccionado.</li>
+                    <li><strong style="color: #00FFAA">Bey único:</strong> Desde el inicio hasta el final del torneo, el combo de cada jugador será el mismo en cada partida.</li>
                 </ul>
             </div>
         </div>
@@ -760,10 +776,303 @@
 
 <div class="section-container text-center reveal" style="padding-bottom: 100px;">
     <h2 class="sec-title" style="border:none; justify-content: center; display: flex;">Lista de Clasificados</h2>
-    <div class="cyber-card" style="border: 2px solid var(--neon-cyan); background: rgba(0, 242, 254, 0.05);">
-        <div style="font-size: 2rem; margin-bottom: 15px; animation: pulse 2s infinite;">⏱️</div>
-        <p style="font-family: 'Roboto Mono'; font-size: 1.2rem; color: var(--neon-cyan); letter-spacing: 2px;">[ SINCRONIZANDO RANKING ]</p>
-        <p style="color: var(--text-soft); max-width: 600px; margin: 0 auto;">La lista oficial de los 96 Bladers clasificados se publicará tras el cierre del formulario de registro y la validación de medallas.</p>
+    <div class="cyber-card" style="border: 2px solid var(--neon-cyan); background: rgba(0, 242, 254, 0.05); padding: 30px;">
+
+        <!-- Contenedor de la lista en cuadrícula -->
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; text-align: left; font-family: 'Roboto Mono', monospace; font-size: 1rem; color: var(--text-soft);">
+
+            <!-- Clasificados Confirmados (96/96 Cupo Completo) -->
+            <div style="color: #fff;">1. alberther9 <small style="color: var(--neon-cyan); font-size: 0.7em;">#1710</small></div>
+            <div style="color: #fff;">2. Alexkorbo <small style="color: var(--neon-cyan); font-size: 0.7em;">#0750</small></div>
+            <div style="color: #fff;">3. AlexLIK <small style="color: var(--neon-cyan); font-size: 0.7em;">#1848</small></div>
+            <div style="color: #fff;">4. Alroya5 <small style="color: var(--neon-cyan); font-size: 0.7em;">#1454</small></div>
+            <div style="color: #fff;">5. Anarquía <small style="color: var(--neon-cyan); font-size: 0.7em;">#1881</small></div>
+            <div style="color: #fff;">6. Androide <small style="color: var(--neon-cyan); font-size: 0.7em;">#0886</small></div>
+            <div style="color: #fff;">7. Andyrubik <small style="color: var(--neon-cyan); font-size: 0.7em;">#1818</small></div>
+            <div style="color: #fff;">8. Arlen <small style="color: var(--neon-cyan); font-size: 0.7em;">#0013</small></div>
+            <div style="color: #fff;">9. Barón Chistes 🎭 <small style="color: var(--neon-cyan); font-size: 0.7em;">#0293</small></div>
+            <div style="color: #fff;">10. Bjorn <small style="color: var(--neon-cyan); font-size: 0.7em;">#1217</small></div>
+            <div style="color: #fff;">11. BLADE BIT ANDALÚ <small style="color: var(--neon-cyan); font-size: 0.7em;">#2390</small></div>
+            <div style="color: #fff;">12. BladebreakerX <small style="color: var(--neon-cyan); font-size: 0.7em;">#2739</small></div>
+            <div style="color: #fff;">13. BORJAGOD <small style="color: var(--neon-cyan); font-size: 0.7em;">#2410</small></div>
+            <div style="color: #fff;">14. Catapulta33 <small style="color: var(--neon-cyan); font-size: 0.7em;">#0670</small></div>
+            <div style="color: #fff;">15. Char_218 <small style="color: var(--neon-cyan); font-size: 0.7em;">#1982</small></div>
+            <div style="color: #fff;">16. Christiarc <small style="color: var(--neon-cyan); font-size: 0.7em;">#2344</small></div>
+            <div style="color: #fff;">17. CLARKIRVING <small style="color: var(--neon-cyan); font-size: 0.7em;">#1748</small></div>
+            <div style="color: #fff;">18. CRISBROWN <small style="color: var(--neon-cyan); font-size: 0.7em;">#1039</small></div>
+            <div style="color: #fff;">19. Daaaamn <small style="color: var(--neon-cyan); font-size: 0.7em;">#1487</small></div>
+            <div style="color: #fff;">20. Danisquik <small style="color: var(--neon-cyan); font-size: 0.7em;">#1219</small></div>
+            <div style="color: #fff;">21. Darwin <small style="color: var(--neon-cyan); font-size: 0.7em;">#0327</small></div>
+            <div style="color: #fff;">22. Donald Trompo <small style="color: var(--neon-cyan); font-size: 0.7em;">#1952</small></div>
+            <div style="color: #fff;">23. Ekumi <small style="color: var(--neon-cyan); font-size: 0.7em;">#1276</small></div>
+            <div style="color: #fff;">24. Eleganfi <small style="color: var(--neon-cyan); font-size: 0.7em;">#0807</small></div>
+            <div style="color: #fff;">25. EL VERDUGO <small style="color: var(--neon-cyan); font-size: 0.7em;">#2660</small></div>
+            <div style="color: #fff;">26. EliTostada <small style="color: var(--neon-cyan); font-size: 0.7em;">#0899</small></div>
+            <div style="color: #fff;">27. Emilio Bachiller Gutiérrez <small style="color: var(--neon-cyan); font-size: 0.7em;">#1927</small></div>
+            <div style="color: #fff;">28. EMPERADOR <small style="color: var(--neon-cyan); font-size: 0.7em;">#0310</small></div>
+            <div style="color: #fff;">29. Entukara Tomy <small style="color: var(--neon-cyan); font-size: 0.7em;">#0741</small></div>
+            <div style="color: #fff;">30. Eru <small style="color: var(--neon-cyan); font-size: 0.7em;">#1992</small></div>
+            <div style="color: #fff;">31. Erubita <small style="color: var(--neon-cyan); font-size: 0.7em;">#1028</small></div>
+            <div style="color: #fff;">32. EXTINTOR <small style="color: var(--neon-cyan); font-size: 0.7em;">#0215</small></div>
+            <div style="color: #fff;">33. Fernandofrd <small style="color: var(--neon-cyan); font-size: 0.7em;">#0687</small></div>
+            <div style="color: #fff;">34. FranRipper <small style="color: var(--neon-cyan); font-size: 0.7em;">#1274</small></div>
+            <div style="color: #fff;">35. Fujen <small style="color: var(--neon-cyan); font-size: 0.7em;">#1136</small></div>
+            <div style="color: #fff;">36. Gadilongo <small style="color: var(--neon-cyan); font-size: 0.7em;">#1044</small></div>
+            <div style="color: #fff;">37. Ghlimk <small style="color: var(--neon-cyan); font-size: 0.7em;">#0513</small></div>
+            <div style="color: #fff;">38. GHÖTESKAGÜEN <small style="color: var(--neon-cyan); font-size: 0.7em;">#1407</small></div>
+            <div style="color: #fff;">39. Gordons93 <small style="color: var(--neon-cyan); font-size: 0.7em;">#2028</small></div>
+            <div style="color: #fff;">40. Guatdafaq <small style="color: var(--neon-cyan); font-size: 0.7em;">#1422</small></div>
+            <div style="color: #fff;">41. Hedon★ <small style="color: var(--neon-cyan); font-size: 0.7em;">#2313</small></div>
+            <div style="color: #fff;">42. Hover <small style="color: var(--neon-cyan); font-size: 0.7em;">#1926</small></div>
+            <div style="color: #fff;">43. HYUGAGB <small style="color: var(--neon-cyan); font-size: 0.7em;">#0015</small></div>
+            <div style="color: #fff;">44. JOHAN <small style="color: var(--neon-cyan); font-size: 0.7em;">#0864</small></div>
+            <div style="color: #fff;">45. JoseCalvi1 <small style="color: var(--neon-cyan); font-size: 0.7em;">#0001</small></div>
+            <div style="color: #fff;">46. KA0S CØR3 <small style="color: var(--neon-cyan); font-size: 0.7em;">#0302</small></div>
+            <div style="color: #fff;">47. Kaasy <small style="color: var(--neon-cyan); font-size: 0.7em;">#2310</small></div>
+            <div style="color: #fff;">48. KaW <small style="color: var(--neon-cyan); font-size: 0.7em;">#0004</small></div>
+            <div style="color: #fff;">49. KodiDre <small style="color: var(--neon-cyan); font-size: 0.7em;">#1868</small></div>
+            <div style="color: #fff;">50. Larastor <small style="color: var(--neon-cyan); font-size: 0.7em;">#0880</small></div>
+            <div style="color: #fff;">51. Launicorn <small style="color: var(--neon-cyan); font-size: 0.7em;">#1168</small></div>
+            <div style="color: #fff;">52. Lazz <small style="color: var(--neon-cyan); font-size: 0.7em;">#1567</small></div>
+            <div style="color: #fff;">53. LD | RITSU <small style="color: var(--neon-cyan); font-size: 0.7em;">#0014</small></div>
+            <div style="color: #fff;">54. Lil Fruto Seco <small style="color: var(--neon-cyan); font-size: 0.7em;">#0861</small></div>
+            <div style="color: #fff;">55. Lorz <small style="color: var(--neon-cyan); font-size: 0.7em;">#0304</small></div>
+            <div style="color: #fff;">56. Lycanpower <small style="color: var(--neon-cyan); font-size: 0.7em;">#0776</small></div>
+            <div style="color: #fff;">57. Mameiko <small style="color: var(--neon-cyan); font-size: 0.7em;">#0834</small></div>
+            <div style="color: #fff;">58. MasKapilas X <small style="color: var(--neon-cyan); font-size: 0.7em;">#1024</small></div>
+            <div style="color: #fff;">59. MAYORUM <small style="color: var(--neon-cyan); font-size: 0.7em;">#2663</small></div>
+            <div style="color: #fff;">60. MEGALODON <small style="color: var(--neon-cyan); font-size: 0.7em;">#0328</small></div>
+            <div style="color: #fff;">61. Micoi <small style="color: var(--neon-cyan); font-size: 0.7em;">#2345</small></div>
+            <div style="color: #fff;">62. MoraX <small style="color: var(--neon-cyan); font-size: 0.7em;">#0641</small></div>
+            <div style="color: #fff;">63. MRBLACKENCIO <small style="color: var(--neon-cyan); font-size: 0.7em;">#1672</small></div>
+            <div style="color: #fff;">64. MrBombastic <small style="color: var(--neon-cyan); font-size: 0.7em;">#2347</small></div>
+            <div style="color: #fff;">65. Noah1 <small style="color: var(--neon-cyan); font-size: 0.7em;">#1214</small></div>
+            <div style="color: #fff;">66. Oliver Martinez <small style="color: var(--neon-cyan); font-size: 0.7em;">#0888</small></div>
+            <div style="color: #fff;">67. ONUVA51 <small style="color: var(--neon-cyan); font-size: 0.7em;">#0200</small></div>
+            <div style="color: #fff;">68. PÁPU <small style="color: var(--neon-cyan); font-size: 0.7em;">#2938</small></div>
+            <div style="color: #fff;">69. Pedro Menezes <small style="color: var(--neon-cyan); font-size: 0.7em;">#0988</small></div>
+            <div style="color: #fff;">70. PEROXK <small style="color: var(--neon-cyan); font-size: 0.7em;">#1202</small></div>
+            <div style="color: #fff;">71. Phaze0N <small style="color: var(--neon-cyan); font-size: 0.7em;">#0766</small></div>
+            <div style="color: #fff;">72. Rageful Spark <small style="color: var(--neon-cyan); font-size: 0.7em;">#2284</small></div>
+            <div style="color: #fff;">73. RedClaw <small style="color: var(--neon-cyan); font-size: 0.7em;">#0411</small></div>
+            <div style="color: #fff;">74. Respetón <small style="color: var(--neon-cyan); font-size: 0.7em;">#1418</small></div>
+            <div style="color: #fff;">75. Rkz <small style="color: var(--neon-cyan); font-size: 0.7em;">#1766</small></div>
+            <div style="color: #fff;">76. Roncola <small style="color: var(--neon-cyan); font-size: 0.7em;">#2170</small></div>
+            <div style="color: #fff;">77. SERTRYEK15 <small style="color: var(--neon-cyan); font-size: 0.7em;">#0051</small></div>
+            <div style="color: #fff;">78. SESIOMARU <small style="color: var(--neon-cyan); font-size: 0.7em;">#0294</small></div>
+            <div style="color: #fff;">79. SirAronR <small style="color: var(--neon-cyan); font-size: 0.7em;">#0903</small></div>
+            <div style="color: #fff;">80. SUGOI <small style="color: var(--neon-cyan); font-size: 0.7em;">#1853</small></div>
+            <div style="color: #fff;">81. Super Kamen V <small style="color: var(--neon-cyan); font-size: 0.7em;">#0937</small></div>
+            <div style="color: #fff;">82. Supereuyii <small style="color: var(--neon-cyan); font-size: 0.7em;">#1068</small></div>
+            <div style="color: #fff;">83. Talo <small style="color: var(--neon-cyan); font-size: 0.7em;">#1955</small></div>
+            <div style="color: #fff;">84. THEBIGEJ <small style="color: var(--neon-cyan); font-size: 0.7em;">#1836</small></div>
+            <div style="color: #fff;">85. Thunone <small style="color: var(--neon-cyan); font-size: 0.7em;">#1150</small></div>
+            <div style="color: #fff;">86. Tragabuche <small style="color: var(--neon-cyan); font-size: 0.7em;">#0522</small></div>
+            <div style="color: #fff;">87. Ubaypl <small style="color: var(--neon-cyan); font-size: 0.7em;">#1221</small></div>
+            <div style="color: #fff;">88. Valverde_TTP <small style="color: var(--neon-cyan); font-size: 0.7em;">#1400</small></div>
+            <div style="color: #fff;">89. Vladimir <small style="color: var(--neon-cyan); font-size: 0.7em;">#0145</small></div>
+            <div style="color: #fff;">90. Wildbyt <small style="color: var(--neon-cyan); font-size: 0.7em;">#0386</small></div>
+            <div style="color: #fff;">91. Xente <small style="color: var(--neon-cyan); font-size: 0.7em;">#2145</small></div>
+            <div style="color: #fff;">92. XLucker7X <small style="color: var(--neon-cyan); font-size: 0.7em;">#1278</small></div>
+            <div style="color: #fff;">93. YADEX <small style="color: var(--neon-cyan); font-size: 0.7em;">#2362</small></div>
+            <div style="color: #fff;">94. Yue <small style="color: var(--neon-cyan); font-size: 0.7em;">#2852</small></div>
+            <div style="color: #fff;">95. YuliCBlogs <small style="color: var(--neon-cyan); font-size: 0.7em;">#1687</small></div>
+            <div style="color: #fff;">96. Zarkal <small style="color: var(--neon-cyan); font-size: 0.7em;">#1942</small></div>
+
+        </div>
+    </div>
+</div>
+
+<div class="section-container text-center reveal" style="padding-bottom: 100px;">
+    <h2 class="sec-title" style="border:none; justify-content: center; display: flex;">Equipos Clasificados</h2>
+    <div class="cyber-card" style="border: 2px solid var(--neon-cyan); background: rgba(0, 242, 254, 0.05); padding: 30px;">
+
+        <!-- Contenedor de la lista en cuadrícula para Equipos -->
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; text-align: left; font-family: 'Roboto Mono', monospace;">
+
+            <!-- Abufernø -->
+            <div style="background: rgba(0,0,0,0.3); border: 1px solid rgba(0, 242, 254, 0.2); padding: 15px; border-radius: 8px;">
+                <h3 style="color: var(--neon-cyan); margin-top: 0; margin-bottom: 10px; font-size: 1.2rem; border-bottom: 1px dashed rgba(0, 242, 254, 0.3); padding-bottom: 5px;">Abufernø</h3>
+                <ul style="color: #fff; list-style-type: none; padding-left: 0; margin: 0; font-size: 0.95rem; line-height: 1.6;">
+                    <li>• Fernandofrd</li>
+                    <li>• Entukara Tomy</li>
+                    <li>• D.Wetto</li>
+                </ul>
+            </div>
+
+            <!-- Azure Inferno -->
+            <div style="background: rgba(0,0,0,0.3); border: 1px solid rgba(0, 242, 254, 0.2); padding: 15px; border-radius: 8px;">
+                <h3 style="color: var(--neon-cyan); margin-top: 0; margin-bottom: 10px; font-size: 1.2rem; border-bottom: 1px dashed rgba(0, 242, 254, 0.3); padding-bottom: 5px;">Azure Inferno</h3>
+                <ul style="color: #fff; list-style-type: none; padding-left: 0; margin: 0; font-size: 0.95rem; line-height: 1.6;">
+                    <li>• IsraNewGen</li>
+                    <li>• Akane</li>
+                    <li>• MiDi</li>
+                </ul>
+            </div>
+
+            <!-- Big Five -->
+            <div style="background: rgba(0,0,0,0.3); border: 1px solid rgba(0, 242, 254, 0.2); padding: 15px; border-radius: 8px;">
+                <h3 style="color: var(--neon-cyan); margin-top: 0; margin-bottom: 10px; font-size: 1.2rem; border-bottom: 1px dashed rgba(0, 242, 254, 0.3); padding-bottom: 5px;">Big Five</h3>
+                <ul style="color: #fff; list-style-type: none; padding-left: 0; margin: 0; font-size: 0.95rem; line-height: 1.6;">
+                    <li>• Jivox</li>
+                    <li>• Vladimir</li>
+                    <li>• XShu</li>
+                    <li>• crisbrown</li>
+                    <li>• Animaguchi</li>
+                </ul>
+            </div>
+
+            <!-- Bladers Street Boyz -->
+            <div style="background: rgba(0,0,0,0.3); border: 1px solid rgba(0, 242, 254, 0.2); padding: 15px; border-radius: 8px;">
+                <h3 style="color: var(--neon-cyan); margin-top: 0; margin-bottom: 10px; font-size: 1.2rem; border-bottom: 1px dashed rgba(0, 242, 254, 0.3); padding-bottom: 5px;">Bladers Street Boyz</h3>
+                <ul style="color: #fff; list-style-type: none; padding-left: 0; margin: 0; font-size: 0.95rem; line-height: 1.6;">
+                    <li>• ThebigEJ</li>
+                    <li>• Rkz</li>
+                    <li>• Blade Bit Andalú</li>
+                    <li>• Talo</li>
+                    <li>• BladebreakerX</li>
+                    <li>• Sr.Arenque</li>
+                </ul>
+            </div>
+
+            <!-- Cosmos Wielders™ -->
+            <div style="background: rgba(0,0,0,0.3); border: 1px solid rgba(0, 242, 254, 0.2); padding: 15px; border-radius: 8px;">
+                <h3 style="color: var(--neon-cyan); margin-top: 0; margin-bottom: 10px; font-size: 1.2rem; border-bottom: 1px dashed rgba(0, 242, 254, 0.3); padding-bottom: 5px;">Cosmos Wielders™</h3>
+                <ul style="color: #fff; list-style-type: none; padding-left: 0; margin: 0; font-size: 0.95rem; line-height: 1.6;">
+                    <li>• ThuBerni15x</li>
+                    <li>• KA0S CØR3</li>
+                    <li>• Shirk</li>
+                    <li>• Ursh</li>
+                    <li>• Erubita</li>
+                    <li>• Sugoi</li>
+                </ul>
+            </div>
+
+            <!-- Emotional Damage -->
+            <div style="background: rgba(0,0,0,0.3); border: 1px solid rgba(0, 242, 254, 0.2); padding: 15px; border-radius: 8px;">
+                <h3 style="color: var(--neon-cyan); margin-top: 0; margin-bottom: 10px; font-size: 1.2rem; border-bottom: 1px dashed rgba(0, 242, 254, 0.3); padding-bottom: 5px;">Emotional Damage</h3>
+                <ul style="color: #fff; list-style-type: none; padding-left: 0; margin: 0; font-size: 0.95rem; line-height: 1.6;">
+                    <li>• Ghlimk</li>
+                    <li>• Oliver Martinez</li>
+                    <li>• Megalodon</li>
+                    <li>• Pedro Menezes</li>
+                </ul>
+            </div>
+
+            <!-- Imperial -->
+            <div style="background: rgba(0,0,0,0.3); border: 1px solid rgba(0, 242, 254, 0.2); padding: 15px; border-radius: 8px;">
+                <h3 style="color: var(--neon-cyan); margin-top: 0; margin-bottom: 10px; font-size: 1.2rem; border-bottom: 1px dashed rgba(0, 242, 254, 0.3); padding-bottom: 5px;">Imperial</h3>
+                <ul style="color: #fff; list-style-type: none; padding-left: 0; margin: 0; font-size: 0.95rem; line-height: 1.6;">
+                    <li>• Christiarc</li>
+                    <li>• Akamaru</li>
+                    <li>• BorjaGod</li>
+                </ul>
+            </div>
+
+            <!-- Lightning Dragons -->
+            <div style="background: rgba(0,0,0,0.3); border: 1px solid rgba(0, 242, 254, 0.2); padding: 15px; border-radius: 8px;">
+                <h3 style="color: var(--neon-cyan); margin-top: 0; margin-bottom: 10px; font-size: 1.2rem; border-bottom: 1px dashed rgba(0, 242, 254, 0.3); padding-bottom: 5px;">Lightning Dragons</h3>
+                <ul style="color: #fff; list-style-type: none; padding-left: 0; margin: 0; font-size: 0.95rem; line-height: 1.6;">
+                    <li>• Arlen</li>
+                    <li>• LD | RITSU</li>
+                    <li>• KaW</li>
+                    <li>• HYUGAGB</li>
+                    <li>• JoseCalvi1</li>
+                </ul>
+            </div>
+
+            <!-- Lobos del Trueno -->
+            <div style="background: rgba(0,0,0,0.3); border: 1px solid rgba(0, 242, 254, 0.2); padding: 15px; border-radius: 8px;">
+                <h3 style="color: var(--neon-cyan); margin-top: 0; margin-bottom: 10px; font-size: 1.2rem; border-bottom: 1px dashed rgba(0, 242, 254, 0.3); padding-bottom: 5px;">Lobos del Trueno</h3>
+                <ul style="color: #fff; list-style-type: none; padding-left: 0; margin: 0; font-size: 0.95rem; line-height: 1.6;">
+                    <li>• Mrblackencio</li>
+                    <li>• YuliCBlogs</li>
+                    <li>• ClarkIrving</li>
+                    <li>• Johan</li>
+                    <li>• Ekumi</li>
+                    <li>• Faininku</li>
+                </ul>
+            </div>
+
+            <!-- Los Cuélebres -->
+            <div style="background: rgba(0,0,0,0.3); border: 1px solid rgba(0, 242, 254, 0.2); padding: 15px; border-radius: 8px;">
+                <h3 style="color: var(--neon-cyan); margin-top: 0; margin-bottom: 10px; font-size: 1.2rem; border-bottom: 1px dashed rgba(0, 242, 254, 0.3); padding-bottom: 5px;">Los Cuélebres</h3>
+                <ul style="color: #fff; list-style-type: none; padding-left: 0; margin: 0; font-size: 0.95rem; line-height: 1.6;">
+                    <li>• Phaze0N</li>
+                    <li>• Androide</li>
+                    <li>• SirAronR</li>
+                    <li>• Kirameki</li>
+                </ul>
+            </div>
+
+            <!-- Los Duendes Garrapatas -->
+            <div style="background: rgba(0,0,0,0.3); border: 1px solid rgba(0, 242, 254, 0.2); padding: 15px; border-radius: 8px;">
+                <h3 style="color: var(--neon-cyan); margin-top: 0; margin-bottom: 10px; font-size: 1.2rem; border-bottom: 1px dashed rgba(0, 242, 254, 0.3); padding-bottom: 5px;">Los Duendes Garrapatas</h3>
+                <ul style="color: #fff; list-style-type: none; padding-left: 0; margin: 0; font-size: 0.95rem; line-height: 1.6;">
+                    <li>• Tragabuche</li>
+                    <li>• Chupa Tinta</li>
+                    <li>• Caitlyn</li>
+                </ul>
+            </div>
+
+            <!-- Los Peaky Bladers -->
+            <div style="background: rgba(0,0,0,0.3); border: 1px solid rgba(0, 242, 254, 0.2); padding: 15px; border-radius: 8px;">
+                <h3 style="color: var(--neon-cyan); margin-top: 0; margin-bottom: 10px; font-size: 1.2rem; border-bottom: 1px dashed rgba(0, 242, 254, 0.3); padding-bottom: 5px;">Los Peaky Bladers</h3>
+                <ul style="color: #fff; list-style-type: none; padding-left: 0; margin: 0; font-size: 0.95rem; line-height: 1.6;">
+                    <li>• Wassaby</li>
+                    <li>• VORTIX</li>
+                    <li>• Pandora</li>
+                </ul>
+            </div>
+
+            <!-- Onyxia -->
+            <div style="background: rgba(0,0,0,0.3); border: 1px solid rgba(0, 242, 254, 0.2); padding: 15px; border-radius: 8px;">
+                <h3 style="color: var(--neon-cyan); margin-top: 0; margin-bottom: 10px; font-size: 1.2rem; border-bottom: 1px dashed rgba(0, 242, 254, 0.3); padding-bottom: 5px;">Onyxia</h3>
+                <ul style="color: #fff; list-style-type: none; padding-left: 0; margin: 0; font-size: 0.95rem; line-height: 1.6;">
+                    <li>• Miyabi</li>
+                    <li>• Andyrubik</li>
+                    <li>• El Pibe Calavera</li>
+                    <li>• Nekozombie</li>
+                    <li>• Escardi</li>
+                    <li>• Eliaqua🐬🧜🏼‍♀️</li>
+                </ul>
+            </div>
+
+            <!-- Team Skull -->
+            <div style="background: rgba(0,0,0,0.3); border: 1px solid rgba(0, 242, 254, 0.2); padding: 15px; border-radius: 8px;">
+                <h3 style="color: var(--neon-cyan); margin-top: 0; margin-bottom: 10px; font-size: 1.2rem; border-bottom: 1px dashed rgba(0, 242, 254, 0.3); padding-bottom: 5px;">K.O.FRADE</h3>
+                <ul style="color: #fff; list-style-type: none; padding-left: 0; margin: 0; font-size: 0.95rem; line-height: 1.6;">
+                    <li>• Juanmark</li>
+                    <li>• Anhell</li>
+                    <li>• El Pibe Fenix</li>
+                    <li>• Manuel Incendio</li>
+                    <li>• Jimiko5</li>
+                    <li>• NereaRB</li>
+                </ul>
+            </div>
+
+            <!-- Team Windmill X -->
+            <div style="background: rgba(0,0,0,0.3); border: 1px solid rgba(0, 242, 254, 0.2); padding: 15px; border-radius: 8px;">
+                <h3 style="color: var(--neon-cyan); margin-top: 0; margin-bottom: 10px; font-size: 1.2rem; border-bottom: 1px dashed rgba(0, 242, 254, 0.3); padding-bottom: 5px;">Team Windmill X</h3>
+                <ul style="color: #fff; list-style-type: none; padding-left: 0; margin: 0; font-size: 0.95rem; line-height: 1.6;">
+                    <li>• Sesiomaru</li>
+                    <li>• Fujen</li>
+                    <li>• char_ 218</li>
+                </ul>
+            </div>
+
+            <!-- Bar Paco -->
+            <div style="background: rgba(0,0,0,0.3); border: 1px solid rgba(0, 242, 254, 0.2); padding: 15px; border-radius: 8px;">
+                <h3 style="color: var(--neon-cyan); margin-top: 0; margin-bottom: 10px; font-size: 1.2rem; border-bottom: 1px dashed rgba(0, 242, 254, 0.3); padding-bottom: 5px;">Bar Paco</h3>
+                <ul style="color: #fff; list-style-type: none; padding-left: 0; margin: 0; font-size: 0.95rem; line-height: 1.6;">
+                    <li>• Alexkorbo</li>
+                    <li>• Lil Fruto Seco</li>
+                    <li>• Supereuyii</li>
+                    <li>• Darwin</li>
+                </ul>
+            </div>
+
+        </div>
     </div>
 </div>
 @endsection

@@ -28,7 +28,7 @@ class InicioController extends Controller
     {
         $hoy = Carbon::today();
 
-        $bladers = Profile::orderBy('points_x2', 'DESC')->limit(5)->get();
+        $bladers = Profile::orderBy('points_x3', 'DESC')->limit(5)->get();
         $stamina = Profile::where('user_id', 1)->first();
         $antiguos = Event::where('date', '<', now())
             ->orderBy('date', 'desc')
@@ -144,14 +144,14 @@ class InicioController extends Controller
             4 => 'Co-Fundador',
         ];
 
-        $usuarios = User::whereIn('id', [1, 3, 4, 182, 13, 215, 310, 766, 886])->get()->map(function ($usuario) use ($subtitulos) {
+        $usuarios = User::whereIn('id', [1, 3, 4])->get()->map(function ($usuario) use ($subtitulos) {
             // Asignar el subtítulo personalizado desde el arreglo
             $usuario->titulo = $subtitulos[$usuario->id] ?? 'Staff';
             return $usuario;
         });
 
 
-        $teams = Team::orderBy('points_x2', 'desc')
+        $teams = Team::orderBy('points_x3', 'desc')
              ->take(5)
              ->get();
 
@@ -286,7 +286,8 @@ class InicioController extends Controller
      */
     public function rules()
     {
-        return view('inicio.rules');
+        return redirect('https://sbbl.es/blog/reglamento-s3-v1');
+        //return view('inicio.rules');
     }
 
     /**
@@ -594,13 +595,13 @@ class InicioController extends Controller
                 GROUP BY user_id
             ),
             RankingPoints AS (
-                SELECT user_id, points_x2,
+                SELECT user_id, points_x3,
                     CASE
-                        WHEN points_x2 >= 95 THEN 6
-                        WHEN points_x2 >= 79 THEN 5
-                        WHEN points_x2 >= 59 THEN 4
-                        WHEN points_x2 >= 39 THEN 3
-                        WHEN points_x2 >= 23 THEN 2
+                        WHEN points_x3 >= 95 THEN 6
+                        WHEN points_x3 >= 79 THEN 5
+                        WHEN points_x3 >= 59 THEN 4
+                        WHEN points_x3 >= 39 THEN 3
+                        WHEN points_x3 >= 23 THEN 2
                         ELSE 1
                     END AS puntos_ranking
                 FROM profiles

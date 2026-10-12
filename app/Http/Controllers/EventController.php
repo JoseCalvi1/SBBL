@@ -35,10 +35,14 @@ class EventController extends Controller
     ];
 
     const REGION_IMAGES = [
-        1 => 'upload-events/andalucias2.webp', 2 => 'upload-events/madrids2.webp',
-        4 => 'upload-events/valencias2.webp', 5 => 'upload-events/galicias2.webp',
-        7 => 'upload-events/paisvasco2_1.webp', 8 => 'upload-events/canariass2.webp',
-        11 => 'upload-events/aragons2.webp', 14 => 'upload-events/asturiass2.webp',
+        1 => 'upload-events/andalucia3.webp',
+        2 => 'upload-events/madrid3.webp',
+        4 => 'upload-events/vlc3.webp',
+        5 => 'upload-events/galicia3.webp',
+        7 => 'upload-events/paisvasco3.webp',
+        8 => 'upload-events/canarias3.webp',
+        11 => 'upload-events/aragon3.webp',
+        14 => 'upload-events/asturias3.webp',
     ];
 
     const EVENT_TYPES = [
@@ -109,7 +113,7 @@ class EventController extends Controller
             'imagen'            => 'required|string', // Categoría (ranking, quedada...)
             'deck'              => 'required|string',
             'configuration'     => 'required|string',
-            'note'              => 'nullable|string',
+            'note'              => 'nullable|string|max:5000',
             'stadiums'          => 'required|integer|min:1',
             'max_players'       => 'nullable|integer|min:1',
             'has_stadium_limit' => 'nullable',
@@ -118,7 +122,7 @@ class EventController extends Controller
         ]);
 
         // PROTECCIÓN BACKEND: Solo Jueces pueden crear Torneos Oficiales o Copas
-        $categoriasOficiales = ['ranking', 'grancopa', 'simulacro', 'hasbro', 'copaespecial1', 'copaespecial2', 'copaespecial3', 'copaespecial4'];
+        $categoriasOficiales = ['ranking', 'grancopa', 'hasbro', 'copaespecial1', 'copaespecial2', 'copaespecial3', 'copaespecial4'];
         if (in_array($data['imagen'], $categoriasOficiales) && !Auth::user()->hasAnyRole(['admin', 'juez'])) {
             return back()->withInput()->with('error', '⚠️ Acceso denegado: Solo los Jueces Oficiales de la SBBL pueden crear Eventos de Ranking y Copas Especiales.');
         }
@@ -261,6 +265,7 @@ class EventController extends Controller
 
         // Opciones para desplegables
         $bladeOptions = DB::table('blades')->orderBy('nombre_takara')->pluck('nombre_takara')->toArray();
+        $overBladeOptions = DB::table('over_blades')->orderBy('nombre')->pluck('nombre')->toArray();
         $assistBladeOptions = DB::table('assist_blades')->orderBy('nombre')->pluck('nombre')->toArray();
         $ratchetOptions = DB::table('ratchets')->orderBy('nombre')->pluck('nombre')->toArray();
         $bitOptions = DB::table('bits')->orderBy('nombre')->pluck('nombre')->toArray();
@@ -293,7 +298,7 @@ class EventController extends Controller
         // 4. Retornar la vista con todas las variables en el compact
         return view('events.show', array_merge(compact(
             'event', 'videos', 'assists', 'suscribe', 'hoy',
-            'bladeOptions', 'assistBladeOptions', 'ratchetOptions', 'bitOptions',
+            'bladeOptions', 'overBladeOptions', 'assistBladeOptions', 'ratchetOptions', 'bitOptions',
             'results', 'extraLines', 'resultsByParticipant', 'participantes',
             'totalParticipantes', 'equiposAsistentes'
         ), $limits));
@@ -437,7 +442,7 @@ class EventController extends Controller
             }
 
             // --- VALIDACIÓN Y CIERRE DE PAGO (PAYPAL) ---
-            if (in_array($event->beys, ["grancopa", "copapaypal"])) {
+            if (in_array($event->beys, ["copapaypal"])) {
                 if (!$request->has('paypal_order_id')) {
                     return response()->json(['error' => 'Se requiere confirmación de pago para este evento.'], 402);
                 }
@@ -502,6 +507,7 @@ class EventController extends Controller
                             'user_id' => $assistId,
                             'event_id' => $event->id,
                             'blade' => $blade,
+                            'over_blade' => $request->over_blade[$assistId][$index] ?? null,
                             'assist_blade' => $request->assist_blade[$assistId][$index] ?? null,
                             'ratchet' => $request->ratchet[$assistId][$index] ?? null,
                             'bit' => $request->bit[$assistId][$index] ?? null,
@@ -676,8 +682,8 @@ class EventController extends Controller
             ->get();
 
         $pointsTable = $this->getPointsTable($participantes->count());
-        $puestoMap = ['primero' => 0, 'segundo' => 1, 'tercero' => 2, 'cuarto' => 3, 'quinto' => 4, 'septimo' => 5];
-        $eventMode = 'points_x2';
+        $puestoMap = ['primero' => 0, 'segundo' => 1, 'tercero' => 2, 'cuarto' => 3, 'quinto' => 4, 'septimo' => 5, 'noveno' => 6, 'treceavo' => 7, 'diecisieteavo' => 8];
+        $eventMode = 'points_x3';
 
         DB::transaction(function () use ($participantes, $pointsTable, $puestoMap, $eventMode, $id) {
             foreach ($participantes as $p) {
@@ -1118,12 +1124,15 @@ private function sendResponse($type, $message, $request, $code = 200)
 
     private function getPointsTable(int $count): array
     {
-        if ($count >= 33) return [7, 6, 5, 4, 3, 2, 1];
-        if ($count >= 25) return [6, 5, 4, 3, 2, 1, 1];
-        if ($count >= 17) return [5, 4, 3, 2, 1, 1, 1];
-        if ($count >= 9) return [4, 3, 2, 1, 1, 1, 1];
-        if ($count >= 6) return [3, 2, 1, 1, 1, 1, 1];
-        return [2, 1, 1, 1, 1, 1, 1];
+        if ($count >= 57) return [10, 9, 8, 7, 6, 5, 4, 3, 2, 1];
+        if ($count >= 49) return [9, 8, 7, 6, 5, 4, 3, 2, 1, 1];
+        if ($count >= 41) return [8, 7, 6, 5, 4, 3, 2, 1, 1, 1];
+        if ($count >= 33) return [7, 6, 5, 4, 3, 2, 1, 1, 1, 1];
+        if ($count >= 25) return [6, 5, 4, 3, 2, 1, 1, 1, 1, 1];
+        if ($count >= 17) return [5, 4, 3, 2, 1, 1, 1, 1, 1, 1];
+        if ($count >= 9) return [4, 3, 2, 1, 1, 1, 1, 1, 1, 1];
+        if ($count >= 6) return [3, 2, 1, 1, 1, 1, 1, 1, 1, 1];
+        return [2, 1, 1, 1, 1, 1, 1, 1, 1, 1];
     }
 
     public function logPendingPayment(Request $request, \App\Models\Event $event)

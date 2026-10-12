@@ -360,7 +360,7 @@ class VersusController extends Controller
         $winnerId = ($duel->result_1 > $duel->result_2) ? $duel->user_id_1 : $duel->user_id_2;
 
         // Modificar el modo según la condición
-        $mode = 'points_x2';
+        $mode = 'points_x3';
 
         // Incrementar los puntos al usuario ganador
         DB::table('profiles')
@@ -381,7 +381,7 @@ class VersusController extends Controller
                 $duel->save();
 
                 $winnerId = ($duel->result_1 > $duel->result_2) ? $duel->user_id_1 : $duel->user_id_2;
-                $mode = 'points_x2';
+                $mode = 'points_x3';
 
                 DB::table('profiles')
                     ->where('user_id', $winnerId)
