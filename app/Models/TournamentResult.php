@@ -18,6 +18,7 @@ class TournamentResult extends Model
         'event_id',
         'versus_id',
         'blade',
+        'over_blade',
         'assist_blade',
         'ratchet',
         'bit',
@@ -41,5 +42,15 @@ class TournamentResult extends Model
     public function event()
     {
         return $this->belongsTo(Event::class);
+    }
+
+    public function battlesAsPlayer1()
+    {
+        return $this->hasMany(MatchBattle::class, 'player1_combo_id');
+    }
+
+    public function battlesAsPlayer2()
+    {
+        return $this->hasMany(MatchBattle::class, 'player2_combo_id');
     }
 }

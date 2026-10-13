@@ -1,18 +1,15 @@
 {
-    "name": "SBBL Fantasy",
-    "short_name": "SBBL",
-    "description": "Terminal de Gestión de Bladers Cyberpunk",
+    "name": "SBBL HUB",
+    "short_name": "HUB",
     "start_url": "/",
     "display": "standalone",
     "background_color": "#0b0c10",
     "theme_color": "#0b0c10",
-    "orientation": "portrait-primary",
     "icons": [
         {
             "src": "/icons/icon-192x192.png",
             "sizes": "192x192",
-            "type": "image/png",
-            "purpose": "any maskable"
+            "type": "image/png"
         },
         {
             "src": "/icons/icon-512x512.png",

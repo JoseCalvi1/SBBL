@@ -90,4 +90,14 @@ class Event extends Model
     {
         return $this->belongsToMany(Versus::class, 'event_id');
     }
+
+    public function judges()
+    {
+        return $this->belongsToMany(User::class, 'event_judge');
+    }
+
+    public function tournamentMatches()
+    {
+        return $this->hasMany(TournamentMatch::class);
+    }
 }

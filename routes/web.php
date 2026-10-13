@@ -125,43 +125,86 @@ Route::domain('nacional.sbbl.es')->group(function () {
         return view('nacional.index');
     })->name('nacional.inicio');
 
-    Route::get('/2025', function () {
-        // 1. Ruta absoluta exacta según tu captura de OVH
-        $pathServer = "/home/sbbleso/www/nacional/fotos/2025";
+    // Ruta dinámica para cualquier año
+    Route::get('/{year}', function ($year) {
 
-        // 2. Ruta local (por si lo pruebas en tu PC)
-        $pathLocal = public_path("nacional/fotos/2025");
+        // 1. Validamos por seguridad que solo se pueda acceder a años permitidos
+        // (Añade '2027' aquí cuando llegue el momento)
+        if (!in_array($year, ['2025', '2026'])) {
+            abort(404);
+        }
 
-        // 3. Decidimos qué ruta usar
+        // 2. Rutas dinámicas usando la variable $year
+        $pathServer = "/home/sbbleso/www/nacional/fotos/{$year}";
+        $pathLocal = public_path("nacional/fotos/{$year}");
         $pathFinal = File::exists($pathServer) ? $pathServer : $pathLocal;
 
         $fotos = [];
 
-        // 4. Leemos los archivos
+        // 3. Leemos los archivos
         if (File::exists($pathFinal) && File::isDirectory($pathFinal)) {
             $files = File::files($pathFinal);
 
             foreach ($files as $file) {
-                // Filtramos solo imágenes
                 if (in_array(strtolower($file->getExtension()), ['jpg', 'jpeg', 'png', 'webp', 'gif'])) {
-                    // Generamos la URL pública (asset ya apunta a /www/ en tu caso)
-                    $fotos[] = asset('nacional/fotos/2025/' . $file->getFilename());
+                    $fotos[] = asset("nacional/fotos/{$year}/" . $file->getFilename());
                 }
             }
         }
 
-        // Ordenamos alfabéticamente
+        // 4. Ordenamos alfabéticamente
         $fotos = collect($fotos)->sort()->values();
 
-        return view('nacional.show_2025', compact('fotos'));
-    })->name('nacional.show_2025');
+        // 5. Retornamos la vista dinámica (nacional.show_2025 o nacional.show_2026)
+        return view("nacional.show_{$year}", compact('fotos'));
 
-    Route::get('/2026', function () {
-        return view('nacional.show_2026'); // El cuartel de este año
-    })->name('nacional.show_2026');
+    })->name('nacional.show_year');
 
 });
 
+Route::domain('hub.' . $dominio)->group(function () {
+    
+    // Metemos TODAS las rutas del hub dentro de la protección 'auth'
+    Route::middleware('auth')->group(function () {
+        
+        // Vistas principales
+        Route::get('/', function () { return view('hub.app'); })->name('hub.index');
+        Route::get('/home', function () { return redirect('/'); });
+
+        // Rutas de la API
+        Route::get('/api/torneos', [App\Http\Controllers\HubController::class, 'getTorneos']);
+        Route::get('/api/piezas', [App\Http\Controllers\HubController::class, 'getPiezas']);
+        Route::post('/api/torneos/{eventId}/deck', [App\Http\Controllers\HubController::class, 'guardarDeck']);
+        Route::delete('/api/torneos/{eventId}/asistencia', [App\Http\Controllers\HubController::class, 'cancelarAsistencia']);
+        Route::post('/api/torneos/{eventId}/comenzar', [App\Http\Controllers\HubController::class, 'comenzarTorneo']);
+        Route::get('/api/torneos/{eventId}/jugadores', [App\Http\Controllers\HubController::class, 'getNombresTorneo']);
+        Route::get('/api/meta', [App\Http\Controllers\HubController::class, 'getMeta']);
+        Route::get('/api/ultimo-deck', [App\Http\Controllers\HubController::class, 'getUltimoDeck']);
+        Route::get('/api/torneos/{id}/mi-deck', [App\Http\Controllers\TournamentEngineController::class, 'getMiDeck']);
+        Route::get('/api/ranking', [App\Http\Controllers\HubController::class, 'getRanking']);
+        Route::get('/api/regiones', [App\Http\Controllers\HubController::class, 'getRegiones']);
+        Route::get('/api/ranking-equipos', [App\Http\Controllers\HubController::class, 'getTeamRanking']);
+        Route::get('/api/duelos', [App\Http\Controllers\HubController::class, 'getTeamDuels']);
+        Route::post('/api/duelos', [App\Http\Controllers\HubController::class, 'storeTeamDuel']);
+        Route::get('/api/perfil/{id}', [App\Http\Controllers\HubController::class, 'getPlayerProfile']);
+        Route::get('/api/equipos', [App\Http\Controllers\HubController::class, 'getAllTeams']);
+        Route::post('/api/torneos/{eventId}/juez', [App\Http\Controllers\HubController::class, 'toggleJudge']);
+
+        Route::get('/api/torneos/{eventId}/arena', [App\Http\Controllers\TournamentEngineController::class, 'getArenaDashboard']);
+        Route::post('/api/torneos/{eventId}/arena/ronda', [App\Http\Controllers\TournamentEngineController::class, 'generateRound']);
+        Route::get('/api/torneos/partida/{matchId}', [App\Http\Controllers\TournamentEngineController::class, 'getMatchDetails']);
+        Route::post('/api/torneos/partida/{matchId}/batalla', [App\Http\Controllers\TournamentEngineController::class, 'storeBattle']);
+        Route::get('/api/torneos/{eventId}/clasificacion', [App\Http\Controllers\TournamentEngineController::class, 'getStandings']);
+        Route::post('/api/torneos/{eventId}/arena/top', [App\Http\Controllers\TournamentEngineController::class, 'generateTop']);
+        Route::get('/torneos/{eventId}/cuadro', [App\Http\Controllers\TournamentEngineController::class, 'showBracket'])->name('torneo.bracket');
+        Route::get('/api/torneos/{eventId}/cuadro/html', [App\Http\Controllers\TournamentEngineController::class, 'renderBracketHtml']);
+
+        Route::delete('/api/torneos/partida/{id}/undo', [App\Http\Controllers\TournamentEngineController::class, 'deshacerUltimoRegistro']);
+        Route::post('/api/torneos/partida/{id}/warning', [App\Http\Controllers\TournamentEngineController::class, 'asignarWarning']);
+        Route::post('/api/torneos/{eventId}/jugador/{userId}/drop', [App\Http\Controllers\TournamentEngineController::class, 'dropJugador']);
+        Route::get('/api/torneos/{eventId}/jugadores', [App\Http\Controllers\TournamentEngineController::class, 'getJugadoresTorneo']);
+    });
+});
 /*
 |--------------------------------------------------------------------------
 | RUTAS DE LA WEB PRINCIPAL (sbbl.es)
@@ -383,6 +426,11 @@ Route::post('bits', [BeybladeDatabaseController::class, 'store'])->name('bits.st
 Route::get('/bits/{id}/edit', [BeybladeDatabaseController::class, 'editBit'])->name('bits.edit');
 Route::put('/bits/{id}', [BeybladeDatabaseController::class, 'updateBit'])->name('bits.update');
 Route::get('beyblade-database/bits/{id}', [BeybladeDatabaseController::class, 'showBit'])->name('database.showBit');
+
+Route::post('overBlades', [BeybladeDatabaseController::class, 'store'])->name('overBlade.store');
+Route::get('/overBlades/{id}/edit', [BeybladeDatabaseController::class, 'editoverBlade'])->name('overBlade.edit');
+Route::put('/overBlades/{id}', [BeybladeDatabaseController::class, 'updateoverBlade'])->name('overBlade.update');
+Route::get('beyblade-database/overBlades/{id}', [BeybladeDatabaseController::class, 'showoverBlade'])->name('overBlade.showBit');
 
 Route::post('assistBlades', [BeybladeDatabaseController::class, 'store'])->name('assistBlade.store');
 Route::get('/assistBlades/{id}/edit', [BeybladeDatabaseController::class, 'editAssistBlade'])->name('assistBlade.edit');
