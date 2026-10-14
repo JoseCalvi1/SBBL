@@ -10,7 +10,7 @@ class TournamentMatch extends Model
 
     protected $fillable = [
         'event_id', 'round_number', 'bracket_type', 'player1_id', 'player2_id', 
-        'status', 'winner_id', 'player1_score', 'player2_score', 'match_number' // <-- Añadido
+        'status', 'locked_by', 'winner_id', 'player1_score', 'player2_score', 'match_number'
     ];
 
     // MAGIA: Se ejecuta justo antes de crear una partida nueva en la BD
@@ -61,5 +61,10 @@ class TournamentMatch extends Model
 
     public function battles() {
         return $this->hasMany(MatchBattle::class);
+    }
+
+    public function lockedByUser()
+    {
+        return $this->belongsTo(User::class, 'locked_by');
     }
 }

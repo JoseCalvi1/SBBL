@@ -43,7 +43,7 @@ class TournamentEngineController extends Controller
 
         // Filtro limpio: Oculta Fantasmas y Byes (partidas completadas sin rival), 
         // pero MUESTRA las partidas futuras que están esperando a que lleguen los rivales.
-        $matches = TournamentMatch::with(['player1.profile', 'player2.profile'])
+        $matches = TournamentMatch::with(['player1.profile', 'player2.profile', 'lockedByUser'])
             ->where('event_id', $eventId)
             ->where('round_number', $requestedRound)
             ->where('player1_score', '!=', 99) 
@@ -93,21 +93,31 @@ class TournamentEngineController extends Controller
     // Obtiene los detalles de una partida y los Decks de los jugadores
     public function getMatchDetails($matchId)
     {
-        $match = TournamentMatch::with(['player1', 'player2'])->findOrFail($matchId);
-        
-        // Obtenemos las 3 piezas registradas por cada jugador para este evento
-        // Asumiendo que guardaste 3 registros (filas) por usuario en tournament_results
-        $deck1 = \App\Models\TournamentResult::where('event_id', $match->event_id)
-            ->where('user_id', $match->player1_id)->get();
-            
-        $deck2 = \App\Models\TournamentResult::where('event_id', $match->event_id)
-            ->where('user_id', $match->player2_id)->get();
+        $match = \App\Models\TournamentMatch::with(['player1', 'player2'])->findOrFail($matchId);
+
+        $p1Deck = \App\Models\TournamentResult::where('event_id', $match->event_id)
+            ->where('user_id', $match->player1_id)
+            ->whereNotNull('blade')
+            ->orderBy('id', 'asc')
+            ->get();
+
+        $p2Deck = \App\Models\TournamentResult::where('event_id', $match->event_id)
+            ->where('user_id', $match->player2_id)
+            ->whereNotNull('blade')
+            ->orderBy('id', 'asc')
+            ->get();
+
+        // NUEVO: Obtenemos los choques jugados para saber qué beys ya se han usado en el 3on3
+        $battles = \Illuminate\Support\Facades\DB::table('match_battles')
+            ->where('tournament_match_id', $matchId)
+            ->orderBy('id', 'asc')
+            ->get();
 
         return response()->json([
-            'success' => true,
             'match' => $match,
-            'deck1' => $deck1,
-            'deck2' => $deck2
+            'p1_deck' => $p1Deck,
+            'p2_deck' => $p2Deck,
+            'battles' => $battles // <-- Lo enviamos al frontend
         ]);
     }
 
@@ -296,16 +306,20 @@ class TournamentEngineController extends Controller
         return view('hub.partials.bracket_content', compact('winnersBracket', 'losersBracket', 'finals'));
     }
 
-    public function getMiDeck($eventId)
+    public function getMiDeck(Request $request, $eventId)
     {
         $userId = auth()->id();
-        \Illuminate\Support\Facades\Log::info("Buscando deck - Evento: $eventId | Usuario: $userId");
+        
+        // Si un Juez pide ver el deck de otro jugador concreto
+        if ($request->filled('user_id') && auth()->check() && auth()->user()->hasAnyRole(['admin', 'juez', 'arbitro'])) {
+            $userId = $request->query('user_id');
+        }
 
         $deck = \App\Models\TournamentResult::where('event_id', $eventId)
             ->where('user_id', $userId)
+            ->whereNotNull('blade')
+            ->orderBy('id', 'asc') // <-- CRÍTICO: Evita que el 9-60 se cruce con otro bey
             ->get();
-            
-        \Illuminate\Support\Facades\Log::info("Piezas encontradas: " . $deck->count());
             
         return response()->json($deck);
     }
@@ -418,6 +432,12 @@ class TournamentEngineController extends Controller
 
         $match->save();
 
+        // Si la partida terminó por penalización en fase eliminatoria, avanzamos a los jugadores
+        if ($matchCompleted && $match->bracket_type !== 'swiss') {
+            $engine = new \App\Services\Tournament\DoubleEliminationEngine();
+            $engine->progressMatch($match);
+        }
+
         return response()->json([
             'success' => true,
             'message' => $msg,
@@ -431,32 +451,44 @@ class TournamentEngineController extends Controller
     public function getJugadoresTorneo($eventId)
     {
         $event = \App\Models\Event::findOrFail($eventId);
-        
-        // Obtenemos los usuarios inscritos a través de la relación de Eloquent
-        // (La que ya tienes configurada en tu modelo Event)
         $users = $event->users()->get();
+        
+        // Contamos cuántas piezas tiene registradas cada jugador en este torneo
+        $decksCount = \App\Models\TournamentResult::where('event_id', $eventId)
+            ->whereNotNull('blade')
+            ->select('user_id', \Illuminate\Support\Facades\DB::raw('count(*) as total'))
+            ->groupBy('user_id')
+            ->pluck('total', 'user_id');
+
+        $isStaff = auth()->check() && auth()->user()->hasAnyRole(['admin', 'juez', 'arbitro']);
         
         $jugadores = [];
         $nombresTxt = "";
         
         foreach ($users as $user) {
-            // Verificamos si en la tabla intermedia (pivot) está marcado como dropped
             $isDropped = (isset($user->pivot->puesto) && $user->pivot->puesto === 'dropped') || 
                          (isset($user->pivot->status) && $user->pivot->status === 'dropped');
-                         
+            
+            $piezasRegistradas = $decksCount[$user->id] ?? 0;
+
             $jugadores[] = [
                 'id' => $user->id,
                 'name' => $user->name,
-                'puesto' => $isDropped ? 'dropped' : 'active'
+                'puesto' => $isDropped ? 'dropped' : 'active',
+                'has_deck' => $piezasRegistradas >= 3 // True si tiene los 3 beys listos
             ];
             
-            $nombresTxt .= $user->name . "\n";
+            if (!$isDropped) {
+                $nombresTxt .= $user->name . "\n";
+            }
         }
 
         return response()->json([
             'success' => true, 
             'jugadores' => $jugadores,
-            'nombres' => $nombresTxt // Mantenemos esto para que tu botón de copiar lista siga funcionando
+            'nombres' => $nombresTxt,
+            'is_staff' => $isStaff,
+            'event_status' => $event->status
         ]);
     }
 
@@ -475,5 +507,53 @@ class TournamentEngineController extends Controller
             'success' => true,
             'message' => 'Jugador retirado del torneo exitosamente.'
         ]);
+    }
+
+    // El Juez entra en la batalla
+    public function lockMatch($matchId)
+    {
+        if (!auth()->user()->hasAnyRole(['admin', 'juez', 'arbitro'])) return response()->json(['success' => false]);
+        
+        $match = TournamentMatch::findOrFail($matchId);
+        
+        // Si ya está bloqueada por otro, avisamos
+        if ($match->locked_by !== null && $match->locked_by !== auth()->id()) {
+            return response()->json([
+                'success' => false, 
+                'message' => 'Mesa ocupada por otro juez.'
+            ]);
+        }
+        
+        $match->locked_by = auth()->id();
+        $match->save();
+        
+        return response()->json(['success' => true]);
+    }
+
+    // El Juez sale de la batalla
+    public function unlockMatch($matchId)
+    {
+        $match = TournamentMatch::findOrFail($matchId);
+        
+        // Solo la desbloquea si era él quien la tenía bloqueada (o es un admin forzando)
+        if ($match->locked_by === auth()->id() || auth()->user()->hasRole('admin')) {
+            $match->locked_by = null;
+            $match->save();
+        }
+        
+        return response()->json(['success' => true]);
+    }
+
+    public function finalizeTournament($eventId)
+    {
+        if (!auth()->user()->hasAnyRole(['admin', 'juez', 'arbitro'])) {
+            return response()->json(['success' => false, 'message' => '⛔ Acceso denegado.'], 403);
+        }
+
+        $event = Event::findOrFail($eventId);
+        $event->status = 'COMPLETED'; 
+        $event->save();
+
+        return response()->json(['success' => true, 'message' => '🏆 Torneo finalizado. ¡Acta cerrada con éxito!']);
     }
 }

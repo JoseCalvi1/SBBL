@@ -6,6 +6,9 @@
             <i class="fas fa-tablet-alt text-yellow-500 mr-2"></i> PANEL
         </h3>
         <div class="flex gap-2">
+            <button onclick="alternarLadosBatalla()" class="bg-gray-800 hover:bg-gray-700 text-cyan-400 border border-cyan-800/60 px-2.5 py-1 rounded-lg text-[10px] font-bold tracking-widest uppercase flex items-center gap-1 shadow-md active:scale-95 transition-all" title="Intercambiar lados en la mesa">
+                <i class="fas fa-exchange-alt"></i> LADOS
+            </button>
             <button onclick="deshacerUltimoRegistro()" class="text-gray-400 hover:text-cyan-400 bg-gray-800 p-2 rounded-lg text-xl transition-colors shadow-sm" title="Deshacer Acción">
                 <i class="fas fa-undo"></i>
             </button>
@@ -16,7 +19,7 @@
     </div>
 
     <!-- Zona de Jugadores y Marcador -->
-    <div class="flex justify-between items-stretch p-4 gap-2 bg-gray-950 shadow-inner">
+    <div id="batallaPlayersHeader" class="flex justify-between items-stretch p-4 gap-2 bg-gray-950 shadow-inner">
         <!-- Jugador 1 -->
         <div class="flex-1 bg-gray-900 border-t-4 border-cyan-500 rounded-lg p-3 text-center flex flex-col justify-center relative overflow-hidden">
             <div class="absolute -right-4 -bottom-4 opacity-10"><i class="fas fa-user text-6xl text-cyan-500"></i></div>
@@ -54,9 +57,10 @@
         <!-- PASO 1: DECK CHECK -->
         <div>
             <h4 class="text-[10px] text-gray-500 font-bold tracking-widest uppercase mb-2"><i class="fas fa-check-circle mr-1"></i> 1. SELECCIONA LOS BEYS EN LA ARENA</h4>
-            <div class="grid grid-cols-2 gap-3">
-                <div id="deck_p1_container" class="space-y-2"></div>
-                <div id="deck_p2_container" class="space-y-2"></div>
+            <!-- Asegúrate de que las dos columnas de combos en batalla.blade.php se llamen así: -->
+            <div id="batallaDecksContainer" class="flex justify-between gap-3 mb-4 transition-all duration-300">
+                <div id="deck_p1_container" class="w-1/2 space-y-2"></div>
+                <div id="deck_p2_container" class="w-1/2 space-y-2"></div>
             </div>
         </div>
 
@@ -66,7 +70,7 @@
             <!-- PASO 2: GANADOR -->
             <div>
                 <h4 class="text-[10px] text-gray-500 font-bold tracking-widest uppercase mb-2"><i class="fas fa-trophy mr-1"></i> 2. ¿QUIÉN HA GANADO?</h4>
-                <div class="flex gap-3">
+                <div id="batallaFinishButtonsContainer" class="flex gap-3">
                     <button id="btn_ganador_p1" onclick="seleccionarGanador('p1')" class="flex-1 bg-gray-900 border border-gray-700 text-gray-400 font-bold py-4 rounded-xl text-xs uppercase tracking-widest transition-all active:scale-95 shadow-lg">GANA P1</button>
                     <button id="btn_ganador_p2" onclick="seleccionarGanador('p2')" class="flex-1 bg-gray-900 border border-gray-700 text-gray-400 font-bold py-4 rounded-xl text-xs uppercase tracking-widest transition-all active:scale-95 shadow-lg">GANA P2</button>
                 </div>

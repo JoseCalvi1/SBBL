@@ -203,7 +203,10 @@ Route::domain('hub.' . $dominio)->group(function () {
         Route::post('/api/torneos/partida/{id}/warning', [App\Http\Controllers\TournamentEngineController::class, 'asignarWarning']);
         Route::post('/api/torneos/{eventId}/jugador/{userId}/drop', [App\Http\Controllers\TournamentEngineController::class, 'dropJugador']);
         Route::get('/api/torneos/{eventId}/jugadores', [App\Http\Controllers\TournamentEngineController::class, 'getJugadoresTorneo']);
-    });
+        Route::post('/api/torneos/partida/{matchId}/lock', [App\Http\Controllers\TournamentEngineController::class, 'lockMatch']);
+        Route::post('/api/torneos/partida/{matchId}/unlock', [App\Http\Controllers\TournamentEngineController::class, 'unlockMatch']);
+        Route::post('/api/torneos/{eventId}/finalizar', [App\Http\Controllers\TournamentEngineController::class, 'finalizeTournament']);
+        });
 });
 /*
 |--------------------------------------------------------------------------

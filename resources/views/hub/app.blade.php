@@ -15,8 +15,20 @@
     
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
-    <style>
+
+    <!-- LIBRERÍA TOM SELECT PARA BUSCADOR EN SELECTS -->
+<link href="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/css/tom-select.css" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/js/tom-select.complete.min.js"></script>
+
+<style>
+    /* Adaptación de TomSelect al Modo Oscuro de la SBBL */
+    .ts-wrapper { width: 100%; }
+    .ts-control { background-color: #111827 !important; border: 1px solid #374151 !important; color: white !important; border-radius: 0.5rem !important; padding: 0.75rem 1rem !important; font-size: 0.875rem !important; box-shadow: none !important; }
+    .ts-control > input { color: white !important; font-size: 0.875rem !important; }
+    .ts-dropdown { background-color: #1f2937 !important; border: 1px solid #374151 !important; color: white !important; border-radius: 0.5rem !important; margin-top: 4px !important; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.5) !important; }
+    .ts-dropdown .option { padding: 0.5rem 1rem !important; cursor: pointer !important; }
+    .ts-dropdown .option:hover, .ts-dropdown .active { background-color: #374151 !important; color: #22d3ee !important; }
+    .ts-control.disabled, .ts-control.disabled * { background-color: #1f2937 !important; cursor: not-allowed !important; opacity: 0.7 !important; }
         body { overscroll-behavior-y: none; background-color: #0b0c10; color: #c5c6c7; user-select: none; -webkit-user-select: none; }
         .neon-text { color: #66fcf1; text-shadow: 0 0 5px rgba(102, 252, 241, 0.5); }
         

@@ -93,11 +93,18 @@ class HubController extends Controller
     {
         $event = Event::findOrFail($eventId);
         $userId = Auth::id();
-        $date = Carbon::parse($event->date);
+        $isStaff = Auth::check() && Auth::user()->hasAnyRole(['admin', 'juez', 'arbitro']);
 
+        // NUEVO: Si es Juez/Admin y está editando el deck de otro jugador
+        if ($isStaff && $request->filled('target_user_id')) {
+            $userId = $request->input('target_user_id');
+        }
+
+        $date = Carbon::parse($event->date);
         $isAlreadyInscribed = $event->users()->where('user_id', $userId)->exists();
 
-        if (!$isAlreadyInscribed && in_array($event->beys, ['ranking', 'rankingplus'])) {
+        // Solo aplicamos límites semanales/mensuales si no está inscrito y NO lo está forzando un Juez
+        if (!$isAlreadyInscribed && !$request->filled('target_user_id') && in_array($event->beys, ['ranking', 'rankingplus'])) {
             $registeredThisWeek = DB::table('assist_user_event')
                 ->join('events', 'assist_user_event.event_id', '=', 'events.id')
                 ->where('assist_user_event.user_id', $userId)
@@ -128,6 +135,7 @@ class HubController extends Controller
             return response()->json(['success' => true, 'message' => '✅ Plaza asegurada (Inscripción Tentativa).']);
         }
 
+        // Borramos el deck anterior de este evento para no duplicar ni mezclar piezas
         TournamentResult::where('user_id', $userId)->where('event_id', $eventId)->delete();
 
         $blades = $request->input("blade", []);
@@ -142,11 +150,11 @@ class HubController extends Controller
             TournamentResult::create([
                 'user_id'         => $userId,
                 'event_id'        => $eventId,
-                'blade'           => $blade,
-                'over_blade'      => $overBlades[$index] ?? null,
-                'assist_blade'    => $assistBlades[$index] ?? null,
-                'ratchet'         => $ratchets[$index] ?? null,
-                'bit'             => $bits[$index] ?? null,
+                'blade'           => trim($blade),
+                'over_blade'      => !empty($overBlades[$index]) ? trim($overBlades[$index]) : null,
+                'assist_blade'    => !empty($assistBlades[$index]) ? trim($assistBlades[$index]) : null,
+                'ratchet'         => isset($ratchets[$index]) ? trim($ratchets[$index]) : null,
+                'bit'             => isset($bits[$index]) ? trim($bits[$index]) : null,
                 'victorias'       => 0,
                 'derrotas'        => 0,
                 'puntos_ganados'  => 0,
@@ -342,7 +350,7 @@ class HubController extends Controller
 
         $latestEventId = TournamentResult::where('user_id', $userId)
             ->whereNotNull('blade')
-            ->orderBy('created_at', 'desc')
+            ->orderBy('id', 'desc')
             ->value('event_id');
 
         if (!$latestEventId) {
@@ -351,28 +359,11 @@ class HubController extends Controller
 
         $ultimoDeck = TournamentResult::where('user_id', $userId)
             ->where('event_id', $latestEventId)
+            ->orderBy('id', 'asc') // <-- CRÍTICO: Mantiene el orden exacto 1, 2, 3
             ->limit(3)
             ->get(['blade', 'ratchet', 'bit', 'over_blade', 'assist_blade']);
 
         return response()->json($ultimoDeck);
-    }
-
-    public function getRanking(Request $request)
-    {
-        $limit = $request->get('limit', 100);
-
-        $ranking = Profile::with([
-            'user' => function($q) { $q->select('id', 'name'); },
-            'region' => function($q) { $q->select('id', 'name'); }
-        ])
-        ->select('id', 'user_id', 'region_id', 'points_x3')
-        ->where('points_x3', '>', 0)
-        ->orderBy('points_x3', 'DESC')
-        ->orderBy('id', 'ASC')
-        ->limit($limit)
-        ->get();
-
-        return response()->json($ranking);
     }
 
     // EQUIPOS: Ahora SIN la columna de imagen 'logo' para evitar memory limits
@@ -579,5 +570,19 @@ class HubController extends Controller
     {
         $teams = Team::select('id', 'name')->orderBy('name', 'ASC')->get();
         return response()->json($teams);
+    }
+    // Obtiene el ranking individual de los Bladers
+    public function getRanking(Request $request)
+    {
+        $limit = $request->get('limit', 100);
+
+        // Buscamos los perfiles que tengan puntos, ordenados de mayor a menor
+        $ranking = \App\Models\Profile::with(['user', 'region'])
+            ->where('points_x3', '>', 0)
+            ->orderBy('points_x3', 'DESC')
+            ->limit($limit)
+            ->get();
+
+        return response()->json($ranking);
     }
 }
