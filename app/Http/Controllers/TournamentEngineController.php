@@ -451,9 +451,15 @@ class TournamentEngineController extends Controller
     public function getJugadoresTorneo($eventId)
     {
         $event = \App\Models\Event::findOrFail($eventId);
-        $users = $event->users()->get();
         
-        // Contamos cuántas piezas tiene registradas cada jugador en este torneo
+        $jugadoresRaw = \Illuminate\Support\Facades\DB::table('assist_user_event')
+            ->join('users', 'assist_user_event.user_id', '=', 'users.id')
+            ->where('assist_user_event.event_id', $eventId)
+            ->select('users.id', 'users.name', 'assist_user_event.puesto')
+            ->orderBy('assist_user_event.created_at', 'asc')
+            ->get();
+
+        // Contamos cuántas piezas tiene registradas cada jugador
         $decksCount = \App\Models\TournamentResult::where('event_id', $eventId)
             ->whereNotNull('blade')
             ->select('user_id', \Illuminate\Support\Facades\DB::raw('count(*) as total'))
@@ -464,23 +470,33 @@ class TournamentEngineController extends Controller
         
         $jugadores = [];
         $nombresTxt = "";
+        $inscribedIds = [];
         
-        foreach ($users as $user) {
-            $isDropped = (isset($user->pivot->puesto) && $user->pivot->puesto === 'dropped') || 
-                         (isset($user->pivot->status) && $user->pivot->status === 'dropped');
-            
+        foreach ($jugadoresRaw as $user) {
+            $isDropped = $user->puesto === 'dropped';
             $piezasRegistradas = $decksCount[$user->id] ?? 0;
-
+            
             $jugadores[] = [
                 'id' => $user->id,
                 'name' => $user->name,
                 'puesto' => $isDropped ? 'dropped' : 'active',
-                'has_deck' => $piezasRegistradas >= 3 // True si tiene los 3 beys listos
+                'has_deck' => $piezasRegistradas >= 3
             ];
             
+            $inscribedIds[] = $user->id;
+
             if (!$isDropped) {
                 $nombresTxt .= $user->name . "\n";
             }
+        }
+
+        $availableUsers = [];
+        if ($isStaff) {
+            // Buscamos todos los usuarios del sistema que NO estén ya en la lista de inscritos
+            $availableUsers = \App\Models\User::whereNotIn('id', $inscribedIds)
+                ->select('id', 'name')
+                ->orderBy('name', 'asc')
+                ->get();
         }
 
         return response()->json([
@@ -488,8 +504,40 @@ class TournamentEngineController extends Controller
             'jugadores' => $jugadores,
             'nombres' => $nombresTxt,
             'is_staff' => $isStaff,
-            'event_status' => $event->status
+            'event_status' => $event->status,
+            'available_users' => $availableUsers
         ]);
+    }
+
+    // NUEVO: Función para añadir jugadores a mano
+    public function addJugador(Request $request, $eventId)
+    {
+        if (!auth()->user()->hasAnyRole(['admin', 'juez', 'arbitro'])) {
+            return response()->json(['success' => false, 'message' => '⛔ Acceso denegado'], 403);
+        }
+
+        $userId = $request->input('user_id');
+        if (!$userId) {
+            return response()->json(['success' => false, 'message' => 'Selecciona un jugador']);
+        }
+
+        // Evitar duplicados por si acaso
+        $exists = \Illuminate\Support\Facades\DB::table('assist_user_event')
+            ->where('event_id', $eventId)
+            ->where('user_id', $userId)
+            ->exists();
+
+        if (!$exists) {
+            \Illuminate\Support\Facades\DB::table('assist_user_event')->insert([
+                'event_id' => $eventId,
+                'user_id' => $userId,
+                'puesto' => null,
+                'created_at' => now(),
+                'updated_at' => now()
+            ]);
+        }
+
+        return response()->json(['success' => true, 'message' => '✅ Jugador añadido a la arena']);
     }
 
     public function dropJugador($eventId, $userId)

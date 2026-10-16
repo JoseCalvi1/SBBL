@@ -206,6 +206,7 @@ Route::domain('hub.' . $dominio)->group(function () {
         Route::post('/api/torneos/partida/{matchId}/lock', [App\Http\Controllers\TournamentEngineController::class, 'lockMatch']);
         Route::post('/api/torneos/partida/{matchId}/unlock', [App\Http\Controllers\TournamentEngineController::class, 'unlockMatch']);
         Route::post('/api/torneos/{eventId}/finalizar', [App\Http\Controllers\TournamentEngineController::class, 'finalizeTournament']);
+        Route::post('/api/torneos/{eventId}/jugador/add', [App\Http\Controllers\TournamentEngineController::class, 'addJugador']);
         });
 });
 /*

@@ -626,15 +626,36 @@
             }
             
             let listaHTML = '';
+            
+            // --- NUEVO: Buscador manual para el Juez ---
+            if (data.is_staff && data.available_users) {
+                listaHTML += `
+                    <div class="mb-4 bg-gray-900 border border-gray-700 p-3 rounded-lg shadow-inner">
+                        <label class="text-[10px] text-cyan-400 font-bold tracking-widest uppercase block mb-2"><i class="fas fa-user-plus mr-1"></i> AÑADIR JUGADOR MANUALMENTE</label>
+                        <div class="flex gap-2">
+                            <div class="flex-1">
+                                <select id="staffAddUserSelect" class="w-full" placeholder="Buscar blader..." autocomplete="off">
+                                    <option value="">Buscar blader...</option>
+                                    ${data.available_users.map(u => `<option value="${u.id}">${u.name}</option>`).join('')}
+                                </select>
+                            </div>
+                            <button onclick="anadirJugadorManual(${eventId})" class="bg-cyan-700 hover:bg-cyan-600 active:bg-cyan-800 text-white px-4 rounded-lg font-bold transition-all shadow-md text-xs">
+                                AÑADIR
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }
+            // -------------------------------------------
+
             if (data.jugadores.length === 0) {
-                listaHTML = '<div class="text-center text-gray-500 py-4 font-bold text-sm">La arena está vacía</div>';
+                listaHTML += '<div class="text-center text-gray-500 py-4 font-bold text-sm">La arena está vacía</div>';
             } else { 
                 data.jugadores.forEach((jugador, index) => { 
                     const esReserva = (index + 1) > currentListaAforo; 
                     const isDropped = jugador.puesto === 'dropped';
                     const safeName = jugador.name.replace(/'/g, "\\'");
                     
-                    // Icono de Estado del Deck (Verde = OK, Amarillo = Pendiente/Tentativo)
                     const deckIcon = jugador.has_deck 
                         ? `<span class="text-green-400 text-[10px] bg-green-950/60 border border-green-700/50 px-1.5 py-0.5 rounded font-bold mr-2 shrink-0" title="Deck Registrado"><i class="fas fa-layer-group"></i> OK</span>`
                         : `<span class="text-yellow-500 text-[10px] bg-yellow-950/60 border border-yellow-700/50 px-1.5 py-0.5 rounded font-bold mr-2 shrink-0" title="Sin Deck / Tentativo"><i class="fas fa-exclamation-circle"></i> SIN DECK</span>`;
@@ -647,7 +668,6 @@
                     if (isDropped) {
                         badgeHTML = `<span class="bg-red-600 text-white text-[10px] px-2 py-0.5 rounded font-bold uppercase tracking-widest shrink-0"><i class="fas fa-skull"></i> DROPPED</span>`;
                     } else if (data.is_staff) {
-                        // Botones exclusivos para el Juez: Editar el Deck del jugador + Hacer Drop
                         staffBtns = `
                             <button onclick="abrirModalDeckJuez(${eventId}, ${jugador.id}, '${safeName}')" class="ml-2 bg-cyan-900/50 hover:bg-cyan-600 text-cyan-400 hover:text-white px-2 py-1 rounded border border-cyan-700/50 transition-colors text-xs" title="Meter/Editar Deck">
                                 <i class="fas fa-edit"></i>
@@ -660,7 +680,7 @@
                     listaHTML += `
                         <div class="flex justify-between items-center p-3 rounded-lg border mb-2 ${isDropped ? 'bg-red-950/20 border-red-900/30 opacity-50' : (esReserva ? 'bg-red-950/30 border-red-900/50 text-red-400' : 'bg-gray-800 border-gray-700 text-white')}">
                             <div class="flex items-center truncate pr-2">
-                                ${!isDropped ? deckIcon : ''}
+                                ${!isDropped && typeof jugador.has_deck !== 'undefined' ? deckIcon : ''}
                                 <span class="font-mono text-sm font-bold truncate ${isDropped ? 'line-through text-gray-500' : ''}">${jugador.name}</span>
                             </div>
                             <div class="flex items-center shrink-0">
@@ -670,9 +690,63 @@
                         </div>`; 
                 }); 
             }
+            
             document.getElementById('listadoJugadoresContent').innerHTML = listaHTML; 
+            
+            // Inicializar el buscador de TomSelect para el desplegable de añadir
+            if (document.getElementById('staffAddUserSelect')) {
+                new TomSelect('#staffAddUserSelect', {
+                    create: false,
+                    sortField: { field: "text", direction: "asc" },
+                    maxOptions: 100 // Límite para que rinda rapidísimo en móviles
+                });
+            }
+            
         } catch (error) { 
             document.getElementById('listadoJugadoresContent').innerHTML = '<div class="text-center text-red-500 py-4 font-bold text-sm">Error de conexión</div>';
+        }
+    }
+
+    async function anadirJugadorManual(eventId) {
+        const select = document.getElementById('staffAddUserSelect');
+        if (!select || !select.value) {
+            mostrarToast("Por favor, busca y selecciona un jugador.", true);
+            triggerHaptic('error');
+            return;
+        }
+        
+        triggerHaptic('medium');
+        const userId = select.value;
+        const btn = select.closest('.flex').querySelector('button');
+        const oldText = btn.innerHTML;
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+
+        try {
+            const res = await fetch(`/api/torneos/${eventId}/jugador/add`, {
+                method: 'POST',
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'), 
+                    'Accept': 'application/json' 
+                },
+                body: JSON.stringify({ user_id: userId })
+            });
+            const data = await res.json();
+            
+            mostrarToast(data.message, !data.success);
+            
+            if(data.success) {
+                cargarEventos(); // Actualizamos la vista de eventos por si el total de aforo cambia
+                abrirListaJugadores(eventId, currentListaAforo); // Recargamos la lista y el buscador
+            } else {
+                btn.disabled = false;
+                btn.innerHTML = oldText;
+            }
+        } catch(e) {
+            mostrarToast("Error al añadir jugador.", true);
+            btn.disabled = false;
+            btn.innerHTML = oldText;
         }
     }
 
