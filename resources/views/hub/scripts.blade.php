@@ -84,79 +84,96 @@
     }
 
     async function cargarEventos() {
-        triggerHaptic('light');
-        const contenedor = document.getElementById('lista-eventos');
-        const tipo = document.getElementById('filtro-tipo').value;
-        const region = document.getElementById('filtro-region').value;
-        contenedor.innerHTML = '<p class="text-gray-500 text-sm text-center mt-10 animate-pulse">Sincronizando estadio...</p>';
-        try {
-            const res = await fetch(`/api/torneos?tipo=${tipo}&region=${region}`);
-            if (!res.ok) throw new Error('Error en torneos');
-            const torneos = await res.json();
-            if (torneos.length === 0) { contenedor.innerHTML = '<p class="text-gray-500 text-sm text-center mt-5 font-bold tracking-widest">NO HAY EVENTOS.</p>'; return; }
-            let htmlTemp = '';
-            torneos.forEach(torneo => {
-                const fecha = new Date(torneo.date).toLocaleDateString('es-ES');
-                const isRank = torneo.beys === 'ranking' || torneo.beys === 'rankingplus';
-                const badge = isRank ? 'bg-red-900 text-red-400' : 'bg-cyan-900 text-cyan-400';
-                const cardTheme = torneo.is_inscribed ? 'bg-cyan-900/20 border-cyan-500 shadow-[0_0_15px_rgba(6,182,212,0.15)]' : 'bg-gray-900 border-gray-700 shadow-lg';
-                const limitText = torneo.aforo_maximo > 1000 ? '∞' : torneo.aforo_maximo;
-                const aforoLleno = torneo.total_inscritos >= torneo.aforo_maximo;
+    triggerHaptic('light');
+    const contenedor = document.getElementById('lista-eventos');
+    const tipo = document.getElementById('filtro-tipo').value;
+    const region = document.getElementById('filtro-region').value;
+    contenedor.innerHTML = '<p class="text-gray-500 text-sm text-center mt-10 animate-pulse">Sincronizando estadio...</p>';
+    
+    try {
+        const res = await fetch(`/api/torneos?tipo=${tipo}&region=${region}`);
+        if (!res.ok) throw new Error('Error en torneos');
+        const torneos = await res.json();
+        
+        if (torneos.length === 0) {
+            contenedor.innerHTML = '<p class="text-gray-500 text-sm text-center mt-5 font-bold tracking-widest">NO HAY EVENTOS.</p>';
+            return;
+        }
+        
+        let htmlTemp = '';
+        torneos.forEach(torneo => {
+            const fecha = new Date(torneo.date).toLocaleDateString('es-ES');
+            // NUEVO: Extraemos la hora (formato HH:MM)
+            const hora = torneo.time ? torneo.time.substring(0, 5) : '--:--';
+            
+            const isRank = torneo.beys === 'ranking' || torneo.beys === 'rankingplus';
+            const badge = isRank ? 'bg-red-900 text-red-400' : 'bg-cyan-900 text-cyan-400';
+            const cardTheme = torneo.is_inscribed ? 'bg-cyan-900/20 border-cyan-500 shadow-[0_0_15px_rgba(6,182,212,0.15)]' : 'bg-gray-900 border-gray-700 shadow-lg';
+            const limitText = torneo.aforo_maximo > 1000 ? '∞' : torneo.aforo_maximo;
+            const aforoLleno = torneo.total_inscritos >= torneo.aforo_maximo;
+            const colorAforo = aforoLleno ? 'text-red-400' : 'text-cyan-400';
 
-                let botonesHTML = '';
-                if (torneo.status === 'LIVE') {
-                    if (torneo.is_judge_assigned) {
-                        botonesHTML = `<button onclick="abrirPanelArbitraje(${torneo.id})" class="w-full bg-yellow-700 active:bg-yellow-600 border border-yellow-500 text-white font-bold py-3 rounded-lg text-sm tracking-wide shadow-[0_0_15px_rgba(234,179,8,0.3)] transition-colors relative z-10"><i class="fas fa-tablet-alt mr-2"></i> PANEL DE ARENA</button>`;
-                    } else {
-                        // Vista pública para jugadores normales cuando está en LIVE
-                        botonesHTML = `<div class="flex gap-2 relative z-10">
-                            <button onclick="abrirArenaPublica(${torneo.id})" class="flex-1 bg-fuchsia-700 active:bg-fuchsia-600 border border-fuchsia-500 text-white font-bold py-3 rounded-lg text-sm tracking-wide shadow-[0_0_15px_rgba(192,38,211,0.3)] transition-colors"><i class="fas fa-eye mr-2"></i> VER ARENA</button>
-                            ${torneo.is_inscribed ? `<button onclick="abrirModal(${torneo.id}, '${torneo.status}')" class="w-14 bg-cyan-900/50 border border-cyan-500 text-cyan-400 font-bold py-3 rounded-lg text-sm transition-colors flex items-center justify-center"><i class="fas fa-layer-group"></i></button>` : ''}
-                        </div>`;
-                    }
-                } else if (torneo.is_inscribed) {
-                    botonesHTML = `<div class="flex gap-2 relative z-10"><button onclick="abrirModal(${torneo.id}, '${torneo.status}')" class="flex-1 bg-cyan-700 active:bg-cyan-600 border border-cyan-400 text-white font-bold py-3 rounded-lg text-sm tracking-wide transition-colors"><i class="fas fa-layer-group me-1"></i> MI DECK</button><button onclick="cancelarAsistencia(${torneo.id})" class="w-14 bg-red-900/50 active:bg-red-800 border border-red-500 text-red-400 font-bold py-3 rounded-lg text-sm transition-colors flex items-center justify-center"><i class="fas fa-times"></i></button></div>`;
+            let botonesHTML = '';
+            if (torneo.status === 'LIVE') {
+                if (torneo.is_judge_assigned) {
+                    botonesHTML = `<button onclick="abrirPanelArbitraje(${torneo.id})" class="w-full bg-yellow-700 active:bg-yellow-600 border border-yellow-500 text-white font-bold py-3 rounded-lg text-sm tracking-wide shadow-[0_0_15px_rgba(234,179,8,0.3)] transition-colors relative z-10"><i class="fas fa-tablet-alt mr-2"></i> PANEL DE ARENA</button>`;
                 } else {
-                    botonesHTML = `<button onclick="abrirModal(${torneo.id}, '${torneo.status}')" class="w-full bg-cyan-600 active:bg-cyan-500 text-white font-bold py-3 rounded-lg text-sm tracking-wide relative z-10 transition-colors">INSCRIBIRSE</button>`;
-                }
-
-                let juecesHTML = '';
-                if (torneo.jueces_asignados && torneo.jueces_asignados.length > 0) {
-                    const nombresJueces = torneo.jueces_asignados.map(j => j.name).join(', ');
-                    juecesHTML = `<div class="mt-3 relative z-10 flex items-start gap-2 bg-gray-950/50 p-2.5 rounded-lg border border-gray-800 shadow-inner"><i class="fas fa-gavel text-yellow-600 mt-0.5"></i><div><span class="text-[9px] text-gray-500 font-bold tracking-widest uppercase block mb-0.5">Staff Oficial</span><span class="text-xs text-gray-300 font-bold leading-tight">${nombresJueces}</span></div></div>`;
-                }
-
-                let panelJuez = '';
-                if (torneo.user_is_judge) {
-                    const btnJuezText = torneo.is_judge_assigned ? '<i class="fas fa-user-minus"></i> SALIR' : '<i class="fas fa-user-plus"></i> ARBITRAR';
-                    const btnJuezColor = torneo.is_judge_assigned ? 'bg-red-900/50 border-red-500 text-red-400 hover:bg-red-800' : 'bg-yellow-900/50 border-yellow-500 text-yellow-400 hover:bg-yellow-800';
-                    let botonesExclusivos = '';
-                    if (torneo.is_judge_assigned) {
-                        botonesExclusivos = `<button onclick="copiarNombres(${torneo.id})" class="flex-1 bg-gray-800 border border-gray-600 text-gray-300 hover:text-white font-bold py-2 rounded-lg text-xs transition-colors shadow-sm"><i class="fas fa-copy text-cyan-500 mr-1"></i> LISTA</button>${torneo.status === 'OPEN' ? `<button onclick="comenzarTorneo(${torneo.id})" class="flex-1 bg-green-900/50 border border-green-500 text-green-400 font-bold py-2 rounded-lg text-xs transition-colors shadow-sm"><i class="fas fa-play mr-1"></i> INICIAR</button>` : ''}`;
-                    }
-                    panelJuez = `<div class="mt-4 pt-3 border-t border-gray-700/50 flex gap-2 relative z-10"><button onclick="toggleJuez(${torneo.id})" class="${torneo.is_judge_assigned ? 'w-24' : 'w-full'} ${btnJuezColor} border font-bold py-2 rounded-lg text-xs transition-colors shadow-sm">${btnJuezText}</button>${botonesExclusivos}</div>`;
-                }
-
-                htmlTemp += `
-                    <div class="${cardTheme} p-4 rounded-xl transition-all duration-300 border relative overflow-hidden">
-                        ${torneo.is_inscribed ? '<div class="absolute top-0 right-0 w-16 h-16 bg-cyan-500/10 rounded-bl-full"></div>' : ''}
-                        <div class="flex justify-between items-start mb-3 relative z-10">
-                            <h3 class="text-white font-bold text-lg leading-tight">${torneo.name}</h3><span class="text-[10px] ${badge} px-2 py-1 rounded-md font-bold uppercase shrink-0 ms-2">${torneo.beys || 'EVENTO'}</span>
-                        </div>
-                        <div class="flex justify-between items-end mb-5 relative z-10">
-                            <p class="text-xs text-gray-400 flex flex-col gap-2"><span><i class="fas fa-map-marker-alt w-4 text-center text-red-500"></i> ${torneo.location || torneo.city || '---'}</span><span><i class="fas fa-calendar-alt w-4 text-center text-cyan-500"></i> ${fecha}</span></p>
-                            <button onclick="abrirListaJugadores(${torneo.id}, ${torneo.aforo_maximo})" class="bg-gray-950 border border-gray-700 rounded-lg p-2 text-center shadow-inner active:bg-gray-800 transition-colors">
-                                <div class="text-[10px] text-gray-500 font-bold tracking-widest mb-1">BLADERS</div><div class="font-mono font-bold text-lg leading-none ${aforoLleno ? 'text-red-400' : 'text-cyan-400'}">${torneo.total_inscritos} <span class="text-xs text-gray-600">/ ${limitText}</span></div>
-                            </button>
-                        </div>
-                        ${aforoLleno && !torneo.is_inscribed ? '<p class="text-xs text-red-400 font-bold mb-3 uppercase tracking-wider relative z-10"><i class="fas fa-exclamation-triangle"></i> Entrarás en lista de espera</p>' : ''}
-                        ${juecesHTML}
-                        <div class="mt-4">${botonesHTML}${panelJuez}</div>
+                    botonesHTML = `<div class="flex gap-2 relative z-10">
+                        <button onclick="abrirArenaPublica(${torneo.id})" class="flex-1 bg-fuchsia-700 active:bg-fuchsia-600 border border-fuchsia-500 text-white font-bold py-3 rounded-lg text-sm tracking-wide shadow-[0_0_15px_rgba(192,38,211,0.3)] transition-colors"><i class="fas fa-eye mr-2"></i> VER ARENA</button>
+                        ${torneo.is_inscribed ? `<button onclick="abrirModal(${torneo.id}, '${torneo.status}')" class="w-14 bg-cyan-900/50 border border-cyan-500 text-cyan-400 font-bold py-3 rounded-lg text-sm transition-colors flex items-center justify-center"><i class="fas fa-layer-group"></i></button>` : ''}
                     </div>`;
-            });
-            contenedor.innerHTML = htmlTemp;
-        } catch (error) { contenedor.innerHTML = '<p class="text-red-500 text-sm text-center">Error al sincronizar.</p>'; }
+                }
+            } else if (torneo.is_inscribed) {
+                botonesHTML = `<div class="flex gap-2 relative z-10"><button onclick="abrirModal(${torneo.id}, '${torneo.status}')" class="flex-1 bg-cyan-700 active:bg-cyan-600 border border-cyan-400 text-white font-bold py-3 rounded-lg text-sm tracking-wide transition-colors"><i class="fas fa-layer-group me-1"></i> MI DECK</button><button onclick="cancelarAsistencia(${torneo.id})" class="w-14 bg-red-900/50 active:bg-red-800 border border-red-500 text-red-400 font-bold py-3 rounded-lg text-sm transition-colors flex items-center justify-center"><i class="fas fa-times"></i></button></div>`;
+            } else {
+                botonesHTML = `<button onclick="abrirModal(${torneo.id}, '${torneo.status}')" class="w-full bg-cyan-600 active:bg-cyan-500 text-white font-bold py-3 rounded-lg text-sm tracking-wide relative z-10 transition-colors">INSCRIBIRSE</button>`;
+            }
+
+            let juecesHTML = '';
+            if (torneo.jueces_asignados && torneo.jueces_asignados.length > 0) {
+                const nombresJueces = torneo.jueces_asignados.map(j => j.name).join(', ');
+                juecesHTML = `<div class="mt-3 relative z-10 flex items-start gap-2 bg-gray-950/50 p-2.5 rounded-lg border border-gray-800 shadow-inner"><i class="fas fa-gavel text-yellow-600 mt-0.5"></i><div><span class="text-[9px] text-gray-500 font-bold tracking-widest uppercase block mb-0.5">Staff Oficial</span><span class="text-xs text-gray-300 font-bold leading-tight">${nombresJueces}</span></div></div>`;
+            }
+
+            let panelJuez = '';
+            if (torneo.user_is_judge) {
+                const btnJuezText = torneo.is_judge_assigned ? '<i class="fas fa-user-minus"></i> SALIR' : '<i class="fas fa-user-plus"></i> ARBITRAR';
+                const btnJuezColor = torneo.is_judge_assigned ? 'bg-red-900/50 border-red-500 text-red-400 hover:bg-red-800' : 'bg-yellow-900/50 border-yellow-500 text-yellow-400 hover:bg-yellow-800';
+                let botonesExclusivos = '';
+                if (torneo.is_judge_assigned) {
+                    botonesExclusivos = `<button onclick="copiarNombres(${torneo.id})" class="flex-1 bg-gray-800 border border-gray-600 text-gray-300 hover:text-white font-bold py-2 rounded-lg text-xs transition-colors shadow-sm"><i class="fas fa-copy text-cyan-500 mr-1"></i> LISTA</button>${torneo.status === 'OPEN' ? `<button onclick="comenzarTorneo(${torneo.id})" class="flex-1 bg-green-900/50 border border-green-500 text-green-400 font-bold py-2 rounded-lg text-xs transition-colors shadow-sm"><i class="fas fa-play mr-1"></i> INICIAR</button>` : ''}`;
+                }
+                panelJuez = `<div class="mt-4 pt-3 border-t border-gray-700/50 flex gap-2 relative z-10"><button onclick="toggleJuez(${torneo.id})" class="${torneo.is_judge_assigned ? 'w-24' : 'w-full'} ${btnJuezColor} border font-bold py-2 rounded-lg text-xs transition-colors shadow-sm">${btnJuezText}</button>${botonesExclusivos}</div>`;
+            }
+
+            htmlTemp += `
+                <div class="${cardTheme} p-4 rounded-xl transition-all duration-300 border relative overflow-hidden">
+                    ${torneo.is_inscribed ? '<div class="absolute top-0 right-0 w-16 h-16 bg-cyan-500/10 rounded-bl-full"></div>' : ''}
+                    <div class="flex justify-between items-start mb-3 relative z-10">
+                        <h3 class="text-white font-bold text-lg leading-tight">${torneo.name}</h3>
+                        <span class="text-[10px] ${badge} px-2 py-1 rounded-md font-bold uppercase shrink-0 ms-2">${torneo.beys || 'EVENTO'}</span>
+                    </div>
+                    <div class="flex justify-between items-end mb-5 relative z-10">
+                        <!-- AQUI SE AÑADE LA HORA AL LADO DE LA FECHA -->
+                        <p class="text-xs text-gray-400 flex flex-col gap-2">
+                            <span><i class="fas fa-map-marker-alt w-4 text-center text-red-500"></i> ${torneo.location || torneo.city || '---'}</span>
+                            <span><i class="fas fa-calendar-alt w-4 text-center text-cyan-500"></i> ${fecha} <span class="mx-1 text-gray-600">|</span> <i class="fas fa-clock text-cyan-500 ml-1"></i> ${hora}</span>
+                        </p>
+                        <button onclick="abrirListaJugadores(${torneo.id}, ${torneo.aforo_maximo})" class="bg-gray-950 border border-gray-700 rounded-lg p-2 text-center shadow-inner active:bg-gray-800 transition-colors">
+                            <div class="text-[10px] text-gray-500 font-bold tracking-widest mb-1">BLADERS</div>
+                            <div class="font-mono font-bold text-lg leading-none ${colorAforo}">${torneo.total_inscritos} <span class="text-xs text-gray-600">/ ${limitText}</span></div>
+                        </button>
+                    </div>
+                    ${aforoLleno && !torneo.is_inscribed ? '<p class="text-xs text-red-400 font-bold mb-3 uppercase tracking-wider relative z-10"><i class="fas fa-exclamation-triangle"></i> Entrarás en lista de espera</p>' : ''}
+                    ${juecesHTML}
+                    <div class="mt-4">${botonesHTML}${panelJuez}</div>
+                </div>`;
+        });
+        contenedor.innerHTML = htmlTemp;
+    } catch (error) { 
+        contenedor.innerHTML = '<p class="text-red-500 text-sm text-center">Error al sincronizar.</p>'; 
     }
+}
 
     async function toggleJuez(eventId) {
         triggerHaptic('medium');
@@ -358,7 +375,10 @@
         
         if(!isTentative) { 
             let valido = true; 
-            document.querySelectorAll('.deck-req').forEach(s => { if(!s.value) valido = false; }); 
+            document.querySelectorAll('select.deck-req').forEach(s => { 
+                const val = s.tomselect ? s.tomselect.getValue() : s.value;
+                if(!val || val.trim() === '') valido = false; 
+            });
             if(!valido) { mostrarToast("Faltan piezas obligatorias", true); triggerHaptic('error'); return; } 
         }
         

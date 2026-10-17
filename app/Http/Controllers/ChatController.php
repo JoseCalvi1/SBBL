@@ -10,7 +10,6 @@ class ChatController extends Controller
 {
     public function getMessages($eventId)
     {
-        Log::info('Event ID: ' . $eventId);
         $messages = ChatMessage::where('event_id', $eventId)->with('user')->orderBy('id', 'DESC')->get();
         return response()->json($messages);
     }
