@@ -207,6 +207,14 @@ Route::domain('hub.' . $dominio)->group(function () {
         Route::post('/api/torneos/partida/{matchId}/unlock', [App\Http\Controllers\TournamentEngineController::class, 'unlockMatch']);
         Route::post('/api/torneos/{eventId}/finalizar', [App\Http\Controllers\TournamentEngineController::class, 'finalizeTournament']);
         Route::post('/api/torneos/{eventId}/jugador/add', [App\Http\Controllers\TournamentEngineController::class, 'addJugador']);
+
+        // CRUD de Eventos desde el Hub
+        Route::post('/api/eventos', [\App\Http\Controllers\EventController::class, 'storeAPI']);
+        Route::get('/api/eventos/{event}', [\App\Http\Controllers\EventController::class, 'showAPI']);
+        Route::put('/api/eventos/{event}', [\App\Http\Controllers\EventController::class, 'updateAPI']);
+        Route::delete('/api/eventos/{event}', [\App\Http\Controllers\EventController::class, 'destroyAPI']);
+
+        Route::post('/api/torneos/duelo-rapido', [\App\Http\Controllers\TournamentEngineController::class, 'createFastDuel']);
         });
 });
 /*

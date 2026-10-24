@@ -60,6 +60,14 @@
         
         <!-- PESTAÑA 1: ARENA -->
         <section id="view-eventos" class="view-section active" data-index="0">
+            @if(Auth::check() && Auth::user()->hasAnyRole(['admin', 'juez']))
+            <div class="mb-4">
+                <button onclick="abrirModalEventManager()" class="w-full bg-cyan-900/40 hover:bg-cyan-800 border border-cyan-500 text-cyan-400 hover:text-white font-bold py-3 rounded-lg text-sm tracking-widest transition-all shadow-[0_0_15px_rgba(6,182,212,0.2)]">
+                    <i class="fas fa-plus-circle mr-2"></i> ORGANIZAR EVENTO
+                </button>
+            </div>
+            @endif
+
             <div class="flex justify-between items-center mb-4 border-b border-cyan-500/50 pb-2">
                 <h2 class="text-2xl font-bold text-white pl-2 font-mono"><i class="fas fa-crosshairs text-cyan-400 mr-2"></i>ARENA</h2>
             </div>
@@ -67,11 +75,16 @@
                 <div class="relative flex-1">
                     <select id="filtro-tipo" onchange="cargarEventos()" class="w-full bg-gray-900 border border-gray-700 text-cyan-400 text-[10px] font-bold tracking-widest p-2.5 rounded-lg appearance-none outline-none focus:border-cyan-400 shadow-inner transition-colors">
                         <option value="">TODOS LOS TIPOS</option>
-                        <option value="ranking">RANKING OFICIAL</option>
-                        <option value="rankingplus">RANKING PLUS</option>
+                        <option value="ranking">RANKING </option>
                         <option value="quedada">QUEDADAS</option>
-                        <option value="grancopa">GRAN COPA</option>
-                        <option value="hasbro">FORMATO HASBRO</option>
+                        <option value="copaespecial1">COPA SOLO CX</option>
+                        
+                        <!-- NUEVOS FILTROS -->
+                        <option value="crew_battle">TORNEOS DE EQUIPOS</option>
+                        
+                        @if(Auth::check() && Auth::user()->hasAnyRole(['admin', 'juez', 'arbitro']))
+                            <option value="express">DUELOS EXPRESS (STAFF)</option>
+                        @endif
                     </select>
                     <i class="fas fa-chevron-down absolute right-3 top-3 text-gray-500 text-xs pointer-events-none"></i>
                 </div>
@@ -169,6 +182,7 @@
     @include('hub.modals.batalla')
     @include('hub.modals.topcut')
     @include('hub.modals.meta_stats')
+    @include('hub.modals.event_manager')
 
     @include('hub.scripts')
 

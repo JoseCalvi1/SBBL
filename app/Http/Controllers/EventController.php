@@ -49,6 +49,7 @@ class EventController extends Controller
         'quedada' => 'Quedada', 'ranking' => 'Ranking', 'rankingplus' => 'Ranking Plus',
         'grancopa' => 'Gran Copa', 'hasbro' => 'Hasbro', 'copalloros' => 'Copa Lloros',
         'copaligera' => 'Copa Ligera', 'copapaypal' => 'Copa Conqueror',
+        'crew_battle' => 'Torneo por Equipos', // <--- NUEVO
     ];
 
     public function __construct()
@@ -122,7 +123,7 @@ class EventController extends Controller
         ]);
 
         // PROTECCIÓN BACKEND: Solo Jueces pueden crear Torneos Oficiales o Copas
-        $categoriasOficiales = ['ranking', 'grancopa', 'hasbro', 'copaespecial1', 'copaespecial2', 'copaespecial3', 'copaespecial4'];
+        $categoriasOficiales = ['ranking', 'grancopa', 'hasbro', 'copaespecial1', 'copaespecial2', 'copaespecial3', 'copaespecial4', 'crew_battle'];
         if (in_array($data['imagen'], $categoriasOficiales) && !Auth::user()->hasAnyRole(['admin', 'juez'])) {
             return back()->withInput()->with('error', '⚠️ Acceso denegado: Solo los Jueces Oficiales de la SBBL pueden crear Eventos de Ranking y Copas Especiales.');
         }
@@ -1025,6 +1026,9 @@ private function sendResponse($type, $message, $request, $code = 200)
         if (in_array($beysType, ['ranking', 'rankingplus'])) {
             return 'upload-events/rankingx.png';
         }
+        if ($beysType === 'crew_battle') {
+            return 'upload-events/crew_battle.png'; // <--- O la imagen por defecto que prefieras
+        }
         return 'upload-events/quedada.jpg';
     }
 
@@ -1152,5 +1156,129 @@ private function sendResponse($type, $message, $request, $code = 200)
         ]);
 
         return response()->json(['success' => true]);
+    }
+
+    // =========================================================================
+    // API PARA EL HUB MÓVIL (PWA)
+    // =========================================================================
+
+    public function storeAPI(Request $request)
+    {
+        if (!Auth::user()->hasAnyRole(['admin', 'juez', 'arbitro'])) {
+            return response()->json(['success' => false, 'message' => 'Acceso denegado'], 403);
+        }
+
+        if (empty($request->name)) {
+            $request->merge(['name' => $this->generateDefaultName($request)]);
+        }
+
+        $data = $request->validate([
+            'name'              => 'required|min:6|max:255',
+            'mode'              => 'required|string',
+            'city'              => 'required|string|max:100',
+            'location'          => 'required|string|max:255',
+            'region_id'         => 'required|integer',
+            'province_id'       => 'nullable|integer', // Puede ser null si el select está cargando
+            'event_date'        => 'required|date',
+            'event_time'        => 'required',
+            'imagen'            => 'required|string', // Categoría
+            'deck'              => 'required|string',
+            'configuration'     => 'required|string',
+            'note'              => 'nullable|string|max:5000',
+            'stadiums'          => 'required|integer|min:1',
+            'max_players'       => 'nullable|integer|min:1',
+        ]);
+
+        try {
+            $rutaImagen = $this->resolveImage($data['region_id'], $request->imagen);
+
+            $event = Event::create([
+                'name'              => $data['name'],
+                'mode'              => $data['mode'],
+                'city'              => $data['city'],
+                'location'          => $data['location'],
+                'region_id'         => $data['region_id'],
+                'province_id'       => $data['province_id'] ?? 1, // Fallback de seguridad
+                'date'              => $data['event_date'],
+                'time'              => $data['event_time'],
+                'imagen'            => $rutaImagen,
+                'beys'              => $request->imagen,
+                'deck'              => $data['deck'],
+                'configuration'     => $data['configuration'],
+                'note'              => $data['note'] ?? null,
+                'stadiums'          => $data['stadiums'],
+                'max_players'       => $request->input('max_players'),
+                'has_stadium_limit' => $request->has('max_players'),
+                'created_by'        => Auth::id(),
+                'status'            => 'OPEN',
+            ]);
+
+            return response()->json(['success' => true, 'message' => '¡Evento creado con éxito!']);
+        } catch (\Exception $e) {
+            return response()->json(['success' => false, 'message' => 'Error al crear evento: ' . $e->getMessage()]);
+        }
+    }
+
+    public function showAPI(Event $event)
+    {
+        return response()->json($event);
+    }
+
+    public function updateAPI(Request $request, Event $event)
+    {
+        if (!Auth::user()->hasAnyRole(['admin', 'juez', 'arbitro'])) {
+            return response()->json(['success' => false, 'message' => 'Acceso denegado'], 403);
+        }
+
+        $data = $request->validate([
+            'name'              => 'required|min:6|max:255',
+            'mode'              => 'required|string',
+            'city'              => 'required|string|max:100',
+            'location'          => 'required|string|max:255',
+            'region_id'         => 'required|integer',
+            'event_date'        => 'required|date',
+            'event_time'        => 'required',
+            'imagen'            => 'required|string',
+            'deck'              => 'required|string',
+            'configuration'     => 'required|string',
+            'note'              => 'nullable|string',
+            'stadiums'          => 'required|integer|min:1',
+            'max_players'       => 'nullable|integer|min:1',
+        ]);
+
+        try {
+            $rutaImagen = $this->resolveImage($data['region_id'], $request->imagen);
+
+            $event->update([
+                'name'              => $data['name'],
+                'mode'              => $data['mode'],
+                'city'              => $data['city'],
+                'location'          => $data['location'],
+                'region_id'         => $data['region_id'],
+                'date'              => $data['event_date'],
+                'time'              => $data['event_time'],
+                'imagen'            => $rutaImagen,
+                'beys'              => $request->imagen,
+                'deck'              => $data['deck'],
+                'configuration'     => $data['configuration'],
+                'note'              => $data['note'] ?? null,
+                'stadiums'          => $data['stadiums'],
+                'max_players'       => $request->input('max_players'),
+            ]);
+
+            return response()->json(['success' => true, 'message' => '¡Evento actualizado!']);
+        } catch (\Exception $e) {
+            return response()->json(['success' => false, 'message' => 'Error al actualizar.']);
+        }
+    }
+
+    public function destroyAPI(Event $event)
+    {
+        if (!Auth::user()->hasAnyRole(['admin', 'juez'])) {
+            return response()->json(['success' => false, 'message' => 'Acceso denegado'], 403);
+        }
+
+        $event->delete();
+        return response()->json(['success' => true, 'message' => '¡Evento eliminado de la base de datos!']);
     }
 }

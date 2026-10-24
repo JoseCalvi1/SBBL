@@ -65,7 +65,8 @@ class TeamsVersusController extends Controller
      */
     public function create()
     {
-        $teams = Team::orderBy('name')->get();
+        // Seleccionamos solo ID y Nombre para dejar las imágenes fuera de la RAM
+        $teams = Team::select('id', 'name')->orderBy('name')->get();
 
         return view('teams_versus.create', compact('teams'));
     }

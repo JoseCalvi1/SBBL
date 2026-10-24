@@ -33,7 +33,19 @@
                     <label class="text-gray-400 font-bold text-[10px] tracking-widest block mb-1">ENLACE DEL VÍDEO (OPCIONAL)</label>
                     <input type="url" name="url" id="url_duelo" class="w-full bg-gray-900 border border-gray-700 text-white text-xs p-3 rounded-lg outline-none" placeholder="https://youtube.com/...">
                 </div>
-                <button type="submit" id="btnSubmitDuelo" class="w-full bg-red-700 active:bg-red-600 text-white font-bold py-3 rounded-lg text-sm tracking-wide shadow-md transition-colors border border-red-500 mt-2">CONFIRMAR RESULTADO</button>
+                <div class="p-4 border-t border-gray-800 flex flex-col gap-2">
+                <!-- Botón Normal (Solo sube resultados en crudo) -->
+                <button type="submit" id="btnSubmitDuelo" class="w-full bg-cyan-600 hover:bg-cyan-500 text-white font-bold py-3 rounded-lg shadow-lg transition-all">
+                    CONFIRMAR RESULTADO
+                </button>
+
+                <!-- Botón Express Juez (Abre la arena interactiva) -->
+                @if(Auth::check() && Auth::user()->hasAnyRole(['admin', 'juez']))
+                <button type="button" onclick="enviarDueloRapidoArena()" id="btnSubmitDueloArena" class="w-full bg-gray-900 border-2 border-yellow-500 text-yellow-400 hover:bg-yellow-900/40 font-bold py-3 rounded-lg shadow-[0_0_15px_rgba(234,179,8,0.2)] transition-all">
+                    <i class="fas fa-bolt text-yellow-400 mr-2"></i> IR A LA ARENA (JUZGAR)
+                </button>
+                @endif
+            </div>
             </form>
         </div>
     </div>

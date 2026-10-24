@@ -24,19 +24,37 @@ class HubController extends Controller
     {
         $hoy = Carbon::now()->format('Y-m-d');
         
-        // 1. Añadimos 'judges.profile' para cargar los avatares
         $query = Event::with(['region', 'users', 'judges.profile'])
             ->whereIn('status', ['OPEN', 'LIVE'])
             ->whereDate('date', '>=', $hoy)
             ->orderBy('date', 'asc');
 
-        if ($request->filled('tipo')) $query->where('beys', $request->tipo);
-        if ($request->filled('region')) $query->where('region_id', $request->region);
+        // --- NUEVA LÓGICA DE FILTROS ---
+        if ($request->filled('tipo')) {
+            if ($request->tipo === 'express') {
+                // Si el Juez filtra explícitamente por "Express", mostramos SOLO esos
+                $query->where('name', 'LIKE', 'Duelo Express:%');
+            } elseif ($request->tipo === 'crew_battle') {
+                // Si filtran por "Equipos", mostramos torneos de equipos PERO ocultamos los express
+                $query->where('beys', 'crew_battle')->where('name', 'NOT LIKE', 'Duelo Express:%');
+            } else {
+                // Cualquier otro filtro (ranking, quedada...), ocultamos también los express por si acaso
+                $query->where('beys', $request->tipo)->where('name', 'NOT LIKE', 'Duelo Express:%');
+            }
+        } else {
+            // VISTA POR DEFECTO ("Todos los tipos"): Ocultamos los Duelos Express al público
+            $query->where('name', 'NOT LIKE', 'Duelo Express:%');
+        }
+
+        if ($request->filled('region')) {
+            $query->where('region_id', $request->region);
+        }
+        // -------------------------------
 
         $torneos = $query->get();
         $userId = Auth::id();
         $isJuez = Auth::check() ? Auth::user()->hasAnyRole(['admin', 'juez', 'arbitro']) : false;
-
+        
         $torneos->map(function ($torneo) use ($userId, $isJuez) {
             $torneo->is_inscribed = $torneo->users()->where('user_id', $userId)->exists();
             $torneo->user_is_judge = $isJuez;

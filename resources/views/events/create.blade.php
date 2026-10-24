@@ -154,6 +154,10 @@
                                 @if (Auth::user()->hasAnyRole(['admin']))
                                     <option value="grancopa" {{ old('imagen') == 'grancopa' ? 'selected' : '' }}>Gran Copa (Especial)</option>
                                 @endif
+
+                                @if (Auth::user()->hasAnyRole(['admin', 'juez']))
+                                    <option value="crew_battle" {{ old('imagen') == 'crew_battle' ? 'selected' : '' }}>Torneo por Equipos (Crew Battle)</option>
+                                @endif
                             </select>
                         </div>
                     </div>
@@ -414,7 +418,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const optionsMap = {
         deck: {
             all: [{val: '3on3', txt: '3on3'}, {val: '5g', txt: '5G'}],
-            bx_rank: [{val: '3on3', txt: '3on3 (Oficial)'}]
+            bx_rank: [{val: '3on3', txt: '3on3 (Oficial)'}],
+            crew_battle: [{val: '1on1', txt: '1 Beyblade por Jugador'}] // <--- NUEVO
         },
         config: {
             all: [
@@ -424,6 +429,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 {val: 'Swiss', txt: 'Suizo'},
                 {val: 'FreeForAll', txt: 'Free For All'}
             ],
+            crew_battle: [{val: 'RoundRobin', txt: 'Guerra de Clanes (Round Robin)'}] // <--- NUEVO
         }
     };
 
@@ -494,8 +500,18 @@ document.addEventListener('DOMContentLoaded', () => {
         configSelect.innerHTML = '';
 
         const isBxRank = (mode === 'beybladex' && (type === 'ranking' || type === 'rankingplus'));
-        const deckOpts = isBxRank ? optionsMap.deck.bx_rank : optionsMap.deck.all;
-        const confOpts = optionsMap.config.all; // Formatos libres
+        const isCrewBattle = (type === 'crew_battle' || type === 'equipos');
+
+        // Dependiendo de lo que elija, le inyectamos unas opciones u otras
+        let deckOpts = optionsMap.deck.all;
+        let confOpts = optionsMap.config.all;
+
+        if (isCrewBattle) {
+            deckOpts = optionsMap.deck.crew_battle;
+            confOpts = optionsMap.config.crew_battle;
+        } else if (isBxRank) {
+            deckOpts = optionsMap.deck.bx_rank;
+        }
 
         deckOpts.forEach(o => deckSelect.add(new Option(o.txt, o.val, false, o.val === currentDeck)));
         confOpts.forEach(o => configSelect.add(new Option(o.txt, o.val, false, o.val === currentConfig)));
@@ -618,6 +634,9 @@ document.addEventListener('DOMContentLoaded', () => {
         } else if (type === 'simulacro') {
             if(!nameInput.value) nameInput.value = "Torneo Simulacro Ranking";
             noteInput.value = "Torneo de simulacro de ranking para aquellas personas que quieran ser Juez.";
+        } else if (type === 'crew_battle') {
+            if(!nameInput.value) nameInput.value = "Torneo Oficial de Equipos SBBL";
+            noteInput.value = "⚔️ **FORMATO CREW BATTLE JAPONÉS** ⚔️\n\n- Los equipos deben tener un mínimo de 3 jugadores presentados.\n- Cada jugador usará 1 único Beyblade.\n- Se realizará una liguilla de clanes de todos contra todos.\n- El resultado irá directo al Ranking Nacional de Teams Versus.";
         } else {
             // Limpiar si el usuario cambia de copa especial a torneo normal
             if (noteInput.value.includes('Reglamento de la copa') || noteInput.value.includes('🛑 Exclusivo')) {

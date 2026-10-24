@@ -89,9 +89,16 @@
                                     @if (Auth::user()->hasAnyRole(['admin', 'juez']))
                                         <option value="ranking" {{ (old('imagen', $event->beys) == 'ranking' || $event->imagen == 'upload-events/rankingx.jpg') ? 'selected' : '' }}>Ranking</option>
                                     @endif
-                                    @if (Auth::user()->hasAnyRole(['admin', 'juez']))
+                                    @if (Auth::user()->hasAnyRole(['admin']))
                                         <option value="grancopa" {{ (old('imagen', $event->beys) == 'grancopa') ? 'selected' : '' }}>Gran Copa (Especial)</option>
                                     @endif
+                                    @if (Auth::user()->hasAnyRole(['admin', 'juez']))
+                                        <option value="crew_battle" {{ (old('imagen', $event->beys) == 'crew_battle') ? 'selected' : '' }}>Torneo por Equipos (Crew Battle)</option>
+                                    @endif
+                                    @if (Auth::user()->hasAnyRole(['admin', 'juez']))
+                                        <option value="copaespecial1" {{ (old('imagen', $event->beys) == 'copaespecial1') ? 'selected' : '' }}>Copa SOLO CX</option>
+                                    @endif
+    
 
                                 </select>
                             </div>
@@ -108,6 +115,7 @@
                                 <select name="deck" id="deck" class="form-select form-select-lg dark-input p-3" required>
                                     <option value="3on3" {{ (old('deck', $event->deck) == '3on3') ? 'selected' : '' }}>3on3 (3 Beys)</option>
                                     <option value="5g" {{ (old('deck', $event->deck) == '5g') ? 'selected' : '' }}>5G (5 Beys)</option>
+                                    <option value="1on1" {{ (old('deck', $event->deck) == '1on1') ? 'selected' : '' }}>1 Beyblade por Jugador</option>
                                 </select>
                             </div>
                             <div class="col-md-6">
@@ -282,15 +290,37 @@ document.addEventListener("DOMContentLoaded", function () {
     updateCapacityLabel(); // Ejecutar al cargar
 
     function updateDeckOptions() {
-        if (modeSelect.value === "beybladex") {
-            // Forzar a "3on3" visualmente, pero no bloquear si el backend ya guardó otro
+        const type = document.getElementById("imagen").value;
+        const isCrewBattle = (type === 'crew_battle' || type === 'equipos');
+
+        if (isCrewBattle) {
+            // Torneo de equipos: Forzar 1on1
             Array.from(deckSelect.options).forEach(opt => {
-                if (opt.value !== "3on3" && !opt.selected) opt.disabled = true;
+                if (opt.value !== "1on1") {
+                    opt.disabled = true;
+                    opt.selected = false;
+                } else {
+                    opt.disabled = false;
+                    opt.selected = true;
+                }
+            });
+        } else if (modeSelect.value === "beybladex") {
+            // Torneo X Normal: Forzar 3on3
+            Array.from(deckSelect.options).forEach(opt => {
+                if (opt.value !== "3on3" && opt.value !== "1on1") {
+                    if (!opt.selected) opt.disabled = true;
+                } else {
+                    opt.disabled = false;
+                }
             });
         } else {
+            // Burst o Metal: Permitir 5G
             Array.from(deckSelect.options).forEach(opt => opt.disabled = false);
         }
     }
+    
+    // Escuchador extra para la categoría
+    document.getElementById("imagen").addEventListener("change", updateDeckOptions);
 
     function updateProvinces() {
         const selectedOption = regionSelect.options[regionSelect.selectedIndex];

@@ -3,6 +3,7 @@
 <script>
     let dbPiezas = null;
     let allTeamsList = [];
+    let currentEventType = null;
     
     // --- UTILIDADES DE VIBRACIÓN HÁPTICA ---
     function triggerHaptic(type = 'light') {
@@ -120,13 +121,13 @@
                 } else {
                     botonesHTML = `<div class="flex gap-2 relative z-10">
                         <button onclick="abrirArenaPublica(${torneo.id})" class="flex-1 bg-fuchsia-700 active:bg-fuchsia-600 border border-fuchsia-500 text-white font-bold py-3 rounded-lg text-sm tracking-wide shadow-[0_0_15px_rgba(192,38,211,0.3)] transition-colors"><i class="fas fa-eye mr-2"></i> VER ARENA</button>
-                        ${torneo.is_inscribed ? `<button onclick="abrirModal(${torneo.id}, '${torneo.status}')" class="w-14 bg-cyan-900/50 border border-cyan-500 text-cyan-400 font-bold py-3 rounded-lg text-sm transition-colors flex items-center justify-center"><i class="fas fa-layer-group"></i></button>` : ''}
+                        ${torneo.is_inscribed ? `<button onclick="abrirModal(${torneo.id}, '${torneo.status}', null, null, '${torneo.beys}')" class="w-14 bg-cyan-900/50 border border-cyan-500 text-cyan-400 font-bold py-3 rounded-lg text-sm transition-colors flex items-center justify-center"><i class="fas fa-layer-group"></i></button>` : ''}
                     </div>`;
                 }
             } else if (torneo.is_inscribed) {
-                botonesHTML = `<div class="flex gap-2 relative z-10"><button onclick="abrirModal(${torneo.id}, '${torneo.status}')" class="flex-1 bg-cyan-700 active:bg-cyan-600 border border-cyan-400 text-white font-bold py-3 rounded-lg text-sm tracking-wide transition-colors"><i class="fas fa-layer-group me-1"></i> MI DECK</button><button onclick="cancelarAsistencia(${torneo.id})" class="w-14 bg-red-900/50 active:bg-red-800 border border-red-500 text-red-400 font-bold py-3 rounded-lg text-sm transition-colors flex items-center justify-center"><i class="fas fa-times"></i></button></div>`;
+                botonesHTML = `<div class="flex gap-2 relative z-10"><button onclick="abrirModal(${torneo.id}, '${torneo.status}', null, null, '${torneo.beys}')" class="flex-1 bg-cyan-700 active:bg-cyan-600 border border-cyan-400 text-white font-bold py-3 rounded-lg text-sm tracking-wide transition-colors"><i class="fas fa-layer-group me-1"></i> MI DECK</button><button onclick="cancelarAsistencia(${torneo.id})" class="w-14 bg-red-900/50 active:bg-red-800 border border-red-500 text-red-400 font-bold py-3 rounded-lg text-sm transition-colors flex items-center justify-center"><i class="fas fa-times"></i></button></div>`;
             } else {
-                botonesHTML = `<button onclick="abrirModal(${torneo.id}, '${torneo.status}')" class="w-full bg-cyan-600 active:bg-cyan-500 text-white font-bold py-3 rounded-lg text-sm tracking-wide relative z-10 transition-colors">INSCRIBIRSE</button>`;
+                botonesHTML = `<button onclick="abrirModal(${torneo.id}, '${torneo.status}', null, null, '${torneo.beys}')" class="w-full bg-cyan-600 active:bg-cyan-500 text-white font-bold py-3 rounded-lg text-sm tracking-wide relative z-10 transition-colors">INSCRIBIRSE</button>`;
             }
 
             let juecesHTML = '';
@@ -141,7 +142,11 @@
                 const btnJuezColor = torneo.is_judge_assigned ? 'bg-red-900/50 border-red-500 text-red-400 hover:bg-red-800' : 'bg-yellow-900/50 border-yellow-500 text-yellow-400 hover:bg-yellow-800';
                 let botonesExclusivos = '';
                 if (torneo.is_judge_assigned) {
-                    botonesExclusivos = `<button onclick="copiarNombres(${torneo.id})" class="flex-1 bg-gray-800 border border-gray-600 text-gray-300 hover:text-white font-bold py-2 rounded-lg text-xs transition-colors shadow-sm"><i class="fas fa-copy text-cyan-500 mr-1"></i> LISTA</button>${torneo.status === 'OPEN' ? `<button onclick="comenzarTorneo(${torneo.id})" class="flex-1 bg-green-900/50 border border-green-500 text-green-400 font-bold py-2 rounded-lg text-xs transition-colors shadow-sm"><i class="fas fa-play mr-1"></i> INICIAR</button>` : ''}`;
+                    botonesExclusivos = `
+                        <button onclick="copiarNombres(${torneo.id})" class="flex-1 bg-gray-800 border border-gray-600 text-gray-300 hover:text-white font-bold py-2 rounded-lg text-xs transition-colors shadow-sm" title="Copiar Lista"><i class="fas fa-copy text-cyan-500"></i></button>
+                        <button onclick='abrirModalEventManager(${JSON.stringify(torneo).replace(/'/g, "&apos;")})' class="flex-1 bg-yellow-900/50 border border-yellow-700 text-yellow-500 hover:text-white font-bold py-2 rounded-lg text-xs transition-colors shadow-sm" title="Editar Evento"><i class="fas fa-pen"></i></button>
+                        ${torneo.status === 'OPEN' ? `<button onclick="comenzarTorneo(${torneo.id})" class="flex-1 bg-green-900/50 border border-green-500 text-green-400 font-bold py-2 rounded-lg text-xs transition-colors shadow-sm"><i class="fas fa-play mr-1"></i> INICIAR</button>` : ''}
+                    `;
                 }
                 panelJuez = `<div class="mt-4 pt-3 border-t border-gray-700/50 flex gap-2 relative z-10"><button onclick="toggleJuez(${torneo.id})" class="${torneo.is_judge_assigned ? 'w-24' : 'w-full'} ${btnJuezColor} border font-bold py-2 rounded-lg text-xs transition-colors shadow-sm">${btnJuezText}</button>${botonesExclusivos}</div>`;
             }
@@ -361,10 +366,9 @@
 
     let currentTargetUserId = null; // Guardará el ID si el juez está editando a otro
 
-    // Función puente para cuando el juez pulsa el botón de editar desde la lista
-    function abrirModalDeckJuez(eventId, userId, userName) {
+    function abrirModalDeckJuez(eventId, userId, userName, eventType = null) {
         cerrarListaModal();
-        abrirModal(eventId, 'OPEN', userId, userName); // Al juez siempre se lo abrimos como 'OPEN' para que pueda editar incluso en LIVE
+        abrirModal(eventId, 'OPEN', userId, userName, eventType); 
     }
 
 
@@ -413,9 +417,17 @@
                 const wasEditingOther = currentTargetUserId !== null;
                 cerrarModal(); 
                 cargarEventos(); 
-                // Si el juez estaba editando desde la lista, le reabrimos la lista actualizada
+                
+                // MAGIA: Decidimos qué pantalla recargar según dónde esté el Juez
                 if (wasEditingOther) {
-                    abrirListaJugadores(eventId, currentListaAforo);
+                    const modalBatalla = document.getElementById('batallaModal');
+                    if (modalBatalla && !modalBatalla.classList.contains('hidden')) {
+                        // Si el Juez está dentro del Combate, recargamos la mesa para que salgan los beys
+                        abrirBatalla(battleState.matchId);
+                    } else if (document.getElementById('listaModal').classList.contains('active')) {
+                        // Si el Juez estaba en la lista de jugadores general, recargamos la lista
+                        abrirListaJugadores(eventId, currentListaAforo);
+                    }
                 }
                 triggerHaptic('medium'); 
             }
@@ -646,6 +658,7 @@
             }
             
             let listaHTML = '';
+            const eventType = data.event_type;
             
             // --- NUEVO: Buscador manual para el Juez ---
             if (data.is_staff && data.available_users) {
@@ -689,9 +702,9 @@
                         badgeHTML = `<span class="bg-red-600 text-white text-[10px] px-2 py-0.5 rounded font-bold uppercase tracking-widest shrink-0"><i class="fas fa-skull"></i> DROPPED</span>`;
                     } else if (data.is_staff) {
                         staffBtns = `
-                            <button onclick="abrirModalDeckJuez(${eventId}, ${jugador.id}, '${safeName}')" class="ml-2 bg-cyan-900/50 hover:bg-cyan-600 text-cyan-400 hover:text-white px-2 py-1 rounded border border-cyan-700/50 transition-colors text-xs" title="Meter/Editar Deck">
-                                <i class="fas fa-edit"></i>
-                            </button>
+                            <button onclick="abrirModalDeckJuez(${eventId}, ${jugador.id}, '${safeName}', '${eventType}')" class="ml-2 bg-cyan-900/50 hover:bg-cyan-600 text-cyan-400 hover:text-white px-2 py-1 rounded border border-cyan-700/50 transition-colors text-xs" title="Meter/Editar Deck">
+                    <i class="fas fa-edit"></i>
+                </button>
                             <button onclick="ejecutarDrop(${eventId}, ${jugador.id}, '${safeName}')" class="ml-1 bg-red-900/50 hover:bg-red-600 text-red-400 hover:text-white px-2 py-1 rounded border border-red-700/50 transition-colors text-xs" title="Retirar del Torneo">
                                 <i class="fas fa-user-slash"></i>
                             </button>`;
@@ -815,24 +828,23 @@
                 </select>
             </div>`;
             
-        for (let i = 1; i <= 3; i++) { 
+        // MAGIA: Si al crear el torneo en la web pones como tipo "equipos" o "crew_battle", solo te pedirá 1 Bey.
+        const numBeys = (currentEventType === 'equipos' || currentEventType === 'crew_battle') ? 1 : 3;
+            
+        for (let i = 1; i <= numBeys; i++) { 
             htmlTemp += `<div class="bg-gray-800/50 p-4 rounded-xl border border-gray-700/50 mb-4 shadow-inner"><div class="flex items-center gap-2 text-cyan-400 font-bold text-xs mb-3 tracking-widest border-b border-gray-700/50 pb-2"><i class="fas fa-compact-disc"></i> BEYBLADE #${i}</div><div class="grid grid-cols-1 gap-3 mb-3">${crearSelect('blade', i, dbPiezas.blades, 'Selecciona Blade...', true)}</div><div class="grid grid-cols-2 gap-3 mb-3">${crearSelect('ratchet', i, dbPiezas.ratchets, 'Ratchet...', true)}${crearSelect('bit', i, dbPiezas.bits, 'Bit...', true)}</div><div class="grid grid-cols-2 gap-3">${crearSelect('over_blade', i, dbPiezas.over_blades, 'Over (Opcional)', false)}${crearSelect('assist_blade', i, dbPiezas.assist_blades, 'Assist (Opcional)', false)}</div></div>`; 
         }
         container.innerHTML = htmlTemp;
 
-        // Inicializamos el buscador SOLO después de inyectar el HTML
         document.querySelectorAll('.tom-select-pieza').forEach(el => {
-            new TomSelect(el, {
-                create: false,
-                sortField: { field: "text", direction: "asc" },
-                maxOptions: 500 // Seguro para móviles
-            });
+            new TomSelect(el, { create: false, sortField: { field: "text", direction: "asc" }, maxOptions: 100 });
         });
     }
 
-    async function abrirModal(eventId, status = 'OPEN', targetUserId = null, targetUserName = null) { 
-        triggerHaptic('light'); 
-        currentTargetUserId = targetUserId;
+    async function abrirModal(eventId, status = 'OPEN', targetUserId = null, targetUserName = null, eventType = null) { 
+    triggerHaptic('light'); 
+    currentTargetUserId = targetUserId;
+    currentEventType = eventType;
         document.getElementById('modal_event_id').value = eventId; 
         
         if (!dbPiezas) {
@@ -845,7 +857,8 @@
 
         // 1. PRIMERO ABRIMOS EL MODAL (Para que la pantalla le dé un ancho real)
         document.getElementById('deckModal').classList.add('active'); 
-        document.body.style.overflow = 'hidden'; 
+        document.getElementById('deckModal').style.zIndex = "99999";
+        document.body.style.overflow = 'hidden';
 
         // 2. LUEGO GENERAMOS LOS SELECTS CON BUSCADOR
         generarFormularioBeys(); 
@@ -1100,10 +1113,21 @@
                         </div>
                     `;
                 } else {
-                    // Generar las tarjetas de partidas normales (VISTA JUEZ)
+                    // Generar las tarjetas de partidas normales o equipos (VISTA JUEZ)
                     data.matches.forEach(match => {
-                        const p1 = match.player1 ? match.player1.name : 'ESPERANDO RIVAL';
-                        const p2 = match.player2 ? match.player2.name : 'ESPERANDO RIVAL';
+                        // MAGIA: Detectamos si la partida es de Equipos o Individual
+                        const isTeamMatch = match.team1_id != null && match.team2_id != null;
+
+                        let p1 = 'ESPERANDO RIVAL';
+                        let p2 = 'ESPERANDO RIVAL';
+
+                        if (isTeamMatch) {
+                            p1 = match.team1 ? match.team1.name : 'ESPERANDO RIVAL';
+                            p2 = match.team2 ? match.team2.name : 'ESPERANDO RIVAL';
+                        } else {
+                            p1 = match.player1 ? match.player1.name : 'ESPERANDO RIVAL';
+                            p2 = match.player2 ? match.player2.name : 'ESPERANDO RIVAL';
+                        }
                         
                         let btnHTML = '';
                         let isLockedByOther = false;
@@ -1118,8 +1142,13 @@
                             }
                         }
 
-                        if (!match.player1 || !match.player2) {
-                            btnHTML = `<div class="bg-gray-800/80 text-gray-500 font-bold py-2 rounded-lg text-[10px] tracking-widest text-center border border-gray-700 animate-pulse"><i class="fas fa-hourglass-half mr-1"></i> ESPERANDO JUGADORES</div>`;
+                        // Comprobación de si faltan participantes (adaptado para equipos e individual)
+                        const missingParticipants = isTeamMatch ? (!match.team1 || !match.team2) : (!match.player1 || !match.player2);
+
+                        if (missingParticipants) {
+                            btnHTML = `<div class="bg-gray-800/80 text-gray-500 font-bold py-2 rounded-lg text-[10px] tracking-widest text-center border border-gray-700 animate-pulse"><i class="fas fa-hourglass-half mr-1"></i> ESPERANDO RIVALES</div>`;
+                        } else if (match.status === 'cancelled') {
+                            btnHTML = `<button class="w-full bg-red-950/40 text-red-500/60 font-bold py-2 rounded-lg text-xs tracking-wider border border-red-900/50 pointer-events-none"><i class="fas fa-ban mr-1"></i> LÍMITE MENSUAL EXCEDIDO</button>`;
                         } else if (match.status === 'completed') {
                             btnHTML = `<button onclick="abrirBatalla(${match.id})" class="w-full bg-green-900/40 hover:bg-green-800/60 text-green-500 font-bold py-2 rounded-lg text-xs tracking-wider transition-colors border border-green-800/50"><i class="fas fa-check-circle mr-1"></i> PARTIDA FINALIZADA (EDITAR)</button>`;
                         } else if (isLockedByOther) {
@@ -1136,17 +1165,17 @@
                                 <div class="absolute top-0 left-0 bg-gray-900 text-gray-400 border-b border-r border-gray-700 text-[9px] font-bold px-2 py-0.5 rounded-br-lg z-20">
                                     PARTIDA #${match.match_number || '-'}
                                 </div>
-                                ${match.bracket_type !== 'swiss' ? `<div class="absolute top-0 left-1/2 transform -translate-x-1/2 ${match.bracket_type === 'winners' ? 'bg-fuchsia-900' : (match.bracket_type === 'losers' ? 'bg-orange-900' : (match.bracket_type === 'grand_final' ? 'bg-yellow-600' : 'bg-red-600'))} text-white text-[9px] font-bold px-3 py-0.5 rounded-b uppercase tracking-widest z-20 shadow-md">${match.bracket_type.replace(/_/g, ' ')}</div>` : ''}
+                                ${match.bracket_type !== 'swiss' && match.bracket_type !== 'round_robin' ? `<div class="absolute top-0 left-1/2 transform -translate-x-1/2 ${match.bracket_type === 'winners' ? 'bg-fuchsia-900' : (match.bracket_type === 'losers' ? 'bg-orange-900' : (match.bracket_type === 'grand_final' ? 'bg-yellow-600' : 'bg-red-600'))} text-white text-[9px] font-bold px-3 py-0.5 rounded-b uppercase tracking-widest z-20 shadow-md">${match.bracket_type.replace(/_/g, ' ')}</div>` : ''}
                                 
                                 <div class="flex justify-between items-center mb-4 mt-4 relative z-10">
                                     <div class="flex-1 flex flex-col items-center">
-                                        <span class="text-xs font-bold text-center ${match.player1 ? 'text-white' : 'text-gray-500'} truncate w-full px-1 uppercase tracking-wide mb-2">${p1}</span>
-                                        <span class="text-3xl font-black font-mono leading-none ${match.winner_id && match.winner_id === match.player1_id ? 'text-yellow-400' : 'text-gray-400'}">${match.player1_score}</span>
+                                        <span class="text-xs font-bold text-center ${(!missingParticipants) ? 'text-white' : 'text-gray-500'} truncate w-full px-1 uppercase tracking-wide mb-2">${p1}</span>
+                                        <span class="text-3xl font-black font-mono leading-none ${(match.winner_id && match.winner_id === match.player1_id) || (isTeamMatch && match.winner_id === match.team1_id) ? 'text-yellow-400' : 'text-gray-400'}">${match.player1_score}</span>
                                     </div>
                                     <div class="px-2 font-mono text-lg font-black italic text-gray-600 shrink-0">VS</div>
                                     <div class="flex-1 flex flex-col items-center">
-                                        <span class="text-xs font-bold text-center ${match.player2 ? 'text-white' : 'text-gray-500'} truncate w-full px-1 uppercase tracking-wide mb-2">${p2}</span>
-                                        <span class="text-3xl font-black font-mono leading-none ${match.winner_id && match.winner_id === match.player2_id ? 'text-yellow-400' : 'text-gray-400'}">${match.player2_score}</span>
+                                        <span class="text-xs font-bold text-center ${(!missingParticipants) ? 'text-white' : 'text-gray-500'} truncate w-full px-1 uppercase tracking-wide mb-2">${p2}</span>
+                                        <span class="text-3xl font-black font-mono leading-none ${(match.winner_id && match.winner_id === match.player2_id) || (isTeamMatch && match.winner_id === match.team2_id) ? 'text-yellow-400' : 'text-gray-400'}">${match.player2_score}</span>
                                     </div>
                                 </div>
                                 <div class="relative z-10">
@@ -1387,14 +1416,12 @@
 
     // 1. FUNCIÓN PRINCIPAL PARA ABRIR Y REFRESCAR LA BATALLA
     async function abrirBatalla(matchId) {
-        // --- NUEVO: Intentar Bloquear la mesa ---
         const lockStatus = await lockMatchOnServer(matchId);
         if (!lockStatus.success) {
             mostrarToast("⚠️ Esta partida ya la está juzgando otro árbitro", true);
             triggerHaptic('error');
-            return; // Abortamos, no le abrimos el modal
+            return; 
         }
-        // ---------------------------------------
 
         triggerHaptic('medium');
         document.getElementById('batallaModal').classList.remove('hidden');
@@ -1424,17 +1451,42 @@
             const data = await res.json();
             currentMatchData = data;
             
-            document.getElementById('batalla_p1_name').innerText = data.match.player1.name;
-            document.getElementById('batalla_p2_name').innerText = data.match.player2.name;
+            // --- BIFURCACIÓN: ¿EQUIPOS O 1VS1? ---
+            if (data.is_team_match) {
+                document.getElementById('batalla_p1_name').innerText = data.match.team1.name;
+                document.getElementById('batalla_p2_name').innerText = data.match.team2.name;
+                
+                document.getElementById('btn_ganador_p1').innerText = `GANA ${data.match.team1.name.substring(0, 10).toUpperCase()}`;
+                document.getElementById('btn_ganador_p2').innerText = `GANA ${data.match.team2.name.substring(0, 10).toUpperCase()}`;
+
+                // Recalculamos quiénes han jugado ya usando la nueva función matemática
+                const p1Used = obtenerCombosUsadosEquipo(data.battles || [], 'p1', data.team1_size);
+                const p2Used = obtenerCombosUsadosEquipo(data.battles || [], 'p2', data.team2_size);
+
+                renderTeamDeckBatalla('p1', data.p1_deck, p1Used);
+                renderTeamDeckBatalla('p2', data.p2_deck, p2Used);
+
+                setTimeout(() => mostrarToast(`COMBATE: Duelo ${data.matches_played + 1} de ${data.matches_to_play}`), 500);
+
+            } else {
+                // MODO 1VS1 (El clásico)
+                document.getElementById('batalla_p1_name').innerText = data.match.player1.name;
+                document.getElementById('batalla_p2_name').innerText = data.match.player2.name;
+                document.getElementById('batalla_p1_id').value = data.match.player1_id;
+                document.getElementById('batalla_p2_id').value = data.match.player2_id;
+                
+                document.getElementById('btn_ganador_p1').innerText = `GANA ${data.match.player1.name.substring(0, 10).toUpperCase()}`;
+                document.getElementById('btn_ganador_p2').innerText = `GANA ${data.match.player2.name.substring(0, 10).toUpperCase()}`;
+
+                const { p1Used, p2Used } = obtenerCombosUsadosEnCiclo(data.battles || []);
+                renderDeckBatalla('p1', data.p1_deck, p1Used);
+                renderDeckBatalla('p2', data.p2_deck, p2Used);
+            }
+
+            // MARCADORES Y WARNINGS (Comunes)
             document.getElementById('batalla_score_p1').innerText = data.match.player1_score;
             document.getElementById('batalla_score_p2').innerText = data.match.player2_score;
-            document.getElementById('batalla_p1_id').value = data.match.player1_id;
-            document.getElementById('batalla_p2_id').value = data.match.player2_id;
-            
-            document.getElementById('btn_ganador_p1').innerText = `GANA ${data.match.player1.name.substring(0, 10).toUpperCase()}`;
-            document.getElementById('btn_ganador_p2').innerText = `GANA ${data.match.player2.name.substring(0, 10).toUpperCase()}`;
 
-            // Si hay warnings activos en la base de datos, encendemos el icono amarillo
             if (data.battles && Array.isArray(data.battles)) {
                 const w1 = data.battles.some(b => b.finish_type === 'warning_p1');
                 const w2 = data.battles.some(b => b.finish_type === 'warning_p2');
@@ -1442,14 +1494,6 @@
                 if (w2 && btnW2) btnW2.className = "absolute top-2 right-2 text-yellow-400 animate-pulse transition-colors z-20 text-lg drop-shadow-[0_0_8px_rgba(250,204,21,0.8)]";
             }
 
-            // Calculamos qué combos ya se han usado en este set de 3
-            const { p1Used, p2Used } = obtenerCombosUsadosEnCiclo(data.battles || []);
-
-            const d1 = data.deck1 || data.p1_deck || [];
-            const d2 = data.deck2 || data.p2_deck || [];
-
-            renderDeckBatalla('p1', d1, p1Used);
-            renderDeckBatalla('p2', d2, p2Used);
         } catch (error) {
             console.error(error);
             mostrarToast("Error cargando la partida.", true);
@@ -1497,6 +1541,99 @@
         if (disponiblesIds.length === 1) {
             seleccionarBey(playerKey, disponiblesIds[0]);
         }
+    }
+
+    // NUEVO: Renderizador específico para Torneos por Equipos (Rotación por Módulo)
+    function renderTeamDeckBatalla(playerKey, deckArray, usedIds = []) {
+        const container = getDeckContainer(playerKey);
+        if (!container) return;
+
+        if (!deckArray || deckArray.length === 0) {
+            container.innerHTML = '<p class="text-red-500 text-xs font-bold">Sin alineación.</p>';
+            return;
+        }
+        
+        let html = '';
+        let disponiblesIds = [];
+        
+        deckArray.forEach((bey, idx) => {
+            const yaUsado = usedIds.includes(Number(bey.id));
+            
+            // BOTÓN MÁGICO DE EDICIÓN: Llama al modal de piezas del Hub
+            const editBtn = `<button type="button" onclick="event.stopPropagation(); abrirModalDeckJuez(currentArenaEventId, ${bey.user_id}, 'Jugador ${idx + 1}', 'equipos')" class="ml-2 text-cyan-400 hover:text-white px-2 py-1 rounded bg-gray-800 border border-gray-700 transition-colors shadow-inner"><i class="fas fa-edit"></i></button>`;
+
+            if (yaUsado) {
+                html += `
+                    <div class="w-full text-left bg-gray-950/50 border border-gray-800/80 p-2 rounded-lg flex items-center justify-between opacity-35 select-none pointer-events-none mb-2">
+                        <div class="truncate pr-1 text-gray-500">
+                            <div class="flex items-center mb-0.5"><span class="font-bold text-[10px] uppercase text-gray-600">JUGADOR ${idx + 1}</span></div>
+                            <span class="font-bold text-xs uppercase line-through">${bey.blade}</span>
+                            <span class="text-[10px] ml-1 line-through">${bey.ratchet} ${bey.bit}</span>
+                        </div>
+                        <span class="text-[8px] bg-gray-800 text-gray-500 px-1.5 py-0.5 rounded font-bold uppercase shrink-0"><i class="fas fa-check"></i> USADO</span>
+                    </div>`;
+            } else {
+                disponiblesIds.push({ id: bey.id, user_id: bey.user_id });
+                html += `
+                    <button type="button" onclick="seleccionarBeyEquipo('${playerKey}', ${bey.id}, ${bey.user_id})" id="btn_bey_${bey.id}" class="bey-btn-${playerKey} w-full text-left bg-gray-900 border border-gray-700 hover:border-gray-500 p-2 rounded-lg transition-all flex items-center justify-between shadow-sm mb-2">
+                        <div class="truncate">
+                            <div class="flex items-center mb-0.5"><span class="font-bold text-[10px] uppercase text-cyan-500">JUGADOR ${idx + 1}</span> ${editBtn}</div>
+                            <span class="text-white font-bold text-xs uppercase ${bey.blade === 'DESCONOCIDO' ? 'text-gray-500 italic' : ''}">${bey.blade}</span>
+                            <span class="text-gray-400 text-[10px] ml-2">${bey.ratchet} ${bey.bit}</span>
+                        </div>
+                    </button>`;
+            }
+        });
+        
+        container.innerHTML = html;
+
+        if (disponiblesIds.length > 0) {
+            seleccionarBeyEquipo(playerKey, disponiblesIds[0].id, disponiblesIds[0].user_id);
+        }
+    }
+
+    // Esta función enlaza el bey elegido con el usuario real para que los puntos vayan a él
+    function seleccionarBeyEquipo(playerKey, comboId, userId) {
+        seleccionarBey(playerKey, comboId);
+        document.getElementById(`batalla_${playerKey}_id`).value = userId;
+    }
+
+    async function enviarDueloRapidoArena() {
+        triggerHaptic('heavy');
+        const t1 = document.getElementById('team_id_1').value; 
+        const t2 = document.getElementById('team_id_2').value;
+        if (!t1 || !t2) { mostrarToast("Por favor, selecciona los clanes.", true); return; }
+        if (t1 === t2) { mostrarToast("No pueden jugar contra sí mismos.", true); return; }
+        
+        const btn = document.getElementById('btnSubmitDueloArena'); 
+        btn.disabled = true; 
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> ABRIENDO ARENA...';
+        
+        try {
+            const res = await fetch('/api/torneos/duelo-rapido', { 
+                method: 'POST', 
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'), 
+                    'Accept': 'application/json' 
+                }, 
+                body: JSON.stringify({ team1_id: t1, team2_id: t2 }) 
+            });
+            const data = await res.json();
+            
+            if (res.ok && data.success) { 
+                mostrarToast("¡Arena Creada y Lista!"); 
+                cerrarModalDuelo(); 
+                cargarEventos(); 
+                abrirPanelArbitraje(data.event_id); // ¡Entra directo al panel de Juez!
+            } else { 
+                mostrarToast(data.message || "Error al crear el duelo.", true); 
+            }
+        } catch (error) { 
+            mostrarToast("Error de transmisión", true); 
+        }
+        btn.disabled = false; 
+        btn.innerHTML = '<i class="fas fa-bolt text-yellow-400 mr-2"></i> IR A LA ARENA (JUZGAR)';
     }
 
     function seleccionarBey(playerKey, comboId) {
@@ -1892,6 +2029,16 @@
         };
     }
 
+    function obtenerCombosUsadosEquipo(battles, playerKey, teamSize) {
+        if (!battles || !Array.isArray(battles) || teamSize === 0) return [];
+        // Filtramos las batallas reales (ignoramos warnings)
+        const realBattles = battles.filter(b => ['spin', 'over', 'burst', 'xtreme'].includes(b.finish_type));
+        const remainder = realBattles.length % teamSize;
+        if (remainder === 0) return []; // Ciclo nuevo: Todos disponibles
+        const currentSet = realBattles.slice(-remainder);
+        return currentSet.map(b => playerKey === 'p1' ? Number(b.player1_combo_id) : Number(b.player2_combo_id));
+    }
+
     async function lockMatchOnServer(matchId) {
         try {
             const res = await fetch(`/api/torneos/partida/${matchId}/lock`, {
@@ -1910,6 +2057,196 @@
                 headers: { 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'), 'Accept': 'application/json' }
             });
         } catch (e) {}
+    }
+
+    // ==========================================
+    // CREADOR/EDITOR DE EVENTOS DESDE EL HUB
+    // ==========================================
+
+    function abrirModalEventManager(eventData = null) {
+        triggerHaptic('medium');
+        const modal = document.getElementById('eventManagerModal');
+        const form = document.getElementById('eventManagerForm');
+        const footer = document.getElementById('eventManagerFooter');
+        
+        // Copiamos las regiones del filtro principal al select del formulario
+        const selectRegionHub = document.getElementById('filtro-region');
+        const selectRegionManage = document.getElementById('manage_region_id');
+        if (selectRegionManage.options.length <= 1) {
+            selectRegionManage.innerHTML = selectRegionHub.innerHTML;
+            selectRegionManage.options[0].text = "Selecciona Región...";
+            selectRegionManage.options[0].disabled = true;
+        }
+
+        form.reset();
+        
+        if (eventData) {
+            // MODO EDICIÓN
+            document.getElementById('eventManagerTitle').innerHTML = '<i class="fas fa-edit text-yellow-400 mr-2"></i> EDITAR EVENTO';
+            document.getElementById('manage_event_id').value = eventData.id;
+            document.getElementById('manage_name').value = eventData.name;
+            document.getElementById('manage_mode').value = eventData.mode;
+            document.getElementById('manage_imagen').value = eventData.beys || 'quedada';
+            document.getElementById('manage_region_id').value = eventData.region_id;
+            document.getElementById('manage_city').value = eventData.city;
+            document.getElementById('manage_location').value = eventData.location;
+            
+            // Tratamiento de Fechas seguro
+            document.getElementById('manage_date').value = eventData.date.substring(0, 10);
+            document.getElementById('manage_time').value = eventData.time.substring(0, 5);
+
+            document.getElementById('manage_note').value = eventData.note || '';
+            
+            document.getElementById('manage_stadiums').value = eventData.stadiums;
+            document.getElementById('manage_max_players').value = eventData.max_players || '';
+            
+            actualizarReglasEventManager(eventData.deck, eventData.configuration);
+            
+            // MAGIA: Usamos type="submit" y form="eventManagerForm" nativos de HTML5
+            footer.innerHTML = `
+                <button type="button" onclick="eliminarEventoAPI(${eventData.id})" class="flex-none bg-red-900/40 hover:bg-red-800 text-red-400 hover:text-white border border-red-500/50 font-bold p-3 rounded-lg transition-colors">
+                    <i class="fas fa-trash"></i>
+                </button>
+                <button type="submit" form="eventManagerForm" id="btnSubmitManager" class="flex-1 bg-yellow-600 hover:bg-yellow-500 text-white font-bold py-3 rounded-lg shadow-lg transition-all">
+                    ACTUALIZAR
+                </button>
+            `;
+        } else {
+            // MODO CREACIÓN
+            document.getElementById('eventManagerTitle').innerHTML = '<i class="fas fa-calendar-plus text-cyan-400 mr-2"></i> NUEVO EVENTO';
+            document.getElementById('manage_event_id').value = '';
+            document.getElementById('manage_note').value = '';
+            actualizarReglasEventManager();
+            
+            footer.innerHTML = `
+                <button type="button" onclick="cerrarModalEventManager()" class="flex-1 bg-gray-800 text-gray-400 hover:text-white font-bold py-3 rounded-lg transition-colors">
+                    CANCELAR
+                </button>
+                <button type="submit" form="eventManagerForm" id="btnSubmitManager" class="flex-1 bg-cyan-600 hover:bg-cyan-500 text-white font-bold py-3 rounded-lg shadow-[0_0_15px_rgba(6,182,212,0.4)] transition-all">
+                    CREAR EVENTO
+                </button>
+            `;
+        }
+
+        modal.classList.add('active');
+        document.body.style.overflow = 'hidden';
+    }
+
+    async function enviarEventManager(e) {
+        e.preventDefault(); // Evitamos que la página se recargue por el formulario nativo
+        triggerHaptic('heavy');
+        
+        const form = document.getElementById('eventManagerForm');
+        const formData = new FormData(form);
+        const eventId = document.getElementById('manage_event_id').value;
+        const isEdit = eventId !== '';
+        
+        const url = isEdit ? `/api/eventos/${eventId}` : '/api/eventos';
+        if (isEdit) formData.append('_method', 'PUT'); // Laravel usa PUT para updates
+
+        // Bloqueamos el botón y ponemos el spinner
+        const btn = document.getElementById('btnSubmitManager');
+        const oldText = btn.innerHTML;
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> GUARDANDO...';
+
+        try {
+            const res = await fetch(url, {
+                method: 'POST',
+                headers: { 
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'), 
+                    'Accept': 'application/json' 
+                },
+                body: formData
+            });
+            
+            const data = await res.json();
+            
+            // Si Laravel nos devuelve que todo ha ido bien (Código 200)
+            if (res.ok && data.success) {
+                mostrarToast(data.message);
+                cerrarModalEventManager();
+                cargarEventos(); // Refresca la lista de la arena principal al instante
+            } else {
+                // Si falta un campo en Laravel (Error 422) o hay un fallo del servidor
+                const errorMsg = data.message || "Faltan datos obligatorios. Revisa el formulario.";
+                mostrarToast(errorMsg, true);
+                triggerHaptic('error');
+                
+                // Restauramos el botón para que pueda volver a intentarlo
+                btn.disabled = false;
+                btn.innerHTML = oldText;
+            }
+        } catch (error) {
+            mostrarToast("Error de conexión al servidor.", true);
+            triggerHaptic('error');
+            btn.disabled = false;
+            btn.innerHTML = oldText;
+        }
+    }
+
+    function cerrarModalEventManager() {
+        triggerHaptic('light');
+        document.getElementById('eventManagerModal').classList.remove('active');
+        document.body.style.overflow = 'auto';
+    }
+
+    // Lógica dinámica de los selects al estilo web
+    function actualizarReglasEventManager(forceDeck = null, forceConfig = null) {
+        const mode = document.getElementById('manage_mode').value;
+        const type = document.getElementById('manage_imagen').value;
+        const deckSelect = document.getElementById('manage_deck');
+        const configSelect = document.getElementById('manage_configuration');
+
+        const isCrewBattle = (type === 'crew_battle' || type === 'equipos');
+
+        if (isCrewBattle) {
+            deckSelect.innerHTML = '<option value="1on1">1 Beyblade por Jugador</option>';
+            configSelect.innerHTML = '<option value="RoundRobin">Guerra de Clanes (Round Robin)</option>';
+        } else if (mode === 'beybladex') {
+            deckSelect.innerHTML = '<option value="3on3">3on3 (3 Beys)</option>';
+            configSelect.innerHTML = `
+                <option value="Swiss">Sistema Suizo</option>
+                <option value="DoubleElimination">Doble Eliminación</option>
+                <option value="SingleElimination">Eliminación Simple</option>
+                <option value="RoundRobin">Round Robin</option>
+            `;
+        } else {
+            deckSelect.innerHTML = '<option value="3on3">3on3 (3 Beys)</option><option value="5g">5G (5 Beys)</option>';
+            configSelect.innerHTML = `
+                <option value="Swiss">Sistema Suizo</option>
+                <option value="DoubleElimination">Doble Eliminación</option>
+                <option value="SingleElimination">Eliminación Simple</option>
+                <option value="RoundRobin">Round Robin</option>
+            `;
+        }
+        
+        if (forceDeck) deckSelect.value = forceDeck;
+        if (forceConfig) configSelect.value = forceConfig;
+    }
+
+    async function eliminarEventoAPI(eventId) {
+        if (!confirm("🚨 PELIGRO: ¿Estás seguro de que quieres ELIMINAR este evento por completo? Esta acción no se puede deshacer.")) return;
+        triggerHaptic('error');
+        
+        try {
+            const res = await fetch(`/api/eventos/${eventId}`, {
+                method: 'DELETE',
+                headers: { 
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'), 
+                    'Accept': 'application/json' 
+                }
+            });
+            const data = await res.json();
+            
+            mostrarToast(data.message, !data.success);
+            if (data.success) {
+                cerrarModalEventManager();
+                cargarEventos();
+            }
+        } catch (error) {
+            mostrarToast("Error de red.", true);
+        }
     }
 
     // --- PWA SETUP ---
