@@ -82,9 +82,10 @@
                         <!-- NUEVOS FILTROS -->
                         <option value="crew_battle">TORNEOS DE EQUIPOS</option>
                         
-                        @if(Auth::check() && Auth::user()->hasAnyRole(['admin', 'juez', 'arbitro']))
+                        @if(Auth::check() && Auth::user()->hasAnyRole(['admin', 'juez', 'arbitro', 'revisor']))
                             <option value="express">DUELOS EXPRESS (STAFF)</option>
                         @endif
+                        <option value="historial">FINALIZADOS</option>
                     </select>
                     <i class="fas fa-chevron-down absolute right-3 top-3 text-gray-500 text-xs pointer-events-none"></i>
                 </div>

@@ -23,44 +23,62 @@ class HubController extends Controller
     public function getTorneos(Request $request)
     {
         $hoy = Carbon::now()->format('Y-m-d');
+        $userId = Auth::id();
+        $user = Auth::user();
         
-        $query = Event::with(['region', 'users', 'judges.profile'])
-            ->whereIn('status', ['OPEN', 'LIVE'])
-            ->whereDate('date', '>=', $hoy)
-            ->orderBy('date', 'asc');
+        // El revisor y el admin tienen llaves maestras silenciosas
+        $isJuez = $user ? $user->hasAnyRole(['admin', 'juez', 'arbitro', 'revisor']) : false;
+        $isGlobalStaff = $user ? $user->hasAnyRole(['admin', 'revisor']) : false;
+        
+        $query = Event::with(['region', 'users', 'judges.profile']);
 
-        // --- NUEVA LÓGICA DE FILTROS ---
-        if ($request->filled('tipo')) {
+        if ($request->filled('tipo') && $request->tipo === 'historial') {
+            $query->whereIn('status', ['COMPLETED', 'CLOSED', 'PENDING', 'REVIEW'])
+                  ->orderBy('date', 'desc')
+                  ->limit(30);
+        } else {
+            $query->whereIn('status', ['OPEN', 'LIVE'])
+                  ->whereDate('date', '>=', $hoy)
+                  ->orderBy('date', 'asc')
+                  ->orderBy('time', 'asc');
+        }
+
+        if ($request->filled('tipo') && $request->tipo !== 'historial') {
             if ($request->tipo === 'express') {
-                // Si el Juez filtra explícitamente por "Express", mostramos SOLO esos
                 $query->where('name', 'LIKE', 'Duelo Express:%');
             } elseif ($request->tipo === 'crew_battle') {
-                // Si filtran por "Equipos", mostramos torneos de equipos PERO ocultamos los express
                 $query->where('beys', 'crew_battle')->where('name', 'NOT LIKE', 'Duelo Express:%');
             } else {
-                // Cualquier otro filtro (ranking, quedada...), ocultamos también los express por si acaso
                 $query->where('beys', $request->tipo)->where('name', 'NOT LIKE', 'Duelo Express:%');
             }
         } else {
-            // VISTA POR DEFECTO ("Todos los tipos"): Ocultamos los Duelos Express al público
             $query->where('name', 'NOT LIKE', 'Duelo Express:%');
         }
 
         if ($request->filled('region')) {
             $query->where('region_id', $request->region);
         }
-        // -------------------------------
+
+        if ($request->filled('personal')) {
+            if ($request->personal === 'inscrito') {
+                $query->whereHas('users', function ($q) use ($userId) {
+                    $q->where('users.id', $userId);
+                });
+            } elseif ($request->personal === 'juez' && $isJuez) {
+                $query->whereHas('judges', function ($q) use ($userId) {
+                    $q->where('users.id', $userId);
+                });
+            }
+        }
 
         $torneos = $query->get();
-        $userId = Auth::id();
-        $isJuez = Auth::check() ? Auth::user()->hasAnyRole(['admin', 'juez', 'arbitro']) : false;
-        
-        $torneos->map(function ($torneo) use ($userId, $isJuez) {
-            $torneo->is_inscribed = $torneo->users()->where('user_id', $userId)->exists();
+
+        $torneos->map(function ($torneo) use ($userId, $isJuez, $isGlobalStaff) {
+            $torneo->is_inscribed = $torneo->users->contains('id', $userId);
             $torneo->user_is_judge = $isJuez;
+            $torneo->user_is_revisor = $isGlobalStaff;
             $torneo->total_inscritos = $torneo->users->count();
 
-            // 2. Extraemos a los jueces asignados y revisamos si el usuario actual ya está asignado
             $torneo->jueces_asignados = $torneo->judges->map(function ($juez) {
                 return [
                     'id' => $juez->id,
@@ -68,7 +86,9 @@ class HubController extends Controller
                     'avatar' => $juez->profile->avatar_url ?? '/images/default.png'
                 ];
             });
-            $torneo->is_judge_assigned = $torneo->judges->contains('id', $userId);
+
+            // MAGIA REVISOR: Si está asignado como juez O si tiene el rol 'revisor'/'admin', puede entrar a arbitrar cualquier evento sin salir en la lista de staff
+            $torneo->is_judge_assigned = $torneo->judges->contains('id', $userId) || $isGlobalStaff;
 
             $limite = 9999;
             if ($torneo->has_stadium_limit || !empty($torneo->max_players)) {
@@ -82,7 +102,7 @@ class HubController extends Controller
             $torneo->aforo_maximo = $limite;
 
             unset($torneo->users);
-            unset($torneo->judges); // Limpiamos para no enviar datos extra al móvil
+            unset($torneo->judges);
 
             return $torneo;
         });

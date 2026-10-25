@@ -163,6 +163,9 @@ Route::domain('nacional.sbbl.es')->group(function () {
 });
 
 Route::domain('hub.' . $dominio)->group(function () {
+
+Route::get('/torneos/{eventId}/cuadro', [App\Http\Controllers\TournamentEngineController::class, 'showBracket'])->name('torneo.bracket');
+Route::get('/api/torneos/{eventId}/clasificacion', [App\Http\Controllers\TournamentEngineController::class, 'getStandings']);
     
     // Metemos TODAS las rutas del hub dentro de la protección 'auth'
     Route::middleware('auth')->group(function () {
@@ -194,9 +197,7 @@ Route::domain('hub.' . $dominio)->group(function () {
         Route::post('/api/torneos/{eventId}/arena/ronda', [App\Http\Controllers\TournamentEngineController::class, 'generateRound']);
         Route::get('/api/torneos/partida/{matchId}', [App\Http\Controllers\TournamentEngineController::class, 'getMatchDetails']);
         Route::post('/api/torneos/partida/{matchId}/batalla', [App\Http\Controllers\TournamentEngineController::class, 'storeBattle']);
-        Route::get('/api/torneos/{eventId}/clasificacion', [App\Http\Controllers\TournamentEngineController::class, 'getStandings']);
         Route::post('/api/torneos/{eventId}/arena/top', [App\Http\Controllers\TournamentEngineController::class, 'generateTop']);
-        Route::get('/torneos/{eventId}/cuadro', [App\Http\Controllers\TournamentEngineController::class, 'showBracket'])->name('torneo.bracket');
         Route::get('/api/torneos/{eventId}/cuadro/html', [App\Http\Controllers\TournamentEngineController::class, 'renderBracketHtml']);
 
         Route::delete('/api/torneos/partida/{id}/undo', [App\Http\Controllers\TournamentEngineController::class, 'deshacerUltimoRegistro']);
@@ -215,6 +216,10 @@ Route::domain('hub.' . $dominio)->group(function () {
         Route::delete('/api/eventos/{event}', [\App\Http\Controllers\EventController::class, 'destroyAPI']);
 
         Route::post('/api/torneos/duelo-rapido', [\App\Http\Controllers\TournamentEngineController::class, 'createFastDuel']);
+        Route::post('/api/torneos/partida/{matchId}/avanzar', [\App\Http\Controllers\TournamentEngineController::class, 'avanzarPartidaBracket']);
+        Route::post('/api/torneos/partida/{matchId}/victoria-rapida', [\App\Http\Controllers\TournamentEngineController::class, 'fastWinMatch']);
+        Route::post('/api/torneos/partida/{matchId}/marcador-manual', [\App\Http\Controllers\TournamentEngineController::class, 'setManualScore']);
+
         });
 });
 /*
