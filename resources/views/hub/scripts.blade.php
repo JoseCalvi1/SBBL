@@ -2558,6 +2558,368 @@
         } catch (error) { mostrarToast("Error de red.", true); }
     }
 
+    let labInitialized = false;
+
+    function switchMetaSubTab(tab) {
+        triggerHaptic('light');
+        const btnList = document.getElementById('tab-meta-list');
+        const btnLab = document.getElementById('tab-meta-lab');
+        const viewList = document.getElementById('subview-meta-list');
+        const viewLab = document.getElementById('subview-meta-lab');
+
+        if (tab === 'lab') {
+            viewList.classList.add('hidden');
+            viewLab.classList.remove('hidden');
+            btnLab.className = "flex-1 text-center text-xs font-black tracking-widest py-2 rounded-lg bg-cyan-900/60 text-cyan-300 border border-cyan-500/50 transition-all";
+            btnList.className = "flex-1 text-center text-xs font-bold tracking-widest py-2 rounded-lg text-gray-400 hover:text-white transition-all";
+            if (!labInitialized) inicializarInputsLab();
+        } else {
+            viewLab.classList.add('hidden');
+            viewList.classList.remove('hidden');
+            btnList.className = "flex-1 text-center text-xs font-black tracking-widest py-2 rounded-lg bg-purple-900/60 text-purple-300 border border-purple-500/50 transition-all";
+            btnLab.className = "flex-1 text-center text-xs font-bold tracking-widest py-2 rounded-lg text-gray-400 hover:text-white transition-all";
+        }
+    }
+
+    function switchLabWorkbench(side) {
+        triggerHaptic('light');
+        const myPanel = document.getElementById('workbench-my');
+        const rivPanel = document.getElementById('workbench-rival');
+        const btnMy = document.getElementById('btn-workbench-my');
+        const btnRiv = document.getElementById('btn-workbench-rival');
+
+        if (side === 'my') {
+            myPanel.classList.remove('hidden');
+            rivPanel.classList.add('hidden');
+            btnMy.className = "py-3 px-3 text-left border-b-2 border-cyan-400 bg-cyan-950/20 transition-all";
+            btnRiv.className = "py-3 px-3 text-left border-b-2 border-transparent text-gray-500 hover:text-gray-300 transition-all";
+        } else {
+            myPanel.classList.add('hidden');
+            rivPanel.classList.remove('hidden');
+            btnRiv.className = "py-3 px-3 text-left border-b-2 border-red-400 bg-red-950/20 transition-all";
+            btnMy.className = "py-3 px-3 text-left border-b-2 border-transparent text-gray-500 hover:text-gray-300 transition-all";
+        }
+    }
+
+    async function inicializarInputsLab() {
+        if (!dbPiezas) await cargarPiezas();
+        if (!dbPiezas) return;
+        labInitialized = true;
+
+        const buildSlots = (prefix, accentBorder) => {
+            let html = '';
+            for (let i = 1; i <= 3; i++) {
+                html += `
+                    <div class="bg-gray-950/90 border border-gray-800 border-l-4 ${accentBorder} p-3 rounded-xl space-y-2">
+                        <div class="flex justify-between items-center">
+                            <span class="text-[10px] font-mono font-bold text-gray-400 uppercase tracking-wider">SLOT 0${i}</span>
+                            <button type="button" onclick="limpiarSlotLab('${prefix}', ${i})" class="text-[9px] text-gray-600 hover:text-gray-400 uppercase font-bold">Limpiar</button>
+                        </div>
+                        <!-- Fila 1: Blade principal + Ratchet + Bit -->
+                        <div class="grid grid-cols-12 gap-1.5">
+                            <select id="${prefix}_blade_${i}" onchange="validarLegalidadLab()" class="col-span-6 bg-gray-900 border border-gray-800 focus:border-gray-600 text-white text-[11px] font-bold p-2 rounded-lg outline-none">
+                                <option value="">Blade...</option>
+                                ${(dbPiezas.blades || []).map(b => `<option value="${b}">${b}</option>`).join('')}
+                            </select>
+                            <select id="${prefix}_ratchet_${i}" onchange="validarLegalidadLab()" class="col-span-3 bg-gray-900 border border-gray-800 focus:border-gray-600 text-white text-[11px] font-bold p-2 rounded-lg outline-none">
+                                <option value="">Ratchet</option>
+                                ${(dbPiezas.ratchets || []).map(r => `<option value="${r}">${r}</option>`).join('')}
+                            </select>
+                            <select id="${prefix}_bit_${i}" onchange="validarLegalidadLab()" class="col-span-3 bg-gray-900 border border-gray-800 focus:border-gray-600 text-white text-[11px] font-bold p-2 rounded-lg outline-none">
+                                <option value="">Bit</option>
+                                ${(dbPiezas.bits || []).map(bt => `<option value="${bt}">${bt}</option>`).join('')}
+                            </select>
+                        </div>
+                        <!-- Fila 2: Over Blade y Assist Blade (CX / Opcionales) -->
+                        <div class="grid grid-cols-2 gap-1.5 pt-0.5">
+                            <select id="${prefix}_over_${i}" onchange="validarLegalidadLab()" class="bg-gray-900/60 border border-gray-800/80 text-gray-300 text-[10px] font-semibold px-2 py-1.5 rounded-lg outline-none">
+                                <option value="">Over Blade (Opcional)</option>
+                                ${(dbPiezas.over_blades || []).map(ob => `<option value="${ob}">${ob}</option>`).join('')}
+                            </select>
+                            <select id="${prefix}_assist_${i}" onchange="validarLegalidadLab()" class="bg-gray-900/60 border border-gray-800/80 text-gray-300 text-[10px] font-semibold px-2 py-1.5 rounded-lg outline-none">
+                                <option value="">Assist Blade (Opcional)</option>
+                                ${(dbPiezas.assist_blades || []).map(ab => `<option value="${ab}">${ab}</option>`).join('')}
+                            </select>
+                        </div>
+                    </div>`;
+            }
+            return html;
+        };
+
+        document.getElementById('lab-my-deck-inputs').innerHTML = buildSlots('lab_my', 'border-l-cyan-500');
+        document.getElementById('lab-rival-deck-inputs').innerHTML = buildSlots('lab_riv', 'border-l-red-500');
+    }
+
+    function limpiarSlotLab(prefix, i) {
+        ['blade', 'ratchet', 'bit', 'over', 'assist'].forEach(part => {
+            const el = document.getElementById(`${prefix}_${part}_${i}`);
+            if (el) el.value = '';
+        });
+        if (prefix === 'lab_my') validarLegalidadLab();
+    }
+
+    function validarLegalidadLab() {
+        const alertBox = document.getElementById('lab-legality-alert');
+        if (!alertBox) return;
+
+        const blades = [], overs = [], assists = [], ratchets = [], bits = [];
+        for (let i = 1; i <= 3; i++) {
+            const b = document.getElementById(`lab_my_blade_${i}`)?.value;
+            const ob = document.getElementById(`lab_my_over_${i}`)?.value;
+            const ab = document.getElementById(`lab_my_assist_${i}`)?.value;
+            const r = document.getElementById(`lab_my_ratchet_${i}`)?.value;
+            const bt = document.getElementById(`lab_my_bit_${i}`)?.value;
+
+            if (b) blades.push(b);
+            if (ob && ob !== '-') overs.push(ob);
+            if (ab && ab !== '-') assists.push(ab);
+            if (r && r !== 'UX Expanded') ratchets.push(r);
+            if (bt && bt !== 'Without Bit') bits.push(bt);
+        }
+
+        const findDup = arr => arr.filter((v, idx, a) => a.indexOf(v) !== idx);
+        const errores = [];
+        if (findDup(blades).length) errores.push(`Blade (${findDup(blades)[0]})`);
+        if (findDup(overs).length) errores.push(`Over (${findDup(overs)[0]})`);
+        if (findDup(assists).length) errores.push(`Assist (${findDup(assists)[0]})`);
+        if (findDup(ratchets).length) errores.push(`Ratchet (${findDup(ratchets)[0]})`);
+        if (findDup(bits).length) errores.push(`Bit (${findDup(bits)[0]})`);
+
+        if (errores.length > 0) {
+            alertBox.innerText = `Piezas repetidas en 3on3: ${errores.join(' · ')}`;
+            alertBox.classList.remove('hidden');
+        } else {
+            alertBox.classList.add('hidden');
+        }
+    }
+
+    async function importarUltimoDeckAlLab() {
+        triggerHaptic('medium');
+        if (!labInitialized) await inicializarInputsLab();
+        try {
+            const res = await fetch('/api/ultimo-deck');
+            const deck = await res.json();
+            if (!deck || deck.length === 0) {
+                mostrarToast("No tienes un Deck previo guardado", true);
+                return;
+            }
+            deck.forEach((bey, idx) => {
+                const i = idx + 1;
+                if (i > 3) return;
+                document.getElementById(`lab_my_blade_${i}`).value = bey.blade || '';
+                document.getElementById(`lab_my_ratchet_${i}`).value = bey.ratchet || '';
+                document.getElementById(`lab_my_bit_${i}`).value = bey.bit || '';
+                document.getElementById(`lab_my_over_${i}`).value = (bey.over_blade && bey.over_blade !== '-') ? bey.over_blade : '';
+                document.getElementById(`lab_my_assist_${i}`).value = (bey.assist_blade && bey.assist_blade !== '-') ? bey.assist_blade : '';
+            });
+            validarLegalidadLab();
+            mostrarToast("Deck importado correctamente");
+        } catch (e) {
+            mostrarToast("Error al importar tu Deck", true);
+        }
+    }
+
+    function cargarMetaBossEnLab() {
+        triggerHaptic('light');
+        for (let i = 1; i <= 3; i++) {
+            limpiarSlotLab('lab_riv', i);
+        }
+        mostrarToast("Cargando los 3 combos más usados del Meta...");
+        ejecutarSimulacionLab();
+    }
+
+    async function ejecutarSimulacionLab() {
+        triggerHaptic('heavy');
+        const miDeck = [];
+        const rivalDeck = [];
+
+        for (let i = 1; i <= 3; i++) {
+            const mb = document.getElementById(`lab_my_blade_${i}`)?.value;
+            if (mb) {
+                miDeck.push({
+                    blade: mb,
+                    over_blade: document.getElementById(`lab_my_over_${i}`)?.value || '',
+                    assist_blade: document.getElementById(`lab_my_assist_${i}`)?.value || '',
+                    ratchet: document.getElementById(`lab_my_ratchet_${i}`)?.value || '',
+                    bit: document.getElementById(`lab_my_bit_${i}`)?.value || ''
+                });
+            }
+
+            const rb = document.getElementById(`lab_riv_blade_${i}`)?.value;
+            if (rb) {
+                rivalDeck.push({
+                    blade: rb,
+                    over_blade: document.getElementById(`lab_riv_over_${i}`)?.value || '',
+                    assist_blade: document.getElementById(`lab_riv_assist_${i}`)?.value || '',
+                    ratchet: document.getElementById(`lab_riv_ratchet_${i}`)?.value || '',
+                    bit: document.getElementById(`lab_riv_bit_${i}`)?.value || ''
+                });
+            }
+        }
+
+        if (miDeck.length === 0) {
+            switchLabWorkbench('my');
+            mostrarToast("Configura al menos 1 Beyblade en tu alineación", true);
+            return;
+        }
+
+        const container = document.getElementById('lab-results-container');
+        container.innerHTML = '<div class="bg-gray-900 border border-gray-800 rounded-2xl p-8 text-center"><p class="text-xs text-gray-400 font-mono uppercase tracking-widest animate-pulse">Calculando matriz de enfrentamientos...</p></div>';
+
+        try {
+            const res = await fetch('/api/lab/analizar', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                    'Accept': 'application/json'
+                },
+                body: JSON.stringify({ mi_deck: miDeck, rival_deck: rivalDeck })
+            });
+            const data = await res.json();
+
+            if (rivalDeck.length === 0 && data.rival_deck_stats) {
+                data.rival_deck_stats.forEach((r, idx) => {
+                    const i = idx + 1;
+                    if (i <= 3) {
+                        document.getElementById(`lab_riv_blade_${i}`).value = r.blade || '';
+                        document.getElementById(`lab_riv_over_${i}`).value = r.over_blade || '';
+                        document.getElementById(`lab_riv_assist_${i}`).value = r.assist_blade || '';
+                        document.getElementById(`lab_riv_ratchet_${i}`).value = r.ratchet || '';
+                        document.getElementById(`lab_riv_bit_${i}`).value = r.bit || '';
+                    }
+                });
+            }
+
+            const wr = data.overall_winrate;
+            const rivalWr = (100 - wr).toFixed(1);
+            const barColor = wr >= 55 ? 'bg-emerald-500' : (wr >= 45 ? 'bg-amber-400' : 'bg-rose-500');
+            const textColor = wr >= 55 ? 'text-emerald-400' : (wr >= 45 ? 'text-amber-400' : 'text-rose-400');
+
+            // 1. Cabecera de Balance de Victoria + Matriz Cruzada 3x3
+            let html = `
+                <div class="bg-gray-900 border border-gray-800 rounded-2xl p-4 shadow-xl space-y-4">
+                    <div class="flex justify-between items-baseline">
+                        <div>
+                            <span class="text-[10px] font-mono uppercase tracking-widest text-gray-400 block">EXPECTATIVA DE VICTORIA</span>
+                            <span class="text-3xl font-black font-mono ${textColor}">${wr}%</span>
+                        </div>
+                        <div class="text-right">
+                            <span class="text-[10px] font-mono uppercase tracking-widest text-gray-500 block">RIVAL / META</span>
+                            <span class="text-lg font-bold font-mono text-gray-400">${rivalWr}%</span>
+                        </div>
+                    </div>
+
+                    <!-- Barra de Balance -->
+                    <div class="h-2 w-full bg-gray-950 rounded-full overflow-hidden flex border border-gray-800">
+                        <div class="${barColor} h-full transition-all duration-700" style="width: ${wr}%"></div>
+                    </div>
+
+                    <!-- Tabla Matriz 3x3 -->
+                    <div class="pt-2">
+                        <div class="text-[10px] font-mono uppercase tracking-widest text-gray-400 mb-2">MATRIZ DE CRUCES (TU DECK VS RIVAL)</div>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-center border-collapse">
+                                <thead>
+                                    <tr class="border-b border-gray-800">
+                                        <th class="py-2 pr-2 text-left text-[9px] font-mono text-gray-500 uppercase">TU BEY \\ RIVAL</th>
+                                        ${data.rival_deck_stats.map(riv => `
+                                            <th class="p-1.5 text-[10px] font-bold text-red-300 uppercase truncate max-w-[85px]">
+                                                <div class="truncate">${riv.short_name}</div>
+                                                <div class="text-[8px] font-mono text-gray-500 font-normal truncate">${riv.parts_label}</div>
+                                            </th>
+                                        `).join('')}
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-gray-800/60">
+                                    ${data.matrix.map((row, rIdx) => {
+                                        const myStat = data.my_deck_stats[rIdx];
+                                        return `
+                                            <tr>
+                                                <td class="py-2.5 pr-2 text-left">
+                                                    <div class="text-[11px] font-black text-cyan-300 uppercase truncate max-w-[105px]">${myStat.short_name}</div>
+                                                    <div class="text-[9px] font-mono text-gray-500 truncate">${myStat.parts_label}</div>
+                                                </td>
+                                                ${row.map(cell => {
+                                                    const cWr = cell.winrate;
+                                                    const cellStyle = cWr >= 55 
+                                                        ? 'bg-emerald-950/50 text-emerald-300 border-emerald-700/50' 
+                                                        : (cWr >= 45 ? 'bg-gray-800/80 text-gray-200 border-gray-700' : 'bg-rose-950/50 text-rose-300 border-rose-800/50');
+                                                    return `
+                                                        <td class="p-1">
+                                                            <div class="border ${cellStyle} rounded-lg py-1.5 px-1">
+                                                                <div class="font-mono font-black text-xs leading-none">${cWr}%</div>
+                                                                <div class="text-[8px] text-gray-500 mt-0.5 uppercase">${cell.source}</div>
+                                                            </div>
+                                                        </td>
+                                                    `;
+                                                }).join('')}
+                                            </tr>
+                                        `;
+                                    }).join('')}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 2. Telemetría Individual de Tu Alineación -->
+                <div class="bg-gray-900 border border-gray-800 rounded-2xl p-4 shadow-xl space-y-3">
+                    <div class="text-[10px] font-mono uppercase tracking-widest text-gray-400">RENDIMIENTO Y DAÑO PROMEDIO (ESCALA 1.00 - 3.00)</div>
+            `;
+
+            data.my_deck_stats.forEach(st => {
+                const dmgDealt = st.avg_dmg_dealt > 0 ? st.avg_dmg_dealt.toFixed(2) : '---';
+                const dmgTaken = st.avg_dmg_taken > 0 ? st.avg_dmg_taken.toFixed(2) : '---';
+
+                html += `
+                    <div class="bg-gray-950 border border-gray-800/90 rounded-xl p-3 space-y-2.5">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <div class="text-xs font-black text-white uppercase">${st.combo}</div>
+                                <div class="text-[9px] font-mono text-gray-500">${st.wins}W - ${st.losses}L (${st.sample_size} combates · ${st.precision})</div>
+                            </div>
+                            <span class="font-mono text-sm font-black ${st.winrate >= 50 ? 'text-cyan-400' : 'text-amber-400'}">${st.winrate}% WR</span>
+                        </div>
+
+                        <!-- Barra proporcional de tipos de victoria -->
+                        <div>
+                            <div class="flex justify-between text-[9px] font-mono text-gray-400 mb-1">
+                                <span>SPIN ${st.spin_pct}%</span>
+                                <span>OVER ${st.over_pct}%</span>
+                                <span>BURST ${st.burst_pct}%</span>
+                                <span>XTREME ${st.xtreme_pct}%</span>
+                            </div>
+                            <div class="h-1.5 w-full bg-gray-900 rounded-full overflow-hidden flex">
+                                <div class="bg-emerald-500 h-full" style="width: ${st.spin_pct}%"></div>
+                                <div class="bg-sky-500 h-full" style="width: ${st.over_pct}%"></div>
+                                <div class="bg-amber-500 h-full" style="width: ${st.burst_pct}%"></div>
+                                <div class="bg-fuchsia-500 h-full" style="width: ${st.xtreme_pct}%"></div>
+                            </div>
+                        </div>
+
+                        <!-- Cajas de Daño Promedio (1.00 a 3.00) -->
+                        <div class="grid grid-cols-2 gap-2 pt-1">
+                            <div class="bg-gray-900/90 border border-gray-800 rounded-lg px-2.5 py-1.5 flex justify-between items-center">
+                                <span class="text-[9px] text-gray-400 font-bold uppercase">Pts / Victoria</span>
+                                <span class="font-mono text-xs font-black text-emerald-400">${dmgDealt}</span>
+                            </div>
+                            <div class="bg-gray-900/90 border border-gray-800 rounded-lg px-2.5 py-1.5 flex justify-between items-center">
+                                <span class="text-[9px] text-gray-400 font-bold uppercase">Pts / Derrota</span>
+                                <span class="font-mono text-xs font-black text-rose-400">${dmgTaken}</span>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+
+            html += `</div>`;
+            container.innerHTML = html;
+        } catch (e) {
+            container.innerHTML = '<div class="bg-gray-900 border border-red-900/50 rounded-xl p-4 text-center text-red-400 text-xs font-bold">Error al procesar la simulación.</div>';
+        }
+    }
+
     // Exportación global segura para todos los eventos del modal
     window.alternarLadosBatalla = alternarLadosBatalla;
     window.deshacerUltimoRegistro = deshacerUltimoRegistro;

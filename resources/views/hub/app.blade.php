@@ -157,34 +157,99 @@
         </section>
 
         <!-- PESTAÑA 4: EL META -->
+        <!-- PESTAÑA 4: EL META + BEY-LAB -->
         <section id="view-meta" class="view-section" data-index="3">
-            <div class="flex justify-between items-center mb-4 border-b border-purple-500/50 pb-2">
-                <h2 class="text-2xl font-bold text-white pl-2 font-mono"><i class="fas fa-chart-line text-purple-500 mr-2"></i>EL META</h2>
+            <div class="flex justify-between items-center mb-3 border-b border-purple-500/50 pb-2">
+                <h2 class="text-2xl font-bold text-white pl-2 font-mono"><i class="fas fa-flask text-purple-400 mr-2"></i>META & LAB</h2>
                 <button onclick="refrescarPestanaActual('meta', this)" class="bg-gray-900 hover:bg-gray-800 active:scale-90 text-purple-400 border border-purple-500/40 px-3 py-1.5 rounded-lg text-[10px] font-black tracking-widest uppercase flex items-center gap-1.5 transition-all shadow-sm">
                     <i class="fas fa-sync-alt"></i> ACTUALIZAR
                 </button>
             </div>
-            
-            <div class="flex gap-2 mb-4">
-                <div class="relative flex-1">
-                    <select id="meta-filtro-tiempo" onchange="cargarMeta()" class="w-full bg-gray-900 border border-gray-700 text-purple-400 text-[10px] font-bold tracking-widest p-2.5 rounded-lg appearance-none outline-none focus:border-purple-500 shadow-inner">
-                        <option value="30">ÚLTIMOS 30 DÍAS</option>
-                        <option value="60">ÚLTIMOS 60 DÍAS</option>
-                        <option value="90">ÚLTIMOS 90 DÍAS</option>
-                        <option value="all">HISTÓRICO COMPLETO</option>
-                    </select>
-                    <i class="fas fa-chevron-down absolute right-3 top-3 text-gray-500 text-xs pointer-events-none"></i>
-                </div>
-                <div class="relative w-1/3">
-                    <select id="meta-filtro-rango" onchange="cargarMeta()" class="w-full bg-gray-900 border border-gray-700 text-purple-400 text-[10px] font-bold tracking-widest p-2.5 rounded-lg appearance-none outline-none focus:border-purple-500 shadow-inner">
-                        <option value="5">TOP 50</option>
-                        <option value="1">VER TODOS</option>
-                    </select>
-                    <i class="fas fa-chevron-down absolute right-3 top-3 text-gray-500 text-xs pointer-events-none"></i>
-                </div>
+
+            <!-- Conmutador Ranking Meta vs Bey-Lab -->
+            <div class="flex mb-4 bg-gray-900 border border-gray-800 rounded-xl p-1">
+                <button type="button" id="tab-meta-list" onclick="switchMetaSubTab('list')" class="flex-1 text-center text-xs font-black tracking-widest py-2 rounded-lg bg-purple-900/60 text-purple-300 border border-purple-500/50 transition-all">
+                    <i class="fas fa-chart-line mr-1"></i> TIER LIST
+                </button>
+                <button type="button" id="tab-meta-lab" onclick="switchMetaSubTab('lab')" class="flex-1 text-center text-xs font-bold tracking-widest py-2 rounded-lg text-gray-400 hover:text-white transition-all">
+                    <i class="fas fa-vial mr-1 text-cyan-400"></i> BEY-LAB (SIMULADOR)
+                </button>
             </div>
-            
-            <div id="lista-meta" class="space-y-3 pb-4"></div>
+
+            <!-- SUB-VISTA A: TIER LIST ACTUAL -->
+            <div id="subview-meta-list" class="block">
+                <div class="flex gap-2 mb-4">
+                    <div class="relative flex-1">
+                        <select id="meta-filtro-tiempo" onchange="cargarMeta()" class="w-full bg-gray-900 border border-gray-700 text-purple-400 text-[10px] font-bold tracking-widest p-2.5 rounded-lg appearance-none outline-none focus:border-purple-500 shadow-inner">
+                            <option value="30">ÚLTIMOS 30 DÍAS</option>
+                            <option value="60">ÚLTIMOS 60 DÍAS</option>
+                            <option value="90">ÚLTIMOS 90 DÍAS</option>
+                            <option value="all">HISTÓRICO COMPLETO</option>
+                        </select>
+                        <i class="fas fa-chevron-down absolute right-3 top-3 text-gray-500 text-xs pointer-events-none"></i>
+                    </div>
+                    <div class="relative w-1/3">
+                        <select id="meta-filtro-rango" onchange="cargarMeta()" class="w-full bg-gray-900 border border-gray-700 text-purple-400 text-[10px] font-bold tracking-widest p-2.5 rounded-lg appearance-none outline-none focus:border-purple-500 shadow-inner">
+                            <option value="5">TOP 50</option>
+                            <option value="1">VER TODOS</option>
+                        </select>
+                        <i class="fas fa-chevron-down absolute right-3 top-3 text-gray-500 text-xs pointer-events-none"></i>
+                    </div>
+                </div>
+                <div id="lista-meta" class="space-y-3 pb-4"></div>
+            </div>
+
+            <!-- SUB-VISTA B: SBBL BEY-LAB (SIMULADOR DE DECKS Y MATCHUPS) -->
+            <!-- SUB-VISTA B: SBBL BEY-LAB (DISEÑO LIMPIO Y ESTRUCTURADO) -->
+            <div id="subview-meta-lab" class="hidden space-y-4 pb-8">
+                
+                <!-- Selector de Mesa de Trabajo (Tu Deck vs Deck Rival) -->
+                <div class="bg-gray-900/90 border border-gray-800 rounded-2xl overflow-hidden shadow-xl">
+                    <div class="grid grid-cols-2 border-b border-gray-800 bg-gray-950">
+                        <button type="button" id="btn-workbench-my" onclick="switchLabWorkbench('my')" class="py-3 px-3 text-left border-b-2 border-cyan-400 bg-cyan-950/20 transition-all">
+                            <span class="block text-[9px] font-mono uppercase tracking-widest text-cyan-400 font-bold">BANCO 01</span>
+                            <span class="text-xs font-black text-white uppercase">TU ALINEACIÓN</span>
+                        </button>
+                        <button type="button" id="btn-workbench-rival" onclick="switchLabWorkbench('rival')" class="py-3 px-3 text-left border-b-2 border-transparent text-gray-500 hover:text-gray-300 transition-all">
+                            <span class="block text-[9px] font-mono uppercase tracking-widest text-red-400/80 font-bold">BANCO 02</span>
+                            <span class="text-xs font-black uppercase">DECK RIVAL / META</span>
+                        </button>
+                    </div>
+
+                    <!-- Panel Banco 01: Tu Deck -->
+                    <div id="workbench-my" class="p-3.5 space-y-3">
+                        <div class="flex justify-between items-center">
+                            <span class="text-[10px] text-gray-400 font-medium">Configura hasta 3 combos para evaluar su rendimiento</span>
+                            <button type="button" onclick="importarUltimoDeckAlLab()" class="bg-gray-800 hover:bg-gray-700 text-cyan-300 border border-gray-700 px-2.5 py-1 rounded-lg text-[10px] font-bold transition-colors shrink-0">
+                                Importar mi Deck
+                            </button>
+                        </div>
+                        <div id="lab-my-deck-inputs" class="space-y-2.5"></div>
+                        <div id="lab-legality-alert" class="hidden p-2.5 rounded-lg bg-red-950/50 border border-red-500/50 text-red-300 text-[10px] font-bold text-center"></div>
+                    </div>
+
+                    <!-- Panel Banco 02: Deck Rival -->
+                    <div id="workbench-rival" class="hidden p-3.5 space-y-3">
+                        <div class="flex justify-between items-center">
+                            <span class="text-[10px] text-gray-400 font-medium">Elige un rival a medida o carga el Top 3 más usado</span>
+                            <button type="button" onclick="cargarMetaBossEnLab()" class="bg-gray-800 hover:bg-gray-700 text-amber-300 border border-gray-700 px-2.5 py-1 rounded-lg text-[10px] font-bold transition-colors shrink-0">
+                                Cargar Top 3 Meta
+                            </button>
+                        </div>
+                        <div id="lab-rival-deck-inputs" class="space-y-2.5"></div>
+                    </div>
+
+                    <!-- Barra Inferior de Acción -->
+                    <div class="p-3 bg-gray-950 border-t border-gray-800/80">
+                        <button type="button" onclick="ejecutarSimulacionLab()" id="btnEjecutarLab" class="w-full bg-cyan-500 hover:bg-cyan-400 text-gray-950 font-black py-3 rounded-xl text-xs tracking-widest uppercase transition-all active:scale-[0.99] shadow-md">
+                            ANALIZAR ENFRENTAMIENTO
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Contenedor de Resultados Estructurados -->
+                <div id="lab-results-container" class="space-y-4"></div>
+            </div>
         </section>
 
         <!-- PESTAÑA 5: REGLAMENTO -->

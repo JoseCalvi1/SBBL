@@ -673,7 +673,7 @@
                         <h5 class="footer-heading">EL EQUIPO SBBL</h5>
                         <p class="footer-desc">
                             La <strong>Spanish BeyBattle League</strong> es la organización central para todos los bladers en España.
-                            Nuestro objetivo es unificar la comunidad, organizar torneos oficiales y crear un entorno competitivo y divertido para todos.
+                            Nuestro objetivo es unificar la comunidad, organizar torneos y crear un entorno competitivo y divertido para todos.
                         </p>
                         <div class="social-icons-footer mt-3">
                             <a href="https://discord.gg/JCtAHfJ8Ht" target="_blank" title="Discord"><div><i class="fab fa-discord"></i></div></a>

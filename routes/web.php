@@ -187,6 +187,7 @@ Route::middleware('auth')->prefix('api')->group(function () {
     Route::post('/duelos', [HubController::class, 'storeTeamDuel']);
     Route::get('/perfil/{id}', [HubController::class, 'getPlayerProfile']);
     Route::get('/equipos', [HubController::class, 'getAllTeams']);
+    Route::post('/lab/analizar', [HubController::class, 'analizarDeckLab']);
 
     // Inscripción, Decks y Arbitraje de Torneos
     Route::post('/torneos/{eventId}/deck', [HubController::class, 'guardarDeck']);

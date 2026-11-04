@@ -544,7 +544,7 @@
                 <h2 class="mb-4 font-Oswald text-white" style="font-size: 3rem;">La Iniciativa SBBL</h2>
                 <div class="row justify-content-center text-center">
                     <div class="col-md-8 text-white fw-bold">
-                        <p class="mb-3" style="font-size: 1.1rem;">La <strong style="color: var(--sbbl-gold); font-size: 1.3rem; font-family: 'Oswald', cursive;">SBBL (Spanish BeyBattle League)</strong> es una organización sin ánimo de lucro operada por la comunidad. Nuestro objetivo es estandarizar y profesionalizar el Beyblade competitivo en España.</p>
+                        <p class="mb-3" style="font-size: 1.1rem;">La <strong style="color: var(--sbbl-gold); font-size: 1.3rem; font-family: 'Oswald', cursive;">SBBL (Spanish BeyBattle League)</strong> es una organización sin ánimo de lucro creada por y para la comunidad. Nuestro objetivo es estandarizar y profesionalizar el Beyblade competitivo en España.</p>
                         <p class="mb-4" style="color: #ccc;">Gestionamos rankings, organizamos torneos nacionales y desarrollamos tecnología para conectar a los Bladers de todas las regiones.</p>
                     </div>
                 </div>

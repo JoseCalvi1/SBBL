@@ -295,8 +295,8 @@ class HubController extends Controller
                 SUM(is_loser) as total_derrotas,
                 (SUM(is_winner) / COUNT(*)) * 100 as percentage_victories,
                 SUM(points_won) as eficiencia,
-                AVG(points_won) as puntos_ganados_por_combate,
-                AVG(points_lost) as puntos_perdidos_por_combate,
+                ROUND(IFNULL(SUM(points_won) / NULLIF(SUM(is_winner), 0), 0), 2) as puntos_ganados_por_combate,
+                ROUND(IFNULL(SUM(points_lost) / NULLIF(SUM(is_loser), 0), 0), 2) as puntos_perdidos_por_combate,
                 SUM(spin_wins) as spin_wins,
                 SUM(over_wins) as over_wins,
                 SUM(burst_wins) as burst_wins,
@@ -655,5 +655,308 @@ class HubController extends Controller
             ->get();
 
         return response()->json($ranking);
+    }
+
+    public function analizarDeckLab(Request $request)
+    {
+        $miDeck = $request->input('mi_deck', []);
+        $rivalDeck = $request->input('rival_deck', []);
+
+        $fechaCorte = \Carbon\Carbon::now()->subDays(60)->toDateString();
+
+        // Top de combos más jugados ampliando el límite para poder filtrar los ilegales
+        $topMetaRaw = DB::select("
+            SELECT 
+                blade, ratchet, bit,
+                CASE WHEN over_blade IS NULL OR over_blade = '' OR over_blade = '-' OR over_blade LIKE '%Selecciona%' THEN '-' ELSE over_blade END as over_blade,
+                CASE WHEN assist_blade IS NULL OR assist_blade = '' OR assist_blade = '-' OR assist_blade LIKE '%Selecciona%' THEN '-' ELSE assist_blade END as assist_blade,
+                COUNT(*) as usos
+            FROM tournament_results tr
+            JOIN events e ON tr.event_id = e.id
+            WHERE tr.blade IS NOT NULL 
+              AND tr.blade NOT LIKE '%Selecciona%'
+              AND tr.blade != 'DESCONOCIDO'
+              AND e.date >= ?
+            GROUP BY blade, ratchet, bit, over_blade, assist_blade
+            ORDER BY usos DESC
+            LIMIT 20
+        ", [$fechaCorte]);
+
+        // FILTRO DE LEGALIDAD 3ON3
+        $topMetaBoss = [];
+        $usedBlades = [];
+        $usedRatchets = [];
+        $usedBits = [];
+        $usedOvers = [];
+        $usedAssists = [];
+
+        foreach ($topMetaRaw as $boss) {
+            if (count($topMetaBoss) >= 3) break;
+
+            $isLegal = true;
+            if (in_array($boss->blade, $usedBlades)) $isLegal = false;
+            if ($boss->ratchet !== 'UX Expanded' && in_array($boss->ratchet, $usedRatchets)) $isLegal = false;
+            if ($boss->bit !== 'Without Bit' && in_array($boss->bit, $usedBits)) $isLegal = false;
+            if ($boss->over_blade !== '-' && in_array($boss->over_blade, $usedOvers)) $isLegal = false;
+            if ($boss->assist_blade !== '-' && in_array($boss->assist_blade, $usedAssists)) $isLegal = false;
+
+            if ($isLegal) {
+                $topMetaBoss[] = $boss;
+                $usedBlades[] = $boss->blade;
+                if ($boss->ratchet !== 'UX Expanded') $usedRatchets[] = $boss->ratchet;
+                if ($boss->bit !== 'Without Bit') $usedBits[] = $boss->bit;
+                if ($boss->over_blade !== '-') $usedOvers[] = $boss->over_blade;
+                if ($boss->assist_blade !== '-') $usedAssists[] = $boss->assist_blade;
+            }
+        }
+
+        if (empty($rivalDeck)) {
+            foreach ($topMetaBoss as $boss) {
+                $rivalDeck[] = [
+                    'blade'        => $boss->blade,
+                    'over_blade'   => $boss->over_blade !== '-' ? $boss->over_blade : '',
+                    'assist_blade' => $boss->assist_blade !== '-' ? $boss->assist_blade : '',
+                    'ratchet'      => $boss->ratchet,
+                    'bit'          => $boss->bit,
+                ];
+            }
+        }
+
+        $formatComboName = function ($b) {
+            $extras = array_filter([$b['over_blade'] ?? '', $b['assist_blade'] ?? ''], fn($v) => !empty($v) && $v !== '-');
+            $extraStr = !empty($extras) ? ' [' . implode('/', $extras) . ']' : '';
+            return trim(($b['blade'] ?? '') . $extraStr . ' ' . ($b['ratchet'] ?? '') . ' ' . ($b['bit'] ?? ''));
+        };
+
+        $getComboStats = function ($b) use ($formatComboName) {
+            $blade = $b['blade'] ?? '';
+            $ratchet = $b['ratchet'] ?? '';
+            $bit = $b['bit'] ?? '';
+            $over = (!empty($b['over_blade']) && $b['over_blade'] !== '-') ? $b['over_blade'] : null;
+            $assist = (!empty($b['assist_blade']) && $b['assist_blade'] !== '-') ? $b['assist_blade'] : null;
+
+            if (empty($blade)) return null;
+
+            $overCond = $over ? "AND c.over_blade = " . DB::getPdo()->quote($over) : "";
+            $assistCond = $assist ? "AND c.assist_blade = " . DB::getPdo()->quote($assist) : "";
+
+            $exact = DB::selectOne("
+                SELECT 
+                    COUNT(*) as total,
+                    SUM(is_win) as wins,
+                    SUM(is_loss) as losses,
+                    ROUND(IFNULL(SUM(pts_won) / NULLIF(SUM(is_win), 0), 0), 2) as avg_dmg_dealt,
+                    ROUND(IFNULL(SUM(pts_lost) / NULLIF(SUM(is_loss), 0), 0), 2) as avg_dmg_taken,
+                    SUM(CASE WHEN is_win = 1 AND finish_type = 'xtreme' THEN 1 ELSE 0 END) as xtreme_w,
+                    SUM(CASE WHEN is_win = 1 AND finish_type = 'burst' THEN 1 ELSE 0 END) as burst_w,
+                    SUM(CASE WHEN is_win = 1 AND finish_type = 'over' THEN 1 ELSE 0 END) as over_w,
+                    SUM(CASE WHEN is_win = 1 AND finish_type = 'spin' THEN 1 ELSE 0 END) as spin_w
+                FROM (
+                    SELECT 
+                        (mb.winner_id = c.user_id) as is_win,
+                        (mb.winner_id != c.user_id AND mb.winner_id IS NOT NULL) as is_loss,
+                        CASE WHEN mb.winner_id = c.user_id THEN LEAST(3, GREATEST(1, mb.points_awarded)) ELSE 0 END as pts_won,
+                        CASE WHEN mb.winner_id != c.user_id AND mb.winner_id IS NOT NULL THEN LEAST(3, GREATEST(1, mb.points_awarded)) ELSE 0 END as pts_lost,
+                        mb.finish_type
+                    FROM match_battles mb
+                    JOIN tournament_results c ON mb.player1_combo_id = c.id
+                    WHERE mb.winner_id IS NOT NULL AND mb.finish_type IN ('spin','over','burst','xtreme')
+                      AND c.blade = ? AND c.ratchet = ? AND c.bit = ? $overCond $assistCond
+                    UNION ALL
+                    SELECT 
+                        (mb.winner_id = c.user_id) as is_win,
+                        (mb.winner_id != c.user_id AND mb.winner_id IS NOT NULL) as is_loss,
+                        CASE WHEN mb.winner_id = c.user_id THEN LEAST(3, GREATEST(1, mb.points_awarded)) ELSE 0 END as pts_won,
+                        CASE WHEN mb.winner_id != c.user_id AND mb.winner_id IS NOT NULL THEN LEAST(3, GREATEST(1, mb.points_awarded)) ELSE 0 END as pts_lost,
+                        mb.finish_type
+                    FROM match_battles mb
+                    JOIN tournament_results c ON mb.player2_combo_id = c.id
+                    WHERE mb.winner_id IS NOT NULL AND mb.finish_type IN ('spin','over','burst','xtreme')
+                      AND c.blade = ? AND c.ratchet = ? AND c.bit = ? $overCond $assistCond
+                ) as hist
+            ", [$blade, $ratchet, $bit, $blade, $ratchet, $bit]);
+
+            if (!$exact || $exact->total < 3) {
+                $bladeOnly = DB::selectOne("
+                    SELECT 
+                        COUNT(*) as total,
+                        SUM(is_win) as wins,
+                        SUM(is_loss) as losses,
+                        ROUND(IFNULL(SUM(pts_won) / NULLIF(SUM(is_win), 0), 0), 2) as avg_dmg_dealt,
+                        ROUND(IFNULL(SUM(pts_lost) / NULLIF(SUM(is_loss), 0), 0), 2) as avg_dmg_taken,
+                        SUM(CASE WHEN is_win = 1 AND finish_type = 'xtreme' THEN 1 ELSE 0 END) as xtreme_w,
+                        SUM(CASE WHEN is_win = 1 AND finish_type = 'burst' THEN 1 ELSE 0 END) as burst_w,
+                        SUM(CASE WHEN is_win = 1 AND finish_type = 'over' THEN 1 ELSE 0 END) as over_w,
+                        SUM(CASE WHEN is_win = 1 AND finish_type = 'spin' THEN 1 ELSE 0 END) as spin_w
+                    FROM (
+                        SELECT 
+                            (mb.winner_id = c.user_id) as is_win,
+                            (mb.winner_id != c.user_id AND mb.winner_id IS NOT NULL) as is_loss,
+                            CASE WHEN mb.winner_id = c.user_id THEN LEAST(3, GREATEST(1, mb.points_awarded)) ELSE 0 END as pts_won,
+                            CASE WHEN mb.winner_id != c.user_id AND mb.winner_id IS NOT NULL THEN LEAST(3, GREATEST(1, mb.points_awarded)) ELSE 0 END as pts_lost,
+                            mb.finish_type
+                        FROM match_battles mb
+                        JOIN tournament_results c ON mb.player1_combo_id = c.id
+                        WHERE mb.winner_id IS NOT NULL AND mb.finish_type IN ('spin','over','burst','xtreme') AND c.blade = ?
+                        UNION ALL
+                        SELECT 
+                            (mb.winner_id = c.user_id) as is_win,
+                            (mb.winner_id != c.user_id AND mb.winner_id IS NOT NULL) as is_loss,
+                            CASE WHEN mb.winner_id = c.user_id THEN LEAST(3, GREATEST(1, mb.points_awarded)) ELSE 0 END as pts_won,
+                            CASE WHEN mb.winner_id != c.user_id AND mb.winner_id IS NOT NULL THEN LEAST(3, GREATEST(1, mb.points_awarded)) ELSE 0 END as pts_lost,
+                            mb.finish_type
+                        FROM match_battles mb
+                        JOIN tournament_results c ON mb.player2_combo_id = c.id
+                        WHERE mb.winner_id IS NOT NULL AND mb.finish_type IN ('spin','over','burst','xtreme') AND c.blade = ?
+                    ) as hist
+                ", [$blade, $blade]);
+
+                $data = $bladeOnly;
+                $precision = 'Por Blade';
+            } else {
+                $data = $exact;
+                $precision = 'Combo Exacto';
+            }
+
+            $total = max(1, (int) ($data->total ?? 0));
+            $wins = (int) ($data->wins ?? 0);
+            $wr = ($data->total > 0) ? round(($wins / $total) * 100, 1) : 50.0;
+
+            return [
+                'combo'         => $formatComboName($b),
+                'short_name'    => $blade,
+                'parts_label'   => trim(($over ? "$over " : '') . ($assist ? "$assist " : '') . "$ratchet $bit"),
+                'blade'         => $blade,
+                'over_blade'    => $over ?? '',
+                'assist_blade'  => $assist ?? '',
+                'ratchet'       => $ratchet,
+                'bit'           => $bit,
+                'sample_size'   => (int) ($data->total ?? 0),
+                'wins'          => $wins,
+                'losses'        => (int) ($data->losses ?? 0),
+                'precision'     => $precision,
+                'winrate'       => $wr,
+                'avg_dmg_dealt' => (float) ($data->avg_dmg_dealt ?? 0),
+                'avg_dmg_taken' => (float) ($data->avg_dmg_taken ?? 0),
+                'xtreme_pct'    => $wins > 0 ? round(($data->xtreme_w / $wins) * 100) : 0,
+                'burst_pct'     => $wins > 0 ? round(($data->burst_w / $wins) * 100) : 0,
+                'over_pct'      => $wins > 0 ? round(($data->over_w / $wins) * 100) : 0,
+                'spin_pct'      => $wins > 0 ? round(($data->spin_w / $wins) * 100) : 0,
+            ];
+        };
+
+        $getHeadToHead = function ($cA, $cB) {
+            $h2hExact = DB::selectOne("
+                SELECT COUNT(*) as total, SUM(a_wins) as wins
+                FROM (
+                    SELECT (mb.winner_id = c1.user_id) as a_wins
+                    FROM match_battles mb
+                    JOIN tournament_results c1 ON mb.player1_combo_id = c1.id
+                    JOIN tournament_results c2 ON mb.player2_combo_id = c2.id
+                    WHERE mb.winner_id IS NOT NULL
+                      AND c1.blade = ? AND c1.ratchet = ? AND c1.bit = ?
+                      AND c2.blade = ? AND c2.ratchet = ? AND c2.bit = ?
+                    UNION ALL
+                    SELECT (mb.winner_id = c2.user_id) as a_wins
+                    FROM match_battles mb
+                    JOIN tournament_results c1 ON mb.player1_combo_id = c1.id
+                    JOIN tournament_results c2 ON mb.player2_combo_id = c2.id
+                    WHERE mb.winner_id IS NOT NULL
+                      AND c2.blade = ? AND c2.ratchet = ? AND c2.bit = ?
+                      AND c1.blade = ? AND c1.ratchet = ? AND c1.bit = ?
+                ) as duelos
+            ", [
+                $cA['blade'], $cA['ratchet'], $cA['bit'], $cB['blade'], $cB['ratchet'], $cB['bit'],
+                $cA['blade'], $cA['ratchet'], $cA['bit'], $cB['blade'], $cB['ratchet'], $cB['bit']
+            ]);
+
+            if ($h2hExact && $h2hExact->total >= 3) {
+                return [
+                    'winrate' => round(($h2hExact->wins / $h2hExact->total) * 100, 1),
+                    'matches' => (int) $h2hExact->total,
+                    'source'  => 'Exacto'
+                ];
+            }
+
+            $h2hBlade = DB::selectOne("
+                SELECT COUNT(*) as total, SUM(a_wins) as wins
+                FROM (
+                    SELECT (mb.winner_id = c1.user_id) as a_wins
+                    FROM match_battles mb
+                    JOIN tournament_results c1 ON mb.player1_combo_id = c1.id
+                    JOIN tournament_results c2 ON mb.player2_combo_id = c2.id
+                    WHERE mb.winner_id IS NOT NULL AND c1.blade = ? AND c2.blade = ?
+                    UNION ALL
+                    SELECT (mb.winner_id = c2.user_id) as a_wins
+                    FROM match_battles mb
+                    JOIN tournament_results c1 ON mb.player1_combo_id = c1.id
+                    JOIN tournament_results c2 ON mb.player2_combo_id = c2.id
+                    WHERE mb.winner_id IS NOT NULL AND c2.blade = ? AND c1.blade = ?
+                ) as duelos_blade
+            ", [$cA['blade'], $cB['blade'], $cA['blade'], $cB['blade']]);
+
+            if ($h2hBlade && $h2hBlade->total >= 3) {
+                $bladeWr = ($h2hBlade->wins / $h2hBlade->total) * 100;
+                $adjustedWr = round(($bladeWr * 0.75) + ((50 + ($cA['winrate'] - $cB['winrate']) * 0.5) * 0.25), 1);
+                return [
+                    'winrate' => max(5, min(95, $adjustedWr)),
+                    'matches' => (int) $h2hBlade->total,
+                    'source'  => 'Blade'
+                ];
+            }
+
+            $est = round(50 + (($cA['winrate'] - $cB['winrate']) * 0.8), 1);
+            return [
+                'winrate' => max(15, min(85, $est)),
+                'matches' => 0,
+                'source'  => 'Estimado'
+            ];
+        };
+
+        $miDeckStats = [];
+        foreach ($miDeck as $b) {
+            if (!empty($b['blade'])) {
+                $miDeckStats[] = $getComboStats($b);
+            }
+        }
+
+        $rivalDeckStats = [];
+        foreach ($rivalDeck as $b) {
+            if (!empty($b['blade'])) {
+                $rivalDeckStats[] = $getComboStats($b);
+            }
+        }
+
+        $matrix = [];
+        $totalWinProbSum = 0;
+        $pairCount = 0;
+
+        foreach ($miDeckStats as $myStat) {
+            $row = [];
+            foreach ($rivalDeckStats as $rivStat) {
+                $duel = $getHeadToHead($myStat, $rivStat);
+                $row[] = [
+                    'my_combo'    => $myStat['combo'],
+                    'rival_combo' => $rivStat['combo'],
+                    'winrate'     => $duel['winrate'],
+                    'matches'     => $duel['matches'],
+                    'source'      => $duel['source'],
+                ];
+                $totalWinProbSum += $duel['winrate'];
+                $pairCount++;
+            }
+            $matrix[] = $row;
+        }
+
+        $overallVsRival = $pairCount > 0 ? round($totalWinProbSum / $pairCount, 1) : 50.0;
+
+        return response()->json([
+            'success'          => true,
+            'my_deck_stats'    => $miDeckStats,
+            'rival_deck_stats' => $rivalDeckStats,
+            'matrix'           => $matrix,
+            'overall_winrate'  => $overallVsRival,
+            'top_meta_boss'    => array_slice($topMetaBoss, 0, 3), // Devolvemos estrictamente los 3 filtrados
+        ]);
     }
 }
