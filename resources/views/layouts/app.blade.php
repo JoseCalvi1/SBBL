@@ -445,7 +445,7 @@
                             </li>
 
                             @auth
-                                @if (Auth::user()->hasAnyRole(['juez', 'admin', 'arbitro', 'revisor']))
+                                @if (Auth::user()->hasAnyRole(['juez', 'admin']))
                                     <li class="nav-item">
                                         <a id="navbarAdmin" class="nav-link" style="color: var(--shonen-red) !important;" href="{{ route('admin.dashboard') }}" target="_blank">ADMIN</a>
                                     </li>

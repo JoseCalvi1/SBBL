@@ -9,7 +9,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
-    <!-- Librería Panzoom para experiencia tipo Google Maps / Start.gg -->
+    <!-- Librería Panzoom -->
     <script src="https://unpkg.com/@panzoom/panzoom@4.5.1/dist/panzoom.min.js"></script>
     
     <style>
@@ -18,10 +18,9 @@
         body { 
             font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
             background-color: #030712;
-            overflow: hidden; /* Evitamos scroll nativo en vista cuadro */
+            overflow: hidden;
             user-select: none;
         }
-        /* Fondo de cuadrícula táctica eSports */
         .bg-grid-pattern {
             background-color: #030712;
             background-image: 
@@ -29,7 +28,6 @@
                 linear-gradient(to bottom, rgba(31, 41, 55, 0.25) 1px, transparent 1px);
             background-size: 40px 40px;
         }
-        /* Efectos de resaltado al buscar o clicar un jugador */
         .player-row { transition: all 0.25s ease; cursor: pointer; }
         .player-row:hover { background-color: rgba(6, 182, 212, 0.15) !important; }
         .player-highlight { 
@@ -43,7 +41,6 @@
             border-color: #22d3ee !important;
             z-index: 30;
         }
-        /* Animación de flujo para líneas ganadoras */
         @keyframes pulseGlow {
             0%, 100% { filter: drop-shadow(0 0 4px currentColor); }
             50% { filter: drop-shadow(0 0 10px currentColor); }
@@ -74,7 +71,6 @@
                 </div>
             </div>
             
-            <!-- Buscador de Blader + Botón Actualizar -->
             <div class="flex items-center gap-2 w-full sm:w-auto justify-end">
                 <div id="search-container" class="relative flex-1 sm:w-56">
                     <i class="fas fa-search absolute left-3 top-2.5 text-gray-500 text-xs"></i>
@@ -85,13 +81,13 @@
                     </button>
                 </div>
 
-                <button onclick="window.location.reload()" class="bg-gray-800 hover:bg-gray-700 active:scale-95 text-white border border-gray-600 px-3.5 py-2 rounded-lg font-bold flex items-center gap-2 text-xs transition-all shadow-md shrink-0">
-                    <i class="fas fa-sync-alt text-cyan-400"></i> <span class="hidden sm:inline">ACTUALIZAR</span>
+                <button id="btn-live-sync" onclick="sincronizarEnVivo(true)" class="bg-gray-800 hover:bg-gray-700 active:scale-95 text-white border border-gray-600 px-3.5 py-2 rounded-lg font-bold flex items-center gap-2 text-xs transition-all shadow-md shrink-0">
+                    <i id="icon-live-sync" class="fas fa-sync-alt text-cyan-400"></i> 
+                    <span class="hidden sm:inline" id="text-live-sync">EN VIVO (AUTO)</span>
                 </button>
             </div>
         </div>
 
-        <!-- PESTAÑAS DE VISTA -->
         <div class="flex gap-2 mt-3 max-w-7xl mx-auto w-full">
             <button id="btn-cuadro" onclick="switchPublicView('cuadro')" class="flex-1 bg-gray-800 text-cyan-400 border border-cyan-500/40 py-2.5 rounded-lg font-bold tracking-widest transition-all shadow-[0_0_15px_rgba(6,182,212,0.15)] text-xs flex items-center justify-center gap-2">
                 <i class="fas fa-project-diagram"></i> ÁRBOL DEL TORNEO
@@ -102,12 +98,9 @@
         </div>
     </header>
 
-    <!-- ========================================== -->
-    <!-- ZONA 1: LIENZO INTERACTIVO DEL CUADRO      -->
-    <!-- ========================================== -->
+    <!-- ZONA 1: LIENZO INTERACTIVO DEL CUADRO -->
     <div id="view-cuadro" class="relative flex-1 w-full h-full overflow-hidden bg-grid-pattern cursor-grab active:cursor-grabbing">
         
-        <!-- Controles Flotantes de Zoom y Navegación -->
         <div class="absolute bottom-5 right-5 z-40 flex flex-col gap-2 bg-gray-900/90 p-1.5 rounded-xl border border-gray-700 shadow-2xl backdrop-blur-md">
             <button onclick="zoomIn()" title="Acercar" class="w-10 h-10 bg-gray-800 hover:bg-gray-700 text-cyan-400 rounded-lg flex items-center justify-center text-base transition-colors border border-gray-700 active:scale-90">
                 <i class="fas fa-plus"></i>
@@ -120,23 +113,18 @@
             </button>
         </div>
 
-        <!-- Leyenda Flotante Interactiva -->
         <div class="absolute bottom-5 left-5 z-40 hidden sm:flex items-center gap-4 bg-gray-900/90 px-4 py-2 rounded-xl border border-gray-800 text-[11px] text-gray-400 font-bold tracking-wider backdrop-blur-md pointer-events-none">
             <span><i class="fas fa-mouse-pointer text-cyan-400 mr-1"></i> Arrastra para mover</span>
             <span><i class="fas fa-search-plus text-fuchsia-400 mr-1"></i> Rueda/Pellizca para Zoom</span>
             <span><i class="fas fa-hand-pointer text-yellow-400 mr-1"></i> Toca un Blader para ver su ruta</span>
         </div>
 
-        <!-- ESCENARIO PANZOOM -->
         <div id="panzoom-scene" class="inline-block p-12 sm:p-20 min-w-max origin-top-left">
-            
-            <!-- CONTENEDOR RELATIVO PARA EL ÁRBOL Y EL SVG DE FLECHAS -->
             <div id="bracket-tree-container" class="relative flex flex-col gap-20">
                 
                 <!-- CAPA SVG PARA LAS LÍNEAS Y FLECHAS DE CONEXIÓN -->
                 <svg id="bracket-svg-lines" class="absolute inset-0 pointer-events-none z-0" style="width: 100%; height: 100%; overflow: visible;">
                     <defs>
-                        <!-- Flecha Ganador (Amarillo/Dorado) -->
                         <marker id="arrow-win-winners" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
                             <path d="M 0 1 L 8 5 L 0 9 z" fill="#d946ef" />
                         </marker>
@@ -146,17 +134,15 @@
                         <marker id="arrow-win-finals" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
                             <path d="M 0 1 L 8 5 L 0 9 z" fill="#eab308" />
                         </marker>
-                        <!-- Flecha Pendiente (Gris) -->
                         <marker id="arrow-pending" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse">
                             <path d="M 0 2 L 7 5 L 0 8 z" fill="#4b5563" />
                         </marker>
                     </defs>
                 </svg>
 
-                <!-- BLOQUE SUPERIOR: WINNERS BRACKET + GRAN FINAL A LA DERECHA -->
+                <!-- BLOQUE SUPERIOR: WINNERS BRACKET + GRAN FINAL -->
                 <div class="flex items-stretch gap-24 relative z-10">
                     
-                    <!-- 1. WINNERS BRACKET -->
                     @if($winnersBracket->count() > 0)
                     <div class="flex flex-col">
                         <div class="flex items-center gap-3 mb-8 pl-3 border-l-4 border-fuchsia-500">
@@ -171,38 +157,47 @@
                                     <div class="text-center text-fuchsia-400 bg-fuchsia-950/30 border border-fuchsia-500/30 rounded-lg py-2 text-[11px] font-black tracking-widest mb-6 uppercase shadow-inner">
                                         RONDA {{ $roundNumber }}
                                     </div>
-                                    <!-- justify-around crea el efecto de árbol real centrando hijos respecto a padres -->
                                     <div class="flex flex-col justify-around flex-1 gap-6">
                                         @foreach($matches as $index => $match)
                                             @php
-                                                $isTeam = !is_null($match->team1_id) && !is_null($match->team2_id);
-                                                $p1Id = $isTeam ? $match->team1_id : $match->player1_id;
-                                                $p2Id = $isTeam ? $match->team2_id : $match->player2_id;
-                                                $p1Name = $isTeam ? ($match->team1->name ?? 'ESPERANDO...') : ($match->player1->name ?? 'ESPERANDO...');
-                                                $p2Name = $isTeam ? ($match->team2->name ?? 'ESPERANDO...') : ($match->player2->name ?? 'ESPERANDO...');
-                                                $isBye = ($match->status === 'completed' && is_null($p2Id));
-                                                if($isBye) $p2Name = 'BYE (AVANZA)';
+                                                $isPlaceholder = isset($match->is_placeholder) && $match->is_placeholder;
+                                                $isTeam = !is_null($match->team1_id ?? null) || !is_null($match->team2_id ?? null);
+                                                $p1Id = $isTeam ? ($match->team1_id ?? null) : ($match->player1_id ?? null);
+                                                $p2Id = $isTeam ? ($match->team2_id ?? null) : ($match->player2_id ?? null);
                                                 
-                                                $p1Won = ($match->status === 'completed' && $match->winner_id && $match->winner_id == $p1Id);
-                                                $p2Won = ($match->status === 'completed' && $match->winner_id && $match->winner_id == $p2Id);
+                                                $p1Ghost = !$isPlaceholder && is_null($p1Id) && ($match->player1_score ?? 0) == 99;
+                                                $p2Ghost = !$isPlaceholder && is_null($p2Id) && ($match->player2_score ?? 0) == 99;
+
+                                                $p1Lbl = $match->p1_placeholder ?? 'ESPERANDO...';
+                                                $p2Lbl = $match->p2_placeholder ?? 'ESPERANDO...';
+                                                $p1Name = $isTeam ? ($match->team1->name ?? $p1Lbl) : ($match->player1->name ?? $p1Lbl);
+                                                $p2Name = $isTeam ? ($match->team2->name ?? $p2Lbl) : ($match->player2->name ?? $p2Lbl);
+                                                
+                                                $p1Won = (!$isPlaceholder && $match->status === 'completed' && $match->winner_id && $match->winner_id == $p1Id);
+                                                $p2Won = (!$isPlaceholder && $match->status === 'completed' && $match->winner_id && $match->winner_id == $p2Id);
+                                                $bothEmpty = is_null($p1Id) && is_null($p2Id);
+                                                
+                                                $cardStyle = ($isPlaceholder || $bothEmpty)
+                                                    ? 'border-gray-800 border-dashed bg-gray-900/50 opacity-80' 
+                                                    : ($match->status === 'playing' ? 'border-cyan-400 shadow-[0_0_20px_rgba(6,182,212,0.5)] bg-gray-900/95' : ($match->status === 'completed' ? 'border-gray-700 bg-gray-900/95' : 'border-fuchsia-900/60 bg-gray-900/95'));
                                             @endphp
-                                            <div class="match-node relative bg-gray-900/95 border-2 {{ $match->status === 'playing' ? 'border-cyan-400 shadow-[0_0_20px_rgba(6,182,212,0.5)]' : ($match->status === 'completed' ? 'border-gray-700' : 'border-fuchsia-900/60') }} rounded-xl overflow-hidden shadow-2xl transition-all"
+                                            <div class="match-node relative border-2 {{ $cardStyle }} rounded-xl overflow-hidden shadow-2xl transition-all"
                                                  id="match-{{ $match->id }}"
                                                  data-match-id="{{ $match->id }}"
+                                                 data-next-win="{{ $match->next_win_match_id ?? '' }}"
                                                  data-bracket="winners"
                                                  data-round="{{ $roundNumber }}"
                                                  data-index="{{ $index }}"
                                                  data-status="{{ $match->status }}"
-                                                 data-winner="{{ $match->winner_id }}"
-                                                 data-p1="{{ $p1Id }}"
-                                                 data-p2="{{ $p2Id }}">
+                                                 data-winner="{{ $match->winner_id ?? '' }}"
+                                                 data-p1="{{ $p1Ghost ? '999999' : ($p1Id ?? '') }}"
+                                                 data-p2="{{ $p2Ghost ? '999999' : ($p2Id ?? '') }}">
                                                 
-                                                <!-- Cabecera de Tarjeta -->
                                                 <div class="bg-gray-950 px-3 py-1.5 flex justify-between items-center border-b border-gray-800 text-[10px] font-mono font-bold text-gray-500">
                                                     <span>PARTIDA #{{ $match->match_number ?? $match->id }}</span>
-                                                    @if($match->status === 'playing')
+                                                    @if(!$isPlaceholder && $match->status === 'playing')
                                                         <span class="text-cyan-400 animate-pulse"><i class="fas fa-circle text-[7px] mr-1"></i> EN JUEGO</span>
-                                                    @elseif($match->status === 'completed')
+                                                    @elseif(!$isPlaceholder && $match->status === 'completed')
                                                         <span class="text-green-500"><i class="fas fa-check mr-1"></i> FINALIZADO</span>
                                                     @else
                                                         <span>PENDIENTE</span>
@@ -214,15 +209,13 @@
                                                      class="player-row flex items-center justify-between px-3.5 py-2.5 border-b border-gray-800/80 {{ $p1Won ? 'bg-fuchsia-950/30' : '' }}"
                                                      data-player-name="{{ mb_strtoupper($p1Name) }}">
                                                     <div class="flex items-center gap-2 truncate pr-2">
-                                                        @if($p1Won)
-                                                            <i class="fas fa-caret-right text-fuchsia-400 text-sm shrink-0"></i>
-                                                        @endif
-                                                        <span class="text-xs font-bold truncate {{ $p1Won ? 'text-white' : (is_null($p1Id) ? 'text-gray-600 italic' : 'text-gray-400') }}">
+                                                        @if($p1Won) <i class="fas fa-caret-right text-fuchsia-400 text-sm shrink-0"></i> @endif
+                                                        <span class="text-xs font-bold truncate {{ $p1Won ? 'text-white' : (is_null($p1Id) ? 'text-fuchsia-300/60 italic' : 'text-gray-300') }}">
                                                             {{ mb_strtoupper($p1Name) }}
                                                         </span>
                                                     </div>
                                                     <span class="text-sm font-black font-mono px-2 py-0.5 rounded {{ $p1Won ? 'bg-fuchsia-500 text-white shadow-[0_0_10px_rgba(217,70,239,0.5)]' : 'text-gray-500 bg-gray-950' }}">
-                                                        {{ $match->player1_score ?? 0 }}
+                                                        {{ $bothEmpty ? '-' : (($match->player1_score ?? 0) == 99 ? '-' : ($match->player1_score ?? 0)) }}
                                                     </span>
                                                 </div>
 
@@ -231,15 +224,13 @@
                                                      class="player-row flex items-center justify-between px-3.5 py-2.5 {{ $p2Won ? 'bg-fuchsia-950/30' : '' }}"
                                                      data-player-name="{{ mb_strtoupper($p2Name) }}">
                                                     <div class="flex items-center gap-2 truncate pr-2">
-                                                        @if($p2Won)
-                                                            <i class="fas fa-caret-right text-fuchsia-400 text-sm shrink-0"></i>
-                                                        @endif
-                                                        <span class="text-xs font-bold truncate {{ $p2Won ? 'text-white' : (is_null($p2Id) ? 'text-gray-600 italic' : 'text-gray-400') }}">
+                                                        @if($p2Won) <i class="fas fa-caret-right text-fuchsia-400 text-sm shrink-0"></i> @endif
+                                                        <span class="text-xs font-bold truncate {{ $p2Won ? 'text-white' : (is_null($p2Id) ? 'text-fuchsia-300/60 italic' : 'text-gray-300') }}">
                                                             {{ mb_strtoupper($p2Name) }}
                                                         </span>
                                                     </div>
                                                     <span class="text-sm font-black font-mono px-2 py-0.5 rounded {{ $p2Won ? 'bg-fuchsia-500 text-white shadow-[0_0_10px_rgba(217,70,239,0.5)]' : 'text-gray-500 bg-gray-950' }}">
-                                                        {{ $isBye ? '-' : ($match->player2_score ?? 0) }}
+                                                        {{ $bothEmpty ? '-' : (($match->player2_score ?? 0) == 99 ? '-' : ($match->player2_score ?? 0)) }}
                                                     </span>
                                                 </div>
                                             </div>
@@ -251,7 +242,7 @@
                     </div>
                     @endif
 
-                    <!-- 2. GRAN FINAL (Situada estratégicamente al final del árbol) -->
+                    <!-- GRAN FINAL -->
                     @if($finals->count() > 0)
                     <div class="flex flex-col justify-center">
                         <div class="flex items-center gap-3 mb-8 pl-3 border-l-4 border-yellow-500">
@@ -263,13 +254,17 @@
                         <div class="flex items-center gap-20 flex-1">
                             @foreach($finals as $fIndex => $match)
                                 @php
-                                    $isTeam = !is_null($match->team1_id) && !is_null($match->team2_id);
-                                    $p1Id = $isTeam ? $match->team1_id : $match->player1_id;
-                                    $p2Id = $isTeam ? $match->team2_id : $match->player2_id;
-                                    $p1Name = $isTeam ? ($match->team1->name ?? 'CAMPEÓN WINNERS') : ($match->player1->name ?? 'CAMPEÓN WINNERS');
-                                    $p2Name = $isTeam ? ($match->team2->name ?? 'CAMPEÓN LOSERS') : ($match->player2->name ?? 'CAMPEÓN LOSERS');
-                                    $p1Won = ($match->status === 'completed' && $match->winner_id && $match->winner_id == $p1Id);
-                                    $p2Won = ($match->status === 'completed' && $match->winner_id && $match->winner_id == $p2Id);
+                                    $isPlaceholder = isset($match->is_placeholder) && $match->is_placeholder;
+                                    $isTeam = !is_null($match->team1_id ?? null) || !is_null($match->team2_id ?? null);
+                                    $p1Id = $isTeam ? ($match->team1_id ?? null) : ($match->player1_id ?? null);
+                                    $p2Id = $isTeam ? ($match->team2_id ?? null) : ($match->player2_id ?? null);
+                                    $p1Lbl = $match->p1_placeholder ?? 'CAMPEÓN WINNERS';
+                                    $p2Lbl = $match->p2_placeholder ?? 'CAMPEÓN LOSERS';
+                                    $p1Name = $isTeam ? ($match->team1->name ?? $p1Lbl) : ($match->player1->name ?? $p1Lbl);
+                                    $p2Name = $isTeam ? ($match->team2->name ?? $p2Lbl) : ($match->player2->name ?? $p2Lbl);
+                                    $p1Won = (!$isPlaceholder && $match->status === 'completed' && $match->winner_id && $match->winner_id == $p1Id);
+                                    $p2Won = (!$isPlaceholder && $match->status === 'completed' && $match->winner_id && $match->winner_id == $p2Id);
+                                    $bothEmpty = is_null($p1Id) && is_null($p2Id);
                                 @endphp
                                 <div class="bracket-round-col flex flex-col w-[300px] shrink-0 justify-center" data-bracket="finals" data-round="{{ $fIndex + 1 }}">
                                     <div class="text-center text-yellow-400 bg-yellow-950/40 border border-yellow-500/40 rounded-lg py-2 text-xs font-black tracking-widest mb-6 uppercase shadow-[0_0_15px_rgba(234,179,8,0.2)]">
@@ -279,46 +274,45 @@
                                     <div class="match-node relative bg-gray-900 border-2 border-yellow-500/80 rounded-xl overflow-hidden shadow-[0_0_30px_rgba(234,179,8,0.25)] transition-all"
                                          id="match-{{ $match->id }}"
                                          data-match-id="{{ $match->id }}"
+                                         data-next-win="{{ $match->next_win_match_id ?? '' }}"
                                          data-bracket="finals"
                                          data-round="{{ $fIndex + 1 }}"
                                          data-index="0"
                                          data-status="{{ $match->status }}"
-                                         data-winner="{{ $match->winner_id }}"
-                                         data-p1="{{ $p1Id }}"
-                                         data-p2="{{ $p2Id }}">
+                                         data-winner="{{ $match->winner_id ?? '' }}"
+                                         data-p1="{{ $p1Id ?? '' }}"
+                                         data-p2="{{ $p2Id ?? '' }}">
                                         
                                         <div class="bg-gradient-to-r from-yellow-950/80 via-gray-950 to-yellow-950/80 px-3 py-2 flex justify-between items-center border-b border-yellow-500/30 text-[10px] font-mono font-bold text-yellow-500">
-                                            <span>COMBATE POR EL TÍTULO</span>
-                                            @if($match->status === 'completed')
+                                            <span>PARTIDA #{{ $match->match_number ?? $match->id }} · TÍTULO</span>
+                                            @if(!$isPlaceholder && $match->status === 'completed')
                                                 <span class="text-yellow-400"><i class="fas fa-crown mr-1"></i> FINALIZADO</span>
                                             @else
                                                 <span class="animate-pulse">EN ESPERA</span>
                                             @endif
                                         </div>
 
-                                        <!-- Finalista 1 -->
                                         <div onclick="resaltarJugador('{{ addslashes(mb_strtoupper($p1Name)) }}')" 
                                              class="player-row flex items-center justify-between px-4 py-3.5 border-b border-gray-800 {{ $p1Won ? 'bg-yellow-950/40' : '' }}"
                                              data-player-name="{{ mb_strtoupper($p1Name) }}">
                                             <div class="flex items-center gap-2 truncate pr-2">
                                                 @if($p1Won) <i class="fas fa-trophy text-yellow-400 text-sm shrink-0 animate-bounce"></i> @endif
-                                                <span class="text-sm font-black truncate {{ $p1Won ? 'text-yellow-400' : 'text-white' }}">{{ mb_strtoupper($p1Name) }}</span>
+                                                <span class="text-sm font-black truncate {{ $p1Won ? 'text-yellow-400' : (is_null($p1Id) ? 'text-yellow-200/60 italic' : 'text-white') }}">{{ mb_strtoupper($p1Name) }}</span>
                                             </div>
                                             <span class="text-base font-black font-mono px-2.5 py-0.5 rounded {{ $p1Won ? 'bg-yellow-500 text-black shadow-[0_0_12px_rgba(234,179,8,0.8)]' : 'text-gray-400 bg-gray-950' }}">
-                                                {{ $match->player1_score ?? 0 }}
+                                                {{ $bothEmpty ? '-' : ($match->player1_score ?? 0) }}
                                             </span>
                                         </div>
 
-                                        <!-- Finalista 2 -->
                                         <div onclick="resaltarJugador('{{ addslashes(mb_strtoupper($p2Name)) }}')" 
                                              class="player-row flex items-center justify-between px-4 py-3.5 {{ $p2Won ? 'bg-yellow-950/40' : '' }}"
                                              data-player-name="{{ mb_strtoupper($p2Name) }}">
                                             <div class="flex items-center gap-2 truncate pr-2">
                                                 @if($p2Won) <i class="fas fa-trophy text-yellow-400 text-sm shrink-0 animate-bounce"></i> @endif
-                                                <span class="text-sm font-black truncate {{ $p2Won ? 'text-yellow-400' : 'text-white' }}">{{ mb_strtoupper($p2Name) }}</span>
+                                                <span class="text-sm font-black truncate {{ $p2Won ? 'text-yellow-400' : (is_null($p2Id) ? 'text-yellow-200/60 italic' : 'text-white') }}">{{ mb_strtoupper($p2Name) }}</span>
                                             </div>
                                             <span class="text-base font-black font-mono px-2.5 py-0.5 rounded {{ $p2Won ? 'bg-yellow-500 text-black shadow-[0_0_12px_rgba(234,179,8,0.8)]' : 'text-gray-400 bg-gray-950' }}">
-                                                {{ $match->player2_score ?? 0 }}
+                                                {{ $bothEmpty ? '-' : ($match->player2_score ?? 0) }}
                                             </span>
                                         </div>
                                     </div>
@@ -329,7 +323,7 @@
                     @endif
                 </div>
 
-                <!-- 3. BLOQUE INFERIOR: LOSERS BRACKET -->
+                <!-- BLOQUE INFERIOR: LOSERS BRACKET -->
                 @if($losersBracket->count() > 0)
                 <div class="flex flex-col relative z-10 pt-8 border-t border-gray-800/80">
                     <div class="flex items-center gap-3 mb-8 pl-3 border-l-4 border-orange-500">
@@ -347,63 +341,73 @@
                                 <div class="flex flex-col justify-around flex-1 gap-6">
                                     @foreach($matches as $index => $match)
                                         @php
-                                            $isTeam = !is_null($match->team1_id) && !is_null($match->team2_id);
-                                            $p1Id = $isTeam ? $match->team1_id : $match->player1_id;
-                                            $p2Id = $isTeam ? $match->team2_id : $match->player2_id;
-                                            $p1Name = $isTeam ? ($match->team1->name ?? 'ESPERANDO...') : ($match->player1->name ?? 'ESPERANDO...');
-                                            $p2Name = $isTeam ? ($match->team2->name ?? 'ESPERANDO...') : ($match->player2->name ?? 'ESPERANDO...');
-                                            $p1Won = ($match->status === 'completed' && $match->winner_id && $match->winner_id == $p1Id);
-                                            $p2Won = ($match->status === 'completed' && $match->winner_id && $match->winner_id == $p2Id);
+                                            $isPlaceholder = isset($match->is_placeholder) && $match->is_placeholder;
+                                            $isTeam = !is_null($match->team1_id ?? null) || !is_null($match->team2_id ?? null);
+                                            $p1Id = $isTeam ? ($match->team1_id ?? null) : ($match->player1_id ?? null);
+                                            $p2Id = $isTeam ? ($match->team2_id ?? null) : ($match->player2_id ?? null);
+                                            $p1Ghost = !$isPlaceholder && is_null($p1Id) && ($match->player1_score ?? 0) == 99;
+                                            $p2Ghost = !$isPlaceholder && is_null($p2Id) && ($match->player2_score ?? 0) == 99;
+
+                                            $p1Lbl = $match->p1_placeholder ?? 'ESPERANDO...';
+                                            $p2Lbl = $match->p2_placeholder ?? 'ESPERANDO...';
+                                            $p1Name = $isTeam ? ($match->team1->name ?? $p1Lbl) : ($match->player1->name ?? $p1Lbl);
+                                            $p2Name = $isTeam ? ($match->team2->name ?? $p2Lbl) : ($match->player2->name ?? $p2Lbl);
+                                            $p1Won = (!$isPlaceholder && $match->status === 'completed' && $match->winner_id && $match->winner_id == $p1Id);
+                                            $p2Won = (!$isPlaceholder && $match->status === 'completed' && $match->winner_id && $match->winner_id == $p2Id);
+                                            $bothEmpty = is_null($p1Id) && is_null($p2Id);
+
+                                            $cardStyle = ($isPlaceholder || $bothEmpty)
+                                                ? 'border-gray-800 border-dashed bg-gray-900/50 opacity-80' 
+                                                : ($match->status === 'playing' ? 'border-cyan-400 shadow-[0_0_20px_rgba(6,182,212,0.5)] bg-gray-900/95' : ($match->status === 'completed' ? 'border-gray-700 bg-gray-900/95' : 'border-orange-900/60 bg-gray-900/95'));
                                         @endphp
-                                        <div class="match-node relative bg-gray-900/95 border-2 {{ $match->status === 'playing' ? 'border-cyan-400 shadow-[0_0_20px_rgba(6,182,212,0.5)]' : ($match->status === 'completed' ? 'border-gray-700' : 'border-orange-900/60') }} rounded-xl overflow-hidden shadow-2xl transition-all"
+                                        <div class="match-node relative border-2 {{ $cardStyle }} rounded-xl overflow-hidden shadow-2xl transition-all"
                                              id="match-{{ $match->id }}"
                                              data-match-id="{{ $match->id }}"
+                                             data-next-win="{{ $match->next_win_match_id ?? '' }}"
                                              data-bracket="losers"
                                              data-round="{{ $roundNumber }}"
                                              data-index="{{ $index }}"
                                              data-status="{{ $match->status }}"
-                                             data-winner="{{ $match->winner_id }}"
-                                             data-p1="{{ $p1Id }}"
-                                             data-p2="{{ $p2Id }}">
+                                             data-winner="{{ $match->winner_id ?? '' }}"
+                                             data-p1="{{ $p1Ghost ? '999999' : ($p1Id ?? '') }}"
+                                             data-p2="{{ $p2Ghost ? '999999' : ($p2Id ?? '') }}">
                                             
                                             <div class="bg-gray-950 px-3 py-1.5 flex justify-between items-center border-b border-gray-800 text-[10px] font-mono font-bold text-gray-500">
                                                 <span>PARTIDA #{{ $match->match_number ?? $match->id }}</span>
-                                                @if($match->status === 'playing')
+                                                @if(!$isPlaceholder && $match->status === 'playing')
                                                     <span class="text-cyan-400 animate-pulse"><i class="fas fa-circle text-[7px] mr-1"></i> EN JUEGO</span>
-                                                @elseif($match->status === 'completed')
+                                                @elseif(!$isPlaceholder && $match->status === 'completed')
                                                     <span class="text-green-500"><i class="fas fa-check mr-1"></i> FINALIZADO</span>
                                                 @else
                                                     <span>PENDIENTE</span>
                                                 @endif
                                             </div>
 
-                                            <!-- Jugador 1 -->
                                             <div onclick="resaltarJugador('{{ addslashes(mb_strtoupper($p1Name)) }}')" 
                                                  class="player-row flex items-center justify-between px-3.5 py-2.5 border-b border-gray-800/80 {{ $p1Won ? 'bg-orange-950/30' : '' }}"
                                                  data-player-name="{{ mb_strtoupper($p1Name) }}">
                                                 <div class="flex items-center gap-2 truncate pr-2">
                                                     @if($p1Won) <i class="fas fa-caret-right text-orange-400 text-sm shrink-0"></i> @endif
-                                                    <span class="text-xs font-bold truncate {{ $p1Won ? 'text-white' : (is_null($p1Id) ? 'text-gray-600 italic' : 'text-gray-400') }}">
+                                                    <span class="text-xs font-bold truncate {{ $p1Won ? 'text-white' : (is_null($p1Id) ? 'text-orange-300/60 italic' : 'text-gray-300') }}">
                                                         {{ mb_strtoupper($p1Name) }}
                                                     </span>
                                                 </div>
                                                 <span class="text-sm font-black font-mono px-2 py-0.5 rounded {{ $p1Won ? 'bg-orange-500 text-white shadow-[0_0_10px_rgba(249,115,22,0.5)]' : 'text-gray-500 bg-gray-950' }}">
-                                                    {{ $match->player1_score ?? 0 }}
+                                                    {{ $bothEmpty ? '-' : (($match->player1_score ?? 0) == 99 ? '-' : ($match->player1_score ?? 0)) }}
                                                 </span>
                                             </div>
 
-                                            <!-- Jugador 2 -->
                                             <div onclick="resaltarJugador('{{ addslashes(mb_strtoupper($p2Name)) }}')" 
                                                  class="player-row flex items-center justify-between px-3.5 py-2.5 {{ $p2Won ? 'bg-orange-950/30' : '' }}"
                                                  data-player-name="{{ mb_strtoupper($p2Name) }}">
                                                 <div class="flex items-center gap-2 truncate pr-2">
                                                     @if($p2Won) <i class="fas fa-caret-right text-orange-400 text-sm shrink-0"></i> @endif
-                                                    <span class="text-xs font-bold truncate {{ $p2Won ? 'text-white' : (is_null($p2Id) ? 'text-gray-600 italic' : 'text-gray-400') }}">
+                                                    <span class="text-xs font-bold truncate {{ $p2Won ? 'text-white' : (is_null($p2Id) ? 'text-orange-300/60 italic' : 'text-gray-300') }}">
                                                         {{ mb_strtoupper($p2Name) }}
                                                     </span>
                                                 </div>
                                                 <span class="text-sm font-black font-mono px-2 py-0.5 rounded {{ $p2Won ? 'bg-orange-500 text-white shadow-[0_0_10px_rgba(249,115,22,0.5)]' : 'text-gray-500 bg-gray-950' }}">
-                                                    {{ $match->player2_score ?? 0 }}
+                                                    {{ $bothEmpty ? '-' : (($match->player2_score ?? 0) == 99 ? '-' : ($match->player2_score ?? 0)) }}
                                                 </span>
                                             </div>
                                         </div>
@@ -419,9 +423,7 @@
         </div>
     </div>
 
-    <!-- ========================================== -->
-    <!-- ZONA 2: TABLA DE CLASIFICACIÓN             -->
-    <!-- ========================================== -->
+    <!-- ZONA 2: TABLA DE CLASIFICACIÓN -->
     <div id="view-tabla" class="hidden flex-1 overflow-y-auto p-4 sm:p-8 bg-[#030712]">
         <div class="max-w-4xl mx-auto w-full pb-12">
             <div id="tabla-content" class="bg-gray-900/90 border border-gray-800 rounded-xl shadow-2xl overflow-hidden backdrop-blur-sm">
@@ -433,9 +435,6 @@
         </div>
     </div>
 
-    <!-- ========================================== -->
-    <!-- MOTOR GRÁFICO Y LÓGICA JAVASCRIPT          -->
-    <!-- ========================================== -->
     <script>
         let panzoomInstance = null;
         let tablaYaCargada = false;
@@ -443,12 +442,10 @@
 
         document.addEventListener('DOMContentLoaded', () => {
             iniciarLienzoInteractivo();
-            // Dibujamos las flechas tras asegurar que el DOM está renderizado
             setTimeout(dibujarConexionesArbol, 150);
             window.addEventListener('resize', dibujarConexionesArbol);
         });
 
-        // 1. INICIALIZAR PAN & ZOOM
         function iniciarLienzoInteractivo() {
             const elem = document.getElementById('panzoom-scene');
             const viewCuadro = document.getElementById('view-cuadro');
@@ -463,7 +460,6 @@
                 startY: 0
             });
 
-            // Permitir zoom con la rueda del ratón en PC
             viewCuadro.addEventListener('wheel', panzoomInstance.zoomWithWheel);
         }
 
@@ -476,21 +472,16 @@
             }
         }
 
-        // 2. MOTOR INTELIGENTE DE CONEXIONES Y FLECHAS (SVG)
         function dibujarConexionesArbol() {
             const svg = document.getElementById('bracket-svg-lines');
             const container = document.getElementById('bracket-tree-container');
             if (!svg || !container) return;
 
-            // Limpiamos líneas previas conservando los <defs> de las puntas de flecha
             const defs = svg.querySelector('defs').outerHTML;
             svg.innerHTML = defs;
 
-            // Conectamos Winners Bracket
             conectarSeccionBracket('winners', '#d946ef', 'arrow-win-winners');
-            // Conectamos Losers Bracket
             conectarSeccionBracket('losers', '#f97316', 'arrow-win-losers');
-            // Conectamos hacia la Gran Final
             conectarGranFinal();
         }
 
@@ -500,29 +491,22 @@
             for (let c = 0; c < cols.length - 1; c++) {
                 const currentMatches = Array.from(cols[c].querySelectorAll('.match-node'));
                 const nextMatches = Array.from(cols[c + 1].querySelectorAll('.match-node'));
+                if (nextMatches.length === 0) continue;
 
-                currentMatches.forEach((matchEl, idx) => {
+                currentMatches.forEach((matchEl) => {
+                    const nextWinId = matchEl.getAttribute('data-next-win');
                     const winnerId = matchEl.getAttribute('data-winner');
                     let targetMatch = null;
 
-                    // Estrategia A: Si ya avanzó el ganador, buscamos exactamente en qué tarjeta de la siguiente ronda está su ID
-                    if (winnerId) {
+                    if (nextWinId && nextWinId !== '') {
+                        targetMatch = document.getElementById(`match-${nextWinId}`);
+                    }
+                    if (!targetMatch && winnerId && winnerId !== '') {
                         targetMatch = nextMatches.find(m => m.getAttribute('data-p1') === winnerId || m.getAttribute('data-p2') === winnerId);
                     }
 
-                    // Estrategia B: Si aún no se ha jugado, deducimos la conexión por geometría del árbol
-                    if (!targetMatch && nextMatches.length > 0) {
-                        if (currentMatches.length === nextMatches.length) {
-                            // Ronda de consolidación (ej. en Losers donde caen de Winners) -> 1 a 1
-                            targetMatch = nextMatches[idx];
-                        } else {
-                            // Reducción estándar de árbol (2 partidas alimentan a 1)
-                            targetMatch = nextMatches[Math.floor(idx / 2)] || nextMatches[nextMatches.length - 1];
-                        }
-                    }
-
                     if (targetMatch) {
-                        const isCompleted = matchEl.getAttribute('data-status') === 'completed' && winnerId;
+                        const isCompleted = matchEl.getAttribute('data-status') === 'completed' && Boolean(winnerId);
                         trazarCurvaSVG(matchEl, targetMatch, isCompleted ? activeColor : '#374151', isCompleted ? markerId : 'arrow-pending', isCompleted);
                     }
                 });
@@ -536,7 +520,6 @@
             const grandFinalCard = finalsCols[0].querySelector('.match-node');
             if (!grandFinalCard) return;
 
-            // Conectar Campeón de Winners -> Gran Final
             const winnersCols = Array.from(document.querySelectorAll(`.bracket-round-col[data-bracket="winners"]`));
             if (winnersCols.length > 0) {
                 const lastWinnerMatch = winnersCols[winnersCols.length - 1].querySelector('.match-node');
@@ -546,7 +529,6 @@
                 }
             }
 
-            // Conectar Campeón de Losers -> Gran Final
             const losersCols = Array.from(document.querySelectorAll(`.bracket-round-col[data-bracket="losers"]`));
             if (losersCols.length > 0) {
                 const lastLoserMatch = losersCols[losersCols.length - 1].querySelector('.match-node');
@@ -556,7 +538,6 @@
                 }
             }
 
-            // Si hay Bracket Reset (Gran Final 1 -> Gran Final 2)
             if (finalsCols.length > 1) {
                 const resetCard = finalsCols[1].querySelector('.match-node');
                 if (resetCard) {
@@ -568,11 +549,10 @@
         function trazarCurvaSVG(sourceEl, targetEl, color, markerId, isAnimated) {
             const svg = document.getElementById('bracket-svg-lines');
             
-            // Calculamos coordenadas locales dentro del árbol (independientes del nivel de Zoom)
             const startX = getRelativeOffsetLeft(sourceEl) + sourceEl.offsetWidth;
             const startY = getRelativeOffsetTop(sourceEl) + (sourceEl.offsetHeight / 2);
             
-            const endX = getRelativeOffsetLeft(targetEl) - 4; // -4px para que la punta de la flecha encaje limpia
+            const endX = getRelativeOffsetLeft(targetEl) - 4;
             const endY = getRelativeOffsetTop(targetEl) + (targetEl.offsetHeight / 2);
 
             const deltaX = (endX - startX) * 0.55;
@@ -610,9 +590,8 @@
             return top;
         }
 
-        // 3. RASTREADOR Y BUSCADOR DE BLADERS EN EL ÁRBOL
         function resaltarJugador(nombre) {
-            if (!nombre || nombre.includes('ESPERANDO') || nombre.includes('BYE')) return;
+            if (!nombre || nombre.includes('ESPERANDO') || nombre.includes('BYE') || nombre.includes('PENDIENTE') || nombre.includes('GANADOR') || nombre.includes('PERDEDOR')) return;
             
             const searchInput = document.getElementById('player-search');
             if (jugadorSeleccionado === nombre) {
@@ -647,7 +626,7 @@
 
                 rows.forEach(row => {
                     const pName = row.getAttribute('data-player-name') || '';
-                    if (pName.includes(cleanQuery) && !pName.includes('ESPERANDO')) {
+                    if (pName.includes(cleanQuery) && !pName.includes('ESPERANDO') && !pName.includes('PENDIENTE') && !pName.includes('GANADOR') && !pName.includes('PERDEDOR')) {
                         row.classList.add('player-highlight');
                         matchFoundInCard = true;
                     } else {
@@ -671,7 +650,6 @@
             filtrarJugador('');
         }
 
-        // 4. CAMBIO DE PESTAÑAS (CUADRO / CLASIFICACIÓN)
         function switchPublicView(view) {
             const viewCuadro = document.getElementById('view-cuadro');
             const viewTabla = document.getElementById('view-tabla');
@@ -698,7 +676,6 @@
             }
         }
 
-        // 5. CARGA DE LA CLASIFICACIÓN GENERAL
         async function cargarTablaPublica(eventId) {
             const container = document.getElementById('tabla-content');
             try {
@@ -788,6 +765,65 @@
                 container.innerHTML = '<p class="text-red-500 text-center font-bold p-10">Error al conectar con la Arena.</p>';
             }
         }
+
+        // =========================================================
+        // 6. MOTOR DE AUTO-REFRESCO EN VIVO SIN PERDER ZOOM NI FOCO
+        // =========================================================
+        let isSyncingBracket = false;
+
+        async function sincronizarEnVivo(manual = false) {
+            if (isSyncingBracket) return;
+            isSyncingBracket = true;
+
+            const icon = document.getElementById('icon-live-sync');
+            const text = document.getElementById('text-live-sync');
+            if (icon) icon.classList.add('fa-spin');
+            if (manual && text) text.innerText = 'SINCRONIZANDO...';
+
+            try {
+                const viewTabla = document.getElementById('view-tabla');
+                const isViewingTabla = viewTabla && viewTabla.style.display === 'block';
+
+                if (isViewingTabla) {
+                    await cargarTablaPublica({{ $event->id }});
+                } else {
+                    const res = await fetch(window.location.href, { 
+                        headers: { 'X-Requested-With': 'XMLHttpRequest', 'Cache-Control': 'no-cache' } 
+                    });
+                    
+                    if (res.ok) {
+                        const htmlText = await res.text();
+                        const parser = new DOMParser();
+                        const doc = parser.parseFromString(htmlText, 'text/html');
+                        
+                        const newTree = doc.getElementById('bracket-tree-container');
+                        const currentTree = document.getElementById('bracket-tree-container');
+
+                        if (newTree && currentTree) {
+                            currentTree.innerHTML = newTree.innerHTML;
+                            dibujarConexionesArbol();
+
+                            const currentSearch = document.getElementById('player-search')?.value || '';
+                            if (currentSearch.trim().length > 0) {
+                                filtrarJugador(currentSearch);
+                            }
+                        }
+                    }
+                }
+            } catch (e) {
+                console.warn("Sincronización en vivo pospuesta:", e);
+            } finally {
+                if (icon) setTimeout(() => icon.classList.remove('fa-spin'), 400);
+                if (text) text.innerText = 'EN VIVO (AUTO)';
+                isSyncingBracket = false;
+            }
+        }
+
+        setInterval(() => {
+            if (!document.hidden) {
+                sincronizarEnVivo(false);
+            }
+        }, 8000);
     </script>
 </body>
 </html>

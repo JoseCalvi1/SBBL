@@ -60,28 +60,62 @@ class EventController extends Controller
     /**
      * Listado de eventos con filtros.
      */
-    public function index(Request $request)
+    /**
+     * Listado de administración de eventos con filtros completos y optimización de RAM.
+     */
+    public function index(Request $request) // Si tu ruta apunta a indexAdmin, cambia el nombre a indexAdmin(Request $request)
     {
         $estado = $request->input('estado');
-        $beys = $request->input('beys');
+        $beys   = $request->input('beys');
+        $region = $request->input('region');
+        $buscar = $request->input('buscar');
 
-        // Optimización: "with" carga las relaciones para evitar muchas consultas SQL
+        // 1. Seleccionamos todas las columnas necesarias EXCEPTO 'image_mod' (Base64) para no saturar la RAM
         $query = Event::with(['region', 'reviews.referee'])
+            ->select(
+                'id', 'name', 'city', 'location', 'region_id', 'date', 'time',
+                'mode', 'status', 'beys', 'iframe', 'challonge', 'created_by'
+            )
             ->where('date', '>=', '2025-09-01')
-            ->orderBy('date', 'DESC');
+            ->orderBy('date', 'DESC')
+            ->orderBy('time', 'DESC');
 
-        if ($estado) {
+        // 2. Filtro por Estado
+        if (!empty($estado)) {
             $statuses = ($estado === 'PENDING_REVIEW') ? ['PENDING', 'REVIEW'] : [$estado];
             $query->whereIn('status', $statuses);
         }
 
-        if ($beys === 'ranking') {
-            $query->whereIn('beys', ['ranking', 'rankingplus']);
+        // 3. Filtro por Tipo de Evento (beys)
+        if (!empty($beys)) {
+            if ($beys === 'ranking_all') {
+                $query->whereIn('beys', ['ranking', 'rankingplus']);
+            } else {
+                $query->where('beys', $beys);
+            }
         }
 
-        $events = $query->get();
+        // 4. Filtro por Región
+        if (!empty($region) && $region !== 'all') {
+            $query->where('region_id', $region);
+        }
 
-        return view('events.index', compact('events', 'estado', 'beys'));
+        // 5. Buscador por Nombre o Ciudad
+        if (!empty($buscar)) {
+            $query->where(function ($q) use ($buscar) {
+                $q->where('name', 'LIKE', "%{$buscar}%")
+                  ->orWhere('city', 'LIKE', "%{$buscar}%");
+            });
+        }
+
+        // 6. Paginamos de 20 en 20 manteniendo los filtros en la URL
+        $events = $query->paginate(20)->appends($request->all());
+
+        // 7. Cargamos las regiones para el selector de la vista
+        $regions = Region::orderBy('name')->get(['id', 'name']);
+
+        // Nota: Asegúrate de que el nombre de la vista coincida con tu archivo (ej. 'events.index' o 'events.indexAdmin')
+        return view('events.index', compact('events', 'regions', 'estado', 'beys', 'region', 'buscar'));
     }
 
     public function create()
@@ -232,56 +266,55 @@ class EventController extends Controller
 
     public function show(Event $event)
     {
-        // Optimización: Carga ansiosa para evitar consultas extra
-        $event->load(['users', 'judgeReview', 'reviews.referee']);
+        // Cargamos usuarios, revisiones y JUECES ASIGNADOS (con su perfil)
+        $event->load(['users', 'judgeReview', 'reviews.referee', 'judges.profile']);
 
         $videos = DB::select('select * from videos where event_id = ?', [$event->id]);
-        $assists = $event->users()->withPivot('puesto')->get();
         $hoy = Carbon::now()->subDay()->format('Y-m-d');
 
-        // Verificar suscripción de forma eficiente
         $suscribe = Auth::check() && $event->users->contains(Auth::id())
             ? DB::table('assist_user_event')->where('user_id', Auth::id())->where('event_id', $event->id)->first()
             : [0];
 
-        // Obtener resultados y rellenar líneas vacías
         $results = TournamentResult::where('user_id', Auth::id())
             ->where('event_id', $event->id)
+            ->orderBy('id', 'asc')
             ->get();
 
-        // Rellenamos hasta 3 líneas si faltan
-        $extraLines = max(3 - $results->count(), 0);
+        $numRequiredBeys = ($event->deck === '1on1' || in_array($event->beys, ['crew_battle', 'equipos'])) ? 1 : 3;
+        $extraLines = max($numRequiredBeys - $results->count(), 0);
         for ($i = 0; $i < $extraLines; $i++) {
             $results->push(new TournamentResult());
         }
 
-        // Resultados por participante
+        // Cargamos asistencias ordenadas por orden de inscripción real
+        $assists = $event->users()
+            ->with(['teams'])
+            ->withPivot('puesto', 'created_at')
+            ->orderBy('assist_user_event.created_at', 'asc')
+            ->get();
+
         $resultsByParticipant = [];
         foreach ($assists as $assist) {
             $resultsByParticipant[$assist->id] = TournamentResult::where('user_id', $assist->id)
                 ->where('event_id', $event->id)
+                ->whereNotNull('blade')
                 ->where('blade', 'NOT LIKE', '%Selecciona%')
+                ->orderBy('id', 'asc')
                 ->get();
         }
 
-        // Opciones para desplegables
         $bladeOptions = DB::table('blades')->orderBy('nombre_takara')->pluck('nombre_takara')->toArray();
         $overBladeOptions = DB::table('over_blades')->orderBy('nombre')->pluck('nombre')->toArray();
         $assistBladeOptions = DB::table('assist_blades')->orderBy('nombre')->pluck('nombre')->toArray();
         $ratchetOptions = DB::table('ratchets')->orderBy('nombre')->pluck('nombre')->toArray();
         $bitOptions = DB::table('bits')->orderBy('nombre')->pluck('nombre')->toArray();
 
-        // Lógica de límites de torneo (extraída a helper para limpieza)
         $limits = $this->calculateRankingLimits($event);
+        $participantes = User::orderBy('name')->get(['id', 'name', 'email']);
 
-        $participantes = User::all();
-
-        // 1. Cargar asistencias con los equipos
-        $assists = $event->users()->with(['teams'])->withPivot('puesto')->get();
-
-        // 2. Calcular los equipos asistentes
         $equiposAsistentes = $assists->filter(function ($user) {
-            return $user->active_team;
+            return $user->active_team && $user->pivot->puesto !== 'dropped';
         })->groupBy(function ($user) {
             return $user->active_team->name;
         })->map(function ($teamMembers, $teamName) {
@@ -293,16 +326,186 @@ class EventController extends Controller
             ];
         })->sortByDesc('count');
 
-        // 3. AQUÍ ESTÁ LA SOLUCIÓN: Definir la variable que daba el error
-        $totalParticipantes = $assists->count();
+        $totalParticipantes = $assists->where('pivot.puesto', '!=', 'dropped')->count();
 
-        // 4. Retornar la vista con todas las variables en el compact
+        // Detectamos si el evento tiene partidas o cuadro en el motor en vivo del Hub
+        $hasEngineMatches = \App\Models\TournamentMatch::where('event_id', $event->id)->exists();
+        $hasEngineBracket = \App\Models\TournamentMatch::where('event_id', $event->id)
+            ->whereNotIn('bracket_type', ['swiss', 'round_robin'])
+            ->exists();
+
         return view('events.show', array_merge(compact(
             'event', 'videos', 'assists', 'suscribe', 'hoy',
             'bladeOptions', 'overBladeOptions', 'assistBladeOptions', 'ratchetOptions', 'bitOptions',
             'results', 'extraLines', 'resultsByParticipant', 'participantes',
-            'totalParticipantes', 'equiposAsistentes'
+            'totalParticipantes', 'equiposAsistentes', 'hasEngineMatches', 'hasEngineBracket'
         ), $limits));
+    }
+
+    public function updatePuestos(Request $request, $id)
+    {
+        $event = Event::findOrFail($id);
+
+        // Comprobamos si el torneo tiene cuadro generado desde nuestro motor
+        $hasEngineBracket = \App\Models\TournamentMatch::where('event_id', $event->id)
+            ->whereNotIn('bracket_type', ['swiss', 'round_robin'])
+            ->exists();
+
+        $request->validate([
+            'participantes' => 'required|array',
+            'participantes.*.id' => 'required|exists:assist_user_event,user_id',
+            'participantes.*.puesto' => 'required|string',
+            'iframe' => 'nullable|url',
+            'challonge' => 'nullable|url',
+        ]);
+
+        if ($request->filled('iframe')) {
+            $event->iframe = $request->input('iframe');
+        }
+
+        // Si metieron link manual de challonge/cuadro lo guardamos; si estaba vacío y usaron el motor web/hub, guardamos la ruta del cuadro propio
+        if ($request->filled('challonge')) {
+            $event->challonge = $request->input('challonge');
+        } elseif ($hasEngineBracket && empty($event->challonge)) {
+            $event->challonge = route('torneo.bracket', $event->id);
+        }
+
+        $event->status = 'PENDING';
+        $event->save();
+
+        DB::transaction(function () use ($request, $id, $event) {
+            foreach ($request->input('participantes') as $participante) {
+                DB::table('assist_user_event')
+                    ->where('user_id', $participante['id'])
+                    ->where('event_id', $id)
+                    ->update(['puesto' => $participante['puesto']]);
+            }
+            $this->processTrophies($event, $request->input('participantes'));
+        });
+
+        return redirect()->back()->with('success', 'Resultados y posiciones guardados correctamente.');
+    }
+
+    public function actualizarPuntuaciones(Request $request, $id, $mode)
+    {
+        $evento = Event::findOrFail($id);
+
+        if (!in_array($evento->beys, ['ranking', 'rankingplus'])) {
+            $this->actualizarStatus($id, 'CLOSE');
+            return redirect()->back()->with('success', 'Evento cerrado sin puntuaciones');
+        }
+
+        if ($request->comment) {
+            EventJudgeReview::create([
+                'event_id' => $id, 'judge_id' => Auth::id(),
+                'final_status' => 'approved', 'comment' => $request->comment
+            ]);
+        }
+
+        $faltanPuestos = DB::table('assist_user_event')
+            ->where('event_id', $id)
+            ->where(fn($q) => $q->whereNull('puesto')->orWhere('puesto', ''))
+            ->exists();
+
+        if ($faltanPuestos) {
+            return redirect()->back()->with('error', 'No se han enviado los resultados del torneo.');
+        }
+
+        // Excluimos tanto a 'nopresentado' como a 'dropped' del reparto de puntos
+        $participantes = DB::table('assist_user_event')
+            ->where('event_id', $id)
+            ->whereNotIn('puesto', ['nopresentado', 'dropped'])
+            ->get();
+
+        $pointsTable = $this->getPointsTable($participantes->count());
+        
+        // Mapeo completo de posiciones (1º al 17º) según la tabla oficial de tramos SBBL:
+        // Índices de $pointsTable: 0=>1º, 1=>2º, 2=>3º, 3=>4º, 4=>5º-6º, 5=>7º-8º, 6=>9º-12º, 7=>13º-16º, 8=>17º
+        $puestoMap = [
+            'primero'        => 0,
+            'segundo'        => 1,
+            'tercero'        => 2,
+            'cuarto'         => 3,
+            'quinto'         => 4,
+            'sexto'          => 4,
+            'septimo'        => 5,
+            'octavo'         => 5,
+            'noveno'         => 6,
+            'decimo'         => 6,
+            'undecimo'       => 6,
+            'duodecimo'      => 6,
+            'treceavo'       => 7,
+            'decimotercero'  => 7,
+            'decimocuarto'   => 7,
+            'decimoquinto'   => 7,
+            'decimosexto'    => 7,
+            'diecisieteavo'  => 8,
+            'decimoseptimo'  => 8,
+        ];
+        $eventMode = 'points_x3';
+
+        DB::transaction(function () use ($participantes, $pointsTable, $puestoMap, $eventMode, $id) {
+            foreach ($participantes as $p) {
+                $puesto = strtolower($p->puesto);
+                $index = $puestoMap[$puesto] ?? null;
+                $puntos = ($index !== null) ? $pointsTable[$index] : 1;
+
+                DB::table('profiles')->where('user_id', $p->user_id)->increment($eventMode, $puntos);
+
+                DB::table('points_log')->insert([
+                    'user_id' => $p->user_id, 'event_id' => $id, 'modo' => $eventMode,
+                    'puntos' => $puntos, 'puesto' => $puesto, 'created_at' => now(), 'updated_at' => now()
+                ]);
+
+                // REPARTO DE PREMIOS DEL FANTASY
+                $fluctuacion = ($puntos > 0) ? ($puntos * 20) : -30;
+
+                \DB::table('fantasy_real_players')
+                    ->where('user_id', $p->user_id)
+                    ->update([
+                        'current_price' => \DB::raw('GREATEST(50, current_price + ' . $fluctuacion . ')'),
+                        'updated_at' => now()
+                    ]);
+
+                $managersQueLoTenian = DB::table('fantasy_event_lineups')
+                    ->where('event_id', $id)
+                    ->where('fantasy_real_player_id', $p->user_id)
+                    ->get();
+
+                foreach ($managersQueLoTenian as $lineup) {
+                    $manager = \App\Models\FantasyManager::find($lineup->fantasy_manager_id);
+
+                    if ($manager) {
+                        $puntosBase = $lineup->is_captain ? ($puntos * 2) : $puntos;
+                        $multiplicadorNivel = $lineup->level_multiplier ?? 1.0;
+
+                        $objetosEquipados = \DB::table('fantasy_items')
+                            ->where('fantasy_manager_id', $manager->id)
+                            ->where('fantasy_roster_id', $lineup->id)
+                            ->get();
+
+                        $multiplicadorObjetos = 1.0;
+                        foreach ($objetosEquipados as $obj) {
+                            $multiplicadorObjetos += ($obj->stat_multiplier - 1.0);
+                        }
+
+                        $multiplicadorTotal = $multiplicadorNivel + ($multiplicadorObjetos - 1.0);
+                        $puntosFinales = round($puntosBase * $multiplicadorTotal);
+
+                        DB::table('points_log')->insert([
+                            'user_id' => $manager->user_id, 'event_id' => $id, 'modo' => 'fantasy_reward',
+                            'puntos' => $puntosFinales, 'puesto' => 'manager', 'created_at' => now(), 'updated_at' => now()
+                        ]);
+
+                        $recompensaMonedas = $puntosFinales * 20;
+                        $manager->increment('coins_balance', $recompensaMonedas);
+                    }
+                }
+            }
+        });
+
+        $this->actualizarStatus($id, 'CLOSE');
+        return redirect()->back()->with('success', 'Puntuaciones actualizadas correctamente');
     }
 
     public function edit(Event $event)
@@ -498,6 +701,11 @@ class EventController extends Controller
             // --- REGISTRO FINAL EN EL TORNEO ---
             $attached = $event->users()->syncWithoutDetaching([$userId]);
 
+            // 🔥 NUEVO: Apuntarse como Jugador y Juez a la vez (2x1)
+            if ($request->has('also_judge') && Auth::user()->hasAnyRole(['admin', 'juez'])) {
+                $event->judges()->syncWithoutDetaching([$userId]);
+            }
+
             // 🔥 NUEVO: GUARDADO DEL DECK AL INSCRIBIRSE (Si no es tentativo)
             if (!$request->has('is_tentative') && $request->has('blade')) {
                 foreach ($request->blade as $assistId => $blades) {
@@ -614,7 +822,7 @@ class EventController extends Controller
         }
     }
 
-    public function updatePuestos(Request $request, $id)
+    /*public function updatePuestos(Request $request, $id)
     {
         $event = Event::findOrFail($id);
 
@@ -757,7 +965,7 @@ class EventController extends Controller
 
         $this->actualizarStatus($id, 'CLOSE');
         return redirect()->back()->with('success', 'Puntuaciones actualizadas correctamente');
-    }
+    }*/
 
     public function estadoTorneo(Request $request, $id, $estado)
     {
@@ -1065,6 +1273,95 @@ private function sendResponse($type, $message, $request, $code = 200)
             'content' => $content,
             'embeds' => [$embed],
         ]);
+    }
+
+    // ==============================================================
+    // NOTIFICACIONES A DISCORD DESDE LA PWA (NUEVO TORNEO / EDICIÓN)
+    // ==============================================================
+    private function sendDiscordNotificationHUB(Event $event, bool $isEdit = false)
+    {
+        if (config('app.env') !== 'production' || !env('DISCORD_WEBHOOK_URL')) {
+            // return; // <-- Comenta esta línea temporalmente si quieres hacer pruebas en local
+        }
+
+        $event->loadMissing('region');
+        $regionName = $event->region->name ?? 'Global';
+        
+        // Mapeo desde la constante
+        $rolId = self::DISCORD_ROLES[$regionName] ?? '';
+        $mention = $rolId ? "\n<@&{$rolId}>" : '';
+        
+        $fecha = \Carbon\Carbon::parse($event->date)->translatedFormat('d \d\e F \d\e\l Y');
+        $hora = substr($event->time, 0, 5);
+
+        // Smart-Link que abre el HUB directamente en el torneo en cuestión
+        $hubUrl = "https://hub.sbbl.es/?evento={$event->id}";
+
+        if ($isEdit) {
+            $content = "⚠️ ¡El torneo de **{$event->city}** ({$regionName}) ha sido **modificado**!{$mention}";
+            $embed = [
+                'title' => "🏆 {$event->name} (" . strtoupper($event->mode) . ")",
+                'url'   => $hubUrl,
+                'description' => "📅 **Nueva fecha:** {$fecha} a las **{$hora}**\n📍 **Ubicación:** {$event->location}\n⚔️ **Formato:** " . strtoupper($event->beys) . "\n\n📲 **[Abrir e inscribirse en el Hub]({$hubUrl})**",
+                'color' => 16753920 // Naranja para ediciones
+            ];
+        } else {
+            $content = "🔥 ¡Nuevo torneo disponible en **{$event->city}** ({$regionName})!{$mention}";
+            $embed = [
+                'title' => "🏆 {$event->name} (" . strtoupper($event->mode) . ")",
+                'url'   => $hubUrl,
+                'description' => "📅 **Fecha:** {$fecha} a las **{$hora}**\n📍 **Ubicación:** {$event->location}\n⚔️ **Formato:** " . strtoupper($event->beys) . "\n\n📲 **[Inscríbete y registra tu Deck en el Hub]({$hubUrl})**",
+                'color' => 65521 // Cian neón para torneos nuevos
+            ];
+        }
+
+        try {
+            \Illuminate\Support\Facades\Http::post(env('DISCORD_WEBHOOK_URL'), [
+                'content' => $content,
+                'embeds'  => [$embed],
+            ]);
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::warning("Error webhook Hub Discord: " . $e->getMessage());
+        }
+    }
+
+    // ==============================================================
+    // NOTIFICACIÓN A DISCORD AL GENERAR EL ÁRBOL (PUBLIC O JUEZ)
+    // ==============================================================
+    public static function sendDiscordBracketNotificationHUB(Event $event)
+    {
+        if (config('app.env') !== 'production' || !env('DISCORD_WEBHOOK_URL')) {
+            // return; // <-- Comenta esta línea temporalmente si quieres hacer pruebas en local
+        }
+
+        $event->loadMissing('region');
+        $regionName = $event->region->name ?? 'Global';
+        
+        // El bracket tira de los mismos roles para hacer el ping a la comunidad
+        $rolId = self::DISCORD_ROLES[$regionName] ?? '';
+        $mention = $rolId ? "\n<@&{$rolId}>" : '';
+
+        // El Link público al Cuadro a pantalla completa
+        $bracketUrl = route('torneo.bracket', $event->id);
+
+        $content = "🏆 ¡El **Cuadro Eliminatorio** de **{$event->name}** ya está disponible en directo!{$mention}";
+        
+        $embed = [
+            'title'       => "🔗 Sigue el Árbol en Vivo - {$event->name}",
+            'url'         => $bracketUrl,
+            'description' => "¡La fase eliminatoria ha comenzado!\n\n📲 **[Ver el Cuadro Interactivo en tiempo real]({$bracketUrl})**",
+            'color'       => 14177041, // Fucsia/Morado vibrante
+            'footer'      => [ 'text' => 'SBBL Hub • Spanish Beybattle League' ]
+        ];
+
+        try {
+            \Illuminate\Support\Facades\Http::post(env('DISCORD_HUB_WEBHOOK'), [
+                'content' => $content,
+                'embeds'  => [$embed],
+            ]);
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::warning("Error webhook Bracket Discord: " . $e->getMessage());
+        }
     }
 
     private function calculateRankingLimits(Event $event): array

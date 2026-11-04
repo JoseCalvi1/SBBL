@@ -22,73 +22,88 @@ class HubController extends Controller
 
     public function getTorneos(Request $request)
     {
-        $hoy = Carbon::now()->format('Y-m-d');
+        $hoy = \Carbon\Carbon::now()->format('Y-m-d');
         $userId = Auth::id();
         $user = Auth::user();
         
-        // El revisor y el admin tienen llaves maestras silenciosas
-        $isJuez = $user ? $user->hasAnyRole(['admin', 'juez', 'arbitro', 'revisor']) : false;
-        $isGlobalStaff = $user ? $user->hasAnyRole(['admin', 'revisor']) : false;
-        
-        $query = Event::with(['region', 'users', 'judges.profile']);
+        $isAdmin = $user ? $user->hasRole('admin') : false;
+        $isJuez = $user ? $user->hasRole('juez') : false;
+        $isRevisor = $user ? $user->hasRole('revisor') : false;
+
+        $query = Event::with(['region', 'users', 'judges.profile', 'judges.roles']);
+        // 1. FILTRO DE TEMPORADA ACTUAL
+        $query->whereDate('date', '>=', '2026-09-01');
+
+        $isPersonal = $request->filled('personal');
+        if ($isPersonal) {
+            if ($request->personal === 'inscrito') {
+                $query->whereHas('users', fn($q) => $q->where('users.id', $userId));
+            } elseif ($request->personal === 'juez' && ($isAdmin || $isJuez || $isRevisor)) {
+                $query->whereHas('judges', fn($q) => $q->where('users.id', $userId));
+            }
+        }
 
         if ($request->filled('tipo') && $request->tipo === 'historial') {
-            $query->whereIn('status', ['COMPLETED', 'CLOSED', 'PENDING', 'REVIEW'])
-                  ->orderBy('date', 'desc')
-                  ->limit(30);
+            $query->whereIn('status', ['COMPLETED', 'CLOSED', 'PENDING', 'REVIEW', 'INVALID'])
+                  ->orderBy('date', 'desc')->orderBy('time', 'desc');
         } else {
-            $query->whereIn('status', ['OPEN', 'LIVE'])
-                  ->whereDate('date', '>=', $hoy)
-                  ->orderBy('date', 'asc')
-                  ->orderBy('time', 'asc');
+            if ($isPersonal) {
+                $query->orderBy('date', 'desc')->orderBy('time', 'desc');
+            } else {
+                $query->whereIn('status', ['OPEN', 'LIVE'])
+                      ->whereDate('date', '>=', $hoy)
+                      ->orderBy('date', 'asc')->orderBy('time', 'asc');
+            }
         }
 
         if ($request->filled('tipo') && $request->tipo !== 'historial') {
             if ($request->tipo === 'express') {
                 $query->where('name', 'LIKE', 'Duelo Express:%');
             } elseif ($request->tipo === 'crew_battle') {
-                $query->where('beys', 'crew_battle')->where('name', 'NOT LIKE', 'Duelo Express:%');
+                $query->whereIn('beys', ['crew_battle', 'equipos'])->where('name', 'NOT LIKE', 'Duelo Express:%');
             } else {
                 $query->where('beys', $request->tipo)->where('name', 'NOT LIKE', 'Duelo Express:%');
             }
-        } else {
+        } elseif (!$request->filled('tipo') || $request->tipo !== 'historial') {
             $query->where('name', 'NOT LIKE', 'Duelo Express:%');
         }
 
-        if ($request->filled('region')) {
-            $query->where('region_id', $request->region);
-        }
-
-        if ($request->filled('personal')) {
-            if ($request->personal === 'inscrito') {
-                $query->whereHas('users', function ($q) use ($userId) {
-                    $q->where('users.id', $userId);
-                });
-            } elseif ($request->personal === 'juez' && $isJuez) {
-                $query->whereHas('judges', function ($q) use ($userId) {
-                    $q->where('users.id', $userId);
-                });
-            }
-        }
+        if ($request->filled('region')) $query->where('region_id', $request->region);
 
         $torneos = $query->get();
 
-        $torneos->map(function ($torneo) use ($userId, $isJuez, $isGlobalStaff) {
+        $torneos->map(function ($torneo) use ($userId, $isAdmin, $isJuez, $isRevisor) {
             $torneo->is_inscribed = $torneo->users->contains('id', $userId);
-            $torneo->user_is_judge = $isJuez;
-            $torneo->user_is_revisor = $isGlobalStaff;
             $torneo->total_inscritos = $torneo->users->count();
 
+            // Diferenciar Jueces de Revisores puros en la vista
             $torneo->jueces_asignados = $torneo->judges->map(function ($juez) {
+                $roles = $juez->roles->pluck('name');
+                $isOnlyRevisor = $roles->contains('revisor') && !$roles->contains('juez') && !$roles->contains('admin');
+                
                 return [
                     'id' => $juez->id,
                     'name' => $juez->name,
-                    'avatar' => $juez->profile->avatar_url ?? '/images/default.png'
+                    'avatar' => $juez->profile->avatar_url ?? '/images/default.png',
+                    'is_revisor' => $isOnlyRevisor
                 ];
             });
 
-            // MAGIA REVISOR: Si está asignado como juez O si tiene el rol 'revisor'/'admin', puede entrar a arbitrar cualquier evento sin salir en la lista de staff
-            $torneo->is_judge_assigned = $torneo->judges->contains('id', $userId) || $isGlobalStaff;
+            $torneo->is_judge_assigned = $torneo->judges->contains('id', $userId);
+            $isRanking = in_array($torneo->beys, ['ranking', 'rankingplus']);
+
+            // Permisos calculados en Backend
+            $torneo->can_be_staff = $isAdmin || $isJuez || $isRevisor;
+            
+            $canArbitrate = false;
+            if ($isAdmin || $isJuez) {
+                $canArbitrate = true;
+            } elseif (!$isRanking) { // Si NO es ranking, pueden arbitrar los revisores o el creador
+                if ($torneo->created_by == $userId || ($isRevisor && $torneo->is_judge_assigned)) {
+                    $canArbitrate = true;
+                }
+            }
+            $torneo->can_arbitrate = $canArbitrate;
 
             $limite = 9999;
             if ($torneo->has_stadium_limit || !empty($torneo->max_players)) {
@@ -131,18 +146,12 @@ class HubController extends Controller
     {
         $event = Event::findOrFail($eventId);
         $userId = Auth::id();
-        $isStaff = Auth::check() && Auth::user()->hasAnyRole(['admin', 'juez', 'arbitro']);
-
-        // NUEVO: Si es Juez/Admin y está editando el deck de otro jugador
-        if ($isStaff && $request->filled('target_user_id')) {
-            $userId = $request->input('target_user_id');
-        }
-
         $date = Carbon::parse($event->date);
+
         $isAlreadyInscribed = $event->users()->where('user_id', $userId)->exists();
 
-        // Solo aplicamos límites semanales/mensuales si no está inscrito y NO lo está forzando un Juez
-        if (!$isAlreadyInscribed && !$request->filled('target_user_id') && in_array($event->beys, ['ranking', 'rankingplus'])) {
+        // (Aquí mantienes tus comprobaciones de límite semanal/mensual que ya tienes...)
+        if (!$isAlreadyInscribed && in_array($event->beys, ['ranking', 'rankingplus'])) {
             $registeredThisWeek = DB::table('assist_user_event')
                 ->join('events', 'assist_user_event.event_id', '=', 'events.id')
                 ->where('assist_user_event.user_id', $userId)
@@ -166,16 +175,23 @@ class HubController extends Controller
             }
         }
 
+        // --- REGISTRO FINAL EN EL TORNEO ---
         $event->users()->syncWithoutDetaching([$userId]);
 
+        // 🔥 NUEVO: Apuntarse como Jugador y Juez a la vez (2x1) en el Hub
+        if ($request->has('also_judge') && $request->also_judge == '1' && Auth::user()->hasAnyRole(['admin', 'juez'])) {
+            $event->judges()->syncWithoutDetaching([$userId]);
+        }
+
+        // Si es tentativa, borra los beys antiguos y salimos con éxito
         if ($request->has('is_tentative') && $request->is_tentative == 'true') {
             TournamentResult::where('user_id', $userId)->where('event_id', $eventId)->delete();
             return response()->json(['success' => true, 'message' => '✅ Plaza asegurada (Inscripción Tentativa).']);
         }
 
-        // Borramos el deck anterior de este evento para no duplicar ni mezclar piezas
         TournamentResult::where('user_id', $userId)->where('event_id', $eventId)->delete();
 
+        // (Aquí sigue el guardado de los blades, ratchets... que ya tienes)
         $blades = $request->input("blade", []);
         $ratchets = $request->input("ratchet", []);
         $bits = $request->input("bit", []);
@@ -188,11 +204,11 @@ class HubController extends Controller
             TournamentResult::create([
                 'user_id'         => $userId,
                 'event_id'        => $eventId,
-                'blade'           => trim($blade),
-                'over_blade'      => !empty($overBlades[$index]) ? trim($overBlades[$index]) : null,
-                'assist_blade'    => !empty($assistBlades[$index]) ? trim($assistBlades[$index]) : null,
-                'ratchet'         => isset($ratchets[$index]) ? trim($ratchets[$index]) : null,
-                'bit'             => isset($bits[$index]) ? trim($bits[$index]) : null,
+                'blade'           => $blade,
+                'over_blade'      => $overBlades[$index] ?? null,
+                'assist_blade'    => $assistBlades[$index] ?? null,
+                'ratchet'         => $ratchets[$index] ?? null,
+                'bit'             => $bits[$index] ?? null,
                 'victorias'       => 0,
                 'derrotas'        => 0,
                 'puntos_ganados'  => 0,
@@ -218,11 +234,23 @@ class HubController extends Controller
 
     public function comenzarTorneo($eventId)
     {
-        if (!Auth::user()->hasAnyRole(['admin', 'juez', 'arbitro'])) {
-            return response()->json(['message' => '⛔ Acceso denegado'], 403);
+        $event = Event::findOrFail($eventId);
+        $isRanking = in_array($event->beys, ['ranking', 'rankingplus']);
+        
+        $canStart = false;
+        if (Auth::user()->hasAnyRole(['admin', 'juez'])) {
+            $canStart = true;
+        } elseif (!$isRanking) {
+            // El revisor solo puede iniciar si está en la lista de jueces asignados y no es ranking
+            if ($event->created_by == Auth::id() || (Auth::user()->hasRole('revisor') && $event->judges()->where('user_id', Auth::id())->exists())) {
+                $canStart = true;
+            }
         }
 
-        $event = Event::findOrFail($eventId);
+        if (!$canStart) {
+            return response()->json(['message' => '⛔ No tienes permisos para iniciar este torneo.'], 403);
+        }
+
         $event->status = 'LIVE';
         $event->save();
 
@@ -587,21 +615,26 @@ class HubController extends Controller
         ]);
     }
 
-    // NUEVO: Permite a los jueces auto-asignarse o retirarse de un torneo
-        public function toggleJudge($eventId)
-        {
-            if (!Auth::user()->hasAnyRole(['admin', 'juez', 'arbitro'])) {
-                return response()->json(['message' => '⛔ Acceso denegado'], 403);
-            }
-
-            $event = Event::findOrFail($eventId);
-            $event->judges()->toggle(Auth::id()); // Si está lo quita, si no está lo pone
-
-            $isAssigned = $event->judges()->where('user_id', Auth::id())->exists();
-            $msg = $isAssigned ? '✅ Te has asignado como Juez.' : '❌ Te has retirado del arbitraje.';
-
-            return response()->json(['success' => true, 'message' => $msg]);
+    public function toggleJudge($eventId)
+    {
+        // Añadido 'revisor' a los permisos permitidos
+        if (!Auth::user()->hasAnyRole(['admin', 'juez', 'revisor'])) {
+            return response()->json(['success' => false, 'message' => 'No tienes permisos de Staff.'], 403);
         }
+        
+        $event = Event::findOrFail($eventId);
+        $userId = Auth::id();
+        
+        if ($event->judges()->where('user_id', $userId)->exists()) {
+            $event->judges()->detach($userId);
+            $msg = "Has salido del Staff de este torneo.";
+        } else {
+            $event->judges()->attach($userId);
+            $msg = "Te has apuntado como Staff del torneo.";
+        }
+        
+        return response()->json(['success' => true, 'message' => $msg]);
+    }
 
     // NUEVO: Obtener TODOS los equipos para el buscador de duelos
     public function getAllTeams()

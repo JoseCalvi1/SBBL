@@ -1,51 +1,77 @@
 @php
+    $theme = $theme ?? ($match->bracket_type === 'losers' ? 'orange' : ($match->bracket_type === 'winners' ? 'fuchsia' : 'yellow'));
     $isPlaceholder = isset($match->is_placeholder) && $match->is_placeholder;
-    $isTeam = !is_null($match->team1_id ?? null) && !is_null($match->team2_id ?? null);
+    $isTeam = !is_null($match->team1_id ?? null) || !is_null($match->team2_id ?? null);
+    
     $p1Id = $isTeam ? ($match->team1_id ?? null) : ($match->player1_id ?? null);
     $p2Id = $isTeam ? ($match->team2_id ?? null) : ($match->player2_id ?? null);
+    
+    $p1Ghost = is_null($p1Id) && ($match->player1_score ?? 0) == 99;
+    $p2Ghost = is_null($p2Id) && ($match->player2_score ?? 0) == 99;
 
-    $p1Ghost = !$isPlaceholder && ($p1Id == 0 || is_null($p1Id)) && ($match->player1_score ?? 0) == 99;
-    $p2Ghost = !$isPlaceholder && ($p2Id == 0 || is_null($p2Id)) && ($match->player2_score ?? 0) == 99;
+    // MAGIA: Mostramos "GANADOR #4" o "PERDEDOR #6" en lugar de un texto genérico
+    $p1Lbl = $match->p1_placeholder ?? 'ESPERANDO...';
+    $p2Lbl = $match->p2_placeholder ?? 'ESPERANDO...';
+    $p1Name = $isTeam ? ($match->team1->name ?? $p1Lbl) : ($match->player1->name ?? $p1Lbl);
+    $p2Name = $isTeam ? ($match->team2->name ?? $p2Lbl) : ($match->player2->name ?? $p2Lbl);
+    
+    $p1 = mb_strtoupper($p1Name);
+    $p2 = mb_strtoupper($p2Name);
 
-    $p1EmptyText = $p1Ghost ? 'BYE (AVANZA)' : ($isPlaceholder ? 'PENDIENTE CRUCE' : 'ESPERANDO...');
-    $p2EmptyText = $p2Ghost ? 'BYE (AVANZA)' : ($isPlaceholder ? 'PENDIENTE CRUCE' : 'ESPERANDO...');
+    $w1 = (!$isPlaceholder && $match->status === 'completed' && $match->winner_id && $match->winner_id == $p1Id);
+    $w2 = (!$isPlaceholder && $match->status === 'completed' && $match->winner_id && $match->winner_id == $p2Id);
+    
+    $bothEmpty = is_null($p1Id) && is_null($p2Id);
+    $canClick = !is_null($p1Id) && !is_null($p2Id) && !$isPlaceholder;
+    
+    $isLive = ($match->status === 'playing' || !empty($match->locked_by)) && $match->status !== 'completed';
+    $isDone = ($match->status === 'completed');
+    $isBye = $isDone && ($p1Ghost || $p2Ghost || is_null($p1Id) || is_null($p2Id));
 
-    if ($isTeam) {
-        $p1 = ($p1Id && isset($match->team1)) ? mb_strtoupper($match->team1->name) : $p1EmptyText;
-        $p2 = ($p2Id && isset($match->team2)) ? mb_strtoupper($match->team2->name) : $p2EmptyText;
+    $s1 = ($isPlaceholder || $bothEmpty) ? '-' : (($match->player1_score ?? 0) == 99 ? '-' : ($match->player1_score ?? 0));
+    $s2 = ($isPlaceholder || $bothEmpty) ? '-' : (($match->player2_score ?? 0) == 99 ? '-' : ($match->player2_score ?? 0));
+
+    if ($theme === 'orange') {
+        $borderIdle = 'border-orange-600/80 hover:border-cyan-400';
+        $bgWinner = 'bg-orange-950/30';
+        $badgeWinner = 'bg-orange-500 text-white shadow-[0_0_8px_rgba(249,115,22,0.5)]';
+        $caretColor = 'text-orange-400';
+        $placeholderColor = 'text-orange-300/60 italic text-[10px]';
+    } elseif ($theme === 'yellow') {
+        $borderIdle = 'border-yellow-500/80 hover:border-cyan-400';
+        $bgWinner = 'bg-yellow-950/30';
+        $badgeWinner = 'bg-yellow-500 text-black shadow-[0_0_8px_rgba(234,179,8,0.6)]';
+        $caretColor = 'text-yellow-400';
+        $placeholderColor = 'text-yellow-200/60 italic text-[10px]';
     } else {
-        $p1 = ($p1Id && isset($match->player1)) ? mb_strtoupper($match->player1->name) : $p1EmptyText;
-        $p2 = ($p2Id && isset($match->player2)) ? mb_strtoupper($match->player2->name) : $p2EmptyText;
+        $borderIdle = 'border-fuchsia-600/80 hover:border-cyan-400';
+        $bgWinner = 'bg-fuchsia-950/30';
+        $badgeWinner = 'bg-fuchsia-500 text-white shadow-[0_0_8px_rgba(217,70,239,0.5)]';
+        $caretColor = 'text-fuchsia-400';
+        $placeholderColor = 'text-fuchsia-300/60 italic text-[10px]';
     }
-    
-    $isBye = (!$isPlaceholder && $match->status === 'completed' && ($p1Ghost || $p2Ghost || is_null($p2Id)));
-    if ($isBye && is_null($p2Id)) $p2 = 'BYE (AVANZA)';
 
-    $isDone = !$isPlaceholder && $match->status === 'completed';
-    $isLive = !$isPlaceholder && !is_null($match->locked_by ?? null) && !$isDone;
-    
-    $w1 = $isDone && $match->winner_id && $match->winner_id == $p1Id && !$p1Ghost;
-    $w2 = $isDone && $match->winner_id && $match->winner_id == $p2Id && !$p2Ghost;
-    
-    $s1 = ($p1Ghost || $isPlaceholder) ? '-' : ($match->player1_score ?? 0);
-    $s2 = ($p2Ghost || $isBye || $isPlaceholder) ? '-' : ($match->player2_score ?? 0);
-
-    $themeColor = $theme ?? 'fuchsia';
-    $borderClass = $isPlaceholder 
-        ? "border-gray-800/80 border-dashed bg-gray-900/40 opacity-60" 
-        : ($isLive ? "border-cyan-400 shadow-[0_0_15px_rgba(6,182,212,0.4)] bg-gray-900" : ($isDone ? "border-gray-700 bg-gray-900" : "border-{$themeColor}-900/80 bg-gray-900"));
-    
-    $bgWinner = $themeColor === 'fuchsia' ? 'bg-fuchsia-950/35' : ($themeColor === 'orange' ? 'bg-orange-950/35' : 'bg-yellow-950/35');
-    $badgeWinner = $themeColor === 'fuchsia' ? 'bg-fuchsia-500 text-white' : ($themeColor === 'orange' ? 'bg-orange-500 text-white' : 'bg-yellow-500 text-black');
-    $canClick = !$isPlaceholder && !$isBye && $p1Id && $p2Id;
+    $cardStyle = ($bothEmpty || $isPlaceholder)
+        ? 'border-gray-800 border-dashed bg-gray-900/50 opacity-75' 
+        : ($isLive 
+            ? 'border-cyan-400 shadow-[0_0_20px_rgba(6,182,212,0.5)] bg-gray-900/95 cursor-pointer' 
+            : ($isDone 
+                ? 'border-gray-700 bg-gray-900/95 ' . ($canClick ? 'cursor-pointer hover:border-cyan-500/60' : '') 
+                : $borderIdle . ' bg-gray-900/95 ' . ($canClick ? 'cursor-pointer' : '')));
 @endphp
 
-<div class="arena-match-node {{ $borderClass }} rounded-xl overflow-hidden flex flex-col shadow-xl border-2 relative transition-all {{ $isBye ? 'opacity-45' : '' }} {{ $canClick ? 'cursor-pointer hover:border-cyan-400 active:scale-[0.98]' : '' }}"
+<div class="arena-match-node match-node relative border-2 {{ $cardStyle }} rounded-xl overflow-hidden shadow-lg transition-all"
+     id="arena-match-{{ $match->id }}"
      data-match-id="{{ $match->id }}"
+     data-next-win="{{ $match->next_win_match_id ?? '' }}"
+     data-next-lose="{{ $match->next_lose_match_id ?? '' }}"
+     data-bracket="{{ $match->bracket_type }}"
+     data-round="{{ $roundNumber ?? $match->round_number }}"
+     data-index="{{ $index ?? 0 }}"
      data-status="{{ $match->status }}"
      data-winner="{{ $match->winner_id ?? '' }}"
-     data-p1="{{ $p1Id ?? '' }}"
-     data-p2="{{ $p2Id ?? '' }}"
+     data-p1="{{ $p1Ghost ? '999999' : ($p1Id ?? '') }}"
+     data-p2="{{ $p2Ghost ? '999999' : ($p2Id ?? '') }}"
      @if($canClick) onclick="accionRapidaDesdeCuadro({{ $match->id }}, '{{ $match->status }}')" @endif>
     
     <!-- Cabecera -->
@@ -56,26 +82,26 @@
         @if($isLive)
             <span class="text-[8px] font-bold text-cyan-400 animate-pulse tracking-widest"><i class="fas fa-circle text-[6px] mr-1"></i> EN JUEGO</span>
         @elseif($isDone && !$isBye)
-            <span class="text-[8px] font-bold text-green-500 tracking-widest"><i class="fas fa-check"></i> FIN</span>
+            <span class="text-[8px] font-bold text-green-400 tracking-widest"><i class="fas fa-check"></i> FIN</span>
         @elseif($isBye)
             <span class="text-[8px] font-bold text-gray-600 tracking-widest">BYE</span>
         @else
-            <span class="text-[8px] font-bold text-gray-600 tracking-widest">PENDIENTE</span>
+            <span class="text-[8px] font-bold text-gray-500 tracking-widest">PENDIENTE</span>
         @endif
     </div>
     
     <!-- Jugador 1 -->
-    <div class="flex justify-between items-center px-3 py-2 border-b border-gray-800/70 {{ $w1 ? $bgWinner : '' }}">
-        <span class="text-[11px] font-bold truncate pr-2 {{ $w1 ? 'text-white' : ($p1Id ? 'text-gray-300' : 'text-gray-600 italic') }}">
-            @if($w1)<i class="fas fa-caret-right text-cyan-400 mr-1"></i>@endif{{ $p1 }}
+    <div class="flex justify-between items-center px-2.5 py-1.5 border-b border-gray-800/80 {{ $w1 ? $bgWinner : '' }}">
+        <span class="text-[11px] font-bold truncate pr-2 {{ $w1 ? 'text-white' : ($p1Id ? 'text-gray-300' : $placeholderColor) }}">
+            @if($w1)<i class="fas fa-caret-right {{ $caretColor }} mr-1"></i>@endif{{ $p1 }}
         </span>
         <span class="font-mono text-xs font-black px-1.5 py-0.5 rounded {{ $w1 ? $badgeWinner : 'text-gray-500 bg-gray-950' }}">{{ $s1 }}</span>
     </div>
     
     <!-- Jugador 2 -->
-    <div class="flex justify-between items-center px-3 py-2 {{ $w2 ? $bgWinner : '' }}">
-        <span class="text-[11px] font-bold truncate pr-2 {{ $w2 ? 'text-white' : ($p2Id ? 'text-gray-300' : 'text-gray-600 italic') }}">
-            @if($w2)<i class="fas fa-caret-right text-cyan-400 mr-1"></i>@endif{{ $p2 }}
+    <div class="flex justify-between items-center px-2.5 py-1.5 {{ $w2 ? $bgWinner : '' }}">
+        <span class="text-[11px] font-bold truncate pr-2 {{ $w2 ? 'text-white' : ($p2Id ? 'text-gray-300' : $placeholderColor) }}">
+            @if($w2)<i class="fas fa-caret-right {{ $caretColor }} mr-1"></i>@endif{{ $p2 }}
         </span>
         <span class="font-mono text-xs font-black px-1.5 py-0.5 rounded {{ $w2 ? $badgeWinner : 'text-gray-500 bg-gray-950' }}">{{ $s2 }}</span>
     </div>

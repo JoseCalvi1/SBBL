@@ -46,7 +46,7 @@ class SwissEngine
     private function generateFirstRound(Event $event)
     {
         // Cogemos a todos los inscritos al azar
-        $players = $event->users()->inRandomOrder()->get();
+        $players = $this->getActivePlayers($event)->shuffle()->values();
         $matchesCreated = 0;
 
         if ($players->isEmpty()) {
@@ -90,7 +90,7 @@ class SwissEngine
         }
 
         // 2. Obtener jugadores y todo el historial de emparejamientos
-        $players = $event->users()->get();
+        $players = $this->getActivePlayers($event);
         $matches = TournamentMatch::where('event_id', $event->id)->where('round_number', '<', $roundNumber)->get();
 
         $standings = [];
@@ -203,5 +203,30 @@ class SwissEngine
         }
 
         return ['success' => true, 'message' => "Ronda $roundNumber generada. $matchesCreated cruces calculados."];
+    }
+
+    private function getActivePlayers(\App\Models\Event $event)
+    {
+        $limite = 9999;
+        if ($event->has_stadium_limit || !empty($event->max_players)) {
+            if ($event->stadiums == 1) $limite = 20;
+            elseif ($event->stadiums == 2) $limite = 35;
+            elseif ($event->stadiums == 3) $limite = 45;
+            elseif ($event->stadiums == 4) $limite = 55;
+            elseif ($event->stadiums >= 5) $limite = 64;
+            if (!empty($event->max_players)) $limite = $event->max_players;
+        }
+
+        // Obtenemos los inscritos por orden de llegada (incluyendo dropped inicialmente para saber quién era titular, y luego quitamos los dropped)
+        $activeIds = \Illuminate\Support\Facades\DB::table('assist_user_event')
+            ->where('event_id', $event->id)
+            ->where(function ($q) {
+                $q->whereNull('puesto')->orWhere('puesto', '!=', 'dropped');
+            })
+            ->orderBy('created_at', 'asc')
+            ->limit($limite)
+            ->pluck('user_id');
+
+        return \App\Models\User::whereIn('id', $activeIds)->get();
     }
 }

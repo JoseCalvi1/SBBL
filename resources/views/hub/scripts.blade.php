@@ -111,6 +111,87 @@
         } catch (error) { console.error(error); }
     }
 
+    // 1. CAMBIAR FILTRO PERSONAL (TODOS / APUNTADO / COMO JUEZ)
+    function setFiltroPersonal(valor) {
+        triggerHaptic('light');
+        const input = document.getElementById('filtro-personal');
+        if (input) input.value = valor;
+
+        const botones = {
+            '': { id: 'btn-pers-all', activeClass: 'bg-cyan-900/50 border-cyan-400 text-cyan-300 font-black shadow-[0_0_10px_rgba(6,182,212,0.2)]' },
+            'inscrito': { id: 'btn-pers-inscrito', activeClass: 'bg-cyan-900/50 border-cyan-400 text-cyan-300 font-black shadow-[0_0_10px_rgba(6,182,212,0.2)]' },
+            'juez': { id: 'btn-pers-juez', activeClass: 'bg-yellow-900/50 border-yellow-400 text-yellow-300 font-black shadow-[0_0_10px_rgba(234,179,8,0.2)]' }
+        };
+
+        Object.keys(botones).forEach(k => {
+            const btn = document.getElementById(botones[k].id);
+            if (!btn) return;
+            if (k === valor) {
+                btn.className = `flex-1 py-2 px-2.5 rounded-lg border text-[10px] tracking-wider uppercase transition-all whitespace-nowrap ${botones[k].activeClass}`;
+            } else {
+                btn.className = `flex-1 py-2 px-2.5 rounded-lg border text-[10px] font-bold tracking-wider uppercase transition-all bg-gray-900 border-gray-800 text-gray-400 hover:text-white whitespace-nowrap`;
+            }
+        });
+
+        cargarEventos();
+    }
+
+    // 2. BOTÓN DE REFRESCO GLOBAL POR SECCIÓN
+    async function refrescarPestanaActual(seccion, btnEl = null) {
+        triggerHaptic('medium');
+        const icon = btnEl ? btnEl.querySelector('i') : null;
+        if (icon) icon.classList.add('fa-spin');
+
+        try {
+            if (seccion === 'eventos') {
+                await cargarEventos();
+                mostrarToast("⚡ Lista de eventos actualizada");
+            } else if (seccion === 'ranking') {
+                await Promise.all([cargarRankingIndividual(), cargarRankingEquipos()]);
+                mostrarToast("🏆 Rankings sincronizados");
+            } else if (seccion === 'duelos') {
+                await cargarDuelos();
+                mostrarToast("⚔️ Duelos de equipos actualizados");
+            } else if (seccion === 'meta') {
+                await cargarMeta();
+                mostrarToast("📊 Estadísticas del Meta actualizadas");
+            }
+        } finally {
+            if (icon) setTimeout(() => icon.classList.remove('fa-spin'), 400);
+        }
+    }
+
+    // 3. DETECTOR DE ENLACE DIRECTO DESDE DISCORD (?evento=ID)
+    let deepLinkEventProcessed = false;
+    function comprobarEnlaceDirectoTorneo(torneos) {
+        if (deepLinkEventProcessed) return;
+        const params = new URLSearchParams(window.location.search);
+        const targetId = params.get('evento');
+        if (!targetId) return;
+
+        deepLinkEventProcessed = true;
+        const torneo = torneos.find(t => String(t.id) === String(targetId));
+        if (!torneo) return;
+
+        setTimeout(() => {
+            const card = document.getElementById(`torneo-card-${torneo.id}`);
+            if (card) {
+                card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                card.classList.add('ring-4', 'ring-cyan-400');
+                setTimeout(() => card.classList.remove('ring-4', 'ring-cyan-400'), 4000);
+            }
+            // Si está abierto, abrimos directamente el modal de inscripción/deck
+            if (torneo.status === 'OPEN') {
+                abrirModal(torneo.id, torneo.status, null, null, torneo.beys);
+            } else if (torneo.status === 'LIVE') {
+                if (torneo.is_judge_assigned || torneo.user_is_revisor) abrirPanelArbitraje(torneo.id);
+                else abrirArenaPublica(torneo.id);
+            }
+            // Limpiamos el parámetro de la URL sin recargar
+            window.history.replaceState({}, document.title, window.location.pathname);
+        }, 300);
+    }
+
     async function cargarEventos() {
         triggerHaptic('light');
         const contenedor = document.getElementById('lista-eventos');
@@ -151,34 +232,32 @@
                 let botonesHTML = '';
                 let panelJuez = '';
 
+                // LÓGICA DE BOTONES BASADA EN 'can_arbitrate'
                 if (torneo.status === 'COMPLETED' || torneo.status === 'CLOSED' || torneo.status === 'PENDING' || torneo.status === 'REVIEW' || torneo.status === 'INVALID') {
-                    if (torneo.user_is_revisor || torneo.is_judge_assigned) {
+                    if (torneo.can_arbitrate) {
                         botonesHTML = `
                             <div class="flex gap-2 relative z-10">
                                 <button onclick="abrirArenaPublica(${torneo.id})" class="flex-1 bg-fuchsia-900/80 hover:bg-fuchsia-800 border border-fuchsia-500 text-fuchsia-300 font-bold py-3 rounded-lg text-xs tracking-wide transition-colors"><i class="fas fa-eye mr-1"></i> VER RESULTADOS</button>
-                                <button onclick="abrirPanelArbitraje(${torneo.id})" class="bg-gray-800 hover:bg-gray-700 border border-yellow-600/60 text-yellow-400 font-bold px-3.5 py-3 rounded-lg text-xs transition-colors" title="Modo Edición / Revisor"><i class="fas fa-edit"></i></button>
+                                <button onclick="abrirPanelArbitraje(${torneo.id})" class="bg-gray-800 hover:bg-gray-700 border border-yellow-600/60 text-yellow-400 font-bold px-3.5 py-3 rounded-lg text-xs transition-colors" title="Modo Edición"><i class="fas fa-edit"></i></button>
                             </div>`;
                     } else {
                         botonesHTML = `<button onclick="abrirArenaPublica(${torneo.id})" class="w-full bg-fuchsia-900/80 hover:bg-fuchsia-800 border border-fuchsia-500 text-fuchsia-400 font-bold py-3 rounded-lg text-sm tracking-wide shadow-[0_0_15px_rgba(192,38,211,0.3)] transition-colors relative z-10"><i class="fas fa-eye mr-2"></i> VER RESULTADOS / ARENA</button>`;
                     }
                 } 
                 else if (torneo.status === 'LIVE') {
-                    if (torneo.is_judge_assigned || torneo.user_is_revisor) {
+                    if (torneo.can_arbitrate) {
                         botonesHTML = `<button onclick="abrirPanelArbitraje(${torneo.id})" class="w-full bg-yellow-600 hover:bg-yellow-500 active:bg-yellow-700 border border-yellow-400 text-white font-black py-3 rounded-lg text-sm tracking-wider shadow-[0_0_15px_rgba(234,179,8,0.4)] transition-colors relative z-10"><i class="fas fa-tablet-alt mr-2"></i> PANEL DE ARENA</button>`;
-                    } else {
-                        botonesHTML = `<div class="flex gap-2 relative z-10">
-                            <button onclick="abrirArenaPublica(${torneo.id})" class="flex-1 bg-fuchsia-700 active:bg-fuchsia-600 border border-fuchsia-500 text-white font-bold py-3 rounded-lg text-sm tracking-wide shadow-[0_0_15px_rgba(192,38,211,0.3)] transition-colors"><i class="fas fa-eye mr-2"></i> VER ARENA</button>
-                            ${torneo.is_inscribed ? `<button onclick="abrirModal(${torneo.id}, '${torneo.status}', null, null, '${torneo.beys}')" class="w-14 bg-cyan-900/50 border border-cyan-500 text-cyan-400 font-bold py-3 rounded-lg text-sm transition-colors flex items-center justify-center"><i class="fas fa-layer-group"></i></button>` : ''}
-                        </div>`;
-                    }
-
-                    if ((torneo.user_is_judge && torneo.is_judge_assigned) || torneo.user_is_revisor) {
                         panelJuez = `
                             <div class="mt-4 pt-3 border-t border-gray-700/50 flex gap-2 relative z-10">
                                 <button onclick="copiarNombres(${torneo.id})" class="flex-1 bg-gray-800 border border-gray-600 text-gray-300 hover:text-white font-bold py-2 rounded-lg text-xs transition-colors shadow-sm" title="Copiar Lista"><i class="fas fa-copy text-cyan-500"></i></button>
                                 <button onclick='abrirModalEventManager(${JSON.stringify(torneo).replace(/'/g, "&apos;")})' class="flex-1 bg-yellow-900/50 border border-yellow-700 text-yellow-500 hover:text-white font-bold py-2 rounded-lg text-xs transition-colors shadow-sm" title="Editar Evento"><i class="fas fa-pen"></i></button>
                             </div>
                         `;
+                    } else {
+                        botonesHTML = `<div class="flex gap-2 relative z-10">
+                            <button onclick="abrirArenaPublica(${torneo.id})" class="flex-1 bg-fuchsia-700 active:bg-fuchsia-600 border border-fuchsia-500 text-white font-bold py-3 rounded-lg text-sm tracking-wide shadow-[0_0_15px_rgba(192,38,211,0.3)] transition-colors"><i class="fas fa-eye mr-2"></i> VER ARENA</button>
+                            ${torneo.is_inscribed ? `<button onclick="abrirModal(${torneo.id}, '${torneo.status}', null, null, '${torneo.beys}')" class="w-14 bg-cyan-900/50 border border-cyan-500 text-cyan-400 font-bold py-3 rounded-lg text-sm transition-colors flex items-center justify-center"><i class="fas fa-layer-group"></i></button>` : ''}
+                        </div>`;
                     }
                 } 
                 else {
@@ -188,31 +267,53 @@
                         botonesHTML = `<button onclick="abrirModal(${torneo.id}, '${torneo.status}', null, null, '${torneo.beys}')" class="w-full bg-cyan-600 active:bg-cyan-500 text-white font-bold py-3 rounded-lg text-sm tracking-wide relative z-10 transition-colors">INSCRIBIRSE</button>`;
                     }
 
-                    if (torneo.user_is_judge) {
-                        const mostrarBtnToggleJuez = !torneo.user_is_revisor;
-                        const btnJuezText = torneo.is_judge_assigned ? '<i class="fas fa-user-minus"></i> SALIR' : '<i class="fas fa-user-plus"></i> ARBITRAR';
+                    if (torneo.can_be_staff) {
+                        const btnJuezText = torneo.is_judge_assigned ? '<i class="fas fa-user-minus"></i> SALIR STAFF' : '<i class="fas fa-user-plus"></i> SER STAFF';
                         const btnJuezColor = torneo.is_judge_assigned ? 'bg-red-900/50 border-red-500 text-red-400 hover:bg-red-800' : 'bg-yellow-900/50 border-yellow-500 text-yellow-400 hover:bg-yellow-800';
                         let botonesExclusivos = '';
                         
-                        if (torneo.is_judge_assigned || torneo.user_is_revisor) {
+                        if (torneo.can_arbitrate) {
                             botonesExclusivos = `
                                 <button onclick="copiarNombres(${torneo.id})" class="flex-1 bg-gray-800 border border-gray-600 text-gray-300 hover:text-white font-bold py-2 rounded-lg text-xs transition-colors shadow-sm" title="Copiar Lista"><i class="fas fa-copy text-cyan-500"></i></button>
                                 <button onclick='abrirModalEventManager(${JSON.stringify(torneo).replace(/'/g, "&apos;")})' class="flex-1 bg-yellow-900/50 border border-yellow-700 text-yellow-500 hover:text-white font-bold py-2 rounded-lg text-xs transition-colors shadow-sm" title="Editar Evento"><i class="fas fa-pen"></i></button>
                                 <button onclick="comenzarTorneo(${torneo.id})" class="flex-1 bg-green-900/50 border border-green-500 text-green-400 font-bold py-2 rounded-lg text-xs transition-colors shadow-sm"><i class="fas fa-play mr-1"></i> INICIAR</button>
                             `;
                         }
-                        panelJuez = `<div class="mt-4 pt-3 border-t border-gray-700/50 flex gap-2 relative z-10">${mostrarBtnToggleJuez ? `<button onclick="toggleJuez(${torneo.id})" class="${torneo.is_judge_assigned ? 'w-24' : 'w-full'} ${btnJuezColor} border font-bold py-2 rounded-lg text-xs transition-colors shadow-sm">${btnJuezText}</button>` : ''}${botonesExclusivos}</div>`;
+                        panelJuez = `<div class="mt-4 pt-3 border-t border-gray-700/50 flex gap-2 relative z-10"><button onclick="toggleJuez(${torneo.id})" class="${torneo.can_arbitrate ? 'w-24' : 'w-full'} ${btnJuezColor} border font-bold py-2 rounded-lg text-xs transition-colors shadow-sm">${btnJuezText}</button>${botonesExclusivos}</div>`;
                     }
                 }
 
+                // DIBUJADO DE LA LISTA DE STAFF (CON ORDEN Y COLORES)
                 let juecesHTML = '';
                 if (torneo.jueces_asignados && torneo.jueces_asignados.length > 0) {
-                    const nombresJueces = torneo.jueces_asignados.map(j => j.name).join(', ');
-                    juecesHTML = `<div class="mt-3 relative z-10 flex items-start gap-2 bg-gray-950/50 p-2.5 rounded-lg border border-gray-800 shadow-inner"><i class="fas fa-gavel text-yellow-600 mt-0.5"></i><div><span class="text-[9px] text-gray-500 font-bold tracking-widest uppercase block mb-0.5">Staff Oficial</span><span class="text-xs text-gray-300 font-bold leading-tight">${nombresJueces}</span></div></div>`;
+                    
+                    // 1. Ordenamos el array: Los que NO son revisores puros (Jueces/Admins) van primero (0), Revisores van después (1)
+                    const sortedStaff = [...torneo.jueces_asignados].sort((a, b) => (a.is_revisor === b.is_revisor ? 0 : a.is_revisor ? 1 : -1));
+
+                    // 2. Mapeamos con los estilos TailWind del Hub
+                    const nombresStaff = sortedStaff.map(j => {
+                        if (j.is_revisor) {
+                            // ESTILO REVISOR: Fucsia discreto
+                            return `<span class="bg-gray-950 border border-fuchsia-900/50 text-fuchsia-400 px-2 py-0.5 rounded font-bold text-[9px] shadow-sm flex items-center gap-1.5"><i class="fas fa-search text-[8px]"></i> <span class="opacity-75">${j.name}</span></span>`;
+                        } else {
+                            // ESTILO JUEZ/ADMIN: Dorado con resplandor
+                            return `<span class="bg-gray-950 border border-yellow-500/60 text-yellow-400 px-2 py-0.5 rounded font-bold text-[9px] shadow-[0_0_8px_rgba(250,204,21,0.25)] flex items-center gap-1.5"><i class="fas fa-user-shield text-[8px]"></i> <span>${j.name}</span></span>`;
+                        }
+                    }).join('');
+
+                    // 3. Pintamos la caja en la tarjeta
+                    juecesHTML = `
+                        <div class="mt-3 relative z-10 flex items-start gap-2 bg-gray-950/50 p-2.5 rounded-lg border border-gray-800 shadow-inner">
+                            <i class="fas fa-users-cog text-yellow-500 mt-1"></i>
+                            <div class="flex-1">
+                                <span class="text-[9px] text-gray-500 font-bold tracking-widest uppercase block mb-1.5">Staff Asignado</span>
+                                <div class="flex flex-wrap gap-1.5">${nombresStaff}</div>
+                            </div>
+                        </div>`;
                 }
 
                 htmlTemp += `
-                    <div class="${cardTheme} p-4 rounded-xl transition-all duration-300 border relative overflow-hidden">
+                    <div id="torneo-card-${torneo.id}" class="${cardTheme} p-4 rounded-xl transition-all duration-300 border relative overflow-hidden">
                         ${torneo.is_inscribed ? '<div class="absolute top-0 right-0 w-24 h-24 bg-cyan-500/10 rounded-bl-full pointer-events-none z-0"></div>' : ''}
                         
                         <!-- NUEVA CABECERA REGIONAL (PEGADA A LA ESQUINA SUPERIOR IZQUIERDA) -->
@@ -678,10 +779,13 @@
             
             let listaHTML = '';
             const eventType = data.event_type;
-            
+            const isTeamEvent = Boolean(data.is_team_event);
+            const limiteReal = data.aforo_maximo || currentListaAforo;
+
+            // Buscador manual para el Juez
             if (data.is_staff && data.available_users) {
                 listaHTML += `
-                    <div class="mb-4 bg-gray-900 border border-gray-700 p-3 rounded-lg shadow-inner">
+                    <div class="mb-4 bg-gray-900 border border-gray-700 p-3 rounded-xl shadow-inner">
                         <label class="text-[10px] text-cyan-400 font-bold tracking-widest uppercase block mb-2"><i class="fas fa-user-plus mr-1"></i> AÑADIR JUGADOR MANUALMENTE</label>
                         <div class="flex gap-2">
                             <div class="flex-1">
@@ -698,40 +802,107 @@
                 `;
             }
 
+            // Contadores de estado para el Cuadro
+            const entranList = data.jugadores.filter(j => j.bracket_status === 'entra' || (j.puesto !== 'dropped' && !j.bracket_status));
+            const reservaList = data.jugadores.filter(j => j.bracket_status === 'reserva');
+            const droppedList = data.jugadores.filter(j => j.puesto === 'dropped' || j.bracket_status === 'dropped');
+
+            // Panel resumen de quién cuenta para el cuadro
+            listaHTML += `
+                <div class="grid grid-cols-3 gap-2 mb-4 text-center">
+                    <div class="bg-green-950/30 border border-green-700/50 rounded-xl p-2">
+                        <div class="text-[8px] font-black text-green-400 tracking-widest uppercase">ENTRAN AL CUADRO</div>
+                        <div class="text-lg font-mono font-black text-white leading-tight mt-0.5">${entranList.length}</div>
+                    </div>
+                    <div class="bg-yellow-950/30 border border-yellow-700/50 rounded-xl p-2">
+                        <div class="text-[8px] font-black text-yellow-400 tracking-widest uppercase">EN RESERVA</div>
+                        <div class="text-lg font-mono font-black text-yellow-400 leading-tight mt-0.5">${reservaList.length}</div>
+                    </div>
+                    <div class="bg-red-950/30 border border-red-800/50 rounded-xl p-2">
+                        <div class="text-[8px] font-black text-red-400 tracking-widest uppercase">EXCLUIDOS (DROP)</div>
+                        <div class="text-lg font-mono font-black text-red-400 leading-tight mt-0.5">${droppedList.length}</div>
+                    </div>
+                </div>
+            `;
+
+            // Helper para pintar la fila de un jugador
+            const renderFilaJugador = (jugador) => {
+                const isDropped = jugador.puesto === 'dropped' || jugador.bracket_status === 'dropped';
+                const esReserva = jugador.bracket_status === 'reserva';
+                const safeName = jugador.name.replace(/'/g, "\\'");
+                
+                const deckIcon = jugador.has_deck 
+                    ? `<span class="text-green-400 text-[9px] bg-green-950/60 border border-green-700/50 px-1.5 py-0.5 rounded font-bold mr-2 shrink-0" title="Deck Registrado"><i class="fas fa-layer-group"></i> OK</span>`
+                    : `<span class="text-yellow-500 text-[9px] bg-yellow-950/60 border border-yellow-700/50 px-1.5 py-0.5 rounded font-bold mr-2 shrink-0" title="Sin Deck / Tentativo"><i class="fas fa-exclamation-circle"></i> SIN DECK</span>`;
+
+                let badgeHTML = '';
+                if (isDropped) {
+                    badgeHTML = `<span class="bg-red-600 text-white text-[9px] px-2 py-0.5 rounded font-black uppercase tracking-wider shrink-0"><i class="fas fa-skull mr-1"></i> NO CUENTA</span>`;
+                } else if (esReserva) {
+                    badgeHTML = `<span class="bg-yellow-800 text-yellow-200 text-[9px] px-2 py-0.5 rounded font-black uppercase tracking-wider shrink-0">RESERVA #${jugador.reserva_num || ''}</span>`;
+                } else {
+                    badgeHTML = `<span class="bg-green-950 text-green-400 border border-green-700/60 text-[9px] px-2 py-0.5 rounded font-black shrink-0">#${jugador.active_pos || ''} ENTRA</span>`;
+                }
+                
+                let staffBtns = '';
+                if (!isDropped && data.is_staff) {
+                    staffBtns = `
+                        <button onclick="abrirModalDeckJuez(${eventId}, ${jugador.id}, '${safeName}', '${eventType}')" class="ml-1.5 bg-cyan-900/50 hover:bg-cyan-600 text-cyan-400 hover:text-white px-2 py-1 rounded border border-cyan-700/50 transition-colors text-xs" title="Meter/Editar Deck"><i class="fas fa-edit"></i></button>
+                        <button onclick="ejecutarDrop(${eventId}, ${jugador.id}, '${safeName}')" class="ml-1 bg-red-900/50 hover:bg-red-600 text-red-400 hover:text-white px-2 py-1 rounded border border-red-700/50 transition-colors text-xs" title="Retirar del Torneo (No entrará al cuadro)"><i class="fas fa-user-slash"></i></button>`;
+                }
+
+                return `
+                    <div class="flex justify-between items-center p-2.5 rounded-lg border mb-1.5 ${isDropped ? 'bg-red-950/15 border-red-900/30 opacity-55' : (esReserva ? 'bg-yellow-950/20 border-yellow-800/50 text-yellow-200' : 'bg-gray-800/90 border-gray-700 text-white')}">
+                        <div class="flex items-center truncate pr-2">
+                            ${!isDropped && typeof jugador.has_deck !== 'undefined' ? deckIcon : ''}
+                            <span class="font-mono text-xs sm:text-sm font-bold truncate ${isDropped ? 'line-through text-gray-500' : ''}">${jugador.name}</span>
+                        </div>
+                        <div class="flex items-center shrink-0">${badgeHTML}${staffBtns}</div>
+                    </div>`;
+            };
+
             if (data.jugadores.length === 0) {
                 listaHTML += '<div class="text-center text-gray-500 py-4 font-bold text-sm">La arena está vacía</div>';
-            } else { 
-                data.jugadores.forEach((jugador, index) => { 
-                    const esReserva = (index + 1) > currentListaAforo; 
-                    const isDropped = jugador.puesto === 'dropped';
-                    const safeName = jugador.name.replace(/'/g, "\\'");
-                    
-                    const deckIcon = jugador.has_deck 
-                        ? `<span class="text-green-400 text-[10px] bg-green-950/60 border border-green-700/50 px-1.5 py-0.5 rounded font-bold mr-2 shrink-0" title="Deck Registrado"><i class="fas fa-layer-group"></i> OK</span>`
-                        : `<span class="text-yellow-500 text-[10px] bg-yellow-950/60 border border-yellow-700/50 px-1.5 py-0.5 rounded font-bold mr-2 shrink-0" title="Sin Deck / Tentativo"><i class="fas fa-exclamation-circle"></i> SIN DECK</span>`;
+            } else if (isTeamEvent) {
+                // MODO AGRUPADO POR EQUIPOS (Para Torneos de Equipos y Duelos Express)
+                const gruposEquipos = {};
+                data.jugadores.forEach(j => {
+                    const tName = j.team_name || 'SIN EQUIPO';
+                    if (!gruposEquipos[tName]) gruposEquipos[tName] = [];
+                    gruposEquipos[tName].push(j);
+                });
 
-                    let badgeHTML = esReserva 
-                        ? `<span class="bg-red-900 text-white text-[10px] px-2 py-0.5 rounded font-bold uppercase tracking-widest shrink-0">Reserva #${(index + 1) - currentListaAforo}</span>` 
-                        : `<span class="bg-gray-900 text-gray-400 text-[10px] px-2 py-0.5 rounded font-bold shrink-0">#${index + 1}</span>`; 
-                    
-                    let staffBtns = '';
-                    if (isDropped) {
-                        badgeHTML = `<span class="bg-red-600 text-white text-[10px] px-2 py-0.5 rounded font-bold uppercase tracking-widest shrink-0"><i class="fas fa-skull"></i> DROPPED</span>`;
-                    } else if (data.is_staff) {
-                        staffBtns = `
-                            <button onclick="abrirModalDeckJuez(${eventId}, ${jugador.id}, '${safeName}', '${eventType}')" class="ml-2 bg-cyan-900/50 hover:bg-cyan-600 text-cyan-400 hover:text-white px-2 py-1 rounded border border-cyan-700/50 transition-colors text-xs" title="Meter/Editar Deck"><i class="fas fa-edit"></i></button>
-                            <button onclick="ejecutarDrop(${eventId}, ${jugador.id}, '${safeName}')" class="ml-1 bg-red-900/50 hover:bg-red-600 text-red-400 hover:text-white px-2 py-1 rounded border border-red-700/50 transition-colors text-xs" title="Retirar del Torneo"><i class="fas fa-user-slash"></i></button>`;
-                    }
-
+                Object.keys(gruposEquipos).forEach(teamName => {
+                    const miembros = gruposEquipos[teamName];
+                    const activosEquipo = miembros.filter(m => m.puesto !== 'dropped').length;
                     listaHTML += `
-                        <div class="flex justify-between items-center p-3 rounded-lg border mb-2 ${isDropped ? 'bg-red-950/20 border-red-900/30 opacity-50' : (esReserva ? 'bg-red-950/30 border-red-900/50 text-red-400' : 'bg-gray-800 border-gray-700 text-white')}">
-                            <div class="flex items-center truncate pr-2">
-                                ${!isDropped && typeof jugador.has_deck !== 'undefined' ? deckIcon : ''}
-                                <span class="font-mono text-sm font-bold truncate ${isDropped ? 'line-through text-gray-500' : ''}">${jugador.name}</span>
+                        <div class="mb-4 bg-gray-900/70 border border-cyan-900/60 rounded-xl p-3 shadow-md">
+                            <div class="flex justify-between items-center border-b border-gray-800 pb-2 mb-2.5">
+                                <span class="text-xs font-black text-cyan-400 uppercase tracking-widest flex items-center gap-1.5">
+                                    <i class="fas fa-shield-alt text-yellow-500"></i> ${teamName}
+                                </span>
+                                <span class="text-[10px] font-mono font-bold bg-gray-950 text-gray-300 px-2 py-0.5 rounded border border-gray-800">
+                                    ${activosEquipo} MIEMBROS ACTIVOS
+                                </span>
                             </div>
-                            <div class="flex items-center shrink-0">${badgeHTML}${staffBtns}</div>
-                        </div>`; 
-                }); 
+                            ${miembros.map(m => renderFilaJugador(m)).join('')}
+                        </div>
+                    `;
+                });
+            } else {
+                // MODO INDIVIDUAL SEPARADO POR SECCIONES (TITULARES QUE ENTRAN / RESERVAS / DROPPED)
+                if (entranList.length > 0) {
+                    listaHTML += `<div class="text-[10px] font-black text-green-400 tracking-widest uppercase mb-2 mt-1"><i class="fas fa-check-circle mr-1"></i> TITULARES (ENTRAN AL CUADRO)</div>`;
+                    listaHTML += entranList.map(j => renderFilaJugador(j)).join('');
+                }
+                if (reservaList.length > 0) {
+                    listaHTML += `<div class="text-[10px] font-black text-yellow-400 tracking-widest uppercase mb-2 mt-4 pt-2 border-t border-gray-800"><i class="fas fa-clock mr-1"></i> LISTA DE ESPERA (NO ENTRAN SI EL CUADRO ESTÁ LLENO)</div>`;
+                    listaHTML += reservaList.map(j => renderFilaJugador(j)).join('');
+                }
+                if (droppedList.length > 0) {
+                    listaHTML += `<div class="text-[10px] font-black text-red-400 tracking-widest uppercase mb-2 mt-4 pt-2 border-t border-gray-800"><i class="fas fa-ban mr-1"></i> RETIRADOS / DROPPED (EXCLUIDOS DE EMPAREJAMIENTOS)</div>`;
+                    listaHTML += droppedList.map(j => renderFilaJugador(j)).join('');
+                }
             }
             
             document.getElementById('listadoJugadoresContent').innerHTML = listaHTML; 
@@ -795,7 +966,28 @@
 
     function generarFormularioBeys() {
         if(!dbPiezas) return;
-        const container = document.getElementById('beysContainer'); let htmlTemp = '';
+        const container = document.getElementById('beysContainer'); 
+        let htmlTemp = '';
+
+        // Obtenemos los roles del usuario inyectados en una etiqueta meta (o asumiendo que los cargamos en el auth)
+        // Para simplificar, si currentArenaMode es 'judge' o el usuario es admin/juez (lo pasamos por JS):
+        const userRolesStr = document.querySelector('meta[name="user-roles"]')?.getAttribute('content') || '';
+        const isStaff = userRolesStr.includes('admin') || userRolesStr.includes('juez');
+
+        // CAJA 2x1 PARA JUECES (Solo si no están inscritos aún, es decir, si es la primera vez que rellenan el deck)
+        const btnSubmitDeck = document.getElementById('btnSubmitDeck');
+        const isFirstTime = btnSubmitDeck && btnSubmitDeck.innerHTML.includes('CONFIRMAR DECK');
+
+        if (isStaff && isFirstTime) {
+            htmlTemp += `
+            <div class="bg-yellow-950/20 border border-yellow-700/50 p-3 rounded-xl mb-4 text-center shadow-inner">
+                <label class="flex items-center justify-center gap-3 cursor-pointer py-1">
+                    <input type="checkbox" id="alsoJudgeCheck" name="also_judge" value="1" class="w-5 h-5 accent-yellow-500">
+                    <span class="text-yellow-400 font-bold text-sm tracking-widest"><i class="fas fa-gavel me-1"></i> QUIERO ARBITRAR ESTE TORNEO</span>
+                </label>
+            </div>`;
+        }
+
         const crearSelect = (name, index, options, placeholder, req = true) => `
             <div class="col-span-1">
                 <select id="${name}_${index}" name="${name}[]" class="tom-select-pieza w-full ${req ? 'deck-req' : ''}" placeholder="${placeholder}" autocomplete="off">
@@ -1094,21 +1286,26 @@
                 if (data.current_round === data.max_round && totalMatches > 0) {
                     const allCompleted = data.matches.every(m => m.status === 'completed' || m.status === 'cancelled');
                     if (allCompleted) {
+                        // Detectamos si es un torneo/duelo de equipos (tienen team1_id o son round_robin)
+                        const isTeamTournament = Boolean(data.is_team_event) || data.matches.some(m => m.team1_id != null || m.bracket_type === 'round_robin');
+
                         let uniquePlayers = new Set();
                         data.matches.forEach(m => { if(m.player1_id) uniquePlayers.add(m.player1_id); if(m.player2_id) uniquePlayers.add(m.player2_id); });
                         currentTotalPlayers = uniquePlayers.size;
                         if(document.getElementById('total_jugadores_top')) document.getElementById('total_jugadores_top').innerText = currentTotalPlayers;
 
                         htmlTemp += `<div class="flex flex-col gap-2.5 w-full mt-2 mb-6 p-3 bg-gray-900/90 border border-green-500/40 rounded-xl shadow-[0_0_20px_rgba(34,197,94,0.15)]">
-                            <div class="text-center text-[10px] font-black text-green-400 tracking-widest uppercase"><i class="fas fa-check-double mr-1"></i> RONDA COMPLETADA - SIGUIENTE PASO</div>`;
+                            <div class="text-center text-[10px] font-black text-green-400 tracking-widest uppercase"><i class="fas fa-check-double mr-1"></i> ${isTeamTournament ? 'TODOS LOS DUELOS COMPLETADOS' : 'RONDA COMPLETADA - SIGUIENTE PASO'}</div>`;
                         
-                        if (!isBracket) {
+                        if (!isBracket && !isTeamTournament) {
                             htmlTemp += `
                                 <button onclick="generarSiguienteRonda()" class="w-full bg-green-600 hover:bg-green-500 font-black py-3.5 rounded-xl text-xs sm:text-sm text-white tracking-wider uppercase shadow-lg transition-all"><i class="fas fa-cogs mr-2"></i> GENERAR RONDA ${data.max_round + 1}</button>
                                 <button onclick="abrirModalTopCut()" class="w-full bg-cyan-700 hover:bg-cyan-600 font-black py-3.5 rounded-xl text-xs sm:text-sm text-white border border-cyan-400 shadow-[0_0_15px_rgba(6,182,212,0.4)] tracking-wider uppercase transition-all"><i class="fas fa-trophy mr-2"></i> CERRAR SUIZO Y PASAR AL TOP</button>`;
                         } else {
                             htmlTemp += `
-                                <button onclick="finalizarTorneo(${eventId})" class="w-full bg-red-600 hover:bg-red-500 active:bg-red-700 font-black py-4 rounded-xl text-sm text-white border-2 border-red-400 shadow-[0_0_20px_rgba(239,68,68,0.5)] transition-all uppercase tracking-widest"><i class="fas fa-flag-checkered mr-2"></i> CERRAR ACTA Y FINALIZAR TORNEO</button>`;
+                                <button onclick="finalizarTorneo(${eventId})" class="w-full bg-red-600 hover:bg-red-500 active:bg-red-700 font-black py-4 rounded-xl text-sm text-white border-2 border-red-400 shadow-[0_0_20px_rgba(239,68,68,0.5)] transition-all uppercase tracking-widest">
+                                    <i class="fas fa-flag-checkered mr-2"></i> ${isTeamTournament ? 'VOLCAR DUELOS (OPEN) Y CERRAR TORNEO' : 'CERRAR ACTA Y FINALIZAR TORNEO'}
+                                </button>`;
                         }
                         htmlTemp += `</div>`;
                     }
@@ -1192,8 +1389,10 @@
 
         sortedMatches.forEach((match, idx) => {
             const isTeamMatch = match.team1_id != null && match.team2_id != null;
-            const p1 = isTeamMatch ? (match.team1 ? match.team1.name : 'ESPERANDO RIVAL') : (match.player1 ? match.player1.name : 'ESPERANDO RIVAL');
-            const p2 = isTeamMatch ? (match.team2 ? match.team2.name : 'ESPERANDO RIVAL') : (match.player2 ? match.player2.name : 'ESPERANDO RIVAL');
+            const p1Placeholder = match.p1_placeholder || 'ESPERANDO RIVAL';
+            const p2Placeholder = match.p2_placeholder || 'ESPERANDO RIVAL';
+            const p1 = isTeamMatch ? (match.team1 ? match.team1.name : p1Placeholder) : (match.player1 ? match.player1.name : p1Placeholder);
+            const p2 = isTeamMatch ? (match.team2 ? match.team2.name : p2Placeholder) : (match.player2 ? match.player2.name : p2Placeholder);
             const missingParticipants = isTeamMatch ? (!match.team1 || !match.team2) : (!match.player1 || !match.player2);
 
             const w1 = (match.winner_id && match.winner_id === match.player1_id) || (isTeamMatch && match.winner_id === match.team1_id);
@@ -1430,14 +1629,22 @@
             if (document.getElementById('manual_input_p2')) document.getElementById('manual_input_p2').value = data.match.player2_score || 0;
 
             if (data.is_team_match) {
-                const p1Used = obtenerCombosUsadosEquipo(data.battles || [], 'p1', data.team1_size);
-                const p2Used = obtenerCombosUsadosEquipo(data.battles || [], 'p2', data.team2_size);
+                const p1Used = obtenerCombosUsadosEquipo(data.battles || [], 'p1', data.team1_size, data.matches_to_play);
+                const p2Used = obtenerCombosUsadosEquipo(data.battles || [], 'p2', data.team2_size, data.matches_to_play);
 
                 renderTeamDeckBatalla('p1', data.p1_deck, p1Used);
                 renderTeamDeckBatalla('p2', data.p2_deck, p2Used);
 
                 const cycleBadge = document.getElementById('batalla_cycle_badge');
-                if (cycleBadge) cycleBadge.innerText = `DUELO ${data.matches_played + 1} DE ${data.matches_to_play}`;
+                if (cycleBadge) {
+                    if (data.matches_played >= data.matches_to_play) {
+                        cycleBadge.innerText = `⚡ DESEMPATE DECISIVO (TODOS HABILITADOS)`;
+                        cycleBadge.className = `text-[9px] bg-yellow-900/80 text-yellow-300 border border-yellow-500 px-2 py-0.5 rounded font-mono font-black animate-pulse`;
+                    } else {
+                        cycleBadge.innerText = `DUELO ${data.matches_played + 1} DE ${data.matches_to_play}`;
+                        cycleBadge.className = `text-[9px] bg-gray-800 text-gray-400 px-2 py-0.5 rounded font-mono font-bold`;
+                    }
+                }
             } else {
                 document.getElementById('batalla_p1_id').value = data.match.player1_id;
                 document.getElementById('batalla_p2_id').value = data.match.player2_id;
@@ -1621,28 +1828,49 @@
         
         deckArray.forEach((bey, idx) => {
             const yaUsado = usedIds.includes(Number(bey.id));
-            const editBtn = `<button type="button" onclick="event.stopPropagation(); abrirModalDeckJuez(currentArenaEventId, ${bey.user_id}, 'Jugador ${idx + 1}', 'equipos')" class="ml-1.5 text-cyan-400 hover:text-white px-1.5 py-0.5 rounded bg-gray-800 border border-gray-700 transition-colors"><i class="fas fa-edit text-[10px]"></i></button>`;
+            const rawPlayerName = bey.user_name || bey.player_name || (bey.user ? bey.user.name : null) || `JUGADOR ${idx + 1}`;
+            const safePlayerName = rawPlayerName.replace(/'/g, "\\'");
+            const sinCombo = !bey.blade || bey.blade === 'DESCONOCIDO' || bey.blade === 'SIN DECK';
+            const partsText = [bey.over_blade, bey.assist_blade, bey.ratchet, bey.bit]
+                .filter(p => p && p !== '-' && p !== 'null')
+                .join(' · ');
 
             if (yaUsado) {
                 html += `
-                    <div class="w-full text-left bg-gray-950/50 border border-gray-800/80 p-2 rounded-xl flex items-center justify-between opacity-35 select-none pointer-events-none mb-2">
-                        <div class="truncate pr-1 text-gray-500">
-                            <div class="flex items-center mb-0.5"><span class="font-bold text-[9px] uppercase text-gray-600">JUGADOR ${idx + 1}</span></div>
-                            <span class="font-bold text-xs uppercase line-through block truncate">${bey.blade}</span>
-                            <span class="text-[10px] line-through font-mono">${bey.ratchet} ${bey.bit}</span>
+                    <div class="w-full text-left bg-gray-950/50 border border-gray-800/80 px-2.5 py-2 rounded-xl flex items-center justify-between opacity-35 select-none pointer-events-none mb-2">
+                        <div class="truncate pr-2 text-gray-500">
+                            <div class="flex items-center gap-1 mb-0.5">
+                                <i class="fas fa-user text-[8px] text-gray-600"></i>
+                                <span class="font-black text-[10px] uppercase tracking-wider text-gray-500 truncate">${rawPlayerName}</span>
+                            </div>
+                            <span class="font-bold text-[11px] uppercase line-through block truncate leading-tight">${bey.blade || '---'}</span>
+                            <span class="text-[9px] line-through font-mono block leading-none mt-0.5">${partsText}</span>
                         </div>
-                        <span class="text-[8px] bg-gray-800 text-gray-500 px-1.5 py-0.5 rounded font-bold uppercase shrink-0"><i class="fas fa-check"></i></span>
+                        <span class="w-6 h-6 rounded-lg bg-gray-800/80 text-gray-500 flex items-center justify-center text-[10px] shrink-0">
+                            <i class="fas fa-check"></i>
+                        </span>
                     </div>`;
             } else {
                 disponiblesIds.push({ id: bey.id, user_id: bey.user_id });
                 html += `
-                    <button type="button" onclick="seleccionarBeyEquipo('${playerKey}', ${bey.id}, ${bey.user_id})" id="btn_bey_${bey.id}" class="bey-btn-${playerKey} w-full text-left bg-gray-900 border-2 border-gray-700 hover:border-gray-500 p-2 rounded-xl transition-all flex items-center justify-between shadow-sm mb-2">
-                        <div class="truncate">
-                            <div class="flex items-center mb-0.5"><span class="font-bold text-[9px] uppercase text-cyan-400">JUGADOR ${idx + 1}</span> ${editBtn}</div>
-                            <span class="text-white font-bold text-xs uppercase block truncate ${bey.blade === 'DESCONOCIDO' ? 'text-gray-500 italic' : ''}">${bey.blade}</span>
-                            <span class="text-gray-400 text-[10px] font-mono">${bey.ratchet} ${bey.bit}</span>
+                    <div role="button" tabindex="0" onclick="seleccionarBeyEquipo('${playerKey}', ${bey.id}, ${bey.user_id})" id="btn_bey_${bey.id}" class="bey-btn-${playerKey} group w-full text-left bg-gray-900 border-2 border-gray-700 hover:border-gray-500 px-2.5 py-2 rounded-xl transition-all flex items-center justify-between gap-2 shadow-sm mb-2 cursor-pointer active:scale-[0.98]">
+                        <div class="truncate flex-1 min-w-0">
+                            <div class="flex items-center gap-1.5 mb-0.5">
+                                <span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-gray-950/90 border border-gray-800 text-[9px] font-black uppercase tracking-wider ${playerKey === 'p1' ? 'text-cyan-400' : 'text-red-400'} truncate max-w-full">
+                                    <i class="fas fa-user text-[8px] opacity-75"></i> ${rawPlayerName}
+                                </span>
+                            </div>
+                            <span class="font-black text-xs uppercase block truncate leading-tight mt-1 ${sinCombo ? 'text-yellow-500/90 italic' : 'text-white'}">
+                                ${sinCombo ? '⚠️ TOCA LÁPIZ PARA DECK' : bey.blade}
+                            </span>
+                            <span class="text-gray-400 text-[10px] font-mono block truncate leading-tight mt-0.5">
+                                ${sinCombo ? 'Sin combo asignado' : (partsText || '---')}
+                            </span>
                         </div>
-                    </button>`;
+                        <button type="button" onclick="event.stopPropagation(); abrirModalDeckJuez(currentArenaEventId, ${bey.user_id}, '${safePlayerName}', 'equipos')" title="Editar Bey de ${rawPlayerName}" class="shrink-0 w-8 h-8 rounded-lg bg-gray-950 hover:bg-cyan-600 text-cyan-400 hover:text-white border border-gray-700 hover:border-cyan-400 flex items-center justify-center transition-all shadow-inner active:scale-90">
+                            <i class="fas fa-pen text-[10px]"></i>
+                        </button>
+                    </div>`;
             }
         });
         
@@ -2054,9 +2282,10 @@
                 const curr = Array.from(cols[c].querySelectorAll('.arena-match-node'));
                 const next = Array.from(cols[c + 1].querySelectorAll('.arena-match-node'));
                 curr.forEach((m, i) => {
+                    const nextWinId = m.getAttribute('data-next-win');
                     const winId = m.getAttribute('data-winner');
-                    let tgt = winId ? next.find(n => n.getAttribute('data-p1') === winId || n.getAttribute('data-p2') === winId) : null;
-                    if (!tgt && next.length > 0) tgt = (curr.length === next.length) ? next[i] : (next[Math.floor(i / 2)] || next[next.length - 1]);
+                    let tgt = nextWinId ? document.getElementById(`arena-match-${nextWinId}`) : null;
+                    if (!tgt && winId) tgt = next.find(n => n.getAttribute('data-p1') === winId || n.getAttribute('data-p2') === winId);
                     if (tgt) {
                         const isComp = m.getAttribute('data-status') === 'completed' && Boolean(winId);
                         trazar(m, tgt, isComp ? color : '#374151', isComp ? marker : 'ar-pending', isComp);
@@ -2161,9 +2390,14 @@
         };
     }
 
-    function obtenerCombosUsadosEquipo(battles, playerKey, teamSize) {
+    function obtenerCombosUsadosEquipo(battles, playerKey, teamSize, maxMatchesToPlay = null) {
         if (!battles || !Array.isArray(battles) || teamSize === 0) return [];
         const realBattles = battles.filter(b => ['spin', 'over', 'burst', 'xtreme'].includes(b.finish_type));
+        
+        if (maxMatchesToPlay && realBattles.length >= maxMatchesToPlay) {
+            return [];
+        }
+
         const remainder = realBattles.length % teamSize;
         if (remainder === 0) return [];
         const currentSet = realBattles.slice(-remainder);
@@ -2335,6 +2569,7 @@
     window.seleccionarGanador = seleccionarGanador;
     window.seleccionarFinal = seleccionarFinal;
     window.guardarBatalla = guardarBatalla;
+
 
     // --- PWA SETUP ---
     let deferredPrompt; const installBanner = document.getElementById('installBanner'); const btnInstall = document.getElementById('btnInstall');
