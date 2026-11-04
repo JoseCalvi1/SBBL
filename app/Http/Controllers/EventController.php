@@ -1458,7 +1458,6 @@ private function sendResponse($type, $message, $request, $code = 200)
     // =========================================================================
     // API PARA EL HUB MÓVIL (PWA)
     // =========================================================================
-
     public function storeAPI(Request $request)
     {
         if (!Auth::user()->hasAnyRole(['admin', 'juez', 'arbitro'])) {
@@ -1475,10 +1474,10 @@ private function sendResponse($type, $message, $request, $code = 200)
             'city'              => 'required|string|max:100',
             'location'          => 'required|string|max:255',
             'region_id'         => 'required|integer',
-            'province_id'       => 'nullable|integer', // Puede ser null si el select está cargando
+            'province_id'       => 'required|integer',
             'event_date'        => 'required|date',
             'event_time'        => 'required',
-            'imagen'            => 'required|string', // Categoría
+            'imagen'            => 'required|string',
             'deck'              => 'required|string',
             'configuration'     => 'required|string',
             'note'              => 'nullable|string|max:5000',
@@ -1495,7 +1494,7 @@ private function sendResponse($type, $message, $request, $code = 200)
                 'city'              => $data['city'],
                 'location'          => $data['location'],
                 'region_id'         => $data['region_id'],
-                'province_id'       => $data['province_id'] ?? 1, // Fallback de seguridad
+                'province_id'       => $data['province_id'],
                 'date'              => $data['event_date'],
                 'time'              => $data['event_time'],
                 'imagen'            => $rutaImagen,
@@ -1505,10 +1504,16 @@ private function sendResponse($type, $message, $request, $code = 200)
                 'note'              => $data['note'] ?? null,
                 'stadiums'          => $data['stadiums'],
                 'max_players'       => $request->input('max_players'),
-                'has_stadium_limit' => $request->has('max_players'),
+                'has_stadium_limit' => $request->filled('max_players'),
                 'created_by'        => Auth::id(),
                 'status'            => 'OPEN',
             ]);
+
+            try {
+                $this->sendDiscordNotificationHUB($event, false);
+            } catch (\Exception $e) {
+                Log::error("Error enviando Webhook de Discord desde PWA: " . $e->getMessage());
+            }
 
             return response()->json(['success' => true, 'message' => '¡Evento creado con éxito!']);
         } catch (\Exception $e) {
@@ -1533,6 +1538,7 @@ private function sendResponse($type, $message, $request, $code = 200)
             'city'              => 'required|string|max:100',
             'location'          => 'required|string|max:255',
             'region_id'         => 'required|integer',
+            'province_id'       => 'required|integer',
             'event_date'        => 'required|date',
             'event_time'        => 'required',
             'imagen'            => 'required|string',
@@ -1552,6 +1558,7 @@ private function sendResponse($type, $message, $request, $code = 200)
                 'city'              => $data['city'],
                 'location'          => $data['location'],
                 'region_id'         => $data['region_id'],
+                'province_id'       => $data['province_id'],
                 'date'              => $data['event_date'],
                 'time'              => $data['event_time'],
                 'imagen'            => $rutaImagen,

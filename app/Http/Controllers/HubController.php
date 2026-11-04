@@ -127,7 +127,7 @@ class HubController extends Controller
     
     public function getRegiones()
     {
-        $regiones = Region::orderBy('name')->get(['id', 'name']);
+        $regiones = Region::with('provinces')->orderBy('name')->get();
         return response()->json($regiones);
     }
 

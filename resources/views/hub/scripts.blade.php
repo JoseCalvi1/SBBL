@@ -103,12 +103,42 @@
     }
 
     // --- ARENA PRINCIPAL ---
+    let regionesConProvincias = []; // Guardaremos los datos globales
+
     async function cargarRegiones() {
         try {
-            const res = await fetch('/api/regiones'); const regiones = await res.json();
+            const res = await fetch('/api/regiones');
+            regionesConProvincias = await res.json();
+            
             const selectRegion = document.getElementById('filtro-region');
-            regiones.forEach(r => selectRegion.add(new Option(r.name.toUpperCase(), r.id)));
+            
+            regionesConProvincias.forEach(r => {
+                if (selectRegion) selectRegion.add(new Option(r.name.toUpperCase(), r.id));
+            });
         } catch (error) { console.error(error); }
+    }
+
+    // NUEVA FUNCIÓN: Actualiza el desplegable de provincias al elegir Región
+    function actualizarProvinciasManager(selectedProvinceId = null) {
+        const selectRegion = document.getElementById('manage_region_id');
+        const selectProvincia = document.getElementById('manage_province_id');
+        if (!selectRegion || !selectProvincia) return;
+
+        const regionId = selectRegion.value;
+        selectProvincia.innerHTML = '<option value="" disabled selected>Selecciona Provincia...</option>';
+
+        const region = regionesConProvincias.find(r => String(r.id) === String(regionId));
+        const listaProvincias = region ? (region.provinces || region.provincias || []) : [];
+
+        if (listaProvincias.length > 0) {
+            listaProvincias.forEach(p => {
+                const isSelected = selectedProvinceId && String(p.id) === String(selectedProvinceId);
+                selectProvincia.add(new Option(p.name, p.id, isSelected, isSelected));
+            });
+            selectProvincia.disabled = false;
+        } else {
+            selectProvincia.disabled = true;
+        }
     }
 
     // 1. CAMBIAR FILTRO PERSONAL (TODOS / APUNTADO / COMO JUEZ)
@@ -2427,21 +2457,28 @@
     // ==========================================
     // CREADOR/EDITOR DE EVENTOS DESDE EL HUB
     // ==========================================
-    function abrirModalEventManager(eventData = null) {
+    async function abrirModalEventManager(eventData = null) {
         triggerHaptic('medium');
         const modal = document.getElementById('eventManagerModal');
         const form = document.getElementById('eventManagerForm');
         const footer = document.getElementById('eventManagerFooter');
         
-        const selectRegionHub = document.getElementById('filtro-region');
-        const selectRegionManage = document.getElementById('manage_region_id');
-        if (selectRegionManage.options.length <= 1) {
-            selectRegionManage.innerHTML = selectRegionHub.innerHTML;
-            selectRegionManage.options[0].text = "Selecciona Región...";
-            selectRegionManage.options[0].disabled = true;
+        // Si aún no se habían cargado las regiones con sus provincias, las pedimos ahora mismo
+        if (!regionesConProvincias || regionesConProvincias.length === 0) {
+            await cargarRegiones();
         }
 
+        const selectRegionManage = document.getElementById('manage_region_id');
+        selectRegionManage.innerHTML = '<option value="" disabled selected>Selecciona Región...</option>';
+        regionesConProvincias.forEach(r => {
+            selectRegionManage.add(new Option(r.name.toUpperCase(), r.id));
+        });
+
         form.reset();
+
+        const selectProvinciaManage = document.getElementById('manage_province_id');
+        selectProvinciaManage.innerHTML = '<option value="" disabled selected>Elige Región...</option>';
+        selectProvinciaManage.disabled = true;
         
         if (eventData) {
             document.getElementById('eventManagerTitle').innerHTML = '<i class="fas fa-edit text-yellow-400 mr-2"></i> EDITAR EVENTO';
@@ -2449,7 +2486,11 @@
             document.getElementById('manage_name').value = eventData.name;
             document.getElementById('manage_mode').value = eventData.mode;
             document.getElementById('manage_imagen').value = eventData.beys || 'quedada';
+            
+            // Seleccionamos Región y cargamos sus Provincias marcando la del evento
             document.getElementById('manage_region_id').value = eventData.region_id;
+            actualizarProvinciasManager(eventData.province_id);
+
             document.getElementById('manage_city').value = eventData.city;
             document.getElementById('manage_location').value = eventData.location;
             document.getElementById('manage_date').value = eventData.date.substring(0, 10);

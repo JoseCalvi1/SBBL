@@ -70,13 +70,37 @@
                     <div class="grid grid-cols-2 gap-3">
                         <div>
                             <label class="text-[10px] text-cyan-400 font-bold tracking-widest uppercase block mb-1">Región *</label>
-                            <select name="region_id" id="manage_region_id" class="w-full bg-gray-800 border border-gray-700 text-white text-sm p-3 rounded-lg focus:border-cyan-400 outline-none" required>
-                                <!-- Se rellena con JS -->
+                            <select name="region_id" id="manage_region_id" onchange="actualizarProvinciasManager()" class="w-full bg-gray-800 border border-gray-700 text-white text-sm p-3 rounded-lg focus:border-cyan-400 outline-none" required>
+                                <option value="" disabled selected>Selecciona Región...</option>
                             </select>
                         </div>
                         <div>
+                            <label class="text-[10px] text-cyan-400 font-bold tracking-widest uppercase block mb-1">Provincia *</label>
+                            <select name="province_id" id="manage_province_id" class="w-full bg-gray-800 border border-gray-700 text-white text-sm p-3 rounded-lg focus:border-cyan-400 outline-none" required disabled>
+                                <option value="" disabled selected>Elige Provincia...</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <label class="text-[10px] text-cyan-400 font-bold tracking-widest uppercase block mb-1">Ciudad *</label>
+                            <input type="text" name="city" id="manage_city" class="w-full bg-gray-800 border border-gray-700 text-white text-sm p-3 rounded-lg focus:border-cyan-400 outline-none" placeholder="Ej. Sevilla / Bilbao" required>
+                        </div>
+                        <div>
+                            <label class="text-[10px] text-cyan-400 font-bold tracking-widest uppercase block mb-1">Ubicación Exacta *</label>
+                            <input type="text" name="location" id="manage_location" class="w-full bg-gray-800 border border-gray-700 text-white text-sm p-3 rounded-lg focus:border-cyan-400 outline-none" placeholder="Ej. Parque del Retiro" required>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-3 mt-4">
+                        <div>
                             <label class="text-[10px] text-cyan-400 font-bold tracking-widest uppercase block mb-1">Ciudad *</label>
                             <input type="text" name="city" id="manage_city" class="w-full bg-gray-800 border border-gray-700 text-white text-sm p-3 rounded-lg focus:border-cyan-400 outline-none" required>
+                        </div>
+                        <div>
+                            <label class="text-[10px] text-cyan-400 font-bold tracking-widest uppercase block mb-1">Lugar Exacto *</label>
+                            <input type="text" name="location" id="manage_location" class="w-full bg-gray-800 border border-gray-700 text-white text-sm p-3 rounded-lg focus:border-cyan-400 outline-none" placeholder="Ej. Parque..." required>
                         </div>
                     </div>
 
