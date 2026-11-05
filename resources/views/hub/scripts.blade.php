@@ -89,6 +89,11 @@
     function actualizarBotonesNav(btnElement, viewName, toIndex) {
         document.querySelectorAll('.nav-btn').forEach(btn => btn.className = 'nav-btn text-gray-500 flex flex-col items-center justify-center w-full h-full transition-colors');
         btnElement.className = `nav-btn ${viewColors[toIndex]} flex flex-col items-center justify-center w-full h-full transition-colors`;
+        
+        // Enviar vista de pestaña a Google Analytics
+        if (window.trackHubView) {
+            window.trackHubView(`/hub/${viewName}`, `SBBL HUB - ${viewName.toUpperCase()}`);
+        }
     }
 
     document.addEventListener('DOMContentLoaded', () => {
@@ -2614,6 +2619,7 @@
             btnLab.className = "flex-1 text-center text-xs font-black tracking-widest py-2 rounded-lg bg-cyan-900/60 text-cyan-300 border border-cyan-500/50 transition-all";
             btnList.className = "flex-1 text-center text-xs font-bold tracking-widest py-2 rounded-lg text-gray-400 hover:text-white transition-all";
             if (!labInitialized) inicializarInputsLab();
+            if (window.trackHubView) window.trackHubView('/hub/bey-lab', 'SBBL HUB - BEY-LAB');
         } else {
             viewLab.classList.add('hidden');
             viewList.classList.remove('hidden');

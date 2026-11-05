@@ -50,6 +50,34 @@
         .rank-tab { border-bottom: 2px solid transparent; color: #6b7280; transition: all 0.2s; }
         .rank-tab.active { border-bottom-color: #eab308; color: #eab308; font-weight: bold; }
     </style>
+
+    <!-- GOOGLE ANALYTICS 4 (SBBL HUB + DIFERENCIACIÓN PWA/WEB) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-KSK91ZXWE3"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+
+        const isStandalonePWA = window.navigator.standalone || window.matchMedia('(display-mode: standalone)').matches;
+
+        gtag('config', 'G-KSK91ZXWE3', {
+            'anonymize_ip': true,
+            'page_title': 'SBBL HUB - Arena',
+            'page_path': '/hub/eventos',
+            'app_platform': isStandalonePWA ? 'pwa_instalada' : 'navegador_movil'
+        });
+
+        // Función global para registrar cambios de pestaña y modales en el Hub
+        window.trackHubView = function(virtualPath, title) {
+            if (typeof gtag === 'function') {
+                gtag('event', 'page_view', {
+                    'page_title': title,
+                    'page_path': virtualPath,
+                    'app_platform': isStandalonePWA ? 'pwa_instalada' : 'navegador_movil'
+                });
+            }
+        };
+    </script>
 </head>
 <body class="flex flex-col h-screen overflow-hidden font-sans">
 
