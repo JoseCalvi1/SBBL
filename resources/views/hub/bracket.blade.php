@@ -817,7 +817,7 @@
                         <table class="w-full text-left text-xs sm:text-sm text-gray-300">
                             <thead class="bg-gray-950/90 text-[10px] sm:text-xs uppercase text-gray-400 font-bold tracking-wider border-b border-gray-800">
                                 <tr>
-                                    <th class="px-3 py-4 w-10 text-center">#</th>
+                                    <th class="px-3 py-4 w-12 text-center">POS</th>
                                     <th class="px-3 py-4">BLADER</th>
                                     <th class="px-2 py-4 text-center">V - D</th>
                                     <th class="px-2 py-4 text-center text-yellow-400">PTS</th>
@@ -829,7 +829,7 @@
                                         DIF
                                         <button type="button" onclick="mostrarInfoDesempate('DIFERENCIA DE PUNTOS (+/-)', 'Resta entre los puntos individuales de Beyblade que has anotado (Spin, Over, Burst, Xtreme) y los que has encajado.')" class="text-cyan-400 hover:text-white ml-0.5"><i class="fas fa-question-circle"></i></button>
                                     </th>
-                                    ${isEliminatoria ? '<th class="px-3 py-4 text-center">FASE FINAL</th>' : ''}
+                                    ${isEliminatoria ? '<th class="px-3 py-4 text-center">ESTADO / CORTE</th>' : ''}
                                 </tr>
                             </thead>
                             <tbody class="divide-y divide-gray-800/80">
@@ -839,9 +839,9 @@
 
                 if (jugadores.length > 0) {
                     jugadores.forEach((player, index) => {
-                        const currentRank = index + 1;
-                        const isTop = currentRank <= 4 ? 'bg-cyan-900/10' : '';
-                        const rankColor = currentRank === 1 ? 'text-yellow-400' : (currentRank <= 4 ? 'text-cyan-400' : 'text-gray-500');
+                        const sharedRank = player.shared_rank || (index + 1);
+                        const isTop = sharedRank <= 4 ? 'bg-cyan-900/10' : '';
+                        const rankColor = sharedRank === 1 ? 'text-yellow-400' : (sharedRank <= 4 ? 'text-cyan-400' : 'text-gray-400');
 
                         const wins = player.wins ?? 0;
                         const losses = player.losses ?? 0;
@@ -859,24 +859,26 @@
 
                         let faseCol = '';
                         if (isEliminatoria) {
-                            if (currentRank === 1 && player.bracket_score > 8000) {
+                            if (sharedRank === 1 && player.bracket_score >= 10000) {
                                 faseCol = `<td class="px-3 py-3.5 text-center"><span class="font-bold text-[10px] text-yellow-400 bg-yellow-900/30 border border-yellow-700/50 px-2.5 py-1 rounded-full uppercase tracking-widest whitespace-nowrap"><i class="fas fa-trophy mr-1"></i> CAMPEÓN</span></td>`;
-                            } else if (currentRank === 2 && player.bracket_score > 8000) {
-                                faseCol = `<td class="px-3 py-3.5 text-center"><span class="font-bold text-[10px] text-gray-300 bg-gray-700/50 border border-gray-600 px-2.5 py-1 rounded-full uppercase tracking-widest whitespace-nowrap">FINALISTA</span></td>`;
-                            } else if (currentRank === 3 && player.bracket_score > 0) {
-                                faseCol = `<td class="px-3 py-3.5 text-center"><span class="font-bold text-[10px] text-orange-400 bg-orange-900/30 border border-orange-800/50 px-2.5 py-1 rounded-full uppercase tracking-widest whitespace-nowrap">TOP 3</span></td>`;
-                            } else if (currentRank === 4 && player.bracket_score > 0) {
-                                faseCol = `<td class="px-3 py-3.5 text-center"><span class="font-bold text-[10px] text-cyan-400 bg-cyan-900/30 border border-cyan-800/50 px-2.5 py-1 rounded-full uppercase tracking-widest whitespace-nowrap">TOP 4</span></td>`;
+                            } else if (sharedRank === 2 && player.bracket_score >= 9000) {
+                                faseCol = `<td class="px-3 py-3.5 text-center"><span class="font-bold text-[10px] text-gray-300 bg-gray-700/50 border border-gray-600 px-2.5 py-1 rounded-full uppercase tracking-widest whitespace-nowrap">FINALISTA (2º)</span></td>`;
+                            } else if (sharedRank === 3 && player.bracket_score > 0) {
+                                faseCol = `<td class="px-3 py-3.5 text-center"><span class="font-bold text-[10px] text-orange-400 bg-orange-900/30 border border-orange-800/50 px-2.5 py-1 rounded-full uppercase tracking-widest whitespace-nowrap">3º PUESTO</span></td>`;
+                            } else if (sharedRank === 4 && player.bracket_score > 0) {
+                                faseCol = `<td class="px-3 py-3.5 text-center"><span class="font-bold text-[10px] text-cyan-400 bg-cyan-900/30 border border-cyan-800/50 px-2.5 py-1 rounded-full uppercase tracking-widest whitespace-nowrap">4º PUESTO</span></td>`;
+                            } else if (player.bracket_score >= 7000) {
+                                faseCol = `<td class="px-3 py-3.5 text-center"><span class="font-bold text-[10px] text-emerald-400 bg-emerald-950/40 border border-emerald-700/50 px-2 py-0.5 rounded uppercase tracking-widest">${player.bracket_stage || 'EN JUEGO'}</span></td>`;
                             } else if (player.bracket_score > 0) {
-                                faseCol = `<td class="px-3 py-3.5 text-center"><span class="font-bold text-[10px] text-fuchsia-400 uppercase tracking-widest">TOP ${currentRank}</span></td>`;
+                                faseCol = `<td class="px-3 py-3.5 text-center"><span class="font-bold text-[10px] text-fuchsia-400 uppercase tracking-widest">${sharedRank}º PUESTO</span></td>`;
                             } else {
-                                faseCol = `<td class="px-3 py-3.5 text-center"><span class="font-mono text-gray-600 text-[10px] tracking-widest">SUIZO</span></td>`;
+                                faseCol = `<td class="px-3 py-3.5 text-center"><span class="font-mono text-gray-500 text-[10px] tracking-widest">FASE SUIZA</span></td>`;
                             }
                         }
 
                         htmlTemp += `
                             <tr class="${isTop} hover:bg-gray-800/50 transition-colors">
-                                <td class="px-3 py-3.5 text-center font-mono font-black text-base ${rankColor}">${currentRank}</td>
+                                <td class="px-3 py-3.5 text-center font-mono font-black text-base ${rankColor}">${sharedRank}º</td>
                                 <td class="px-3 py-3.5 font-black text-white uppercase tracking-wider">
                                     ${player.name || player.user_name}${h2hBadge}${byeBadge}
                                 </td>
@@ -899,11 +901,12 @@
                     </table>
                 </div>
                 <div class="bg-gray-950 px-4 py-3 border-t border-gray-800 text-[10px] font-mono text-gray-400 flex flex-wrap justify-between gap-2">
-                    <span><b class="text-white">ORDEN DE DESEMPATE SUIZO:</b></span>
-                    <span><b class="text-yellow-400">1º PTS</b> (Puntos)</span>
-                    <span><b class="text-cyan-300">2º BCH</b> (Buchholz)</span>
-                    <span><b class="text-cyan-400">3º H2H</b> (Duelo Directo)</span>
-                    <span><b class="text-emerald-400">4º DIF</b> (+/- Puntos Bey)</span>
+                    <span><b class="text-white">CRITERIOS DE CLASIFICACIÓN:</b></span>
+                    <span><b class="text-fuchsia-400">1º Ronda Eliminatoria</b> (Posiciones compartidas 5º, 7º, 9º, 13º)</span>
+                    <span><b class="text-yellow-400">2º PTS</b></span>
+                    <span><b class="text-cyan-300">3º BCH</b></span>
+                    <span><b class="text-cyan-400">4º H2H</b></span>
+                    <span><b class="text-emerald-400">5º DIF (+/-)</b></span>
                 </div>`;
 
                 container.innerHTML = htmlTemp;

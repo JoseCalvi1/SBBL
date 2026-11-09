@@ -36,6 +36,32 @@ class DoubleEliminationEngine
     }
 
     /**
+     * Genera el orden estándar de emparejamientos en espejo para cualquier potencia de 2 (4, 8, 16, 32, 64):
+     * Ej. para 8: [1,8], [4,5], [2,7], [3,6]
+     */
+    private function buildStandardSeedPairs(int $bracketSize): array
+    {
+        $rounds = (int) log($bracketSize, 2);
+        $seeds = [1, 2];
+
+        for ($r = 1; $r < $rounds; $r++) {
+            $nextSeeds = [];
+            $sum = pow(2, $r + 1) + 1;
+            foreach ($seeds as $s) {
+                $nextSeeds[] = $s;
+                $nextSeeds[] = $sum - $s;
+            }
+            $seeds = $nextSeeds;
+        }
+
+        $pairs = [];
+        for ($i = 0; $i < count($seeds); $i += 2) {
+            $pairs[] = [$seeds[$i], $seeds[$i + 1]];
+        }
+        return $pairs;
+    }
+
+    /**
      * GENERA EL CUADRO INICIAL COMPLETO (TODAS LAS RONDAS PRE-CREADAS)
      */
     public function generateInitialBracket(Event $event)
@@ -48,29 +74,26 @@ class DoubleEliminationEngine
         }
 
         $bracketSize = (int) pow(2, ceil(log($numPlayers, 2)));
-        $numByes = $bracketSize - $numPlayers;
-        $matchesR1 = (int) ($bracketSize / 2);
-
-        // Distribuimos los Byes de forma alterna
-        $byeSlots = array_fill(0, $matchesR1, false);
-        $assignedByes = 0;
-
-        for ($i = 0; $i < $matchesR1 && $assignedByes < $numByes; $i += 2) {
-            $byeSlots[$i] = true;
-            $assignedByes++;
-        }
-        for ($i = 1; $i < $matchesR1 && $assignedByes < $numByes; $i += 2) {
-            $byeSlots[$i] = true;
-            $assignedByes++;
-        }
+        $seedPairs = $this->buildStandardSeedPairs($bracketSize);
 
         $pairings = [];
-        $playerIndex = 0;
-        for ($i = 0; $i < $matchesR1; $i++) {
-            $p1 = $players[$playerIndex++]->id;
-            $isBye = $byeSlots[$i];
-            $p2 = $isBye ? null : $players[$playerIndex++]->id;
-            $pairings[] = ['p1' => $p1, 'p2' => $p2, 'is_bye' => $isBye];
+        foreach ($seedPairs as $pair) {
+            $seedA = $pair[0];
+            $seedB = $pair[1];
+
+            $p1 = ($seedA <= $numPlayers) ? $players[$seedA - 1]->id : null;
+            $p2 = ($seedB <= $numPlayers) ? $players[$seedB - 1]->id : null;
+
+            if (is_null($p1) && !is_null($p2)) {
+                $p1 = $p2;
+                $p2 = null;
+            }
+
+            $pairings[] = [
+                'p1'     => $p1,
+                'p2'     => $p2,
+                'is_bye' => is_null($p2)
+            ];
         }
 
         $this->createFullPrebuiltBracket($event->id, $bracketSize, 1, $pairings);
@@ -79,10 +102,18 @@ class DoubleEliminationEngine
     }
 
     /**
-     * GENERA EL TOP CUT DESDE SUIZO USANDO LA CLASIFICACIÓN Y DESEMPATES OFICIALES
+     * GENERA EL TOP CUT DESDE SUIZO ADMITIENDO CUALQUIER TAMAÑO (4, 6, 8, 10, 12, 14, 16, 32...)
+     * - Si el número no es potencia de 2 (ej. Top 10 en cuadro de 16), los mejores clasificados (1º al 6º)
+     *   se emparejan contra los seeds 16..11 (vacíos) y pasan de ronda automáticamente por BYE.
+     * - Los restantes se cruzan en espejo (7º vs 10º, 8º vs 9º).
      */
     public function generateTopCut(Event $event, int $topSize)
     {
+        $topSize = (int) $topSize;
+        if ($topSize < 4 || $topSize > 64) {
+            return ['success' => false, 'message' => 'El tamaño del Top Cut debe estar entre 4 y 64 jugadores.'];
+        }
+
         $engineController = app(\App\Http\Controllers\TournamentEngineController::class);
         $standingsData = $engineController->getStandings($event->id)->getData(true);
         $clasificacion = $standingsData['clasificacion'] ?? [];
@@ -93,31 +124,31 @@ class DoubleEliminationEngine
             return ['success' => false, 'message' => "No hay suficientes jugadores activos sin retirar para un Top $topSize."];
         }
 
-        $seeds = [
-            4  => [ [1,4], [2,3] ],
-            8  => [ [1,8], [4,5], [2,7], [3,6] ],
-            16 => [ [1,16], [8,9], [4,13], [5,12], [2,15], [7,10], [3,14], [6,11] ],
-            32 => [ [1,32], [16,17], [8,25], [9,24], [4,29], [13,20], [5,28], [12,21], [2,31], [15,18], [7,26], [10,23], [3,30], [14,19], [6,27], [11,22] ]
-        ];
-
-        if (!isset($seeds[$topSize])) {
-            return ['success' => false, 'message' => 'Tamaño de Top no soportado.'];
-        }
+        $bracketSize = (int) pow(2, ceil(log($topSize, 2)));
+        $seedPairs = $this->buildStandardSeedPairs($bracketSize);
+        $numAutoByes = $bracketSize - $topSize;
 
         $startRound = (TournamentMatch::where('event_id', $event->id)->max('round_number') ?? 0) + 1;
 
         $pairings = [];
-        foreach ($seeds[$topSize] as $matchup) {
+        foreach ($seedPairs as $matchup) {
+            $seed1 = $matchup[0]; // Seed alto (ej. 1, 2, 3...)
+            $seed2 = $matchup[1]; // Seed bajo en espejo (ej. 16, 15, 14...)
+
+            $p1 = isset($topPlayers[$seed1 - 1]) ? $topPlayers[$seed1 - 1]['id'] : null;
+            $p2 = isset($topPlayers[$seed2 - 1]) ? $topPlayers[$seed2 - 1]['id'] : null;
+
             $pairings[] = [
-                'p1'     => $topPlayers[$matchup[0] - 1]['id'],
-                'p2'     => $topPlayers[$matchup[1] - 1]['id'],
-                'is_bye' => false
+                'p1'     => $p1,
+                'p2'     => $p2,
+                'is_bye' => is_null($p2)
             ];
         }
 
-        $this->createFullPrebuiltBracket($event->id, $topSize, $startRound, $pairings);
+        $this->createFullPrebuiltBracket($event->id, $bracketSize, $startRound, $pairings);
 
-        return ['success' => true, 'message' => "Top $topSize pre-generado al completo según clasificación oficial."];
+        $msgExtra = $numAutoByes > 0 ? " (Cuadro de $bracketSize con pase directo para el Top $numAutoByes)." : ".";
+        return ['success' => true, 'message' => "Top $topSize generado correctamente" . $msgExtra];
     }
 
     /**
@@ -352,7 +383,6 @@ class DoubleEliminationEngine
     public function progressMatch(TournamentMatch $match)
     {
         if ($match->bracket_type === 'grand_final') {
-            // Si gana el jugador que venía de Losers (player2), se crea el Bracket Reset
             if ($match->winner_id != $match->player1_id) {
                 $existsReset = TournamentMatch::where('event_id', $match->event_id)
                     ->where('bracket_type', 'grand_final_reset')
@@ -386,7 +416,6 @@ class DoubleEliminationEngine
 
         if (!$route) return;
 
-        // 1. Colocar al GANADOR en su partida y slot exacto
         if (!empty($route['win'])) {
             $this->assignPlayerToPrebuiltSlot(
                 $route['win']['match_id'],
@@ -396,7 +425,6 @@ class DoubleEliminationEngine
             );
         }
 
-        // 2. Colocar al PERDEDOR en su partida y slot exacto
         if (!empty($route['lose'])) {
             $this->assignPlayerToPrebuiltSlot(
                 $route['lose']['match_id'],

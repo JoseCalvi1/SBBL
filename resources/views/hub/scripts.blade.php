@@ -770,6 +770,63 @@
                 combosHtml += `<div class="mt-4 p-3 bg-gray-900 border border-gray-800 rounded-xl text-center"><p class="text-[10px] text-gray-500 font-bold tracking-widest uppercase">Aún no tiene combos registrados.</p></div>`;
             }
 
+            let historialTorneosHTML = '';
+            if (data.historial_torneos && data.historial_torneos.length > 0) {
+                historialTorneosHTML = `
+                    <div class="mt-4">
+                        <h4 class="text-[10px] font-bold text-cyan-400 tracking-widest uppercase mb-2 border-b border-gray-800 pb-1">
+                            <i class="fas fa-chart-bar mr-1"></i> RENDIMIENTO POR TORNEO (DECKS Y CRUCES)
+                        </h4>
+                        <div class="space-y-2.5">
+                            ${data.historial_torneos.map((t, idx) => `
+                                <div class="bg-gray-900 border border-gray-800 rounded-xl overflow-hidden">
+                                    <button type="button" onclick="document.getElementById('prof-tourney-${idx}').classList.toggle('hidden')" class="w-full p-3 text-left flex justify-between items-center hover:bg-gray-800/60 transition-colors">
+                                        <div class="truncate pr-2">
+                                            <div class="text-xs font-black text-white uppercase truncate">${t.name}</div>
+                                            <div class="text-[9px] font-mono text-gray-400 mt-0.5">${t.date} · ${t.city} · <span class="text-emerald-400 font-bold">${t.wins}V</span> - <span class="text-rose-400 font-bold">${t.losses}D</span></div>
+                                        </div>
+                                        <div class="flex items-center gap-2 shrink-0">
+                                            <span class="text-[9px] font-mono font-black px-2 py-0.5 rounded bg-cyan-950 text-cyan-300 border border-cyan-700/50 uppercase">${t.puesto}</span>
+                                            <i class="fas fa-chevron-down text-gray-500 text-xs"></i>
+                                        </div>
+                                    </button>
+                                    <div id="prof-tourney-${idx}" class="hidden p-3 pt-2 border-t border-gray-800 bg-gray-950/80 space-y-3">
+                                        <!-- Rendimiento del Deck en ese torneo -->
+                                        <div>
+                                            <div class="text-[9px] font-mono font-bold text-cyan-400 uppercase mb-1.5">DECK UTILIZADO Y ESTADÍSTICAS</div>
+                                            ${t.deck && t.deck.length > 0 ? t.deck.map(d => `
+                                                <div class="bg-gray-900 border border-gray-800 rounded-lg p-2 mb-1.5 flex justify-between items-center">
+                                                    <div class="truncate pr-2">
+                                                        <div class="text-[11px] font-black text-white uppercase truncate">${d.combo}</div>
+                                                        <div class="text-[9px] font-mono text-gray-400">💥Xtr:${d.xtremes} · 💣Brs:${d.bursts} · 🚀Ovr:${d.overs} · 🌀Spn:${d.spins}</div>
+                                                    </div>
+                                                    <div class="text-right shrink-0 font-mono">
+                                                        <div class="text-xs font-black ${d.winrate >= 50 ? 'text-emerald-400' : 'text-amber-400'}">${d.winrate}% WR</div>
+                                                        <div class="text-[9px] text-gray-400">${d.wins}W - ${d.losses}L</div>
+                                                    </div>
+                                                </div>
+                                            `).join('') : '<div class="text-[10px] text-gray-500 italic">Sin deck registrado</div>'}
+                                        </div>
+                                        <!-- Historial de Enfrentamientos en ese torneo -->
+                                        <div>
+                                            <div class="text-[9px] font-mono font-bold text-yellow-400 uppercase mb-1.5">ENFRENTAMIENTOS DEL TORNEO</div>
+                                            <div class="space-y-1">
+                                                ${t.matches && t.matches.length > 0 ? t.matches.map(m => `
+                                                    <div class="flex justify-between items-center bg-gray-900/70 border border-gray-800/80 px-2.5 py-1.5 rounded text-[10px]">
+                                                        <span class="font-mono text-gray-400">${m.round} (${m.phase}) vs <b class="text-white uppercase">${m.rival}</b></span>
+                                                        <span class="font-mono font-black ${m.is_win ? 'text-emerald-400' : 'text-rose-400'}">${m.my_score} - ${m.riv_score} ${m.is_win ? 'WIN' : 'LOSS'}</span>
+                                                    </div>
+                                                `).join('') : '<div class="text-[10px] text-gray-500 italic">Sin rondas registradas</div>'}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                `;
+            }
+
             const isGif = data.avatar_url && data.avatar_url.includes('.gif'); const gifStyle = isGif ? 'padding: 10px;' : '';
             container.innerHTML = `
                 <div class="flex flex-col items-center pt-2">
@@ -788,7 +845,7 @@
                     <div class="h-2 w-full bg-black border border-gray-800 rounded-full overflow-hidden mb-2 relative z-10"><div class="h-full ${cBg} transition-all duration-1000" style="width: ${nextPts === 0 ? 100 : Math.min(100, (pts / nextPts) * 100)}%"></div></div>
                     <div class="text-[9px] text-gray-400 font-bold tracking-widest text-right relative z-10">${nextPts === 0 ? 'RANGO MÁXIMO ALCANZADO' : `FALTAN <span class="text-white">${ptsLeft} PTS</span> PARA ${nextRank}`}</div>
                 </div>
-                ${statsHtml}${teamHtml}${escaparateLogrosHTML}${combosHtml}
+                ${statsHtml}${teamHtml}${escaparateLogrosHTML}${combosHtml}${historialTorneosHTML}
             `;
         } catch (error) { container.innerHTML = '<p class="text-red-500 text-sm text-center mt-10">Error de comunicación al descifrar el perfil.</p>'; }
     }
@@ -1522,7 +1579,8 @@
                     actionHTML = `<button onclick="abrirBatalla(${match.id})" class="w-full bg-green-950/40 hover:bg-green-900/60 text-green-400 font-bold py-2 rounded-lg text-[11px] tracking-wider transition-colors border border-green-800/50"><i class="fas fa-check-circle mr-1"></i> PARTIDA FINALIZADA (EDITAR / UNDO)</button>`;
                 } else if (isLockedByOther) {
                     const judgeName = match.locked_by_user ? match.locked_by_user.name : 'OTRO JUEZ';
-                    actionHTML = `<button class="w-full bg-orange-950/60 text-orange-400 font-bold py-2 rounded-lg text-[11px] tracking-wider border border-orange-500/60 pointer-events-none"><i class="fas fa-lock mr-1"></i> ARBITRANDO: ${judgeName.toUpperCase()}</button>`;
+                    const safeJudge = judgeName.replace(/'/g, "\\'");
+                    actionHTML = `<button onclick="abrirBatalla(${match.id}, '${safeJudge}')" class="w-full bg-orange-950/70 hover:bg-orange-900 text-orange-300 font-black py-2.5 rounded-lg text-[11px] tracking-wider border border-orange-500/80 transition-all shadow-md"><i class="fas fa-exclamation-circle mr-1"></i> ARBITRANDO: ${judgeName.toUpperCase()} (TOCA PARA ENTRAR)</button>`;
                 } else {
                     actionHTML = `<button onclick="abrirBatalla(${match.id})" class="w-full bg-yellow-600 hover:bg-yellow-500 active:scale-[0.99] text-white font-black py-2.5 rounded-lg text-xs tracking-widest uppercase transition-all shadow-md border border-yellow-400"><i class="fas fa-gavel mr-1.5"></i> JUZGAR PARTIDA</button>`;
                 }
@@ -1679,12 +1737,16 @@
         return document.getElementById(`deck_${playerKey}_container`) || document.getElementById(`${playerKey}CombosList`);
     }
 
-    async function abrirBatalla(matchId) {
+    async function abrirBatalla(matchId, lockedJudgeName = null) {
+        if (lockedJudgeName) {
+            if (!confirm(`⚠️ Esta mesa figura abierta por ${lockedJudgeName}.\n\n¿Quieres entrar tú para tomar el relevo y anotar los puntos?`)) {
+                return;
+            }
+        }
+
         const lockStatus = await lockMatchOnServer(matchId);
-        if (!lockStatus.success) {
-            mostrarToast("⚠️ Esta partida ya la está juzgando otro árbitro", true);
-            triggerHaptic('error');
-            return;
+        if (lockStatus && lockStatus.taken_over && !lockedJudgeName) {
+            mostrarToast(`⚠️ Has tomado el relevo de la mesa (${lockStatus.previous_judge})`);
         }
 
         triggerHaptic('medium');
@@ -1700,13 +1762,9 @@
 
         const btnW1 = document.getElementById('btn_warning_p1');
         const btnW2 = document.getElementById('btn_warning_p2');
-        if (btnW1) btnW1.className = "text-gray-500 hover:text-yellow-400 bg-gray-950/90 border border-gray-800 rounded-md px-2 py-1 transition-all text-xs flex items-center gap-1 cursor-pointer";
-        if (btnW2) btnW2.className = "text-gray-500 hover:text-yellow-400 bg-gray-950/90 border border-gray-800 rounded-md px-2 py-1 transition-all text-xs flex items-center gap-1 cursor-pointer";
-
-        const c1 = getDeckContainer('p1');
-        const c2 = getDeckContainer('p2');
-        if (c1) c1.innerHTML = '<div class="animate-pulse h-12 bg-gray-800 rounded-lg"></div>';
-        if (c2) c2.innerHTML = '<div class="animate-pulse h-12 bg-gray-800 rounded-lg"></div>';
+        const baseWarnClass = "w-full min-h-[36px] justify-center text-amber-300/90 hover:text-yellow-300 bg-gray-950/90 border border-amber-700/50 rounded-lg px-2.5 py-1.5 transition-all text-xs font-black flex items-center gap-1.5 cursor-pointer active:scale-95 shadow-sm";
+        if (btnW1) btnW1.className = baseWarnClass;
+        if (btnW2) btnW2.className = baseWarnClass;
 
         try {
             const res = await fetch(`/api/torneos/partida/${matchId}`);
@@ -1767,8 +1825,9 @@
             if (data.battles && Array.isArray(data.battles)) {
                 const w1 = data.battles.some(b => b.finish_type === 'warning_p1');
                 const w2 = data.battles.some(b => b.finish_type === 'warning_p2');
-                if (w1 && btnW1) btnW1.className = "text-yellow-400 bg-yellow-950/90 border border-yellow-500 rounded-md px-2 py-1 animate-pulse text-xs flex items-center gap-1 shadow-[0_0_8px_rgba(250,204,21,0.6)] cursor-pointer";
-                if (w2 && btnW2) btnW2.className = "text-yellow-400 bg-yellow-950/90 border border-yellow-500 rounded-md px-2 py-1 animate-pulse text-xs flex items-center gap-1 shadow-[0_0_8px_rgba(250,204,21,0.6)] cursor-pointer";
+                const activeWarnClass = "w-full min-h-[36px] justify-center text-yellow-300 bg-yellow-950 border-2 border-yellow-400 rounded-lg px-2.5 py-1.5 animate-pulse text-xs font-black flex items-center gap-1.5 shadow-[0_0_10px_rgba(250,204,21,0.5)] cursor-pointer";
+                if (w1 && btnW1) btnW1.className = activeWarnClass;
+                if (w2 && btnW2) btnW2.className = activeWarnClass;
             }
 
         } catch (error) {
@@ -2240,7 +2299,7 @@
 
             if (jugadores.length > 0) {
                 jugadores.forEach((player, index) => {
-                    const currentRank = index + 1;
+                    const currentRank = player.shared_rank || (index + 1);
                     const isTop = currentRank <= 4 ? 'bg-cyan-900/10' : '';
                     const rankColor = currentRank === 1 ? 'text-yellow-400' : (currentRank <= 4 ? 'text-cyan-400' : 'text-gray-500');
 
@@ -2311,19 +2370,30 @@
         document.getElementById('topCutModal').classList.remove('hidden');
         document.getElementById('topCutModal').classList.add('flex', 'active');
 
-        let minTop = 4;
-        if (currentTotalPlayers >= 25) minTop = 8;
-        if (currentTotalPlayers >= 41) minTop = 16;
-        if (currentTotalPlayers >= 57) minTop = 32;
-
-        [4, 8, 16, 32].forEach(size => {
+        [4, 6, 8, 10, 12, 14, 16, 32].forEach(size => {
             const btn = document.getElementById(`btn_top_${size}`);
-            if (size < minTop || size > currentTotalPlayers) {
-                btn.disabled = true; btn.classList.add('opacity-30', 'pointer-events-none');
+            if (!btn) return;
+            if (currentTotalPlayers > 0 && size > currentTotalPlayers) {
+                btn.disabled = true;
+                btn.classList.add('opacity-30', 'pointer-events-none');
             } else {
-                btn.disabled = false; btn.classList.remove('opacity-30', 'pointer-events-none');
+                btn.disabled = false;
+                btn.classList.remove('opacity-30', 'pointer-events-none');
             }
         });
+    }
+
+    function ejecutarTopCutPersonalizado() {
+        const val = parseInt(document.getElementById('custom_top_cut_input')?.value || '0');
+        if (!val || val < 4) {
+            mostrarToast("Introduce un número de al menos 4 jugadores.", true);
+            return;
+        }
+        if (currentTotalPlayers > 0 && val > currentTotalPlayers) {
+            mostrarToast(`Solo hay ${currentTotalPlayers} jugadores activos en el torneo.`, true);
+            return;
+        }
+        ejecutarTopCut(val);
     }
 
     async function ejecutarTopCut(size) {

@@ -36,24 +36,37 @@
                     <span class="text-xs font-mono text-cyan-400 font-bold uppercase tracking-widest">{{ $event->region->name ?? 'SBBL' }} · {{ $event->city }}</span>
                     <span id="tv-phase-badge" class="text-[10px] font-mono bg-gray-800 text-gray-300 border border-gray-700 px-2 py-0.5 rounded uppercase font-bold">SUIZO</span>
                 </div>
-                <h1 class="text-2xl xl:text-3xl font-black uppercase tracking-wider text-white mt-0.5 truncate max-w-[420px] xl:max-w-[580px]">{{ $event->name }}</h1>
+                <h1 class="text-2xl xl:text-3xl font-black uppercase tracking-wider text-white mt-0.5 truncate max-w-[420px] xl:max-w-[540px]">{{ $event->name }}</h1>
             </div>
         </div>
 
         <!-- Centro: Reloj Local -->
-        <div class="bg-gray-950 border border-gray-800 rounded-2xl px-8 py-2 flex flex-col justify-center items-center shadow-inner">
+        <div class="bg-gray-950 border border-gray-800 rounded-2xl px-7 py-2 flex flex-col justify-center items-center shadow-inner">
             <div class="text-[9px] font-mono text-gray-500 font-bold uppercase tracking-widest">HORA LOCAL</div>
             <div id="tv-clock-display" class="text-3xl xl:text-4xl font-mono font-black text-white tracking-wider leading-none mt-0.5 drop-shadow-[0_0_8px_rgba(255,255,255,0.3)]">--:--:--</div>
         </div>
 
-        <!-- Derecha: Ronda, Progreso, QR y Pantalla Completa -->
-        <div class="flex items-center gap-5">
-            <div class="text-right">
-                <div class="text-[10px] font-mono text-gray-400 uppercase tracking-widest">RONDA</div>
-                <div id="tv-round-badge" class="text-3xl font-black font-mono text-yellow-400 leading-none mt-0.5">R--</div>
+        <!-- Derecha: Selector de Rondas, Progreso, QR y Pantalla Completa -->
+        <div class="flex items-center gap-4">
+            <!-- Controles de Navegación de Ronda -->
+            <div class="flex items-center gap-2 bg-gray-950 border border-gray-800 rounded-xl px-3 py-1.5">
+                <button type="button" onclick="cambiarRondaTv(-1)" id="btn-tv-prev" class="w-8 h-8 rounded-lg bg-gray-900 hover:bg-gray-800 text-gray-300 hover:text-white border border-gray-700 flex items-center justify-center transition-colors" title="Ronda Anterior">
+                    <i class="fas fa-chevron-left text-xs"></i>
+                </button>
+                <div class="text-center px-2 min-w-[65px]">
+                    <div class="text-[9px] font-mono text-gray-400 uppercase tracking-widest">RONDA</div>
+                    <div id="tv-round-badge" class="text-2xl font-black font-mono text-yellow-400 leading-none mt-0.5">R--</div>
+                </div>
+                <button type="button" onclick="cambiarRondaTv(1)" id="btn-tv-next" class="w-8 h-8 rounded-lg bg-gray-900 hover:bg-gray-800 text-gray-300 hover:text-white border border-gray-700 flex items-center justify-center transition-colors" title="Ronda Siguiente">
+                    <i class="fas fa-chevron-right text-xs"></i>
+                </button>
+                <button type="button" onclick="activarRondaAutoTv()" id="btn-tv-auto" class="ml-1 px-2.5 py-1.5 rounded-lg text-[10px] font-mono font-black uppercase border bg-cyan-950 text-cyan-300 border-cyan-500/60" title="Seguir ronda activa automáticamente">
+                    AUTO
+                </button>
             </div>
-            <div class="text-right border-l border-gray-800 pl-5">
-                <div class="text-[10px] font-mono text-gray-400 uppercase tracking-widest">COMPLETADAS</div>
+
+            <div class="text-right border-l border-gray-800 pl-4">
+                <div class="text-[10px] font-mono text-gray-400 uppercase tracking-widest">MESAS</div>
                 <div id="tv-progress-text" class="text-2xl font-black font-mono text-cyan-400 leading-none mt-1">-- / --</div>
             </div>
             <div class="flex items-center gap-2.5 bg-gray-950 border border-gray-800 p-1.5 rounded-xl">
@@ -75,13 +88,14 @@
         <!-- COLUMNA IZQUIERDA: MESAS Y PARTIDAS -->
         <div class="col-span-8 bg-gray-900/80 border border-gray-800 rounded-2xl p-5 flex flex-col overflow-hidden shadow-2xl">
             <div class="flex justify-between items-center mb-3 pb-2.5 border-b border-gray-800 shrink-0">
-                <div class="flex items-center gap-3">
-                    <h2 class="text-sm font-mono font-black uppercase tracking-widest text-cyan-400">
-                        <i class="fas fa-bolt mr-1.5"></i>EMPAREJAMIENTOS DE LA RONDA
+                <div class="flex items-center gap-3 overflow-x-auto no-scrollbar">
+                    <h2 class="text-sm font-mono font-black uppercase tracking-widest text-cyan-400 shrink-0">
+                        <i class="fas fa-bolt mr-1.5"></i>EMPAREJAMIENTOS
                     </h2>
-                    <span id="tv-bye-banner" class="hidden bg-cyan-950/90 border border-cyan-600/60 text-cyan-300 text-xs font-mono font-bold px-2.5 py-0.5 rounded-lg"></span>
+                    <div id="tv-round-pills" class="flex items-center gap-1.5"></div>
+                    <span id="tv-bye-banner" class="hidden bg-cyan-950/90 border border-cyan-600/60 text-cyan-300 text-xs font-mono font-bold px-2.5 py-0.5 rounded-lg shrink-0"></span>
                 </div>
-                <span id="tv-sync-status" class="text-xs font-mono text-gray-500">Sincronizado</span>
+                <span id="tv-sync-status" class="text-xs font-mono text-gray-500 shrink-0">Sincronizado</span>
             </div>
 
             <div id="tv-matches-scroll" class="overflow-y-auto no-scrollbar flex-1 pr-1">
@@ -89,7 +103,7 @@
             </div>
         </div>
 
-        <!-- COLUMNA DERECHA: CLASIFICACIÓN EN VIVO CON DESEMPATES -->
+        <!-- COLUMNA DERECHA: CLASIFICACIÓN EN VIVO CON DESEMPATES Y POSICIONES COMPARTIDAS -->
         <div class="col-span-4 bg-gray-900/80 border border-gray-800 rounded-2xl p-5 flex flex-col overflow-hidden shadow-2xl">
             <div class="flex justify-between items-center mb-3 pb-2.5 border-b border-gray-800 shrink-0">
                 <h2 class="text-sm font-mono font-black uppercase tracking-widest text-yellow-400">
@@ -119,8 +133,10 @@
 
     <script>
         const eventId = {{ $event->id }};
+        let tvSelectedRound = null; // null = sigue automáticamente la primera ronda activa
+        let tvCurrentRound = 1;
+        let tvMaxRound = 1;
 
-        // --- RELOJ LOCAL EN TIEMPO REAL ---
         function actualizarReloj() {
             const ahora = new Date();
             const horas = String(ahora.getHours()).padStart(2, '0');
@@ -131,7 +147,6 @@
         setInterval(actualizarReloj, 1000);
         actualizarReloj();
 
-        // --- PANTALLA COMPLETA ---
         function toggleFullScreen() {
             if (!document.fullscreenElement) {
                 document.documentElement.requestFullscreen().catch(() => {});
@@ -140,20 +155,59 @@
             }
         }
 
-        // --- SINCRONIZACIÓN EN VIVO CON LA ARENA ---
+        function cambiarRondaTv(delta) {
+            const target = (tvSelectedRound || tvCurrentRound) + delta;
+            if (target < 1 || target > tvMaxRound) return;
+            irARondaTv(target);
+        }
+
+        function irARondaTv(roundNum) {
+            tvSelectedRound = roundNum;
+            const btnAuto = document.getElementById('btn-tv-auto');
+            if (btnAuto) btnAuto.className = "ml-1 px-2.5 py-1.5 rounded-lg text-[10px] font-mono font-bold uppercase border bg-gray-900 text-gray-400 border-gray-700 hover:text-white";
+            actualizarPantallaEstadio();
+        }
+
+        function activarRondaAutoTv() {
+            tvSelectedRound = null;
+            const btnAuto = document.getElementById('btn-tv-auto');
+            if (btnAuto) btnAuto.className = "ml-1 px-2.5 py-1.5 rounded-lg text-[10px] font-mono font-black uppercase border bg-cyan-950 text-cyan-300 border-cyan-500/60";
+            actualizarPantallaEstadio();
+        }
+
         async function actualizarPantallaEstadio() {
             try {
+                let arenaUrl = `/api/torneos/${eventId}/arena`;
+                if (tvSelectedRound !== null) arenaUrl += `?round=${tvSelectedRound}`;
+
                 const [resArena, resTab] = await Promise.all([
-                    fetch(`/api/torneos/${eventId}/arena`),
+                    fetch(arenaUrl),
                     fetch(`/api/torneos/${eventId}/clasificacion`)
                 ]);
                 const dataArena = await resArena.json();
                 const dataTab = await resTab.json();
 
+                tvCurrentRound = dataArena.current_round || 1;
+                tvMaxRound = dataArena.max_round || 1;
+
                 document.getElementById('tv-round-badge').innerText = dataArena.max_round > 0 ? `R${dataArena.current_round}` : '--';
                 document.getElementById('tv-phase-badge').innerText = dataArena.is_bracket ? 'FASE TOP CUT' : (dataArena.is_team_event ? 'CREW BATTLE' : 'FASE SUIZA');
 
-                // Banner de BYE si la ronda es impar
+                // Pastillas rápidas de rondas R1..RN
+                const pillsCont = document.getElementById('tv-round-pills');
+                if (pillsCont && dataArena.max_round > 1) {
+                    let pillsHtml = '';
+                    for (let r = 1; r <= dataArena.max_round; r++) {
+                        const isAct = (r === dataArena.current_round);
+                        const isDone = dataArena.rounds_status && dataArena.rounds_status[r] === 'completed';
+                        const cls = isAct
+                            ? 'bg-cyan-500 text-gray-950 border-cyan-400 font-black'
+                            : (isDone ? 'bg-emerald-950/60 text-emerald-400 border-emerald-800' : 'bg-gray-950 text-gray-400 border-gray-800');
+                        pillsHtml += `<button onclick="irARondaTv(${r})" class="px-2 py-0.5 rounded border text-[10px] font-mono transition-colors ${cls}">R${r}</button>`;
+                    }
+                    pillsCont.innerHTML = pillsHtml;
+                }
+
                 const byeBanner = document.getElementById('tv-bye-banner');
                 if (dataArena.bye_player) {
                     byeBanner.innerHTML = `<i class="fas fa-forward mr-1"></i> BYE R${dataArena.current_round}: ${dataArena.bye_player.toUpperCase()} (+3 PTS)`;
@@ -170,7 +224,6 @@
                 const horaFormat = String(horaSync.getHours()).padStart(2, '0') + ':' + String(horaSync.getMinutes()).padStart(2, '0');
                 document.getElementById('tv-sync-status').innerText = `Sincronizado ${horaFormat}`;
 
-                // Ordenar: 1º En Juego (locked_by), 2º Pendientes, 3º Completadas
                 const sorted = [...matches].sort((a, b) => {
                     const p = m => m.status === 'completed' ? 3 : (m.locked_by ? 1 : 2);
                     return p(a) - p(b);
@@ -214,10 +267,10 @@
                     }).join('');
                 }
 
-                // Renderizar Clasificación Detallada (Top 16)
                 const standings = (dataTab.clasificacion || []).slice(0, 16);
                 const stBody = document.getElementById('tv-standings-body');
                 stBody.innerHTML = standings.map((pl, i) => {
+                    const dispRank = pl.shared_rank || (i + 1);
                     const wins = pl.wins ?? 0;
                     const losses = pl.losses ?? 0;
                     const diff = pl.point_diff ?? 0;
@@ -226,8 +279,8 @@
                     const h2hTag = pl.h2h_wins > 0 ? `<span class="ml-1 text-[8px] bg-cyan-950 text-cyan-300 border border-cyan-700/60 px-1 py-0.5 rounded font-mono">H2H</span>` : '';
 
                     return `
-                        <tr class="${i < 4 ? 'bg-cyan-950/15' : ''}">
-                            <td class="py-2.5 pl-2 font-mono font-black text-sm ${i === 0 ? 'text-yellow-400' : (i < 4 ? 'text-cyan-400' : 'text-gray-500')}">#${i + 1}</td>
+                        <tr class="${dispRank <= 4 ? 'bg-cyan-950/15' : ''}">
+                            <td class="py-2.5 pl-2 font-mono font-black text-sm ${dispRank === 1 ? 'text-yellow-400' : (dispRank <= 4 ? 'text-cyan-400' : 'text-gray-500')}">${dispRank}º</td>
                             <td class="py-2.5 font-bold text-white uppercase truncate max-w-[140px]">${pl.name}${h2hTag}</td>
                             <td class="py-2.5 text-center font-mono text-xs">
                                 <span class="text-emerald-400 font-bold">${wins}</span><span class="text-gray-600">-</span><span class="text-rose-400 font-bold">${losses}</span>

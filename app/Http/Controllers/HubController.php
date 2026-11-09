@@ -514,36 +514,31 @@ class HubController extends Controller
 
     public function getPlayerProfile($id)
     {
-        // Definimos la fecha de inicio de la S3
         $s3StartDate = '2026-09-01';
 
-        // 1. Obtener datos básicos
         $profile = \App\Models\Profile::with(['user', 'region'])->where('user_id', $id)->first();
         if (!$profile) {
             return response()->json(['error' => 'Perfil no encontrado'], 404);
         }
 
-        // 2. Buscar equipo
         $team = \Illuminate\Support\Facades\DB::table('team_user')
             ->join('teams', 'team_user.team_id', '=', 'teams.id')
             ->where('team_user.user_id', $id)
             ->select('teams.name', 'teams.points_x3')
             ->first();
 
-        // 3. Calcular estadísticas de torneos (FILTRADO POR FECHA S3)
         $stats = \Illuminate\Support\Facades\DB::table('assist_user_event')
             ->join('events', 'assist_user_event.event_id', '=', 'events.id')
             ->where('assist_user_event.user_id', $id)
             ->where('events.date', '>=', $s3StartDate)
             ->selectRaw('
-                SUM(CASE WHEN assist_user_event.puesto != "nopresentado" AND assist_user_event.puesto IS NOT NULL AND assist_user_event.puesto != "" THEN 1 ELSE 0 END) as torneos_jugados,
+                SUM(CASE WHEN assist_user_event.puesto != "nopresentado" AND assist_user_event.puesto != "dropped" AND assist_user_event.puesto IS NOT NULL AND assist_user_event.puesto != "" THEN 1 ELSE 0 END) as torneos_jugados,
                 SUM(CASE WHEN assist_user_event.puesto = "primero" THEN 1 ELSE 0 END) as primeros,
                 SUM(CASE WHEN assist_user_event.puesto = "segundo" THEN 1 ELSE 0 END) as segundos,
                 SUM(CASE WHEN assist_user_event.puesto = "tercero" THEN 1 ELSE 0 END) as terceros
             ')
             ->first();
 
-        // 4. Calcular estadísticas de combate (Estilo de juego) (FILTRADO POR FECHA S3)
         $finish_stats = \Illuminate\Support\Facades\DB::table('match_battles')
             ->join('tournament_matches as tm', 'match_battles.tournament_match_id', '=', 'tm.id')
             ->join('events as e', 'tm.event_id', '=', 'e.id')
@@ -562,60 +557,16 @@ class HubController extends Controller
         $xtremes = $finish_stats->xtremes ?? 0;
         $bursts = $finish_stats->bursts ?? 0;
 
-        // 5. SISTEMA DE LOGROS AMPLIADO
         $titulos = [
-            [
-                'nombre' => 'LEYENDA VIVA',
-                'rareza' => 'Mítico',
-                'color' => 'red',
-                'desc' => 'Gana 5 torneos',
-                'unlocked' => $primeros >= 5
-            ],
-            [
-                'nombre' => 'CAMPEÓN REGIONAL',
-                'rareza' => 'Legendario',
-                'color' => 'yellow',
-                'desc' => 'Gana 1 torneo',
-                'unlocked' => $primeros >= 1
-            ],
-            [
-                'nombre' => 'ASESINO XTREME',
-                'rareza' => 'Épico',
-                'color' => 'purple',
-                'desc' => '15 Xtreme Finish',
-                'unlocked' => $xtremes >= 15
-            ],
-            [
-                'nombre' => 'TRITURADOR',
-                'rareza' => 'Épico',
-                'color' => 'purple',
-                'desc' => '15 Burst Finish',
-                'unlocked' => $bursts >= 15
-            ],
-            [
-                'nombre' => 'VETERANO S3',
-                'rareza' => 'Raro',
-                'color' => 'cyan',
-                'desc' => 'Juega 10 torneos',
-                'unlocked' => $torneos_jugados >= 10
-            ],
-            [
-                'nombre' => 'DESTRUCTOR',
-                'rareza' => 'Raro',
-                'color' => 'cyan',
-                'desc' => 'Consigue 50 Puntos',
-                'unlocked' => $puntos >= 50
-            ],
-            [
-                'nombre' => 'RANDOM',
-                'rareza' => 'Común',
-                'color' => 'gray',
-                'desc' => 'Inicia tu camino',
-                'unlocked' => true // Siempre desbloqueado por defecto
-            ]
+            ['nombre' => 'LEYENDA VIVA', 'rareza' => 'Mítico', 'color' => 'red', 'desc' => 'Gana 5 torneos', 'unlocked' => $primeros >= 5],
+            ['nombre' => 'CAMPEÓN REGIONAL', 'rareza' => 'Legendario', 'color' => 'yellow', 'desc' => 'Gana 1 torneo', 'unlocked' => $primeros >= 1],
+            ['nombre' => 'ASESINO XTREME', 'rareza' => 'Épico', 'color' => 'purple', 'desc' => '15 Xtreme Finish', 'unlocked' => $xtremes >= 15],
+            ['nombre' => 'TRITURADOR', 'rareza' => 'Épico', 'color' => 'purple', 'desc' => '15 Burst Finish', 'unlocked' => $bursts >= 15],
+            ['nombre' => 'VETERANO S3', 'rareza' => 'Raro', 'color' => 'cyan', 'desc' => 'Juega 10 torneos', 'unlocked' => $torneos_jugados >= 10],
+            ['nombre' => 'DESTRUCTOR', 'rareza' => 'Raro', 'color' => 'cyan', 'desc' => 'Consigue 50 Puntos', 'unlocked' => $puntos >= 50],
+            ['nombre' => 'RANDOM', 'rareza' => 'Común', 'color' => 'gray', 'desc' => 'Inicia tu camino', 'unlocked' => true]
         ];
 
-        // 6. TOP 3 COMBOS ESTRELLA (FILTRADO POR FECHA S3)
         $mejores_combos = \Illuminate\Support\Facades\DB::select("
             SELECT CONCAT(c.blade, ' ', c.ratchet, ' ', c.bit) as nombre, COUNT(*) as victorias
             FROM match_battles mb
@@ -628,22 +579,137 @@ class HubController extends Controller
             LIMIT 3
         ", [$id, $s3StartDate]);
 
+        // 7. HISTORIAL DETALLADO DE TORNEOS JUGADOS (DECK + ESTADÍSTICAS + ENFRENTAMIENTOS)
+        $eventosInscritos = \Illuminate\Support\Facades\DB::table('assist_user_event as aue')
+            ->join('events as e', 'aue.event_id', '=', 'e.id')
+            ->where('aue.user_id', $id)
+            ->where('e.date', '>=', $s3StartDate)
+            ->select('e.id', 'e.name', 'e.date', 'e.city', 'e.beys', 'aue.puesto')
+            ->orderBy('e.date', 'desc')
+            ->limit(15)
+            ->get();
+
+        $historial_torneos = [];
+        foreach ($eventosInscritos as $ev) {
+            // Deck registrado en ese torneo con su rendimiento real en match_battles
+            $deckRows = \App\Models\TournamentResult::where('event_id', $ev->id)
+                ->where('user_id', $id)
+                ->whereNotNull('blade')
+                ->orderBy('id', 'asc')
+                ->get();
+
+            $deckStats = [];
+            foreach ($deckRows as $c) {
+                $bStats = \Illuminate\Support\Facades\DB::selectOne("
+                    SELECT
+                        COUNT(*) as total,
+                        SUM(CASE WHEN mb.winner_id = ? THEN 1 ELSE 0 END) as wins,
+                        SUM(CASE WHEN mb.winner_id = ? AND mb.finish_type = 'xtreme' THEN 1 ELSE 0 END) as xtremes,
+                        SUM(CASE WHEN mb.winner_id = ? AND mb.finish_type = 'burst' THEN 1 ELSE 0 END) as bursts,
+                        SUM(CASE WHEN mb.winner_id = ? AND mb.finish_type = 'over' THEN 1 ELSE 0 END) as overs,
+                        SUM(CASE WHEN mb.winner_id = ? AND mb.finish_type = 'spin' THEN 1 ELSE 0 END) as spins
+                    FROM match_battles mb
+                    WHERE mb.winner_id IS NOT NULL
+                      AND mb.finish_type IN ('spin','over','burst','xtreme')
+                      AND (mb.player1_combo_id = ? OR mb.player2_combo_id = ?)
+                ", [$id, $id, $id, $id, $id, $c->id, $c->id]);
+
+                $tot = (int) ($bStats->total ?? 0);
+                $w = (int) ($bStats->wins ?? 0);
+                $extras = array_filter([$c->over_blade, $c->assist_blade], fn($v) => !empty($v) && $v !== '-');
+                $extraStr = !empty($extras) ? ' [' . implode('/', $extras) . ']' : '';
+
+                $deckStats[] = [
+                    'combo'   => trim("{$c->blade}{$extraStr} {$c->ratchet} {$c->bit}"),
+                    'wins'    => $w,
+                    'losses'  => max(0, $tot - $w),
+                    'winrate' => $tot > 0 ? round(($w / $tot) * 100) : 0,
+                    'xtremes' => (int) ($bStats->xtremes ?? 0),
+                    'bursts'  => (int) ($bStats->bursts ?? 0),
+                    'overs'   => (int) ($bStats->overs ?? 0),
+                    'spins'   => (int) ($bStats->spins ?? 0),
+                ];
+            }
+
+            // Partidas jugadas en ese torneo
+            $matchesRows = \App\Models\TournamentMatch::with(['player1:id,name', 'player2:id,name'])
+                ->where('event_id', $ev->id)
+                ->where('status', 'completed')
+                ->where(function ($q) use ($id) {
+                    $q->where('player1_id', $id)->orWhere('player2_id', $id);
+                })
+                ->orderBy('round_number', 'asc')
+                ->orderBy('id', 'asc')
+                ->get();
+
+            $duelos = [];
+            $winsTorneo = 0;
+            $lossesTorneo = 0;
+
+            foreach ($matchesRows as $m) {
+                $isBye = is_null($m->player2_id) || $m->player1_score == 99 || $m->player2_score == 99;
+                if ($isBye) {
+                    $winsTorneo++;
+                    $duelos[] = [
+                        'round'      => 'R' . $m->round_number,
+                        'phase'      => strtoupper($m->bracket_type),
+                        'rival'      => 'BYE (PASE DIRECTO)',
+                        'my_score'   => 4,
+                        'riv_score'  => 0,
+                        'is_win'     => true,
+                    ];
+                    continue;
+                }
+
+                $amP1 = ($m->player1_id == $id);
+                $myScore = $amP1 ? $m->player1_score : $m->player2_score;
+                $rivScore = $amP1 ? $m->player2_score : $m->player1_score;
+                $rivalName = $amP1 ? ($m->player2->name ?? 'Rival') : ($m->player1->name ?? 'Rival');
+                $isWin = ($m->winner_id == $id);
+
+                if ($isWin) $winsTorneo++;
+                else $lossesTorneo++;
+
+                $duelos[] = [
+                    'round'     => 'R' . $m->round_number,
+                    'phase'     => $m->bracket_type === 'swiss' ? 'SUIZO' : strtoupper(str_replace('_', ' ', $m->bracket_type)),
+                    'rival'     => $rivalName,
+                    'my_score'  => $myScore,
+                    'riv_score' => $rivScore,
+                    'is_win'    => $isWin,
+                ];
+            }
+
+            $historial_torneos[] = [
+                'event_id' => $ev->id,
+                'name'     => $ev->name,
+                'date'     => \Carbon\Carbon::parse($ev->date)->format('d/m/Y'),
+                'city'     => $ev->city,
+                'puesto'   => $ev->puesto ?: 'EN CURSO / PART.',
+                'wins'     => $winsTorneo,
+                'losses'   => $lossesTorneo,
+                'deck'     => $deckStats,
+                'matches'  => $duelos,
+            ];
+        }
+
         return response()->json([
-            'id' => $id,
-            'nombre' => $profile->user ? $profile->user->name : 'Desconocido',
-            'region' => $profile->region ? $profile->region->name : '---',
-            'puntos_x3' => $puntos,
-            'equipo_nombre' => $team ? $team->name : 'Ninguno',
-            'equipo_puntos' => $team ? $team->points_x3 : 0,
-            'torneos_jugados' => $torneos_jugados,
-            'primeros' => $primeros,
-            'segundos' => $stats->segundos ?? 0,
-            'terceros' => $stats->terceros ?? 0,
-            'avatar_url' => $profile->avatar_url ?? '/images/default.png',
-            'marco_url' => $profile->marco_url ?? null,
-            'subtitulo' => $profile->subtitulo ?? null,
-            'titulos' => $titulos,
-            'mejores_combos' => $mejores_combos
+            'id'                => $id,
+            'nombre'            => $profile->user ? $profile->user->name : 'Desconocido',
+            'region'            => $profile->region ? $profile->region->name : '---',
+            'puntos_x3'         => $puntos,
+            'equipo_nombre'     => $team ? $team->name : 'Ninguno',
+            'equipo_puntos'     => $team ? $team->points_x3 : 0,
+            'torneos_jugados'   => $torneos_jugados,
+            'primeros'          => $primeros,
+            'segundos'          => $stats->segundos ?? 0,
+            'terceros'          => $stats->terceros ?? 0,
+            'avatar_url'        => $profile->avatar_url ?? '/images/default.png',
+            'marco_url'         => $profile->marco_url ?? null,
+            'subtitulo'         => $profile->subtitulo ?? null,
+            'titulos'           => $titulos,
+            'mejores_combos'    => $mejores_combos,
+            'historial_torneos' => $historial_torneos
         ]);
     }
 
