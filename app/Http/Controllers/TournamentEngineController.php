@@ -21,48 +21,70 @@ class TournamentEngineController extends Controller
             return false;
         }
 
-        if ($user->hasAnyRole(['admin', 'juez', 'arbitro'])) {
+        // 1. Admin, Juez, Árbitro y Revisor pueden gestionar y arbitrar cualquier torneo
+        if ($user->hasAnyRole(['admin', 'juez', 'arbitro', 'revisor'])) {
             return true;
         }
 
-        $isAssignedStaff = $event->judges()->where('user_id', $user->id)->exists();
-        $isRanking = in_array($event->beys, ['ranking', 'rankingplus']);
-
-        if (!$isRanking) {
-            if ($user->hasRole('revisor') || $event->created_by == $user->id || $isAssignedStaff) {
-                return true;
-            }
+        // 2. Cualquier ayudante asignado en la tabla event_judge de este torneo puede arbitrarlo
+        if ($event->judges()->where('user_id', $user->id)->exists()) {
+            return true;
         }
 
-        return $isAssignedStaff && !$user->hasRole('revisor');
+        // 3. El creador del evento puede gestionar su propio torneo (excepto duelos de equipos)
+        $isTeamEvent = in_array($event->beys, ['equipos', 'crew_battle']) || str_starts_with($event->name, 'Duelo Express:');
+        if (!$isTeamEvent && $event->created_by == $user->id) {
+            return true;
+        }
+
+        return false;
     }
 
-    // Carga los datos principales para el panel del juez (OPTIMIZADO SIN LOGOS PESADOS)
     public function getArenaDashboard(Request $request, $eventId)
     {
         $event = Event::findOrFail($eventId);
 
-        // Si es un torneo de equipos, sincronizamos en vivo el límite de 5 duelos mensuales
         if (in_array($event->beys, ['equipos', 'crew_battle'])) {
             $this->syncTeamMonthlyLimits($eventId);
         }
 
-        $allMatches = TournamentMatch::where('event_id', $eventId)
-            ->select('id', 'round_number', 'bracket_type', 'status')
-            ->get();
-            
-        $maxRound = $allMatches->max('round_number') ?? 0;
+        // AUTO-SANACIÓN DE BYES EN SUIZO:
+        // Si existe algún BYE en suizo (player2_id IS NULL o score 99) que quedó en 'pending', lo marcamos como 'completed' automáticamente
+        TournamentMatch::where('event_id', $eventId)
+            ->whereIn('bracket_type', ['swiss', 'round_robin'])
+            ->where('status', '!=', 'completed')
+            ->where(function ($q) {
+                $q->whereNull('player2_id')
+                  ->orWhere('player1_score', 99)
+                  ->orWhere('player2_score', 99);
+            })
+            ->update([
+                'status'    => 'completed',
+                'winner_id' => \Illuminate\Support\Facades\DB::raw('IFNULL(winner_id, player1_id)')
+            ]);
 
-        // Excluimos tanto 'swiss' como 'round_robin' para que los duelos de equipos no disparen el motor de eliminatorias
+        $allMatches = TournamentMatch::where('event_id', $eventId)
+            ->select('id', 'round_number', 'bracket_type', 'status', 'player1_id', 'player2_id', 'team1_id', 'player1_score', 'player2_score')
+            ->get();
+
+        $maxRound = $allMatches->max('round_number') ?? 0;
         $isBracket = $allMatches->whereNotIn('bracket_type', ['swiss', 'round_robin'])->isNotEmpty();
 
         $roundsStatus = [];
-        $firstPendingRound = $maxRound; 
-        
+        $firstPendingRound = $maxRound;
+
         for ($i = 1; $i <= $maxRound; $i++) {
-            $matchesInRound = $allMatches->where('round_number', $i);
+            // Ignoramos los BYEs al comprobar si una ronda está pendiente
+            $matchesInRound = $allMatches->where('round_number', $i)->filter(function ($m) {
+                if (in_array($m->bracket_type, ['swiss', 'round_robin'])) {
+                    if (!is_null($m->team1_id)) return true;
+                    return !is_null($m->player1_id) && !is_null($m->player2_id) && $m->player1_score != 99 && $m->player2_score != 99;
+                }
+                return true;
+            });
+
             $pendingCount = $matchesInRound->whereNotIn('status', ['completed', 'cancelled'])->count();
-            
+
             if ($pendingCount > 0) {
                 $roundsStatus[$i] = 'pending';
                 if ($firstPendingRound === $maxRound || $i < $firstPendingRound) {
@@ -78,7 +100,6 @@ class TournamentEngineController extends Controller
             $requestedRound = $firstPendingRound ?: 1;
         }
 
-        // CRÍTICO: Cargamos solo id y name de player1, player2, team1 y team2 (evita cargar los logos BLOB/Base64 de teams)
         $matches = TournamentMatch::with([
                 'player1:id,name',
                 'player2:id,name',
@@ -88,7 +109,7 @@ class TournamentEngineController extends Controller
             ])
             ->where('event_id', $eventId)
             ->where('round_number', $requestedRound)
-            ->where('player1_score', '!=', 99) 
+            ->where('player1_score', '!=', 99)
             ->where('player2_score', '!=', 99)
             ->where(function ($query) {
                 $query->where(function ($q) {
@@ -98,11 +119,21 @@ class TournamentEngineController extends Controller
                     $q->whereNotIn('bracket_type', ['swiss', 'round_robin'])
                       ->where('status', 'pending');
                 })
-                ->orWhereNotNull('team1_id'); 
+                ->orWhereNotNull('team1_id');
             })
             ->orderBy('bracket_type', 'desc')
             ->orderBy('id', 'asc')
             ->get();
+
+        // También devolvemos quién tuvo BYE en esta ronda para mostrarlo como aviso informativo
+        $byeMatch = TournamentMatch::with('player1:id,name')
+            ->where('event_id', $eventId)
+            ->where('round_number', $requestedRound)
+            ->whereIn('bracket_type', ['swiss', 'round_robin'])
+            ->where(function ($q) {
+                $q->whereNull('player2_id')->orWhere('player1_score', 99)->orWhere('player2_score', 99);
+            })
+            ->first();
 
         if ($isBracket) {
             $engine = new \App\Services\Tournament\DoubleEliminationEngine();
@@ -127,6 +158,7 @@ class TournamentEngineController extends Controller
             'rounds_status' => $roundsStatus,
             'is_bracket'    => $isBracket,
             'is_team_event' => in_array($event->beys, ['equipos', 'crew_battle']),
+            'bye_player'    => $byeMatch && $byeMatch->player1 ? $byeMatch->player1->name : null,
             'matches'       => $matches
         ]);
     }
@@ -138,8 +170,23 @@ class TournamentEngineController extends Controller
         if (!$this->canManageEvent($event)) {
             return response()->json(['success' => false, 'message' => '⛔ Acceso denegado.'], 403);
         }
-        
-        // Si el evento es de equipos, lanzamos el Round Robin intercalado
+
+        // Antes de pedirle al SwissEngine la siguiente ronda, nos aseguramos de que ningún BYE anterior bloquee la validación
+        TournamentMatch::where('event_id', $eventId)
+            ->whereIn('bracket_type', ['swiss', 'round_robin'])
+            ->where('status', '!=', 'completed')
+            ->where(function ($q) {
+                $q->whereNull('player2_id')
+                  ->orWhere('player1_score', 99)
+                  ->orWhere('player2_score', 99);
+            })
+            ->update([
+                'status'    => 'completed',
+                'winner_id' => \Illuminate\Support\Facades\DB::raw('IFNULL(winner_id, player1_id)')
+            ]);
+
+        $hadMatchesBefore = TournamentMatch::where('event_id', $eventId)->exists();
+
         if (in_array($event->beys, ['equipos', 'crew_battle'])) {
             $validTeams = \Illuminate\Support\Facades\DB::table('assist_user_event')
                 ->join('team_user', 'assist_user_event.user_id', '=', 'team_user.user_id')
@@ -160,8 +207,34 @@ class TournamentEngineController extends Controller
 
             return $this->generateTeamRoundRobin($event, $validTeams);
         }
-        
+
         $result = $engine->generateNextRound($event);
+
+        // Si se acaba de crear un BYE en la nueva ronda, lo dejamos marcado como 'completed' desde el minuto 1
+        TournamentMatch::where('event_id', $eventId)
+            ->whereIn('bracket_type', ['swiss', 'round_robin'])
+            ->where('status', '!=', 'completed')
+            ->where(function ($q) {
+                $q->whereNull('player2_id')
+                  ->orWhere('player1_score', 99)
+                  ->orWhere('player2_score', 99);
+            })
+            ->update([
+                'status'    => 'completed',
+                'winner_id' => \Illuminate\Support\Facades\DB::raw('IFNULL(winner_id, player1_id)')
+            ]);
+
+        // 🚀 SI ES LA PRIMERA RONDA DEL TORNEO, VINCULAMOS EL ENLACE Y ENVIAMOS NOTIFICACIÓN A DISCORD
+        if (!empty($result['success']) && !$hadMatchesBefore) {
+            if (empty($event->challonge)) {
+                $event->challonge = route('torneo.bracket', $event->id);
+                $event->save();
+            }
+            try {
+                \App\Http\Controllers\EventController::sendDiscordBracketNotificationHUB($event, true);
+            } catch (\Exception $e) {}
+        }
+
         return response()->json($result);
     }
 
@@ -389,7 +462,7 @@ class TournamentEngineController extends Controller
             $buildTeamDeck = function ($teamId) use ($match) {
                 $memberIds = $this->getActiveTeamMembers($match->event_id, $teamId);
                 $members = \App\Models\User::whereIn('id', $memberIds)->get(['id', 'name']);
-                
+
                 // Pre-cargamos todos los combos del equipo de golpe para evitar N+1 consultas
                 $existingCombos = \App\Models\TournamentResult::where('event_id', $match->event_id)
                     ->whereIn('user_id', $memberIds)
@@ -488,10 +561,10 @@ class TournamentEngineController extends Controller
         if ($wasCompletedBefore && !in_array($match->bracket_type, ['swiss', 'round_robin'])) {
             $this->revertMatchProgression($match);
         }
-        
+
         $points = 0;
         $finishType = $request->finish_type;
-        
+
         if ($finishType === 'spin') $points = 1;
         if ($finishType === 'over' || $finishType === 'burst') $points = 2;
         if ($finishType === 'xtreme') $points = 3;
@@ -519,13 +592,13 @@ class TournamentEngineController extends Controller
                 $match->player2_score = min(4, $match->player2_score + $points);
             }
         }
-        
+
         $matchCompleted = false;
 
         if ($isTeamMatch) {
             $allBattles = \Illuminate\Support\Facades\DB::table('match_battles')->where('tournament_match_id', $matchId)->get();
             $matchesPlayed = $allBattles->whereNotIn('finish_type', ['warning_p1', 'warning_p2', 'penalty'])->count();
-            
+
             $team1UsersCount = $this->getActiveTeamMembers($match->event_id, $match->team1_id)->count();
             $team2UsersCount = $this->getActiveTeamMembers($match->event_id, $match->team2_id)->count();
             $limit = max($team1UsersCount, $team2UsersCount);
@@ -565,8 +638,8 @@ class TournamentEngineController extends Controller
         }
 
         return response()->json([
-            'success' => true, 
-            'message' => $isTiebreakerActive ? '⚡ ¡EMPATE! Todos los jugadores habilitados para el duelo de desempate.' : 'Resultado registrado', 
+            'success' => true,
+            'message' => $isTiebreakerActive ? '⚡ ¡EMPATE! Todos los jugadores habilitados para el duelo de desempate.' : 'Resultado registrado',
             'match_completed' => $matchCompleted,
             'is_tiebreaker' => $isTiebreakerActive,
             'p1_score' => $match->player1_score,
@@ -630,7 +703,7 @@ class TournamentEngineController extends Controller
         } else {
             $p1_score = $remainingBattles->where('winner_id', $match->player1_id)->sum('points_awarded') ?? 0;
             $p2_score = $remainingBattles->where('winner_id', $match->player2_id)->sum('points_awarded') ?? 0;
-            
+
             $match->player1_score = min(4, $p1_score);
             $match->player2_score = min(4, $p2_score);
 
@@ -809,13 +882,12 @@ class TournamentEngineController extends Controller
         }
     }
 
-    // Calcula la clasificación en vivo (Puntos y Buchholz)
     public function getStandings($eventId)
     {
         $event = \App\Models\Event::findOrFail($eventId);
         $matches = \App\Models\TournamentMatch::where('event_id', $eventId)->where('status', 'completed')->get();
         $hasBracket = $matches->whereIn('bracket_type', ['winners', 'losers', 'grand_final', 'grand_final_reset', 'single_elimination'])->count() > 0;
-        
+
         $users = \Illuminate\Support\Facades\DB::table('assist_user_event')
             ->join('users', 'assist_user_event.user_id', '=', 'users.id')
             ->where('assist_user_event.event_id', $eventId)
@@ -825,43 +897,103 @@ class TournamentEngineController extends Controller
             })
             ->select('users.id', 'users.name', 'assist_user_event.puesto')
             ->get();
-            
+
         $playerStats = [];
+        $headToHead = []; // Mapa de quién ganó a quién en enfrentamiento directo: $headToHead[$winnerId][$loserId] = true
+
         foreach ($users as $u) {
-            $playerStats[$u->id] = ['id' => $u->id, 'name' => $u->name, 'points' => 0, 'buchholz' => 0, 'bracket_score' => 0, 'puesto' => $u->puesto];
+            $playerStats[$u->id] = [
+                'id'            => $u->id,
+                'name'          => $u->name,
+                'points'        => 0,
+                'wins'          => 0,
+                'losses'        => 0,
+                'byes'          => 0,
+                'buchholz'      => 0,
+                'pts_for'       => 0,
+                'pts_against'   => 0,
+                'point_diff'    => 0,
+                'h2h_wins'      => 0,
+                'bracket_score' => 0,
+                'puesto'        => $u->puesto
+            ];
         }
-        
+
         $swissMatches = $matches->whereIn('bracket_type', ['swiss', 'round_robin']);
         foreach ($swissMatches as $m) {
-            if ($m->player1_id && $m->player2_id) { 
-                if ($m->winner_id == $m->player1_id) $playerStats[$m->player1_id]['points'] += 3;
-                if ($m->winner_id == $m->player2_id) $playerStats[$m->player2_id]['points'] += 3;
-                if (is_null($m->winner_id) || $m->winner_id == 0) {
+            $isBye = is_null($m->player2_id) || $m->player1_score == 99 || $m->player2_score == 99;
+
+            if ($isBye && $m->player1_id && isset($playerStats[$m->player1_id])) {
+                // El jugador con BYE suma 3 puntos, 1 victoria y +4 de diferencia estándar
+                $playerStats[$m->player1_id]['points'] += 3;
+                $playerStats[$m->player1_id]['wins'] += 1;
+                $playerStats[$m->player1_id]['byes'] += 1;
+                $playerStats[$m->player1_id]['pts_for'] += 4;
+                $playerStats[$m->player1_id]['point_diff'] += 4;
+                continue;
+            }
+
+            if ($m->player1_id && $m->player2_id && isset($playerStats[$m->player1_id]) && isset($playerStats[$m->player2_id])) {
+                $s1 = (int) $m->player1_score;
+                $s2 = (int) $m->player2_score;
+
+                $playerStats[$m->player1_id]['pts_for'] += $s1;
+                $playerStats[$m->player1_id]['pts_against'] += $s2;
+                $playerStats[$m->player1_id]['point_diff'] += ($s1 - $s2);
+
+                $playerStats[$m->player2_id]['pts_for'] += $s2;
+                $playerStats[$m->player2_id]['pts_against'] += $s1;
+                $playerStats[$m->player2_id]['point_diff'] += ($s2 - $s1);
+
+                if ($m->winner_id == $m->player1_id) {
+                    $playerStats[$m->player1_id]['points'] += 3;
+                    $playerStats[$m->player1_id]['wins'] += 1;
+                    $playerStats[$m->player2_id]['losses'] += 1;
+                    $headToHead[$m->player1_id][$m->player2_id] = true;
+                } elseif ($m->winner_id == $m->player2_id) {
+                    $playerStats[$m->player2_id]['points'] += 3;
+                    $playerStats[$m->player2_id]['wins'] += 1;
+                    $playerStats[$m->player1_id]['losses'] += 1;
+                    $headToHead[$m->player2_id][$m->player1_id] = true;
+                } else {
                     $playerStats[$m->player1_id]['points'] += 1;
                     $playerStats[$m->player2_id]['points'] += 1;
                 }
             }
         }
-        
+
+        // Calcular Buchholz (Suma de puntos de los oponentes reales enfrentados)
         foreach ($swissMatches as $m) {
-            if ($m->player1_id && $m->player2_id) {
+            $isBye = is_null($m->player2_id) || $m->player1_score == 99 || $m->player2_score == 99;
+            if (!$isBye && $m->player1_id && $m->player2_id && isset($playerStats[$m->player1_id]) && isset($playerStats[$m->player2_id])) {
                 $playerStats[$m->player1_id]['buchholz'] += $playerStats[$m->player2_id]['points'];
                 $playerStats[$m->player2_id]['buchholz'] += $playerStats[$m->player1_id]['points'];
             }
         }
-        
+
+        // Calcular victorias en enfrentamiento directo contra rivales empatados a puntos (Mini-Liga H2H)
+        foreach ($playerStats as $uid => &$st) {
+            $tiedOpponents = array_filter($playerStats, fn($other) => $other['id'] !== $uid && $other['points'] === $st['points']);
+            foreach ($tiedOpponents as $opp) {
+                if (!empty($headToHead[$uid][$opp['id']])) {
+                    $st['h2h_wins']++;
+                }
+            }
+        }
+        unset($st);
+
         if ($hasBracket) {
             $hasReset = $matches->where('bracket_type', 'grand_final_reset')->count() > 0;
-            
+
             foreach ($playerStats as $uid => &$stats) {
                 $bMatches = $matches->filter(fn($m) => in_array($m->bracket_type, ['winners', 'losers', 'grand_final', 'grand_final_reset', 'single_elimination']) && ($m->player1_id == $uid || $m->player2_id == $uid));
-                
+
                 if ($bMatches->count() > 0) {
                     $wonGFReset = $bMatches->where('bracket_type', 'grand_final_reset')->where('winner_id', $uid)->count() > 0;
                     $lostGFReset = $bMatches->where('bracket_type', 'grand_final_reset')->where('winner_id', '!=', $uid)->count() > 0;
                     $wonGF = $bMatches->where('bracket_type', 'grand_final')->where('winner_id', $uid)->count() > 0;
                     $lostGF = $bMatches->where('bracket_type', 'grand_final')->where('winner_id', '!=', $uid)->count() > 0;
-                    
+
                     if ($hasReset && $wonGFReset) $stats['bracket_score'] = 10000;
                     elseif ($hasReset && $lostGFReset) $stats['bracket_score'] = 9000;
                     elseif (!$hasReset && $wonGF) $stats['bracket_score'] = 10000;
@@ -890,24 +1022,35 @@ class TournamentEngineController extends Controller
                     }
                 }
             }
+            unset($stats);
         }
-        
+
         $standings = array_values($playerStats);
-        
-        usort($standings, function($a, $b) {
+
+        // ORDENACIÓN MULTICRITERIO:
+        // 1º Podio final -> 2º Progreso en Top Cut -> 3º Puntos Suizo -> 4º Buchholz -> 5º Enfrentamiento Directo (H2H) -> 6º Diferencia de Puntos (+/-) -> 7º Puntos a favor
+        usort($standings, function($a, $b) use ($headToHead) {
             $puestos = ['primero' => 1, 'segundo' => 2, 'tercero' => 3, 'cuarto' => 4];
             $posA = $puestos[$a['puesto']] ?? 999;
             $posB = $puestos[$b['puesto']] ?? 999;
-            
+
             if ($posA != $posB) return $posA <=> $posB;
             if ($a['bracket_score'] != $b['bracket_score']) return $b['bracket_score'] <=> $a['bracket_score'];
             if ($a['points'] != $b['points']) return $b['points'] <=> $a['points'];
-            return $b['buchholz'] <=> $a['buchholz'];
+            if ($a['buchholz'] != $b['buchholz']) return $b['buchholz'] <=> $a['buchholz'];
+
+            // Desempate por enfrentamiento directo entre ambos
+            if (!empty($headToHead[$a['id']][$b['id']])) return -1;
+            if (!empty($headToHead[$b['id']][$a['id']])) return 1;
+            if ($a['h2h_wins'] != $b['h2h_wins']) return $b['h2h_wins'] <=> $a['h2h_wins'];
+
+            if ($a['point_diff'] != $b['point_diff']) return $b['point_diff'] <=> $a['point_diff'];
+            return $b['pts_for'] <=> $a['pts_for'];
         });
-        
+
         return response()->json([
-            'success' => true,
-            'is_bracket' => $hasBracket,
+            'success'       => true,
+            'is_bracket'    => $hasBracket,
             'clasificacion' => $standings
         ]);
     }
@@ -919,7 +1062,7 @@ class TournamentEngineController extends Controller
         if (!$this->canManageEvent($event)) {
             return response()->json(['success' => false, 'message' => '⛔ Acceso denegado.'], 403);
         }
-        
+
         $result = $engine->generateTopCut($event, $request->top_size);
 
         if ($result['success']) {
@@ -935,7 +1078,7 @@ class TournamentEngineController extends Controller
     {
         $userId = auth()->id();
         $event = Event::find($eventId);
-        
+
         if ($request->filled('user_id') && auth()->check() && $event && $this->canManageEvent($event)) {
             $userId = $request->query('user_id');
         }
@@ -945,7 +1088,7 @@ class TournamentEngineController extends Controller
             ->whereNotNull('blade')
             ->orderBy('id', 'asc')
             ->get();
-            
+
         return response()->json($deck);
     }
 
@@ -962,8 +1105,8 @@ class TournamentEngineController extends Controller
         $isTeamMatch = !is_null($match->team1_id) && !is_null($match->team2_id);
 
         if ($isTeamMatch) {
-            $beneficiaryId = ($playerKey === 'p1') ? 
-                $this->getActiveTeamMembers($match->event_id, $match->team2_id)->first() : 
+            $beneficiaryId = ($playerKey === 'p1') ?
+                $this->getActiveTeamMembers($match->event_id, $match->team2_id)->first() :
                 $this->getActiveTeamMembers($match->event_id, $match->team1_id)->first();
         } else {
             $beneficiaryId = ($playerKey === 'p1') ? $match->player2_id : $match->player1_id;
@@ -978,23 +1121,23 @@ class TournamentEngineController extends Controller
 
         if ($existingWarning) {
             \Illuminate\Support\Facades\DB::table('match_battles')->where('id', $existingWarning->id)->delete();
-            
+
             \Illuminate\Support\Facades\DB::table('match_battles')->insert([
                 'tournament_match_id' => $matchId,
-                'winner_id' => $beneficiaryId, 
+                'winner_id' => $beneficiaryId,
                 'player1_combo_id' => null,
                 'player2_combo_id' => null,
-                'finish_type' => 'penalty', 
+                'finish_type' => 'penalty',
                 'points_awarded' => 1,
                 'created_at' => now(),
                 'updated_at' => now()
             ]);
             $msg = "2º Warning: ¡1 Punto para el rival!";
-            $isActive = false; 
+            $isActive = false;
         } else {
             \Illuminate\Support\Facades\DB::table('match_battles')->insert([
                 'tournament_match_id' => $matchId,
-                'winner_id' => $beneficiaryId, 
+                'winner_id' => $beneficiaryId,
                 'player1_combo_id' => null,
                 'player2_combo_id' => null,
                 'finish_type' => $warningType,
@@ -1003,30 +1146,30 @@ class TournamentEngineController extends Controller
                 'updated_at' => now()
             ]);
             $msg = "1º Warning anotado.";
-            $isActive = true; 
+            $isActive = true;
         }
 
         if ($isTeamMatch) {
             $team1Users = $this->getActiveTeamMembers($match->event_id, $match->team1_id);
             $team2Users = $this->getActiveTeamMembers($match->event_id, $match->team2_id);
-            
+
             $p1_score = \Illuminate\Support\Facades\DB::table('match_battles')->where('tournament_match_id', $matchId)->whereIn('winner_id', $team1Users)->sum('points_awarded') ?? 0;
             $p2_score = \Illuminate\Support\Facades\DB::table('match_battles')->where('tournament_match_id', $matchId)->whereIn('winner_id', $team2Users)->sum('points_awarded') ?? 0;
         } else {
             $p1_score = \Illuminate\Support\Facades\DB::table('match_battles')->where('tournament_match_id', $matchId)->where('winner_id', $match->player1_id)->sum('points_awarded') ?? 0;
             $p2_score = \Illuminate\Support\Facades\DB::table('match_battles')->where('tournament_match_id', $matchId)->where('winner_id', $match->player2_id)->sum('points_awarded') ?? 0;
         }
-        
+
         $match->player1_score = $p1_score;
         $match->player2_score = $p2_score;
 
         $matchCompleted = false;
-        
+
         if ($isTeamMatch) {
             $limit = max(count($team1Users), count($team2Users));
             $allBattles = \Illuminate\Support\Facades\DB::table('match_battles')->where('tournament_match_id', $matchId)->get();
             $matchesPlayed = $allBattles->where('finish_type', '!=', 'warning_p1')->where('finish_type', '!=', 'warning_p2')->where('finish_type', '!=', 'penalty')->count();
-            
+
             if ($matchesPlayed >= $limit && $p1_score !== $p2_score) {
                 $match->status = 'completed';
                 $match->winner_id = $p1_score > $p2_score ? $match->team1_id : $match->team2_id;
@@ -1066,7 +1209,7 @@ class TournamentEngineController extends Controller
     public function getJugadoresTorneo($eventId)
     {
         $event = \App\Models\Event::findOrFail($eventId);
-        
+
         $limite = 9999;
         if ($event->has_stadium_limit || !empty($event->max_players)) {
             if ($event->stadiums == 1) $limite = 20;
@@ -1101,16 +1244,16 @@ class TournamentEngineController extends Controller
         $isStaff = $this->canManageEvent($event);
         $isTeamEvent = in_array($event->beys, ['equipos', 'crew_battle']) || str_starts_with($event->name, 'Duelo Express:');
         $requiredBeys = $isTeamEvent ? 1 : 3;
-        
+
         $jugadores = [];
         $nombresTxt = "";
         $inscribedIds = [];
         $activeCount = 0;
-        
+
         foreach ($jugadoresRaw as $user) {
             $isDropped = ($user->puesto === 'dropped');
             $piezasRegistradas = $decksCount[$user->id] ?? 0;
-            
+
             $bracketStatus = 'dropped';
             $activePosition = null;
 
@@ -1136,9 +1279,15 @@ class TournamentEngineController extends Controller
                 'team_id' => $user->team_id,
                 'team_name' => $user->team_name ?? 'SIN EQUIPO / AGENTE LIBRE'
             ];
-            
+
             $inscribedIds[] = $user->id;
         }
+
+        $user = auth()->user();
+        $canManageHelpers = $user && (
+            $user->hasAnyRole(['admin', 'juez']) ||
+            (!$isTeamEvent && $event->created_by == $user->id)
+        );
 
         $availableUsers = [];
         if ($isStaff) {
@@ -1148,16 +1297,41 @@ class TournamentEngineController extends Controller
                 ->get();
         }
 
+        $staffAsignado = $event->judges()->with('roles')->get()->map(function ($st) {
+            $roles = $st->roles->pluck('name');
+            $isMainJudge = $roles->contains('admin') || $roles->contains('juez');
+            $isOnlyRevisor = !$isMainJudge && $roles->contains('revisor');
+            return [
+                'id'         => $st->id,
+                'name'       => $st->name,
+                'is_judge'   => $isMainJudge,
+                'is_revisor' => $isOnlyRevisor,
+                'is_helper'  => !$isMainJudge && !$isOnlyRevisor,
+            ];
+        })->values();
+
+        $staffIds = $staffAsignado->pluck('id')->toArray();
+        $availableStaffUsers = [];
+        if ($canManageHelpers) {
+            $availableStaffUsers = \App\Models\User::whereNotIn('id', $staffIds)
+                ->select('id', 'name')
+                ->orderBy('name', 'asc')
+                ->get();
+        }
+
         return response()->json([
-            'success' => true, 
-            'jugadores' => $jugadores,
-            'nombres' => $nombresTxt,
-            'is_staff' => $isStaff,
-            'is_team_event' => $isTeamEvent,
-            'event_type' => $event->beys,
-            'event_status' => $event->status,
-            'aforo_maximo' => $limite,
-            'available_users' => $availableUsers
+            'success'               => true,
+            'jugadores'             => $jugadores,
+            'nombres'               => $nombresTxt,
+            'is_staff'              => $isStaff,
+            'can_manage_helpers'    => $canManageHelpers,
+            'staff_asignado'        => $staffAsignado,
+            'available_staff_users' => $availableStaffUsers,
+            'is_team_event'         => $isTeamEvent,
+            'event_type'            => $event->beys,
+            'event_status'          => $event->status,
+            'aforo_maximo'          => $limite,
+            'available_users'       => $availableUsers
         ]);
     }
 
@@ -1199,7 +1373,7 @@ class TournamentEngineController extends Controller
         if (!$this->canManageEvent($event)) {
             return response()->json(['success' => false, 'message' => '⛔ Acceso denegado'], 403);
         }
-        
+
         \Illuminate\Support\Facades\DB::table('assist_user_event')
             ->where('event_id', $eventId)
             ->where('user_id', $userId)
@@ -1219,29 +1393,29 @@ class TournamentEngineController extends Controller
         if (!$this->canManageEvent($event)) {
             return response()->json(['success' => false]);
         }
-        
+
         if ($match->locked_by !== null && $match->locked_by !== auth()->id()) {
             return response()->json([
-                'success' => false, 
+                'success' => false,
                 'message' => 'Mesa ocupada por otro juez.'
             ]);
         }
-        
+
         $match->locked_by = auth()->id();
         $match->save();
-        
+
         return response()->json(['success' => true]);
     }
 
     public function unlockMatch($matchId)
     {
         $match = TournamentMatch::findOrFail($matchId);
-        
+
         if ($match->locked_by === auth()->id() || (auth()->check() && auth()->user()->hasRole('admin'))) {
             $match->locked_by = null;
             $match->save();
         }
-        
+
         return response()->json(['success' => true]);
     }
 
@@ -1252,7 +1426,7 @@ class TournamentEngineController extends Controller
         if (!$this->canManageEvent($event)) {
             return response()->json(['success' => false, 'message' => '⛔ Acceso denegado.'], 403);
         }
-        
+
         // Detectamos todas las partidas de equipos completadas en este evento
         $teamMatches = TournamentMatch::where('event_id', $eventId)
             ->whereNotNull('team1_id')
@@ -1265,7 +1439,7 @@ class TournamentEngineController extends Controller
         if ($teamMatches->isNotEmpty() || in_array($event->beys, ['equipos', 'crew_battle'])) {
             $primer_dia_mes_actual = \Carbon\Carbon::now()->startOfMonth();
             $ultimo_dia_mes_actual = \Carbon\Carbon::now()->endOfMonth();
-                
+
             foreach ($teamMatches as $tm) {
                 $ya_existe_este_mes = \Illuminate\Support\Facades\DB::table('teams_versus')
                     ->where(function($query) use ($tm) {
@@ -1280,14 +1454,14 @@ class TournamentEngineController extends Controller
                     })
                     ->whereBetween('created_at', [$primer_dia_mes_actual, $ultimo_dia_mes_actual])
                     ->exists();
-                    
+
                 if (!$ya_existe_este_mes) {
                     \Illuminate\Support\Facades\DB::table('teams_versus')->insert([
                         'team_id_1'  => $tm->team1_id,
                         'team_id_2'  => $tm->team2_id,
                         'result_1'   => $tm->player1_score,
                         'result_2'   => $tm->player2_score,
-                        'matchup'    => $event->mode ?? 'beybladex', 
+                        'matchup'    => $event->mode ?? 'beybladex',
                         'url'        => url("/events/{$eventId}"),
                         'status'     => 'OPEN',
                         'created_at' => \Carbon\Carbon::now(),
@@ -1316,11 +1490,11 @@ class TournamentEngineController extends Controller
             try {
                 $standingsData = $this->getStandings($event->id)->getData(true);
                 $clasificacion = $standingsData['clasificacion'] ?? [];
-                
+
                 $mapaPuestos = [
-                    0  => 'primero', 
-                    1  => 'segundo', 
-                    2  => 'tercero', 
+                    0  => 'primero',
+                    1  => 'segundo',
+                    2  => 'tercero',
                     3  => 'cuarto',
                     4  => 'quinto',
                     5  => 'sexto',
@@ -1371,7 +1545,7 @@ class TournamentEngineController extends Controller
         if (!auth()->user()->hasAnyRole(['admin', 'juez', 'arbitro', 'revisor'])) {
             return response()->json(['success' => false, 'message' => 'Acceso denegado'], 403);
         }
-        
+
         $request->validate([
             'team1_id' => 'required',
             'team2_id' => 'required|different:team1_id'
@@ -1385,7 +1559,7 @@ class TournamentEngineController extends Controller
             'mode' => 'beybladex',
             'city' => 'Arena Local',
             'location' => 'Arena Express',
-            'region_id' => 1, 
+            'region_id' => 1,
             'date' => now()->toDateString(),
             'time' => now()->toTimeString(),
             'imagen' => 'upload-events/crew_battle.png',
@@ -1393,7 +1567,7 @@ class TournamentEngineController extends Controller
             'deck' => '1on1',
             'configuration' => 'RoundRobin',
             'stadiums' => 1,
-            'status' => 'LIVE', 
+            'status' => 'LIVE',
             'created_by' => auth()->id()
         ]);
 
@@ -1409,7 +1583,7 @@ class TournamentEngineController extends Controller
                 'created_at' => now(),
                 'updated_at' => now()
             ]);
-            
+
             \App\Models\TournamentResult::create([
                 'user_id' => $uid,
                 'event_id' => $event->id,
@@ -1456,7 +1630,7 @@ class TournamentEngineController extends Controller
         if (!$this->canManageEvent($event)) {
             return response()->json(['success' => false, 'message' => '⛔ Acceso denegado.'], 403);
         }
-        
+
         if ($match->status !== 'completed' || in_array($match->bracket_type, ['swiss', 'round_robin'])) {
             return response()->json(['success' => false, 'message' => 'Esta partida aún no se puede avanzar.'], 400);
         }
@@ -1472,15 +1646,15 @@ class TournamentEngineController extends Controller
 
         if ($alreadyAdvanced) {
             return response()->json([
-                'success' => false, 
+                'success' => false,
                 'already_advanced' => true,
                 'message' => '⚠️ Este jugador ya había sido avanzado anteriormente en el cuadro.'
             ]);
         }
-        
+
         $engine = new \App\Services\Tournament\DoubleEliminationEngine();
         $engine->progressMatch($match);
-        
+
         return response()->json(['success' => true, 'message' => '¡Jugador avanzado en el cuadro!']);
     }
 
@@ -1544,7 +1718,15 @@ class TournamentEngineController extends Controller
         $event = \App\Models\Event::findOrFail($eventId);
         [$winnersBracket, $losersBracket, $finals] = $this->buildFullBracketTree($eventId);
 
-        return view('hub.bracket', compact('event', 'winnersBracket', 'losersBracket', 'finals'));
+        $swissRounds = \App\Models\TournamentMatch::with(['player1:id,name', 'player2:id,name', 'team1:id,name', 'team2:id,name'])
+            ->where('event_id', $eventId)
+            ->whereIn('bracket_type', ['swiss', 'round_robin'])
+            ->orderBy('round_number', 'asc')
+            ->orderBy('id', 'asc')
+            ->get()
+            ->groupBy('round_number');
+
+        return view('hub.bracket', compact('event', 'winnersBracket', 'losersBracket', 'finals', 'swissRounds'));
     }
 
     public function renderBracketHtml($eventId)
@@ -1622,20 +1804,20 @@ class TournamentEngineController extends Controller
 
         // 3. BEYBLADE MVP (EL COMBO CON MÁS VICTORIAS EN EL TORNEO)
         $mvpCombo = \Illuminate\Support\Facades\DB::selectOne("
-            SELECT 
+            SELECT
                 CONCAT(c.blade, ' ', IFNULL(c.ratchet, ''), ' ', IFNULL(c.bit, '')) as combo_name,
                 u.name as owner_name,
                 COUNT(*) as wins,
                 SUM(mb.points_awarded) as pts
             FROM match_battles mb
             JOIN tournament_matches tm ON mb.tournament_match_id = tm.id
-            JOIN tournament_results c ON c.id = CASE 
-                WHEN mb.winner_id = tm.player1_id THEN mb.player1_combo_id 
-                ELSE mb.player2_combo_id 
+            JOIN tournament_results c ON c.id = CASE
+                WHEN mb.winner_id = tm.player1_id THEN mb.player1_combo_id
+                ELSE mb.player2_combo_id
             END
             JOIN users u ON c.user_id = u.id
-            WHERE tm.event_id = ? 
-              AND mb.winner_id IS NOT NULL 
+            WHERE tm.event_id = ?
+              AND mb.winner_id IS NOT NULL
               AND mb.finish_type IN ('spin', 'over', 'burst', 'xtreme')
             GROUP BY combo_name, u.name
             ORDER BY wins DESC, pts DESC
@@ -1701,5 +1883,11 @@ class TournamentEngineController extends Controller
         } catch (\Exception $e) {
             \Illuminate\Support\Facades\Log::warning("Error enviando reporte final a Discord: " . $e->getMessage());
         }
+    }
+
+    public function showStadiumTv($eventId)
+    {
+        $event = \App\Models\Event::with('region')->findOrFail($eventId);
+        return view('hub.tv', compact('event'));
     }
 }

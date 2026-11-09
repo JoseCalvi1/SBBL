@@ -418,7 +418,7 @@ class EventController extends Controller
             ->get();
 
         $pointsTable = $this->getPointsTable($participantes->count());
-        
+
         // Mapeo completo de posiciones (1º al 17º) según la tabla oficial de tramos SBBL:
         // Índices de $pointsTable: 0=>1º, 1=>2º, 2=>3º, 3=>4º, 4=>5º-6º, 5=>7º-8º, 6=>9º-12º, 7=>13º-16º, 8=>17º
         $puestoMap = [
@@ -1286,11 +1286,11 @@ private function sendResponse($type, $message, $request, $code = 200)
 
         $event->loadMissing('region');
         $regionName = $event->region->name ?? 'Global';
-        
+
         // Mapeo desde la constante
         $rolId = self::DISCORD_ROLES[$regionName] ?? '';
         $mention = $rolId ? "\n<@&{$rolId}>" : '';
-        
+
         $fecha = \Carbon\Carbon::parse($event->date)->translatedFormat('d \d\e F \d\e\l Y');
         $hora = substr($event->time, 0, 5);
 
@@ -1328,34 +1328,42 @@ private function sendResponse($type, $message, $request, $code = 200)
     // ==============================================================
     // NOTIFICACIÓN A DISCORD AL GENERAR EL ÁRBOL (PUBLIC O JUEZ)
     // ==============================================================
-    public static function sendDiscordBracketNotificationHUB(Event $event)
+    public static function sendDiscordBracketNotificationHUB(Event $event, bool $isSwissStart = false)
     {
-        if (config('app.env') !== 'production' || !env('DISCORD_WEBHOOK_URL')) {
+        $webhookUrl = env('DISCORD_HUB_WEBHOOK') ?: env('DISCORD_WEBHOOK_URL');
+        if (config('app.env') !== 'production' || !$webhookUrl) {
             // return; // <-- Comenta esta línea temporalmente si quieres hacer pruebas en local
         }
 
         $event->loadMissing('region');
         $regionName = $event->region->name ?? 'Global';
-        
-        // El bracket tira de los mismos roles para hacer el ping a la comunidad
         $rolId = self::DISCORD_ROLES[$regionName] ?? '';
         $mention = $rolId ? "\n<@&{$rolId}>" : '';
 
-        // El Link público al Cuadro a pantalla completa
         $bracketUrl = route('torneo.bracket', $event->id);
 
-        $content = "🏆 ¡El **Cuadro Eliminatorio** de **{$event->name}** ya está disponible en directo!{$mention}";
-        
-        $embed = [
-            'title'       => "🔗 Sigue el Árbol en Vivo - {$event->name}",
-            'url'         => $bracketUrl,
-            'description' => "¡La fase eliminatoria ha comenzado!\n\n📲 **[Ver el Cuadro Interactivo en tiempo real]({$bracketUrl})**",
-            'color'       => 14177041, // Fucsia/Morado vibrante
-            'footer'      => [ 'text' => 'SBBL Hub • Spanish Beybattle League' ]
-        ];
+        if ($isSwissStart) {
+            $content = "⚔️ ¡Ha comenzado **{$event->name}**! La **Ronda 1** ya está en marcha en directo.{$mention}";
+            $embed = [
+                'title'       => "📡 Seguir Rondas, Clasificación y Cuadro en Vivo - {$event->name}",
+                'url'         => $bracketUrl,
+                'description' => "¡El torneo ha comenzado! Consulta los emparejamientos de cada ronda, la tabla de clasificación con desempates y el cuadro eliminatorio en tiempo real:\n\n📲 **[Abrir Seguimiento en Vivo]({$bracketUrl})**",
+                'color'       => 65521, // Cian neón
+                'footer'      => [ 'text' => 'SBBL Hub • Spanish Beybattle League' ]
+            ];
+        } else {
+            $content = "🏆 ¡El **Cuadro Eliminatorio (Top Cut)** de **{$event->name}** ya está disponible en directo!{$mention}";
+            $embed = [
+                'title'       => "🔗 Sigue el Árbol Eliminatorio en Vivo - {$event->name}",
+                'url'         => $bracketUrl,
+                'description' => "¡La fase eliminatoria ha comenzado!\n\n📲 **[Ver el Cuadro Interactivo en tiempo real]({$bracketUrl})**",
+                'color'       => 14177041, // Fucsia vibrante
+                'footer'      => [ 'text' => 'SBBL Hub • Spanish Beybattle League' ]
+            ];
+        }
 
         try {
-            \Illuminate\Support\Facades\Http::post(env('DISCORD_HUB_WEBHOOK'), [
+            \Illuminate\Support\Facades\Http::post($webhookUrl, [
                 'content' => $content,
                 'embeds'  => [$embed],
             ]);
@@ -1528,7 +1536,7 @@ private function sendResponse($type, $message, $request, $code = 200)
 
     public function updateAPI(Request $request, Event $event)
     {
-        if (!Auth::user()->hasAnyRole(['admin', 'juez', 'arbitro'])) {
+        if (!Auth::user()->hasAnyRole(['admin', 'juez', 'arbitro', 'revisor']) && $event->created_by !== Auth::id()) {
             return response()->json(['success' => false, 'message' => 'Acceso denegado'], 403);
         }
 

@@ -274,6 +274,34 @@
                                 @endif
                             </button>
                         @endif
+                        @php
+                            $isTeamEventWeb = in_array($event->beys, ['equipos', 'crew_battle']) || str_starts_with($event->name, 'Duelo Express:');
+                            $canManageHelpersWeb = Auth::check() && (
+                                Auth::user()->hasAnyRole(['admin', 'juez']) ||
+                                (!$isTeamEventWeb && $event->created_by == Auth::id())
+                            );
+                        @endphp
+
+                        @if($canManageHelpersWeb && !in_array($event->status, ['CLOSE', 'COMPLETED', 'INVALID']))
+                            <div class="mt-3 pt-3 border-top border-secondary">
+                                <label class="text-info small fw-bold text-uppercase mb-1 d-block">
+                                    <i class="fas fa-hands-helping me-1"></i> Añadir Ayudante a este Torneo:
+                                </label>
+                                <div class="input-group input-group-sm">
+                                    <select id="webAddHelperSelect" class="form-select select2">
+                                        <option value="">Buscar usuario...</option>
+                                        @foreach($participantes as $u)
+                                            @if(!$event->judges->contains('id', $u->id))
+                                                <option value="{{ $u->id }}">{{ $u->name }} #{{ str_pad($u->id, 4, '0', STR_PAD_LEFT) }}</option>
+                                            @endif
+                                        @endforeach
+                                    </select>
+                                    <button type="button" onclick="anadirAyudanteWeb({{ $event->id }})" class="btn btn-info fw-bold text-dark border-2 border-dark">
+                                        + STAFF
+                                    </button>
+                                </div>
+                            </div>
+                        @endif
                     </div>
 
                     <div class="d-grid gap-3 mt-4">
@@ -1069,6 +1097,27 @@
         }
         cargarTablaEnVivoWeb();
         setTimeout(() => { if (icon) icon.classList.remove('fa-spin'); }, 600);
+    }
+
+    async function anadirAyudanteWeb(eventId) {
+        const userId = document.getElementById('webAddHelperSelect')?.value;
+        if (!userId) { alert('Selecciona primero un usuario.'); return; }
+        try {
+            const res = await fetch(`/api/torneos/${eventId}/staff/add`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                    'Accept': 'application/json'
+                },
+                body: JSON.stringify({ user_id: userId })
+            });
+            const data = await res.json();
+            if (res.ok && data.success) window.location.reload();
+            else alert(data.message || 'Error al añadir ayudante.');
+        } catch (e) {
+            alert('Error de conexión.');
+        }
     }
 
     jQuery(document).ready(function ($) {

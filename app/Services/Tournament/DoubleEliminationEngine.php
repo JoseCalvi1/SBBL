@@ -42,7 +42,7 @@ class DoubleEliminationEngine
     {
         $players = $this->getActiveSeatedPlayers($event)->shuffle()->values();
         $numPlayers = $players->count();
-        
+
         if ($numPlayers < 4) {
             return ['success' => false, 'message' => 'Se necesitan al menos 4 jugadores activos (no retirados) para Doble Eliminación.'];
         }
@@ -74,79 +74,50 @@ class DoubleEliminationEngine
         }
 
         $this->createFullPrebuiltBracket($event->id, $bracketSize, 1, $pairings);
-        
-        try {
-            \App\Http\Controllers\EventController::sendDiscordBracketNotificationHUB($event);
-        } catch (\Exception $e) {}
 
         return ['success' => true, 'message' => "Cuadro completo de $bracketSize pre-generado ($numPlayers jugadores activos)."];
     }
 
     /**
-     * GENERA EL TOP CUT DESDE SUIZO (TODAS LAS RONDAS PRE-CREADAS)
+     * GENERA EL TOP CUT DESDE SUIZO USANDO LA CLASIFICACIÓN Y DESEMPATES OFICIALES
      */
     public function generateTopCut(Event $event, int $topSize)
     {
-        $matches = TournamentMatch::where('event_id', $event->id)->where('status', 'completed')->get();
-        $players = $this->getActiveSeatedPlayers($event);
+        $engineController = app(\App\Http\Controllers\TournamentEngineController::class);
+        $standingsData = $engineController->getStandings($event->id)->getData(true);
+        $clasificacion = $standingsData['clasificacion'] ?? [];
 
-        $stats = [];
-        foreach ($players as $p) {
-            $stats[$p->id] = ['id' => $p->id, 'points' => 0, 'buchholz' => 0, 'opponents' => []];
-        }
-
-        foreach ($matches as $m) {
-            if (isset($stats[$m->player1_id]) && $m->winner_id == $m->player1_id) {
-                $stats[$m->player1_id]['points'] += 3;
-            } elseif (isset($stats[$m->player2_id]) && $m->winner_id == $m->player2_id) {
-                $stats[$m->player2_id]['points'] += 3;
-            }
-            if ($m->player1_id && $m->player2_id) {
-                if (isset($stats[$m->player1_id])) $stats[$m->player1_id]['opponents'][] = $m->player2_id;
-                if (isset($stats[$m->player2_id])) $stats[$m->player2_id]['opponents'][] = $m->player1_id;
-            }
-        }
-
-        foreach ($stats as $id => &$data) {
-            foreach ($data['opponents'] as $oppId) {
-                $data['buchholz'] += $stats[$oppId]['points'] ?? 0;
-            }
-        }
-
-        usort($stats, function($a, $b) {
-            if ($a['points'] === $b['points']) return $b['buchholz'] <=> $a['buchholz'];
-            return $b['points'] <=> $a['points'];
-        });
-
-        $topPlayers = array_slice($stats, 0, $topSize);
+        $topPlayers = array_slice($clasificacion, 0, $topSize);
 
         if (count($topPlayers) < $topSize) {
             return ['success' => false, 'message' => "No hay suficientes jugadores activos sin retirar para un Top $topSize."];
         }
 
         $seeds = [
-            4 => [ [1,4], [2,3] ],
-            8 => [ [1,8], [4,5], [2,7], [3,6] ],
+            4  => [ [1,4], [2,3] ],
+            8  => [ [1,8], [4,5], [2,7], [3,6] ],
             16 => [ [1,16], [8,9], [4,13], [5,12], [2,15], [7,10], [3,14], [6,11] ],
             32 => [ [1,32], [16,17], [8,25], [9,24], [4,29], [13,20], [5,28], [12,21], [2,31], [15,18], [7,26], [10,23], [3,30], [14,19], [6,27], [11,22] ]
         ];
 
-        if (!isset($seeds[$topSize])) return ['success' => false, 'message' => 'Tamaño de Top no soportado.'];
+        if (!isset($seeds[$topSize])) {
+            return ['success' => false, 'message' => 'Tamaño de Top no soportado.'];
+        }
 
         $startRound = (TournamentMatch::where('event_id', $event->id)->max('round_number') ?? 0) + 1;
-        
+
         $pairings = [];
         foreach ($seeds[$topSize] as $matchup) {
             $pairings[] = [
-                'p1' => $topPlayers[$matchup[0] - 1]['id'],
-                'p2' => $topPlayers[$matchup[1] - 1]['id'],
+                'p1'     => $topPlayers[$matchup[0] - 1]['id'],
+                'p2'     => $topPlayers[$matchup[1] - 1]['id'],
                 'is_bye' => false
             ];
         }
 
         $this->createFullPrebuiltBracket($event->id, $topSize, $startRound, $pairings);
 
-        return ['success' => true, 'message' => "Top $topSize pre-generado al completo correctamente."];
+        return ['success' => true, 'message' => "Top $topSize pre-generado al completo según clasificación oficial."];
     }
 
     /**
@@ -316,18 +287,16 @@ class DoubleEliminationEngine
                 $totalLoserMatches = $loserMatches->count();
 
                 if ($r === 1) {
-                    // Caída recta agrupada
                     $targetMatch = $loserMatches->get((int) floor($idx / 2));
                     $targetSlot = ($idx % 2 === 0) ? 1 : 2;
                 } else {
-                    // CROSS-SEEDING OFICIAL: Si cae de ronda par (R=2, R=4...) se INVIERTE el orden
                     if ($r % 2 === 0) {
                         $mappedIdx = $totalLoserMatches - 1 - $idx;
                     } else {
                         $mappedIdx = $idx;
                     }
                     $targetMatch = $loserMatches->get($mappedIdx);
-                    $targetSlot = 2; // Siempre al hueco 2 en Losers R2, R4, etc.
+                    $targetSlot = 2;
                 }
 
                 if ($targetMatch) {
@@ -382,12 +351,9 @@ class DoubleEliminationEngine
      */
     public function progressMatch(TournamentMatch $match)
     {
-        $event = Event::findOrFail($match->event_id);
-
         if ($match->bracket_type === 'grand_final') {
-            if ($match->winner_id == $match->player1_id) {
-                $event->update(['status' => 'completed']);
-            } else {
+            // Si gana el jugador que venía de Losers (player2), se crea el Bracket Reset
+            if ($match->winner_id != $match->player1_id) {
                 $existsReset = TournamentMatch::where('event_id', $match->event_id)
                     ->where('bracket_type', 'grand_final_reset')
                     ->exists();
@@ -408,7 +374,6 @@ class DoubleEliminationEngine
         }
 
         if ($match->bracket_type === 'grand_final_reset') {
-            $event->update(['status' => 'completed']);
             return;
         }
 

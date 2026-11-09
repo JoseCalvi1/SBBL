@@ -1,6 +1,6 @@
 <div id="arbitrajeModal" class="modal-overlay fixed inset-0 z-[70] items-end sm:items-center justify-center p-0 sm:p-4">
     <div class="bg-gray-900 w-full sm:w-[540px] h-[96vh] sm:h-[88vh] rounded-t-2xl sm:rounded-2xl flex flex-col border border-gray-700 shadow-[0_0_30px_rgba(0,0,0,0.95)] overflow-hidden">
-        
+
         <!-- Cabecera del Panel -->
         <div class="p-3.5 sm:p-4 border-b border-gray-800 flex justify-between items-center bg-gray-950 rounded-t-2xl shrink-0">
             <div class="truncate pr-2">
@@ -13,11 +13,14 @@
                 </div>
                 <p id="arbitraje_event_name" class="text-[10px] text-cyan-400 font-bold tracking-widest uppercase mt-1 truncate">Cargando...</p>
             </div>
-            
+
             <div class="flex items-center gap-1.5 shrink-0">
                 <!-- Botón Copiar Link Público (Discord) -->
                 <button onclick="copiarEnlaceCuadroPublico()" title="Copiar enlace público para Discord" class="bg-indigo-950/80 hover:bg-indigo-900 text-indigo-300 border border-indigo-500/40 px-2.5 h-9 rounded-lg text-[10px] font-bold tracking-wider flex items-center gap-1.5 transition-all active:scale-95 shadow-sm">
                     <i class="fas fa-share-alt text-indigo-400"></i> <span class="hidden sm:inline">DISCORD</span>
+                </button>
+                <button type="button" onclick="abrirModoTvEstadio()" class="bg-gray-800 hover:bg-gray-700 active:scale-95 text-cyan-400 border border-cyan-500/40 px-2.5 py-1.5 rounded-lg text-xs font-bold transition-all" title="Abrir Modo Pantalla de Estadio (TV)">
+                    <i class="fas fa-tv"></i>
                 </button>
                 <!-- Botón Refrescar Arena -->
                 <button onclick="refrescarVistaArenaActual()" title="Sincronizar Arena" class="bg-gray-800 hover:bg-gray-700 text-cyan-400 border border-gray-700 w-9 h-9 rounded-lg flex items-center justify-center transition-all active:scale-90">

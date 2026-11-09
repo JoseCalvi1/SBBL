@@ -172,6 +172,7 @@ Route::domain('hub.' . $dominio)->middleware('auth')->group(function () {
 Route::get('/torneos/{eventId}/cuadro', [TournamentEngineController::class, 'showBracket'])->name('torneo.bracket');
 Route::get('/api/torneos/{eventId}/clasificacion', [TournamentEngineController::class, 'getStandings']);
 Route::get('/api/torneos/{eventId}/cuadro/html', [TournamentEngineController::class, 'renderBracketHtml']);
+Route::get('/torneos/{eventId}/tv', [TournamentEngineController::class, 'showStadiumTv'])->name('torneo.tv');
 
 // Endpoints protegidos compartidos entre el Hub y la Web Principal
 Route::middleware('auth')->prefix('api')->group(function () {
@@ -198,6 +199,8 @@ Route::middleware('auth')->prefix('api')->group(function () {
     Route::get('/torneos/{eventId}/jugadores', [TournamentEngineController::class, 'getJugadoresTorneo']);
     Route::post('/torneos/{eventId}/jugador/add', [TournamentEngineController::class, 'addJugador']);
     Route::post('/torneos/{eventId}/jugador/{userId}/drop', [TournamentEngineController::class, 'dropJugador']);
+    Route::post('/torneos/{eventId}/staff/add', [HubController::class, 'addEventHelper']);
+    Route::delete('/torneos/{eventId}/staff/{userId}', [HubController::class, 'removeEventHelper']);
 
     // Motor de Arena en Vivo y Partidas
     Route::get('/torneos/{eventId}/arena', [TournamentEngineController::class, 'getArenaDashboard']);

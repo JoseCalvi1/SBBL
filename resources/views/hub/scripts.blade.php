@@ -5,7 +5,7 @@
     let dbPiezas = null;
     let allTeamsList = [];
     let currentEventType = null;
-    
+
     let currentArenaEventId = null;
     let currentArenaRound = null;
     let currentArenaMode = 'judge';
@@ -60,7 +60,7 @@
         const activeView = document.querySelector('.view-section.active');
         if (!activeView) return;
         const currentIndex = parseInt(activeView.getAttribute('data-index'));
-        if (touchStartX - touchEndX > swipeThreshold && currentIndex < viewNames.length - 1) { triggerHaptic('light'); navigateViews(currentIndex, currentIndex + 1, 'slide-left'); } 
+        if (touchStartX - touchEndX > swipeThreshold && currentIndex < viewNames.length - 1) { triggerHaptic('light'); navigateViews(currentIndex, currentIndex + 1, 'slide-left'); }
         else if (touchEndX - touchStartX > swipeThreshold && currentIndex > 0) { triggerHaptic('light'); navigateViews(currentIndex, currentIndex - 1, 'slide-right'); }
     }
 
@@ -89,7 +89,7 @@
     function actualizarBotonesNav(btnElement, viewName, toIndex) {
         document.querySelectorAll('.nav-btn').forEach(btn => btn.className = 'nav-btn text-gray-500 flex flex-col items-center justify-center w-full h-full transition-colors');
         btnElement.className = `nav-btn ${viewColors[toIndex]} flex flex-col items-center justify-center w-full h-full transition-colors`;
-        
+
         // Enviar vista de pestaña a Google Analytics
         if (window.trackHubView) {
             window.trackHubView(`/hub/${viewName}`, `SBBL HUB - ${viewName.toUpperCase()}`);
@@ -114,9 +114,9 @@
         try {
             const res = await fetch('/api/regiones');
             regionesConProvincias = await res.json();
-            
+
             const selectRegion = document.getElementById('filtro-region');
-            
+
             regionesConProvincias.forEach(r => {
                 if (selectRegion) selectRegion.add(new Option(r.name.toUpperCase(), r.id));
             });
@@ -236,22 +236,22 @@
         const personal = selectPersonal ? selectPersonal.value : '';
 
         contenedor.innerHTML = '<p class="text-gray-500 text-sm text-center mt-10 animate-pulse">Sincronizando estadio...</p>';
-        
+
         try {
             const res = await fetch(`/api/torneos?tipo=${tipo}&region=${region}&personal=${personal}`);
             if (!res.ok) throw new Error('Error en torneos');
             const torneos = await res.json();
-            
+
             if (torneos.length === 0) {
                 contenedor.innerHTML = '<p class="text-gray-500 text-sm text-center mt-5 font-bold tracking-widest">NO HAY EVENTOS.</p>';
                 return;
             }
-            
+
             let htmlTemp = '';
             torneos.forEach(torneo => {
                 const fecha = new Date(torneo.date).toLocaleDateString('es-ES');
                 const hora = torneo.time ? torneo.time.substring(0, 5) : '--:--';
-                
+
                 const isRank = torneo.beys === 'ranking' || torneo.beys === 'rankingplus';
                 const badge = isRank ? 'bg-red-950/80 text-red-400 border-red-700/50' : 'bg-cyan-950/80 text-cyan-400 border-cyan-700/50';
                 const cardTheme = torneo.is_inscribed ? 'bg-cyan-900/20 border-cyan-500 shadow-[0_0_15px_rgba(6,182,212,0.15)]' : 'bg-gray-900 border-gray-700 shadow-lg';
@@ -278,7 +278,7 @@
                     } else {
                         botonesHTML = `<button onclick="abrirArenaPublica(${torneo.id})" class="w-full bg-fuchsia-900/80 hover:bg-fuchsia-800 border border-fuchsia-500 text-fuchsia-400 font-bold py-3 rounded-lg text-sm tracking-wide shadow-[0_0_15px_rgba(192,38,211,0.3)] transition-colors relative z-10"><i class="fas fa-eye mr-2"></i> VER RESULTADOS / ARENA</button>`;
                     }
-                } 
+                }
                 else if (torneo.status === 'LIVE') {
                     if (torneo.can_arbitrate) {
                         botonesHTML = `<button onclick="abrirPanelArbitraje(${torneo.id})" class="w-full bg-yellow-600 hover:bg-yellow-500 active:bg-yellow-700 border border-yellow-400 text-white font-black py-3 rounded-lg text-sm tracking-wider shadow-[0_0_15px_rgba(234,179,8,0.4)] transition-colors relative z-10"><i class="fas fa-tablet-alt mr-2"></i> PANEL DE ARENA</button>`;
@@ -294,7 +294,7 @@
                             ${torneo.is_inscribed ? `<button onclick="abrirModal(${torneo.id}, '${torneo.status}', null, null, '${torneo.beys}')" class="w-14 bg-cyan-900/50 border border-cyan-500 text-cyan-400 font-bold py-3 rounded-lg text-sm transition-colors flex items-center justify-center"><i class="fas fa-layer-group"></i></button>` : ''}
                         </div>`;
                     }
-                } 
+                }
                 else {
                     if (torneo.is_inscribed) {
                         botonesHTML = `<div class="flex gap-2 relative z-10"><button onclick="abrirModal(${torneo.id}, '${torneo.status}', null, null, '${torneo.beys}')" class="flex-1 bg-cyan-700 active:bg-cyan-600 border border-cyan-400 text-white font-bold py-3 rounded-lg text-sm tracking-wide transition-colors"><i class="fas fa-layer-group me-1"></i> MI DECK</button><button onclick="cancelarAsistencia(${torneo.id})" class="w-14 bg-red-900/50 active:bg-red-800 border border-red-500 text-red-400 font-bold py-3 rounded-lg text-sm transition-colors flex items-center justify-center"><i class="fas fa-times"></i></button></div>`;
@@ -302,46 +302,47 @@
                         botonesHTML = `<button onclick="abrirModal(${torneo.id}, '${torneo.status}', null, null, '${torneo.beys}')" class="w-full bg-cyan-600 active:bg-cyan-500 text-white font-bold py-3 rounded-lg text-sm tracking-wide relative z-10 transition-colors">INSCRIBIRSE</button>`;
                     }
 
-                    if (torneo.can_be_staff) {
-                        const btnJuezText = torneo.is_judge_assigned ? '<i class="fas fa-user-minus"></i> SALIR STAFF' : '<i class="fas fa-user-plus"></i> SER STAFF';
-                        const btnJuezColor = torneo.is_judge_assigned ? 'bg-red-900/50 border-red-500 text-red-400 hover:bg-red-800' : 'bg-yellow-900/50 border-yellow-500 text-yellow-400 hover:bg-yellow-800';
+                    if (torneo.can_be_staff || torneo.can_arbitrate) {
+                        let btnStaffToggle = '';
+                        if (torneo.can_be_staff) {
+                            const btnJuezText = torneo.is_judge_assigned ? '<i class="fas fa-user-minus"></i> SALIR STAFF' : '<i class="fas fa-user-plus"></i> SER STAFF';
+                            const btnJuezColor = torneo.is_judge_assigned ? 'bg-red-900/50 border-red-500 text-red-400 hover:bg-red-800' : 'bg-yellow-900/50 border-yellow-500 text-yellow-400 hover:bg-yellow-800';
+                            btnStaffToggle = `<button onclick="toggleJuez(${torneo.id})" class="${torneo.can_arbitrate ? 'w-24' : 'w-full'} ${btnJuezColor} border font-bold py-2 rounded-lg text-xs transition-colors shadow-sm">${btnJuezText}</button>`;
+                        }
+
                         let botonesExclusivos = '';
-                        
                         if (torneo.can_arbitrate) {
                             botonesExclusivos = `
-                                <button onclick="copiarNombres(${torneo.id})" class="flex-1 bg-gray-800 border border-gray-600 text-gray-300 hover:text-white font-bold py-2 rounded-lg text-xs transition-colors shadow-sm" title="Copiar Lista"><i class="fas fa-copy text-cyan-500"></i></button>
+                                <button onclick="abrirListaJugadores(${torneo.id}, ${torneo.aforo_maximo})" class="flex-1 bg-cyan-950/60 border border-cyan-600 text-cyan-300 hover:text-white font-bold py-2 rounded-lg text-xs transition-colors shadow-sm" title="Gestionar Jugadores y Ayudantes"><i class="fas fa-users-cog"></i></button>
                                 <button onclick='abrirModalEventManager(${JSON.stringify(torneo).replace(/'/g, "&apos;")})' class="flex-1 bg-yellow-900/50 border border-yellow-700 text-yellow-500 hover:text-white font-bold py-2 rounded-lg text-xs transition-colors shadow-sm" title="Editar Evento"><i class="fas fa-pen"></i></button>
                                 <button onclick="comenzarTorneo(${torneo.id})" class="flex-1 bg-green-900/50 border border-green-500 text-green-400 font-bold py-2 rounded-lg text-xs transition-colors shadow-sm"><i class="fas fa-play mr-1"></i> INICIAR</button>
                             `;
                         }
-                        panelJuez = `<div class="mt-4 pt-3 border-t border-gray-700/50 flex gap-2 relative z-10"><button onclick="toggleJuez(${torneo.id})" class="${torneo.can_arbitrate ? 'w-24' : 'w-full'} ${btnJuezColor} border font-bold py-2 rounded-lg text-xs transition-colors shadow-sm">${btnJuezText}</button>${botonesExclusivos}</div>`;
+                        panelJuez = `<div class="mt-4 pt-3 border-t border-gray-700/50 flex gap-2 relative z-10">${btnStaffToggle}${botonesExclusivos}</div>`;
                     }
                 }
 
                 // DIBUJADO DE LA LISTA DE STAFF (CON ORDEN Y COLORES)
+                // DIBUJADO DE LA LISTA DE STAFF (JUECES EN DORADO, REVISORES EN FUCSIA, AYUDANTES EN CIAN)
                 let juecesHTML = '';
                 if (torneo.jueces_asignados && torneo.jueces_asignados.length > 0) {
-                    
-                    // 1. Ordenamos el array: Los que NO son revisores puros (Jueces/Admins) van primero (0), Revisores van después (1)
-                    const sortedStaff = [...torneo.jueces_asignados].sort((a, b) => (a.is_revisor === b.is_revisor ? 0 : a.is_revisor ? 1 : -1));
+                    const sortedStaff = [...torneo.jueces_asignados].sort((a, b) => (a.role_rank || 3) - (b.role_rank || 3));
 
-                    // 2. Mapeamos con los estilos TailWind del Hub
                     const nombresStaff = sortedStaff.map(j => {
                         if (j.is_revisor) {
-                            // ESTILO REVISOR: Fucsia discreto
                             return `<span class="bg-gray-950 border border-fuchsia-900/50 text-fuchsia-400 px-2 py-0.5 rounded font-bold text-[9px] shadow-sm flex items-center gap-1.5"><i class="fas fa-search text-[8px]"></i> <span class="opacity-75">${j.name}</span></span>`;
+                        } else if (j.is_helper) {
+                            return `<span class="bg-gray-950 border border-cyan-800/70 text-cyan-300 px-2 py-0.5 rounded font-bold text-[9px] shadow-sm flex items-center gap-1.5"><i class="fas fa-hands-helping text-[8px]"></i> <span>${j.name}</span></span>`;
                         } else {
-                            // ESTILO JUEZ/ADMIN: Dorado con resplandor
                             return `<span class="bg-gray-950 border border-yellow-500/60 text-yellow-400 px-2 py-0.5 rounded font-bold text-[9px] shadow-[0_0_8px_rgba(250,204,21,0.25)] flex items-center gap-1.5"><i class="fas fa-user-shield text-[8px]"></i> <span>${j.name}</span></span>`;
                         }
                     }).join('');
 
-                    // 3. Pintamos la caja en la tarjeta
                     juecesHTML = `
                         <div class="mt-3 relative z-10 flex items-start gap-2 bg-gray-950/50 p-2.5 rounded-lg border border-gray-800 shadow-inner">
                             <i class="fas fa-users-cog text-yellow-500 mt-1"></i>
                             <div class="flex-1">
-                                <span class="text-[9px] text-gray-500 font-bold tracking-widest uppercase block mb-1.5">Staff Asignado</span>
+                                <span class="text-[9px] text-gray-500 font-bold tracking-widest uppercase block mb-1.5">Staff y Ayudantes</span>
                                 <div class="flex flex-wrap gap-1.5">${nombresStaff}</div>
                             </div>
                         </div>`;
@@ -350,7 +351,7 @@
                 htmlTemp += `
                     <div id="torneo-card-${torneo.id}" class="${cardTheme} p-4 rounded-xl transition-all duration-300 border relative overflow-hidden">
                         ${torneo.is_inscribed ? '<div class="absolute top-0 right-0 w-24 h-24 bg-cyan-500/10 rounded-bl-full pointer-events-none z-0"></div>' : ''}
-                        
+
                         <!-- NUEVA CABECERA REGIONAL (PEGADA A LA ESQUINA SUPERIOR IZQUIERDA) -->
                         <div class="-mx-4 -mt-4 mb-3.5 flex justify-between items-start relative z-10">
                             <!-- Bloque Sólido de Color (Región y Ciudad) -->
@@ -361,7 +362,7 @@
                                     <span class="text-[11px] font-bold text-white uppercase tracking-wider leading-none truncate"><i class="fas fa-map-marker-alt ${regStyle.text} text-[10px] mr-1"></i>${cityName}</span>
                                 </div>
                             </div>
-                            
+
                             <!-- Etiqueta derecha (Tipo de Evento) -->
                             <div class="pt-3.5 pr-4 shrink-0">
                                 <span class="text-[9px] ${badge} border px-2 py-1 rounded font-black uppercase shadow-sm">${torneo.beys || 'EVENTO'}</span>
@@ -386,8 +387,8 @@
                     </div>`;
             });
             contenedor.innerHTML = htmlTemp;
-        } catch (error) { 
-            contenedor.innerHTML = '<p class="text-red-500 text-sm text-center">Error al sincronizar.</p>'; 
+        } catch (error) {
+            contenedor.innerHTML = '<p class="text-red-500 text-sm text-center">Error al sincronizar.</p>';
         }
     }
 
@@ -496,28 +497,28 @@
     async function cargarMeta() {
         const tiempo = document.getElementById('meta-filtro-tiempo') ? document.getElementById('meta-filtro-tiempo').value : '30';
         const minP = document.getElementById('meta-filtro-rango') ? document.getElementById('meta-filtro-rango').value : '5';
-        
+
         const contenedor = document.getElementById('lista-meta');
         contenedor.innerHTML = '<div class="text-center mt-10"><i class="fas fa-circle-notch fa-spin text-purple-500 text-3xl mb-3"></i><p class="text-gray-500 text-sm font-bold tracking-widest">ANALIZANDO EL META ACTUAL...</p></div>';
-        
+
         try {
-            const res = await fetch(`/api/meta?min_partidas=${minP}&dias=${tiempo}`); 
+            const res = await fetch(`/api/meta?min_partidas=${minP}&dias=${tiempo}`);
             const combos = await res.json();
             metaDataList = combos;
-            
-            if (combos.length === 0) { 
-                contenedor.innerHTML = '<p class="text-gray-500 text-sm text-center mt-5 font-bold tracking-widest">NO HAY DATOS SUFICIENTES.</p>'; 
-                return; 
+
+            if (combos.length === 0) {
+                contenedor.innerHTML = '<p class="text-gray-500 text-sm text-center mt-5 font-bold tracking-widest">NO HAY DATOS SUFICIENTES.</p>';
+                return;
             }
-            
-            let htmlTemp = ''; 
+
+            let htmlTemp = '';
             combos.forEach((combo, index) => {
-                const wr = parseFloat(combo.percentage_victories).toFixed(1); 
+                const wr = parseFloat(combo.percentage_victories).toFixed(1);
                 const rank = index + 1;
-                
-                let cText = 'text-red-500'; let cBg = 'bg-red-600'; 
-                if (wr >= 60) { cText = 'text-green-400'; cBg = 'bg-green-500'; } 
-                else if (wr >= 50) { cText = 'text-cyan-400'; cBg = 'bg-cyan-500'; } 
+
+                let cText = 'text-red-500'; let cBg = 'bg-red-600';
+                if (wr >= 60) { cText = 'text-green-400'; cBg = 'bg-green-500'; }
+                else if (wr >= 50) { cText = 'text-cyan-400'; cBg = 'bg-cyan-500'; }
                 else if (wr >= 40) { cText = 'text-yellow-500'; cBg = 'bg-yellow-500'; }
 
                 htmlTemp += `
@@ -535,7 +536,7 @@
                                 <p class="text-[10px] text-gray-400 font-bold tracking-widest uppercase">${combo.total_partidas} BATALLAS</p>
                             </div>
                         </div>
-                        
+
                         <div class="h-1.5 w-full bg-black border border-gray-800 overflow-hidden mt-3 relative z-10 rounded-full">
                             <div class="h-full ${cBg} transition-all duration-1000" style="width: ${wr}%"></div>
                         </div>
@@ -569,54 +570,54 @@
 
     function abrirModalDeckJuez(eventId, userId, userName, eventType = null) {
         cerrarListaModal();
-        abrirModal(eventId, 'OPEN', userId, userName, eventType); 
+        abrirModal(eventId, 'OPEN', userId, userName, eventType);
     }
 
     async function enviarDeck(e) {
         e.preventDefault();
-        const btn = document.getElementById('btnSubmitDeck'); 
+        const btn = document.getElementById('btnSubmitDeck');
         const isTentative = document.getElementById('tentativeCheck').checked;
-        
-        if(!isTentative) { 
-            let valido = true; 
-            document.querySelectorAll('select.deck-req').forEach(s => { 
+
+        if(!isTentative) {
+            let valido = true;
+            document.querySelectorAll('select.deck-req').forEach(s => {
                 const val = s.tomselect ? s.tomselect.getValue() : s.value;
-                if(!val || val.trim() === '') valido = false; 
+                if(!val || val.trim() === '') valido = false;
             });
-            if(!valido) { mostrarToast("Faltan piezas obligatorias", true); triggerHaptic('error'); return; } 
+            if(!valido) { mostrarToast("Faltan piezas obligatorias", true); triggerHaptic('error'); return; }
         }
-        
-        triggerHaptic('heavy'); 
-        btn.disabled = true; 
+
+        triggerHaptic('heavy');
+        btn.disabled = true;
         btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> ENVIANDO...';
-        
-        const eventId = document.getElementById('modal_event_id').value; 
-        const formData = new FormData(document.getElementById('deckForm')); 
+
+        const eventId = document.getElementById('modal_event_id').value;
+        const formData = new FormData(document.getElementById('deckForm'));
         formData.append('is_tentative', isTentative);
-        
+
         if (currentTargetUserId) {
             formData.append('target_user_id', currentTargetUserId);
         }
 
         try {
-            const res = await fetch(`/api/torneos/${eventId}/deck`, { 
-                method: 'POST', 
-                headers: { 
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'), 
-                    'Accept': 'application/json' 
-                }, 
-                body: formData 
+            const res = await fetch(`/api/torneos/${eventId}/deck`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                    'Accept': 'application/json'
+                },
+                body: formData
             });
             const data = await res.json();
-            if (!res.ok) { 
-                mostrarToast(data.message || 'Error al procesar inscripción', true); 
-                triggerHaptic('error'); 
-            } else { 
-                mostrarToast(data.message); 
+            if (!res.ok) {
+                mostrarToast(data.message || 'Error al procesar inscripción', true);
+                triggerHaptic('error');
+            } else {
+                mostrarToast(data.message);
                 const wasEditingOther = currentTargetUserId !== null;
-                cerrarModal(); 
-                cargarEventos(); 
-                
+                cerrarModal();
+                cargarEventos();
+
                 if (wasEditingOther) {
                     const modalBatalla = document.getElementById('batallaModal');
                     if (modalBatalla && !modalBatalla.classList.contains('hidden')) {
@@ -625,13 +626,13 @@
                         abrirListaJugadores(eventId, currentListaAforo);
                     }
                 }
-                triggerHaptic('medium'); 
+                triggerHaptic('medium');
             }
-        } catch (error) { 
-            mostrarToast("Error de transmisión", true); 
-            triggerHaptic('error'); 
+        } catch (error) {
+            mostrarToast("Error de transmisión", true);
+            triggerHaptic('error');
         }
-        btn.disabled = false; 
+        btn.disabled = false;
         btn.innerHTML = 'CONFIRMAR DECK';
     }
 
@@ -645,10 +646,10 @@
     function toggleMetaDetails(index) {
         triggerHaptic('light');
         const el = document.getElementById(`meta-details-${index}`);
-        if (el.classList.contains('hidden')) { el.classList.remove('hidden'); el.classList.add('flex'); } 
+        if (el.classList.contains('hidden')) { el.classList.remove('hidden'); el.classList.add('flex'); }
         else { el.classList.add('hidden'); el.classList.remove('flex'); }
     }
-    
+
     function abrirModalMeta(index) {
         triggerHaptic('medium');
         const combo = metaDataList[index];
@@ -674,7 +675,7 @@
 
         const bestContainer = document.getElementById('modal_meta_best');
         const worstContainer = document.getElementById('modal_meta_worst');
-        
+
         const renderMatchups = (container, list, colorClass, type) => {
             if (!list || list.length === 0) {
                 container.innerHTML = '<div class="text-[10px] text-gray-500 font-bold uppercase p-2 text-center border border-gray-800 rounded bg-gray-900/50">Datos insuficientes</div>';
@@ -727,9 +728,9 @@
             const ptsLeft = nextPts === 0 ? 0 : nextPts - pts;
 
             let statsHtml = `<div class="grid grid-cols-4 gap-2 mt-4 text-center"><div class="bg-gray-800 p-2 rounded-lg border border-gray-700"><div class="text-[9px] text-gray-400 font-bold tracking-widest">TORNEOS</div><div class="text-white font-mono font-bold text-lg leading-none mt-1">${data.torneos_jugados || 0}</div></div><div class="bg-gray-800 p-2 rounded-lg border border-yellow-700/50"><div class="text-[9px] text-yellow-500 font-bold tracking-widest">1º LUGAR</div><div class="text-yellow-400 font-mono font-bold text-lg leading-none mt-1">${data.primeros || 0}</div></div><div class="bg-gray-800 p-2 rounded-lg border border-gray-500/50"><div class="text-[9px] text-gray-400 font-bold tracking-widest">2º LUGAR</div><div class="text-gray-300 font-mono font-bold text-lg leading-none mt-1">${data.segundos || 0}</div></div><div class="bg-gray-800 p-2 rounded-lg border border-orange-700/50"><div class="text-[9px] text-orange-500 font-bold tracking-widest">3º LUGAR</div><div class="text-orange-400 font-mono font-bold text-lg leading-none mt-1">${data.terceros || 0}</div></div></div>`;
-            
-            const teamHtml = (data.equipo_nombre && data.equipo_nombre !== 'Ninguno') 
-                ? `<div class="mt-4 p-3 bg-gray-800/50 border border-gray-700 rounded-xl flex items-center justify-between shadow-inner"><div class="flex items-center gap-3"><i class="fas fa-shield-alt text-gray-500 text-xl mx-2"></i><span class="text-white font-bold text-sm truncate uppercase">${data.equipo_nombre}</span></div><span class="text-xs font-mono font-bold text-cyan-400 bg-cyan-900/40 border border-cyan-800 px-2 py-1 rounded">${data.equipo_puntos || 0} PTS</span></div>` 
+
+            const teamHtml = (data.equipo_nombre && data.equipo_nombre !== 'Ninguno')
+                ? `<div class="mt-4 p-3 bg-gray-800/50 border border-gray-700 rounded-xl flex items-center justify-between shadow-inner"><div class="flex items-center gap-3"><i class="fas fa-shield-alt text-gray-500 text-xl mx-2"></i><span class="text-white font-bold text-sm truncate uppercase">${data.equipo_nombre}</span></div><span class="text-xs font-mono font-bold text-cyan-400 bg-cyan-900/40 border border-cyan-800 px-2 py-1 rounded">${data.equipo_puntos || 0} PTS</span></div>`
                 : `<div class="mt-4 p-3 bg-gray-900 border border-gray-800 rounded-xl text-center text-xs text-gray-500 font-bold tracking-widest uppercase">AGENTE LIBRE</div>`;
 
             const mejorTitulo = (data.titulos || []).find(t => t.unlocked) || data.titulos[data.titulos.length - 1];
@@ -798,24 +799,56 @@
     async function abrirListaJugadores(eventId, aforoMaximo) {
         triggerHaptic('light');
         currentListaAforo = aforoMaximo;
-        
+
         document.getElementById('listadoJugadoresContent').innerHTML = '<div class="text-center mt-10"><i class="fas fa-spinner fa-spin text-cyan-500 text-3xl mb-3"></i></div>';
-        document.getElementById('listaModal').classList.add('active'); 
+        document.getElementById('listaModal').classList.add('active');
         document.body.style.overflow = 'hidden';
 
         try {
-            const res = await fetch(`/api/torneos/${eventId}/jugadores`, { headers: { 'Accept': 'application/json' } }); 
+            const res = await fetch(`/api/torneos/${eventId}/jugadores`, { headers: { 'Accept': 'application/json' } });
             const data = await res.json();
-            
-            if (!res.ok || !data.jugadores) { 
+
+            if (!res.ok || !data.jugadores) {
                 document.getElementById('listadoJugadoresContent').innerHTML = '<div class="text-center text-red-500 py-4 font-bold text-sm">Error o falta de permisos.</div>';
-                return; 
+                return;
             }
-            
+
             let listaHTML = '';
             const eventType = data.event_type;
             const isTeamEvent = Boolean(data.is_team_event);
             const limiteReal = data.aforo_maximo || currentListaAforo;
+
+            // GESTOR DE AYUDANTES DEL TORNEO (SOLO PARA JUECES O CREADOR DEL EVENTO)
+            if (data.can_manage_helpers) {
+                const pillsStaff = (data.staff_asignado || []).map(st => {
+                    const badgeCol = st.is_judge ? 'border-yellow-500/60 text-yellow-400' : (st.is_revisor ? 'border-fuchsia-700 text-fuchsia-400' : 'border-cyan-600 text-cyan-300');
+                    return `
+                        <span class="inline-flex items-center gap-1.5 bg-gray-950 border ${badgeCol} px-2 py-1 rounded-lg text-[10px] font-bold">
+                            ${st.name}
+                            <button type="button" onclick="quitarAyudanteTorneo(${eventId}, ${st.id}, '${st.name.replace(/'/g, "\\'")}')" class="text-red-400 hover:text-red-300 ml-1"><i class="fas fa-times"></i></button>
+                        </span>`;
+                }).join('');
+
+                listaHTML += `
+                    <div class="mb-3 bg-gray-900/90 border border-yellow-600/40 p-3 rounded-xl shadow-inner">
+                        <label class="text-[10px] text-yellow-400 font-bold tracking-widest uppercase block mb-2">
+                            <i class="fas fa-hands-helping mr-1"></i> AÑADIR AYUDANTE / STAFF A ESTE TORNEO
+                        </label>
+                        <div class="flex gap-2 mb-2">
+                            <div class="flex-1">
+                                <select id="staffAddHelperSelect" class="w-full" placeholder="Buscar ayudante..." autocomplete="off">
+                                    <option value="">Buscar usuario para ayudar...</option>
+                                    ${(data.available_staff_users || []).map(u => `<option value="${u.id}">${u.name}</option>`).join('')}
+                                </select>
+                            </div>
+                            <button onclick="anadirAyudanteTorneo(${eventId})" class="bg-yellow-600 hover:bg-yellow-500 text-black px-3.5 rounded-lg font-black transition-all shadow-md text-xs">
+                                + STAFF
+                            </button>
+                        </div>
+                        ${pillsStaff ? `<div class="flex flex-wrap gap-1.5 pt-1 border-t border-gray-800">${pillsStaff}</div>` : ''}
+                    </div>
+                `;
+            }
 
             // Buscador manual para el Juez
             if (data.is_staff && data.available_users) {
@@ -865,8 +898,8 @@
                 const isDropped = jugador.puesto === 'dropped' || jugador.bracket_status === 'dropped';
                 const esReserva = jugador.bracket_status === 'reserva';
                 const safeName = jugador.name.replace(/'/g, "\\'");
-                
-                const deckIcon = jugador.has_deck 
+
+                const deckIcon = jugador.has_deck
                     ? `<span class="text-green-400 text-[9px] bg-green-950/60 border border-green-700/50 px-1.5 py-0.5 rounded font-bold mr-2 shrink-0" title="Deck Registrado"><i class="fas fa-layer-group"></i> OK</span>`
                     : `<span class="text-yellow-500 text-[9px] bg-yellow-950/60 border border-yellow-700/50 px-1.5 py-0.5 rounded font-bold mr-2 shrink-0" title="Sin Deck / Tentativo"><i class="fas fa-exclamation-circle"></i> SIN DECK</span>`;
 
@@ -878,7 +911,7 @@
                 } else {
                     badgeHTML = `<span class="bg-green-950 text-green-400 border border-green-700/60 text-[9px] px-2 py-0.5 rounded font-black shrink-0">#${jugador.active_pos || ''} ENTRA</span>`;
                 }
-                
+
                 let staffBtns = '';
                 if (!isDropped && data.is_staff) {
                     staffBtns = `
@@ -939,21 +972,54 @@
                     listaHTML += droppedList.map(j => renderFilaJugador(j)).join('');
                 }
             }
-            
-            document.getElementById('listadoJugadoresContent').innerHTML = listaHTML; 
-            
+
+            document.getElementById('listadoJugadoresContent').innerHTML = listaHTML;
+
             if (document.getElementById('staffAddUserSelect')) {
                 new TomSelect('#staffAddUserSelect', { create: false, sortField: { field: "text", direction: "asc" }, maxOptions: 100 });
             }
-        } catch (error) { 
+            if (document.getElementById('staffAddHelperSelect')) {
+                new TomSelect('#staffAddHelperSelect', { create: false, sortField: { field: "text", direction: "asc" }, maxOptions: 100 });
+            }
+        } catch (error) {
             document.getElementById('listadoJugadoresContent').innerHTML = '<div class="text-center text-red-500 py-4 font-bold text-sm">Error de conexión</div>';
         }
+    }
+
+    async function anadirAyudanteTorneo(eventId) {
+        const select = document.getElementById('staffAddHelperSelect');
+        if (!select || !select.value) { mostrarToast("Selecciona un usuario para añadir como ayudante.", true); return; }
+        triggerHaptic('medium');
+        try {
+            const res = await fetch(`/api/torneos/${eventId}/staff/add`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'), 'Accept': 'application/json' },
+                body: JSON.stringify({ user_id: select.value })
+            });
+            const data = await res.json();
+            mostrarToast(data.message, !data.success);
+            if (data.success) { cargarEventos(); abrirListaJugadores(eventId, currentListaAforo); }
+        } catch (e) { mostrarToast("Error al asignar ayudante.", true); }
+    }
+
+    async function quitarAyudanteTorneo(eventId, userId, userName) {
+        if (!confirm(`¿Retirar los permisos de ayudante en este torneo a ${userName}?`)) return;
+        triggerHaptic('medium');
+        try {
+            const res = await fetch(`/api/torneos/${eventId}/staff/${userId}`, {
+                method: 'DELETE',
+                headers: { 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'), 'Accept': 'application/json' }
+            });
+            const data = await res.json();
+            mostrarToast(data.message, !data.success);
+            if (data.success) { cargarEventos(); abrirListaJugadores(eventId, currentListaAforo); }
+        } catch (e) { mostrarToast("Error al retirar ayudante.", true); }
     }
 
     async function anadirJugadorManual(eventId) {
         const select = document.getElementById('staffAddUserSelect');
         if (!select || !select.value) { mostrarToast("Por favor, busca y selecciona un jugador.", true); triggerHaptic('error'); return; }
-        
+
         triggerHaptic('medium');
         const userId = select.value;
         const btn = select.closest('.flex').querySelector('button');
@@ -968,7 +1034,7 @@
             });
             const data = await res.json();
             mostrarToast(data.message, !data.success);
-            if(data.success) { cargarEventos(); abrirListaJugadores(eventId, currentListaAforo); } 
+            if(data.success) { cargarEventos(); abrirListaJugadores(eventId, currentListaAforo); }
             else { btn.disabled = false; btn.innerHTML = oldText; }
         } catch(e) { mostrarToast("Error al añadir jugador.", true); btn.disabled = false; btn.innerHTML = oldText; }
     }
@@ -983,25 +1049,25 @@
             });
             const data = await res.json();
             mostrarToast(data.message, !data.success);
-            if(data.success) abrirListaJugadores(eventId, currentListaAforo); 
+            if(data.success) abrirListaJugadores(eventId, currentListaAforo);
         } catch(e) { mostrarToast("Error al ejecutar Drop", true); }
     }
-    
+
     function cerrarListaModal() { triggerHaptic('light'); document.getElementById('listaModal').classList.remove('active'); document.body.style.overflow = 'auto'; }
 
     // --- DECK ---
     async function cargarPiezas() { try { dbPiezas = await (await fetch('/api/piezas')).json(); } catch (error) { console.error("Error piezas:", error); } }
     function cerrarModal() { triggerHaptic('light'); document.getElementById('deckModal').classList.remove('active'); document.body.style.overflow = 'auto'; document.getElementById('deckForm').reset(); toggleTentative(); }
-    
+
     function toggleTentative() {
         triggerHaptic('light'); const isTentative = document.getElementById('tentativeCheck').checked; const container = document.getElementById('beysContainer'); const btn = document.getElementById('btnSubmitDeck');
-        if (isTentative) { container.style.opacity = '0.3'; container.style.pointerEvents = 'none'; document.getElementById('tentativeWarning').classList.remove('hidden'); btn.className = "w-full bg-yellow-500 active:bg-yellow-400 text-black font-bold py-3 mt-6 rounded-lg text-sm tracking-wide shadow-md transition-colors"; } 
+        if (isTentative) { container.style.opacity = '0.3'; container.style.pointerEvents = 'none'; document.getElementById('tentativeWarning').classList.remove('hidden'); btn.className = "w-full bg-yellow-500 active:bg-yellow-400 text-black font-bold py-3 mt-6 rounded-lg text-sm tracking-wide shadow-md transition-colors"; }
         else { container.style.opacity = '1'; container.style.pointerEvents = 'auto'; document.getElementById('tentativeWarning').classList.add('hidden'); btn.className = "w-full bg-cyan-600 active:bg-cyan-500 text-white font-bold py-3 mt-6 rounded-lg text-sm tracking-wide shadow-md transition-colors"; }
     }
 
     function generarFormularioBeys() {
         if(!dbPiezas) return;
-        const container = document.getElementById('beysContainer'); 
+        const container = document.getElementById('beysContainer');
         let htmlTemp = '';
 
         // Obtenemos los roles del usuario inyectados en una etiqueta meta (o asumiendo que los cargamos en el auth)
@@ -1030,10 +1096,10 @@
                     ${options ? options.map(opt => `<option value="${opt}">${opt}</option>`).join('') : ''}
                 </select>
             </div>`;
-            
+
         const numBeys = (currentEventType === 'equipos' || currentEventType === 'crew_battle') ? 1 : 3;
-        for (let i = 1; i <= numBeys; i++) { 
-            htmlTemp += `<div class="bg-gray-800/50 p-4 rounded-xl border border-gray-700/50 mb-4 shadow-inner"><div class="flex items-center gap-2 text-cyan-400 font-bold text-xs mb-3 tracking-widest border-b border-gray-700/50 pb-2"><i class="fas fa-compact-disc"></i> BEYBLADE #${i}</div><div class="grid grid-cols-1 gap-3 mb-3">${crearSelect('blade', i, dbPiezas.blades, 'Selecciona Blade...', true)}</div><div class="grid grid-cols-2 gap-3 mb-3">${crearSelect('ratchet', i, dbPiezas.ratchets, 'Ratchet...', true)}${crearSelect('bit', i, dbPiezas.bits, 'Bit...', true)}</div><div class="grid grid-cols-2 gap-3">${crearSelect('over_blade', i, dbPiezas.over_blades, 'Over (Opcional)', false)}${crearSelect('assist_blade', i, dbPiezas.assist_blades, 'Assist (Opcional)', false)}</div></div>`; 
+        for (let i = 1; i <= numBeys; i++) {
+            htmlTemp += `<div class="bg-gray-800/50 p-4 rounded-xl border border-gray-700/50 mb-4 shadow-inner"><div class="flex items-center gap-2 text-cyan-400 font-bold text-xs mb-3 tracking-widest border-b border-gray-700/50 pb-2"><i class="fas fa-compact-disc"></i> BEYBLADE #${i}</div><div class="grid grid-cols-1 gap-3 mb-3">${crearSelect('blade', i, dbPiezas.blades, 'Selecciona Blade...', true)}</div><div class="grid grid-cols-2 gap-3 mb-3">${crearSelect('ratchet', i, dbPiezas.ratchets, 'Ratchet...', true)}${crearSelect('bit', i, dbPiezas.bits, 'Bit...', true)}</div><div class="grid grid-cols-2 gap-3">${crearSelect('over_blade', i, dbPiezas.over_blades, 'Over (Opcional)', false)}${crearSelect('assist_blade', i, dbPiezas.assist_blades, 'Assist (Opcional)', false)}</div></div>`;
         }
         container.innerHTML = htmlTemp;
 
@@ -1042,23 +1108,23 @@
         });
     }
 
-    async function abrirModal(eventId, status = 'OPEN', targetUserId = null, targetUserName = null, eventType = null) { 
-        triggerHaptic('light'); 
+    async function abrirModal(eventId, status = 'OPEN', targetUserId = null, targetUserName = null, eventType = null) {
+        triggerHaptic('light');
         currentTargetUserId = targetUserId;
         currentEventType = eventType;
-        document.getElementById('modal_event_id').value = eventId; 
-        
+        document.getElementById('modal_event_id').value = eventId;
+
         if (!dbPiezas) await cargarPiezas();
-        
+
         const checkTentative = document.getElementById('tentativeCheck');
         if (checkTentative) checkTentative.checked = false;
         toggleTentative();
 
-        document.getElementById('deckModal').classList.add('active'); 
+        document.getElementById('deckModal').classList.add('active');
         document.getElementById('deckModal').style.zIndex = "110";
         document.body.style.overflow = 'hidden';
 
-        generarFormularioBeys(); 
+        generarFormularioBeys();
 
         const warning = document.getElementById('tentativeWarning');
         if (targetUserName && warning) {
@@ -1074,8 +1140,8 @@
             if (res.ok) {
                 const deck = await res.json();
                 deck.forEach((bey, index) => {
-                    const i = index + 1; 
-                    if (i > 3) return; 
+                    const i = index + 1;
+                    if (i > 3) return;
                     const setSelectValue = (id, val) => {
                         const el = document.getElementById(id);
                         if (!el || !val || val === '-') return;
@@ -1113,12 +1179,12 @@
     async function autorrellenarDeck() {
         triggerHaptic('medium');
         try {
-            mostrarToast("Buscando en el historial..."); 
-            const res = await fetch('/api/ultimo-deck'); 
+            mostrarToast("Buscando en el historial...");
+            const res = await fetch('/api/ultimo-deck');
             const deck = await res.json();
             if (!deck || deck.length === 0) { mostrarToast("No tienes Decks anteriores.", true); return; }
-            deck.forEach((bey, index) => { 
-                const i = index + 1; if (i > 3) return; 
+            deck.forEach((bey, index) => {
+                const i = index + 1; if (i > 3) return;
                 const setVal = (field, val) => {
                     const el = document.getElementById(`${field}_${i}`);
                     if (el && val && val !== '-') { if (el.tomselect) el.tomselect.setValue(val); else el.value = val; }
@@ -1150,7 +1216,7 @@
         try {
             const res = await fetch(`/api/torneos/${eventId}/jugadores`, { headers: { 'Accept': 'application/json' } });
             const data = await res.json();
-            if (res.ok) { if (navigator.clipboard) { await navigator.clipboard.writeText(data.nombres); mostrarToast("✅ Nombres listos para Challonge"); } else mostrarToast("El navegador bloqueó el copiado automático.", true); } 
+            if (res.ok) { if (navigator.clipboard) { await navigator.clipboard.writeText(data.nombres); mostrarToast("✅ Nombres listos para Challonge"); } else mostrarToast("El navegador bloqueó el copiado automático.", true); }
             else mostrarToast(data.message, true);
         } catch (error) { mostrarToast("Error al extraer la lista.", true); }
     }
@@ -1225,30 +1291,30 @@
         currentArenaEventId = eventId;
         currentArenaMode = 'judge';
         currentArenaTab = 'cruces';
-        
+
         const modal = document.getElementById('arbitrajeModal');
         const container = document.getElementById('arbitrajeContent');
         const footer = document.getElementById('arbitrajeFooter');
         const btnGenerar = document.getElementById('btnGenerarRonda');
-        
+
         if (!modal.classList.contains('active')) {
             container.innerHTML = '<div class="text-center mt-10"><i class="fas fa-circle-notch fa-spin text-yellow-500 text-3xl mb-3"></i><p class="text-gray-500 text-sm font-bold tracking-widest">SINTONIZANDO ARENA...</p></div>';
         }
 
         modal.classList.add('active');
         document.body.style.overflow = 'hidden';
-        
+
         let url = `/api/torneos/${eventId}/arena`;
         if (round !== null) url += `?round=${round}`;
 
         try {
             const res = await fetch(url);
             const data = await res.json();
-            
+
             currentArenaRound = data.current_round;
             currentRoundMatchesCache = data.matches || [];
             document.getElementById('arbitraje_event_name').innerText = data.event_name;
-            
+
             if (data.max_round === 0) {
                 container.innerHTML = `
                     <div class="text-center py-12 px-4">
@@ -1268,10 +1334,10 @@
                 for (let i = 1; i <= data.max_round; i++) {
                     const isAct = (i === data.current_round);
                     const status = data.rounds_status ? data.rounds_status[i] : 'pending';
-                    let colorClass = isAct 
-                        ? 'bg-cyan-600 text-white border-cyan-400 shadow-[0_0_12px_rgba(6,182,212,0.5)]' 
+                    let colorClass = isAct
+                        ? 'bg-cyan-600 text-white border-cyan-400 shadow-[0_0_12px_rgba(6,182,212,0.5)]'
                         : (status === 'completed' ? 'bg-green-950/60 text-green-400 border-green-800/80 hover:bg-green-900/60' : 'bg-orange-950/60 text-orange-400 border-orange-800/80 hover:bg-orange-900/60');
-                    
+
                     roundSelectorHTML += `<button id="tab-round-${i}" onclick="abrirPanelArbitraje(${eventId}, ${i})" class="shrink-0 px-3.5 py-1.5 rounded-lg border text-[11px] font-black font-mono tracking-wider transition-all ${colorClass}">R${i} ${status === 'completed' ? '<i class="fas fa-check ml-0.5 text-[9px]"></i>' : ''}</button>`;
                 }
                 roundSelectorHTML += `</div>`;
@@ -1314,7 +1380,7 @@
                             </div>
                         </div>
                     </div>
-
+                    ${data.bye_player ? `<div class="mb-2.5 bg-cyan-950/40 border border-cyan-700/50 rounded-xl px-3 py-2 flex items-center justify-between text-xs"><span class="text-cyan-400 font-bold uppercase"><i class="fas fa-forward mr-1.5"></i> BYE EN ESTA RONDA: <b class="text-white">${data.bye_player}</b></span><span class="font-mono text-[10px] bg-cyan-900/60 text-cyan-200 px-2 py-0.5 rounded font-bold">+3 PTS (AUTO)</span></div>` : ''}
                     <div id="arenaMatchesListContainer" class="space-y-2.5 pb-4"></div>
                 `;
 
@@ -1331,7 +1397,7 @@
 
                         htmlTemp += `<div class="flex flex-col gap-2.5 w-full mt-2 mb-6 p-3 bg-gray-900/90 border border-green-500/40 rounded-xl shadow-[0_0_20px_rgba(34,197,94,0.15)]">
                             <div class="text-center text-[10px] font-black text-green-400 tracking-widest uppercase"><i class="fas fa-check-double mr-1"></i> ${isTeamTournament ? 'TODOS LOS DUELOS COMPLETADOS' : 'RONDA COMPLETADA - SIGUIENTE PASO'}</div>`;
-                        
+
                         if (!isBracket && !isTeamTournament) {
                             htmlTemp += `
                                 <button onclick="generarSiguienteRonda()" class="w-full bg-green-600 hover:bg-green-500 font-black py-3.5 rounded-xl text-xs sm:text-sm text-white tracking-wider uppercase shadow-lg transition-all"><i class="fas fa-cogs mr-2"></i> GENERAR RONDA ${data.max_round + 1}</button>
@@ -1354,7 +1420,7 @@
                     const activeTab = document.getElementById(`tab-round-${data.current_round}`);
                     if (activeTab) activeTab.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
                 }, 50);
-            } 
+            }
         } catch (error) {
             container.innerHTML = '<p class="text-red-500 text-center font-bold mt-10">Error de conexión.</p>';
         }
@@ -1475,7 +1541,7 @@
                         </span>
                         ${match.bracket_type !== 'swiss' && match.bracket_type !== 'round_robin' ? `<span class="${match.bracket_type === 'winners' ? 'bg-fuchsia-950 text-fuchsia-300 border-fuchsia-800' : (match.bracket_type === 'losers' ? 'bg-orange-950 text-orange-300 border-orange-800' : 'bg-yellow-950 text-yellow-300 border-yellow-700')} border text-[9px] font-black px-2 py-0.5 rounded uppercase tracking-widest">${match.bracket_type.replace(/_/g, ' ')}</span>` : ''}
                     </div>
-                    
+
                     <div class="flex justify-between items-center mb-3 bg-gray-950/60 p-2.5 rounded-lg border border-gray-800/60">
                         <div class="flex-1 flex items-center justify-between pr-2 border-r border-gray-800">
                             <span class="text-xs font-bold ${!missingParticipants ? (w1 ? 'text-yellow-400' : 'text-white') : 'text-gray-600'} truncate max-w-[115px] sm:max-w-[150px] uppercase">${p1}</span>
@@ -1517,25 +1583,25 @@
         const container = document.getElementById('arbitrajeContent');
         const footer = document.getElementById('arbitrajeFooter');
         if (footer) footer.classList.add('hidden');
-        
+
         if (!modal.classList.contains('active')) {
             container.innerHTML = '<div class="text-center mt-10"><i class="fas fa-circle-notch fa-spin text-fuchsia-500 text-3xl mb-3"></i><p class="text-gray-500 text-sm font-bold tracking-widest">SINTONIZANDO ARENA...</p></div>';
         }
 
         modal.classList.add('active');
         document.body.style.overflow = 'hidden';
-        
+
         let url = `/api/torneos/${eventId}/arena`;
         if (round !== null) url += `?round=${round}`;
 
         try {
             const res = await fetch(url);
             const data = await res.json();
-            
+
             currentArenaRound = data.current_round;
             currentRoundMatchesCache = data.matches || [];
             document.getElementById('arbitraje_event_name').innerText = data.event_name;
-            
+
             if (data.max_round === 0) {
                 container.innerHTML = `
                     <div class="text-center py-10">
@@ -1561,14 +1627,15 @@
                     <div class="mb-3">
                         <input type="text" id="arenaMatchSearch" oninput="filtrarTarjetasRonda()" placeholder="Buscar jugador en esta ronda..." class="w-full bg-gray-900 border border-gray-800 focus:border-fuchsia-500 text-white text-xs rounded-lg px-3 py-2 outline-none">
                     </div>
+                    ${data.bye_player ? `<div class="mb-2.5 bg-cyan-950/40 border border-cyan-700/50 rounded-xl px-3 py-2 flex items-center justify-between text-xs"><span class="text-cyan-400 font-bold uppercase"><i class="fas fa-forward mr-1.5"></i> BYE EN ESTA RONDA: <b class="text-white">${data.bye_player}</b></span><span class="font-mono text-[10px] bg-cyan-900/60 text-cyan-200 px-2 py-0.5 rounded font-bold">+3 PTS (AUTO)</span></div>` : ''}
                     <div id="arenaMatchesListContainer" class="space-y-2.5 pb-4"></div>`;
-                
+
                 container.innerHTML = htmlTemp;
                 currentMatchFilter = 'all';
                 renderizarTarjetasRonda(data.matches, false);
-            } 
-        } catch (error) { 
-            container.innerHTML = '<p class="text-red-500 text-center font-bold mt-10">Error de conexión.</p>'; 
+            }
+        } catch (error) {
+            container.innerHTML = '<p class="text-red-500 text-center font-bold mt-10">Error de conexión.</p>';
         }
     }
 
@@ -1581,7 +1648,7 @@
     async function generarSiguienteRonda() {
         if(!confirm("¿Atención Juez: Generar los emparejamientos de esta ronda?")) return;
         triggerHaptic('heavy');
-        
+
         const btn = document.getElementById('btnGenerarRonda');
         let oldText = '';
         if (btn) { oldText = btn.innerHTML; btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> GENERANDO...'; }
@@ -1593,7 +1660,7 @@
             });
             const data = await res.json();
             mostrarToast(data.message, !data.success);
-            if (data.success) abrirPanelArbitraje(currentArenaEventId); 
+            if (data.success) abrirPanelArbitraje(currentArenaEventId);
         } catch (error) {
             mostrarToast("Error de transmisión con el motor Suizo.", true);
         } finally {
@@ -1617,20 +1684,20 @@
         if (!lockStatus.success) {
             mostrarToast("⚠️ Esta partida ya la está juzgando otro árbitro", true);
             triggerHaptic('error');
-            return; 
+            return;
         }
 
         triggerHaptic('medium');
         const modal = document.getElementById('batallaModal');
         modal.classList.remove('hidden');
         modal.classList.add('flex');
-        
+
         if (battleState.matchId !== matchId) isSideSwapped = false;
-        battleState.matchId = matchId; 
-        
+        battleState.matchId = matchId;
+
         resetBatallaUI();
         aplicarEstadoLados();
-        
+
         const btnW1 = document.getElementById('btn_warning_p1');
         const btnW2 = document.getElementById('btn_warning_p2');
         if (btnW1) btnW1.className = "text-gray-500 hover:text-yellow-400 bg-gray-950/90 border border-gray-800 rounded-md px-2 py-1 transition-all text-xs flex items-center gap-1 cursor-pointer";
@@ -1645,7 +1712,7 @@
             const res = await fetch(`/api/torneos/partida/${matchId}`);
             const data = await res.json();
             currentMatchData = data;
-            
+
             const badgeMesa = document.getElementById('batalla_match_badge');
             if (badgeMesa) badgeMesa.innerText = `PARTIDA #${data.match.match_number || data.match.id}`;
 
@@ -1717,7 +1784,7 @@
         const winnerName = winnerSide === 'p1' ? document.getElementById('batalla_p1_name').innerText : document.getElementById('batalla_p2_name').innerText;
 
         if (!confirm(`¿Marcar a ${absentName} como NO PRESENTADO?\n\nSe otorgará la victoria automáticamente a ${winnerName}.`)) return;
-        
+
         triggerHaptic('heavy');
         try {
             const res = await fetch(`/api/torneos/partida/${battleState.matchId}/victoria-rapida`, {
@@ -1816,7 +1883,7 @@
             container.innerHTML = '<p class="text-red-500 text-xs font-bold">Sin deck registrado.</p>';
             return;
         }
-        
+
         let html = '';
         let disponiblesIds = [];
 
@@ -1857,10 +1924,10 @@
             container.innerHTML = '<p class="text-red-500 text-xs font-bold">Sin alineación.</p>';
             return;
         }
-        
+
         let html = '';
         let disponiblesIds = [];
-        
+
         deckArray.forEach((bey, idx) => {
             const yaUsado = usedIds.includes(Number(bey.id));
             const rawPlayerName = bey.user_name || bey.player_name || (bey.user ? bey.user.name : null) || `JUGADOR ${idx + 1}`;
@@ -1908,7 +1975,7 @@
                     </div>`;
             }
         });
-        
+
         container.innerHTML = html;
         if (disponiblesIds.length > 0) {
             seleccionarBeyEquipo(playerKey, disponiblesIds[0].id, disponiblesIds[0].user_id, true);
@@ -1922,24 +1989,24 @@
 
     async function enviarDueloRapidoArena() {
         triggerHaptic('heavy');
-        const t1 = document.getElementById('team_id_1').value; 
+        const t1 = document.getElementById('team_id_1').value;
         const t2 = document.getElementById('team_id_2').value;
         if (!t1 || !t2) { mostrarToast("Por favor, selecciona los clanes.", true); return; }
         if (t1 === t2) { mostrarToast("No pueden jugar contra sí mismos.", true); return; }
-        
-        const btn = document.getElementById('btnSubmitDueloArena'); 
+
+        const btn = document.getElementById('btnSubmitDueloArena');
         btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> ABRIENDO ARENA...';
-        
+
         try {
-            const res = await fetch('/api/torneos/duelo-rapido', { 
-                method: 'POST', 
-                headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'), 'Accept': 'application/json' }, 
-                body: JSON.stringify({ team1_id: t1, team2_id: t2 }) 
+            const res = await fetch('/api/torneos/duelo-rapido', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'), 'Accept': 'application/json' },
+                body: JSON.stringify({ team1_id: t1, team2_id: t2 })
             });
             const data = await res.json();
-            if (res.ok && data.success) { 
+            if (res.ok && data.success) {
                 mostrarToast("¡Arena Creada y Lista!"); cerrarModalDuelo(); cargarEventos(); abrirPanelArbitraje(data.event_id);
-            } else mostrarToast(data.message || "Error al crear el duelo.", true); 
+            } else mostrarToast(data.message || "Error al crear el duelo.", true);
         } catch (error) { mostrarToast("Error de transmisión", true); }
         btn.disabled = false; btn.innerHTML = '<i class="fas fa-bolt text-yellow-400 mr-2"></i> IR A LA ARENA (JUZGAR)';
     }
@@ -1976,40 +2043,40 @@
     function seleccionarGanador(playerKey) {
         triggerHaptic('light');
         battleState.winnerId = playerKey === 'p1' ? document.getElementById('batalla_p1_id').value : document.getElementById('batalla_p2_id').value;
-        
+
         const btnP1 = document.getElementById('btn_ganador_p1');
         const btnP2 = document.getElementById('btn_ganador_p2');
         btnP1.className = "flex-1 bg-gray-900 border-2 border-gray-700 text-gray-400 font-bold py-2.5 px-2 rounded-xl text-xs uppercase tracking-wider transition-all active:scale-95 shadow-lg truncate";
         btnP2.className = "flex-1 bg-gray-900 border-2 border-gray-700 text-gray-400 font-bold py-2.5 px-2 rounded-xl text-xs uppercase tracking-wider transition-all active:scale-95 shadow-lg truncate";
-        
+
         if (playerKey === 'p1') {
             btnP1.className = "flex-1 bg-cyan-700 border-2 border-cyan-300 text-white font-black py-2.5 px-2 rounded-xl text-xs uppercase tracking-wider transition-all active:scale-95 shadow-[0_0_15px_rgba(6,182,212,0.5)] truncate";
         } else {
             btnP2.className = "flex-1 bg-red-700 border-2 border-red-300 text-white font-black py-2.5 px-2 rounded-xl text-xs uppercase tracking-wider transition-all active:scale-95 shadow-[0_0_15px_rgba(239,68,68,0.5)] truncate";
         }
-        
+
         comprobarEstadoBatalla();
     }
 
     function seleccionarFinal(tipo) {
         triggerHaptic('light');
         battleState.finishType = tipo;
-        
+
         ['spin', 'over', 'burst', 'xtreme'].forEach(t => {
             const btn = document.getElementById(`btn_fin_${t}`);
             btn.classList.remove('bg-blue-900/80', 'border-blue-400', 'text-white', 'bg-yellow-900/80', 'border-yellow-400', 'bg-orange-900/80', 'border-orange-400', 'bg-fuchsia-900/80', 'border-fuchsia-400', 'shadow-[0_0_15px_rgba(192,38,211,0.5)]');
             btn.classList.add('bg-gray-900', 'border-gray-700', 'text-gray-400');
         });
-        
+
         const btnActivo = document.getElementById(`btn_fin_${tipo}`);
         btnActivo.classList.remove('bg-gray-900', 'border-gray-700', 'text-gray-400');
         btnActivo.classList.add('text-white');
-        
+
         if(tipo === 'spin') btnActivo.classList.add('bg-blue-900/80', 'border-blue-400');
         if(tipo === 'over') btnActivo.classList.add('bg-yellow-900/80', 'border-yellow-400');
         if(tipo === 'burst') btnActivo.classList.add('bg-orange-900/80', 'border-orange-400');
         if(tipo === 'xtreme') btnActivo.classList.add('bg-fuchsia-900/80', 'border-fuchsia-400', 'shadow-[0_0_15px_rgba(192,38,211,0.5)]');
-        
+
         comprobarEstadoBatalla();
     }
 
@@ -2036,7 +2103,7 @@
         battleState.p2ComboId = null;
         battleState.winnerId = null;
         battleState.finishType = null;
-        
+
         document.getElementById('zona_resultados').classList.add('opacity-30', 'pointer-events-none');
         document.getElementById('btn_ganador_p1').className = "flex-1 bg-gray-900 border-2 border-gray-700 text-gray-300 font-black py-2.5 px-2 rounded-xl text-xs uppercase tracking-wider transition-all shadow-lg truncate";
         document.getElementById('btn_ganador_p2').className = "flex-1 bg-gray-900 border-2 border-gray-700 text-gray-300 font-black py-2.5 px-2 rounded-xl text-xs uppercase tracking-wider transition-all shadow-lg truncate";
@@ -2054,7 +2121,7 @@
         const btnGuardar = document.getElementById('btn_guardar_batalla');
         btnGuardar.className = "w-full bg-gray-800 text-gray-500 font-black py-3 rounded-xl text-xs sm:text-sm tracking-widest uppercase transition-all shadow-lg pointer-events-none";
         btnGuardar.innerHTML = "SELECCIONA BEYS Y RESULTADO";
-        
+
         const scrollCont = document.getElementById('batallaScrollContainer');
         if (scrollCont) scrollCont.scrollTop = 0;
     }
@@ -2073,7 +2140,7 @@
     async function guardarBatalla() {
         triggerHaptic('heavy');
         const btn = document.getElementById('btn_guardar_batalla');
-        btn.classList.add('pointer-events-none'); 
+        btn.classList.add('pointer-events-none');
         btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> REGISTRANDO...';
 
         try {
@@ -2088,13 +2155,13 @@
                 })
             });
             const data = await res.json();
-            
+
             if (data.success) {
                 const p1Score = document.getElementById('batalla_score_p1');
                 const p2Score = document.getElementById('batalla_score_p2');
                 p1Score.innerText = data.p1_score;
                 p2Score.innerText = data.p2_score;
-                
+
                 if(battleState.winnerId == document.getElementById('batalla_p1_id').value) {
                     p1Score.classList.add('scale-125', 'text-white'); setTimeout(() => p1Score.classList.remove('scale-125', 'text-white'), 300);
                 } else {
@@ -2113,8 +2180,19 @@
                 comprobarEstadoBatalla();
             }
         } catch (error) {
-            mostrarToast("Error de red al guardar", true);
-            comprobarEstadoBatalla();
+            // PREVENCIÓN DE DESASTRES: Si falla la red, guardamos el resultado en la cola local del dispositivo
+            encolarAccionOffline({
+                url: `/api/torneos/partida/${battleState.matchId}/batalla`,
+                method: 'POST',
+                payload: {
+                    player1_combo_id: battleState.p1ComboId,
+                    player2_combo_id: battleState.p2ComboId,
+                    winner_id: battleState.winnerId,
+                    finish_type: battleState.finishType
+                },
+                label: `Partida #${battleState.matchId} (${battleState.finishType.toUpperCase()})`
+            });
+            resetBatallaUI();
         }
     }
 
@@ -2125,83 +2203,101 @@
         const container = document.getElementById('arbitrajeContent');
         const footer = document.getElementById('arbitrajeFooter');
         if(footer) footer.classList.add('hidden');
-        
+
         container.innerHTML = '<div class="text-center mt-10"><i class="fas fa-circle-notch fa-spin text-cyan-500 text-3xl mb-3"></i><p class="text-gray-500 text-sm font-bold tracking-widest">CALCULANDO CLASIFICACIÓN...</p></div>';
-        
+
         try {
             const res = await fetch(`/api/torneos/${eventId}/clasificacion`);
             const data = await res.json();
-            
+
             const isEliminatoria = data.is_bracket;
-            const thPts = isEliminatoria ? 'RESULTADO' : 'PTS';
-            
+
             let htmlTemp = `
                 <div class="flex bg-gray-900 border border-gray-800 rounded-xl p-1 mb-4">
                     <button onclick="volverACrucesArena(${eventId})" class="flex-1 text-center text-[11px] tracking-widest py-2 rounded-lg text-gray-400 hover:text-white font-bold transition-colors"><i class="fas fa-swords mr-1"></i> CRUCES</button>
                     <button class="flex-1 text-center text-[11px] tracking-widest py-2 rounded-lg text-cyan-400 bg-gray-800 font-black transition-colors"><i class="fas fa-list-ol mr-1"></i> TABLA</button>
                     <button onclick="verCuadroArena(${eventId})" class="flex-1 text-center text-[11px] tracking-widest py-2 rounded-lg text-gray-400 hover:text-white font-bold transition-colors"><i class="fas fa-sitemap mr-1"></i> CUADRO</button>
                 </div>
+
                 <div class="bg-gray-900/90 border border-gray-800 rounded-xl overflow-hidden shadow-lg">
-                    <table class="w-full text-left text-sm text-gray-300">
-                        <thead class="bg-gray-950 text-[10px] sm:text-xs uppercase text-gray-500 font-bold tracking-widest border-b border-gray-800">
-                            <tr>
-                                <th class="px-3 py-3 w-10 text-center">#</th>
-                                <th class="px-2 py-3">BLADER</th>
-                                <th class="px-2 py-3 text-center">${thPts}</th>
-                                ${!isEliminatoria ? '<th class="px-3 py-3 text-center">BCH</th>' : ''}
-                            </tr>
-                        </thead>
-                        <tbody class="divide-y divide-gray-800/70">
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left text-xs sm:text-sm text-gray-300">
+                            <thead class="bg-gray-950 text-[9px] sm:text-[10px] uppercase text-gray-400 font-bold tracking-wider border-b border-gray-800">
+                                <tr>
+                                    <th class="px-2.5 py-3 w-8 text-center">#</th>
+                                    <th class="px-2 py-3">BLADER</th>
+                                    <th class="px-1.5 py-3 text-center" title="Rondas Ganadas - Perdidas">V - D</th>
+                                    <th class="px-1.5 py-3 text-center text-yellow-400" title="Puntos de Torneo (3 por victoria)">PTS</th>
+                                    <th class="px-1.5 py-3 text-center" title="Buchholz: Suma de puntos de tus rivales">BCH</th>
+                                    <th class="px-2 py-3 text-center" title="Diferencia de puntos de Beyblade (A favor - En contra)">DIF</th>
+                                    ${isEliminatoria ? '<th class="px-2 py-3 text-center">FASE</th>' : ''}
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-gray-800/70">
             `;
-            
+
             const jugadores = data.clasificacion || data.standings || [];
-            
+
             if (jugadores.length > 0) {
-                let currentRank = 1;
-                let prevPlayer = null;
-
                 jugadores.forEach((player, index) => {
-                    const actualPosition = index + 1;
-                    if (prevPlayer) {
-                        let isTie = false;
-                        if (isEliminatoria && player.bracket_score > 0 && prevPlayer.bracket_score > 0) {
-                            isTie = (player.bracket_score === prevPlayer.bracket_score) && (player.puesto === prevPlayer.puesto);
-                        } else {
-                            isTie = (player.bracket_score === prevPlayer.bracket_score) && (player.points === prevPlayer.points) && (player.buchholz === prevPlayer.buchholz) && (player.puesto === prevPlayer.puesto);
-                        }
-                        if (!isTie) currentRank = actualPosition;
-                    } else currentRank = 1;
-                    
-                    prevPlayer = player;
+                    const currentRank = index + 1;
+                    const isTop = currentRank <= 4 ? 'bg-cyan-900/10' : '';
+                    const rankColor = currentRank === 1 ? 'text-yellow-400' : (currentRank <= 4 ? 'text-cyan-400' : 'text-gray-500');
 
-                    const isTop = currentRank <= 4 ? 'bg-cyan-900/10' : ''; 
-                    let rankColor = currentRank === 1 ? 'text-yellow-400' : (currentRank <= 4 ? 'text-cyan-400' : 'text-gray-500');
-                    
-                    let ptsColumn = `<td class="px-2 py-3 text-center font-black font-mono text-yellow-400">${player.points}</td>`;
-                    let bchColumn = `<td class="px-3 py-3 text-center font-mono text-gray-400 text-xs">${player.buchholz}</td>`;
-                    
+                    const wins = player.wins ?? 0;
+                    const losses = player.losses ?? 0;
+                    const byes = player.byes ?? 0;
+                    const diff = player.point_diff ?? 0;
+                    const diffStr = diff > 0 ? `+${diff}` : `${diff}`;
+                    const diffColor = diff > 0 ? 'text-emerald-400' : (diff < 0 ? 'text-rose-400' : 'text-gray-500');
+
+                    const h2hBadge = player.h2h_wins > 0
+                        ? `<span class="ml-1 text-[8px] bg-cyan-950 text-cyan-300 border border-cyan-700/60 px-1 py-0.5 rounded font-mono" title="Ventaja en Enfrentamiento Directo">H2H</span>`
+                        : '';
+                    const byeBadge = byes > 0
+                        ? `<span class="ml-1 text-[8px] bg-gray-800 text-gray-400 px-1 py-0.5 rounded font-mono">BYE</span>`
+                        : '';
+
+                    let faseColumn = '';
                     if (isEliminatoria) {
-                        bchColumn = '';
-                        if (currentRank === 1 && player.bracket_score > 8000) ptsColumn = `<td class="px-2 py-3 text-center font-bold text-[10px] text-yellow-400 bg-yellow-900/30 uppercase tracking-widest"><i class="fas fa-trophy mr-1"></i> CAMPEÓN</td>`;
-                        else if (currentRank === 2 && player.bracket_score > 8000) ptsColumn = `<td class="px-2 py-3 text-center font-bold text-[10px] text-gray-300 bg-gray-700/50 uppercase tracking-widest">FINALISTA</td>`;
-                        else if (currentRank === 3 && player.bracket_score > 0) ptsColumn = `<td class="px-2 py-3 text-center font-bold text-[10px] text-orange-400 bg-orange-900/30 uppercase tracking-widest">TOP 3</td>`;
-                        else if (currentRank === 4 && player.bracket_score > 0) ptsColumn = `<td class="px-2 py-3 text-center font-bold text-[10px] text-cyan-400 bg-cyan-900/30 uppercase tracking-widest">TOP 4</td>`;
-                        else if (player.bracket_score > 0) ptsColumn = `<td class="px-2 py-3 text-center font-bold text-[10px] text-fuchsia-400 uppercase tracking-widest">TOP ${currentRank}</td>`;
-                        else ptsColumn = `<td class="px-2 py-3 text-center font-mono text-gray-600 text-[10px] tracking-widest">SUÍZO</td>`; 
+                        if (currentRank === 1 && player.bracket_score > 8000) faseColumn = `<td class="px-2 py-2.5 text-center font-bold text-[9px] text-yellow-400 bg-yellow-900/30 uppercase"><i class="fas fa-trophy"></i> 1º</td>`;
+                        else if (currentRank === 2 && player.bracket_score > 8000) faseColumn = `<td class="px-2 py-2.5 text-center font-bold text-[9px] text-gray-300 bg-gray-700/50 uppercase">2º</td>`;
+                        else if (currentRank === 3 && player.bracket_score > 0) faseColumn = `<td class="px-2 py-2.5 text-center font-bold text-[9px] text-orange-400 bg-orange-900/30 uppercase">3º</td>`;
+                        else if (currentRank === 4 && player.bracket_score > 0) faseColumn = `<td class="px-2 py-2.5 text-center font-bold text-[9px] text-cyan-400 bg-cyan-900/30 uppercase">4º</td>`;
+                        else if (player.bracket_score > 0) faseColumn = `<td class="px-2 py-2.5 text-center font-bold text-[9px] text-fuchsia-400 uppercase">TOP</td>`;
+                        else faseColumn = `<td class="px-2 py-2.5 text-center font-mono text-gray-600 text-[9px]">SUIZO</td>`;
                     }
-                    
+
                     htmlTemp += `
                         <tr class="${isTop} hover:bg-gray-800/40 transition-colors">
-                            <td class="px-3 py-3 text-center font-mono font-bold ${rankColor}">${currentRank}</td>
-                            <td class="px-2 py-3 font-bold text-white uppercase tracking-wide truncate max-w-[140px]">${player.name || player.user_name}</td>
-                            ${ptsColumn}${bchColumn}
+                            <td class="px-2.5 py-2.5 text-center font-mono font-black ${rankColor}">${currentRank}</td>
+                            <td class="px-2 py-2.5 font-bold text-white uppercase tracking-wide truncate max-w-[125px] sm:max-w-[180px]">
+                                ${player.name || player.user_name}${h2hBadge}${byeBadge}
+                            </td>
+                            <td class="px-1.5 py-2.5 text-center font-mono text-xs">
+                                <span class="text-emerald-400 font-bold">${wins}</span><span class="text-gray-600">-</span><span class="text-rose-400 font-bold">${losses}</span>
+                            </td>
+                            <td class="px-1.5 py-2.5 text-center font-black font-mono text-yellow-400 text-sm">${player.points}</td>
+                            <td class="px-1.5 py-2.5 text-center font-mono text-cyan-300 font-bold text-xs">${player.buchholz}</td>
+                            <td class="px-2 py-2.5 text-center font-mono font-bold text-xs ${diffColor}" title="${player.pts_for || 0} a favor / ${player.pts_against || 0} en contra">${diffStr}</td>
+                            ${faseColumn}
                         </tr>`;
                 });
             } else {
-                htmlTemp += `<tr><td colspan="4" class="px-4 py-8 text-center text-gray-500 font-bold tracking-widest text-xs">NO HAY RESULTADOS AÚN</td></tr>`;
+                htmlTemp += `<tr><td colspan="7" class="px-4 py-8 text-center text-gray-500 font-bold tracking-widest text-xs">NO HAY RESULTADOS AÚN</td></tr>`;
             }
-            
-            htmlTemp += `</tbody></table></div>`;
+
+            htmlTemp += `
+                        </tbody>
+                    </table>
+                </div>
+                <div class="bg-gray-950 px-3 py-2 border-t border-gray-800 text-[9px] font-mono text-gray-400 flex flex-wrap gap-x-3 gap-y-1">
+                    <span><b class="text-yellow-400">1º PTS:</b> Puntos (3V)</span>
+                    <span><b class="text-cyan-300">2º BCH:</b> Buchholz (Puntos rivales)</span>
+                    <span><b class="text-cyan-400">3º H2H:</b> Duelo directo</span>
+                    <span><b class="text-emerald-400">4º DIF:</b> +/- Puntos Bey</span>
+                </div>
+            </div>`;
             container.innerHTML = htmlTemp;
         } catch (error) {
             container.innerHTML = '<p class="text-red-500 text-center font-bold mt-10">Error al cargar la clasificación.</p>';
@@ -2214,7 +2310,7 @@
         triggerHaptic('light');
         document.getElementById('topCutModal').classList.remove('hidden');
         document.getElementById('topCutModal').classList.add('flex', 'active');
-        
+
         let minTop = 4;
         if (currentTotalPlayers >= 25) minTop = 8;
         if (currentTotalPlayers >= 41) minTop = 16;
@@ -2235,7 +2331,7 @@
         triggerHaptic('heavy');
         document.getElementById('topCutModal').classList.remove('flex', 'active');
         document.getElementById('topCutModal').classList.add('hidden');
-        
+
         try {
             const res = await fetch(`/api/torneos/${currentArenaEventId}/arena/top`, {
                 method: 'POST',
@@ -2257,11 +2353,11 @@
         if(footer) footer.classList.add('hidden');
 
         container.innerHTML = '<div class="text-center mt-10"><i class="fas fa-circle-notch fa-spin text-fuchsia-500 text-3xl mb-3"></i><p class="text-gray-500 text-sm font-bold tracking-widest">DIBUJANDO ÁRBOL COMPLETO...</p></div>';
-        
+
         try {
             const res = await fetch(`/api/torneos/${eventId}/cuadro/html`);
             const htmlBracket = await res.text();
-            
+
             let htmlTemp = `
                 <div class="flex bg-gray-900 border border-gray-800 rounded-xl p-1 mb-3">
                     <button onclick="volverACrucesArena(${eventId})" class="flex-1 text-center text-[11px] tracking-widest py-2 rounded-lg text-gray-400 hover:text-white font-bold transition-colors"><i class="fas fa-swords mr-1"></i> CRUCES</button>
@@ -2269,7 +2365,7 @@
                     <button class="flex-1 text-center text-[11px] tracking-widest py-2 rounded-lg text-fuchsia-400 bg-gray-800 font-black transition-colors"><i class="fas fa-sitemap mr-1"></i> CUADRO</button>
                 </div>
             ` + htmlBracket;
-            
+
             container.innerHTML = htmlTemp;
             setTimeout(dibujarFlechasCuadroModal, 80);
         } catch (error) {
@@ -2352,7 +2448,7 @@
         if (!battleState.matchId) return;
         triggerHaptic('heavy');
         if(!confirm("¿Deshacer el último lanzamiento o resultado de este combate? (Si el jugador ya había avanzado en el cuadro, se revertirá su avance automáticamente).")) return;
-        
+
         try {
             const res = await fetch(`/api/torneos/partida/${battleState.matchId}/undo`, {
                 method: 'DELETE',
@@ -2376,7 +2472,7 @@
                 body: JSON.stringify({ player: playerKey })
             });
             const data = await res.json();
-            
+
             if (data.success) {
                 mostrarToast(data.message);
                 await abrirBatalla(battleState.matchId);
@@ -2409,8 +2505,8 @@
     function obtenerCombosUsadosEnCiclo(battles) {
         if (!battles || !Array.isArray(battles)) return { p1Used: [], p2Used: [], realBattlesCount: 0 };
 
-        const realBattles = battles.filter(b => 
-            ['spin', 'over', 'burst', 'xtreme'].includes(b.finish_type) && 
+        const realBattles = battles.filter(b =>
+            ['spin', 'over', 'burst', 'xtreme'].includes(b.finish_type) &&
             b.player1_combo_id && b.player2_combo_id
         );
 
@@ -2428,7 +2524,7 @@
     function obtenerCombosUsadosEquipo(battles, playerKey, teamSize, maxMatchesToPlay = null) {
         if (!battles || !Array.isArray(battles) || teamSize === 0) return [];
         const realBattles = battles.filter(b => ['spin', 'over', 'burst', 'xtreme'].includes(b.finish_type));
-        
+
         if (maxMatchesToPlay && realBattles.length >= maxMatchesToPlay) {
             return [];
         }
@@ -2467,7 +2563,7 @@
         const modal = document.getElementById('eventManagerModal');
         const form = document.getElementById('eventManagerForm');
         const footer = document.getElementById('eventManagerFooter');
-        
+
         // Si aún no se habían cargado las regiones con sus provincias, las pedimos ahora mismo
         if (!regionesConProvincias || regionesConProvincias.length === 0) {
             await cargarRegiones();
@@ -2484,14 +2580,14 @@
         const selectProvinciaManage = document.getElementById('manage_province_id');
         selectProvinciaManage.innerHTML = '<option value="" disabled selected>Elige Región...</option>';
         selectProvinciaManage.disabled = true;
-        
+
         if (eventData) {
             document.getElementById('eventManagerTitle').innerHTML = '<i class="fas fa-edit text-yellow-400 mr-2"></i> EDITAR EVENTO';
             document.getElementById('manage_event_id').value = eventData.id;
             document.getElementById('manage_name').value = eventData.name;
             document.getElementById('manage_mode').value = eventData.mode;
             document.getElementById('manage_imagen').value = eventData.beys || 'quedada';
-            
+
             // Seleccionamos Región y cargamos sus Provincias marcando la del evento
             document.getElementById('manage_region_id').value = eventData.region_id;
             actualizarProvinciasManager(eventData.province_id);
@@ -2503,9 +2599,9 @@
             document.getElementById('manage_note').value = eventData.note || '';
             document.getElementById('manage_stadiums').value = eventData.stadiums;
             document.getElementById('manage_max_players').value = eventData.max_players || '';
-            
+
             actualizarReglasEventManager(eventData.deck, eventData.configuration);
-            
+
             footer.innerHTML = `
                 <button type="button" onclick="eliminarEventoAPI(${eventData.id})" class="flex-none bg-red-900/40 hover:bg-red-800 text-red-400 hover:text-white border border-red-500/50 font-bold p-3 rounded-lg transition-colors"><i class="fas fa-trash"></i></button>
                 <button type="submit" form="eventManagerForm" id="btnSubmitManager" class="flex-1 bg-yellow-600 hover:bg-yellow-500 text-white font-bold py-3 rounded-lg shadow-lg transition-all">ACTUALIZAR</button>
@@ -2515,7 +2611,7 @@
             document.getElementById('manage_event_id').value = '';
             document.getElementById('manage_note').value = '';
             actualizarReglasEventManager();
-            
+
             footer.innerHTML = `
                 <button type="button" onclick="cerrarModalEventManager()" class="flex-1 bg-gray-800 text-gray-400 hover:text-white font-bold py-3 rounded-lg transition-colors">CANCELAR</button>
                 <button type="submit" form="eventManagerForm" id="btnSubmitManager" class="flex-1 bg-cyan-600 hover:bg-cyan-500 text-white font-bold py-3 rounded-lg shadow-[0_0_15px_rgba(6,182,212,0.4)] transition-all">CREAR EVENTO</button>
@@ -2529,12 +2625,12 @@
     async function enviarEventManager(e) {
         e.preventDefault();
         triggerHaptic('heavy');
-        
+
         const form = document.getElementById('eventManagerForm');
         const formData = new FormData(form);
         const eventId = document.getElementById('manage_event_id').value;
         const isEdit = eventId !== '';
-        
+
         const url = isEdit ? `/api/eventos/${eventId}` : '/api/eventos';
         if (isEdit) formData.append('_method', 'PUT');
 
@@ -2585,7 +2681,7 @@
             deckSelect.innerHTML = '<option value="3on3">3on3 (3 Beys)</option><option value="5g">5G (5 Beys)</option>';
             configSelect.innerHTML = `<option value="Swiss">Sistema Suizo</option><option value="DoubleElimination">Doble Eliminación</option><option value="SingleElimination">Eliminación Simple</option><option value="RoundRobin">Round Robin</option>`;
         }
-        
+
         if (forceDeck) deckSelect.value = forceDeck;
         if (forceConfig) configSelect.value = forceConfig;
     }
@@ -2848,7 +2944,10 @@
                 <div class="bg-gray-900 border border-gray-800 rounded-2xl p-4 shadow-xl space-y-4">
                     <div class="flex justify-between items-baseline">
                         <div>
-                            <span class="text-[10px] font-mono uppercase tracking-widest text-gray-400 block">EXPECTATIVA DE VICTORIA</span>
+                            <span class="text-[10px] font-mono uppercase tracking-widest text-gray-400 block">
+                                EXPECTATIVA DE VICTORIA
+                                <button type="button" onclick="mostrarTooltipInfo('EXPECTATIVA DE VICTORIA', 'Probabilidad media de victoria de tu alineación cruzando el historial real de combates (Combo vs Combo y Blade vs Blade) en los torneos de la SBBL.')" class="ml-1 text-cyan-400"><i class="fas fa-info-circle"></i></button>
+                            </span>
                             <span class="text-3xl font-black font-mono ${textColor}">${wr}%</span>
                         </div>
                         <div class="text-right">
@@ -2889,8 +2988,8 @@
                                                 </td>
                                                 ${row.map(cell => {
                                                     const cWr = cell.winrate;
-                                                    const cellStyle = cWr >= 55 
-                                                        ? 'bg-emerald-950/50 text-emerald-300 border-emerald-700/50' 
+                                                    const cellStyle = cWr >= 55
+                                                        ? 'bg-emerald-950/50 text-emerald-300 border-emerald-700/50'
                                                         : (cWr >= 45 ? 'bg-gray-800/80 text-gray-200 border-gray-700' : 'bg-rose-950/50 text-rose-300 border-rose-800/50');
                                                     return `
                                                         <td class="p-1">
@@ -2912,7 +3011,10 @@
 
                 <!-- 2. Telemetría Individual de Tu Alineación -->
                 <div class="bg-gray-900 border border-gray-800 rounded-2xl p-4 shadow-xl space-y-3">
-                    <div class="text-[10px] font-mono uppercase tracking-widest text-gray-400">RENDIMIENTO Y DAÑO PROMEDIO (ESCALA 1.00 - 3.00)</div>
+                    <div class="text-[10px] font-mono uppercase tracking-widest text-gray-400 flex justify-between items-center">
+                        <span>RENDIMIENTO Y DAÑO PROMEDIO (ESCALA 1.00 - 3.00)</span>
+                        <button type="button" onclick="mostrarTooltipInfo('ESCALA DE DAÑO (1.00 A 3.00)', 'Mide cuántos puntos generas cada vez que ganas un lanzamiento (1 = Spin, 2 = Over/Burst, 3 = Xtreme). Un valor cercano a 2.50 indica un combo altamente explosivo.')" class="text-cyan-400"><i class="fas fa-info-circle"></i></button>
+                    </div>
             `;
 
             data.my_deck_stats.forEach(st => {
@@ -2966,6 +3068,178 @@
             container.innerHTML = '<div class="bg-gray-900 border border-red-900/50 rounded-xl p-4 text-center text-red-400 text-xs font-bold">Error al procesar la simulación.</div>';
         }
     }
+
+    // =========================================================================
+    // 1. PREVENCIÓN DE DESASTRES: COLA OFFLINE CON SINCRONIZACIÓN AUTOMÁTICA
+    // =========================================================================
+    const OFFLINE_QUEUE_KEY = 'sbbl_judge_offline_queue';
+
+    function obtenerColaOffline() {
+        try { return JSON.parse(localStorage.getItem(OFFLINE_QUEUE_KEY) || '[]'); }
+        catch (e) { return []; }
+    }
+
+    function actualizarBannerOffline() {
+        const queue = obtenerColaOffline();
+        const banner = document.getElementById('offlineSyncBanner');
+        const text = document.getElementById('offlineSyncText');
+        if (!banner || !text) return;
+
+        if (queue.length > 0) {
+            banner.classList.remove('hidden');
+            text.innerText = `MODO RESCATE: ${queue.length} ACCIÓN(ES) GUARDADAS EN EL MÓVIL`;
+        } else {
+            banner.classList.add('hidden');
+        }
+    }
+
+    function encolarAccionOffline(actionObj) {
+        const queue = obtenerColaOffline();
+        queue.push({ ...actionObj, timestamp: Date.now() });
+        localStorage.setItem(OFFLINE_QUEUE_KEY, JSON.stringify(queue));
+        actualizarBannerOffline();
+        triggerHaptic('heavy');
+        mostrarToast("📡 Sin cobertura: Resultado guardado en el móvil para sincronizar.");
+    }
+
+    async function sincronizarColaOffline() {
+        const queue = obtenerColaOffline();
+        if (queue.length === 0) return;
+
+        const btn = document.getElementById('btnSyncOffline');
+        if (btn) { btn.disabled = true; btn.innerText = 'ENVIANDO...'; }
+
+        const pendientes = [];
+        let enviados = 0;
+
+        for (const item of queue) {
+            try {
+                const res = await fetch(item.url, {
+                    method: item.method || 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify(item.payload)
+                });
+                if (res.ok) enviados++;
+                else pendientes.push(item);
+            } catch (e) {
+                pendientes.push(item);
+            }
+        }
+
+        localStorage.setItem(OFFLINE_QUEUE_KEY, JSON.stringify(pendientes));
+        actualizarBannerOffline();
+        if (btn) { btn.disabled = false; btn.innerText = 'SINCRONIZAR AHORA'; }
+
+        if (enviados > 0) {
+            mostrarToast(`✅ ${enviados} resultado(s) sincronizados con el servidor.`);
+            refrescarVistaArenaActual();
+        } else {
+            mostrarToast("⚠️ Aún no hay conexión estable con el servidor.", true);
+        }
+    }
+
+    window.addEventListener('online', () => {
+        if (obtenerColaOffline().length > 0) sincronizarColaOffline();
+    });
+    document.addEventListener('DOMContentLoaded', actualizarBannerOffline);
+
+    // =========================================================================
+    // 2. PULL-TO-REFRESH NATIVO EN EL CONTENEDOR PRINCIPAL
+    // =========================================================================
+    (function initPullToRefresh() {
+        const mainEl = document.getElementById('main-content');
+        const indicator = document.getElementById('ptr-indicator');
+        const icon = document.getElementById('ptr-icon');
+        const text = document.getElementById('ptr-text');
+        if (!mainEl || !indicator) return;
+
+        let startY = 0;
+        let pulling = false;
+        let thresholdReached = false;
+
+        mainEl.addEventListener('touchstart', e => {
+            if (mainEl.scrollTop <= 0) {
+                startY = e.touches[0].clientY;
+                pulling = true;
+                thresholdReached = false;
+            }
+        }, { passive: true });
+
+        mainEl.addEventListener('touchmove', e => {
+            if (!pulling) return;
+            const diff = e.touches[0].clientY - startY;
+            if (diff > 20 && mainEl.scrollTop <= 0) {
+                const pullDist = Math.min(diff * 0.45, 55);
+                indicator.style.opacity = Math.min(diff / 90, 1);
+                indicator.style.transform = `translate(-50%, ${pullDist - 20}px)`;
+                if (diff > 95 && !thresholdReached) {
+                    thresholdReached = true;
+                    icon.style.transform = 'rotate(180deg)';
+                    text.innerText = 'Suelta para actualizar';
+                    triggerHaptic('light');
+                } else if (diff <= 95 && thresholdReached) {
+                    thresholdReached = false;
+                    icon.style.transform = 'rotate(0deg)';
+                    text.innerText = 'Desliza para actualizar';
+                }
+            }
+        }, { passive: true });
+
+        mainEl.addEventListener('touchend', async () => {
+            if (!pulling) return;
+            pulling = false;
+            if (thresholdReached) {
+                const activeSection = document.querySelector('.view-section.active');
+                const idx = activeSection ? parseInt(activeSection.getAttribute('data-index')) : 0;
+                const mapSecciones = ['eventos', 'ranking', 'duelos', 'meta'];
+                if (mapSecciones[idx]) {
+                    icon.className = 'fas fa-sync-alt fa-spin';
+                    text.innerText = 'Sincronizando...';
+                    await refrescarPestanaActual(mapSecciones[idx]);
+                }
+            }
+            indicator.style.opacity = 0;
+            indicator.style.transform = 'translate(-50%, -24px)';
+            setTimeout(() => {
+                icon.className = 'fas fa-arrow-down transition-transform duration-200';
+                icon.style.transform = 'rotate(0deg)';
+                text.innerText = 'Desliza para actualizar';
+            }, 250);
+        }, { passive: true });
+    })();
+
+    // =========================================================================
+    // 3. SISTEMA DE TOOLTIPS EDUCATIVOS (?) Y ACCESO A MODO TV
+    // =========================================================================
+    window.mostrarTooltipInfo = function(titulo, descripcion) {
+        triggerHaptic('light');
+        const prev = document.getElementById('sbbl-tooltip-modal');
+        if (prev) prev.remove();
+
+        const modal = document.createElement('div');
+        modal.id = 'sbbl-tooltip-modal';
+        modal.className = 'fixed inset-0 z-[140] bg-black/80 flex items-center justify-center p-4 animate-fade-in';
+        modal.onclick = () => modal.remove();
+        modal.innerHTML = `
+            <div class="bg-gray-900 border border-cyan-500/60 rounded-2xl max-w-sm w-full p-4 shadow-2xl" onclick="event.stopPropagation()">
+                <div class="flex justify-between items-center border-b border-gray-800 pb-2 mb-2.5">
+                    <span class="text-xs font-mono font-black text-cyan-400 uppercase tracking-wider">${titulo}</span>
+                    <button type="button" onclick="document.getElementById('sbbl-tooltip-modal').remove()" class="text-gray-500 hover:text-white"><i class="fas fa-times"></i></button>
+                </div>
+                <p class="text-xs text-gray-300 leading-relaxed">${descripcion}</p>
+            </div>
+        `;
+        document.body.appendChild(modal);
+    };
+
+    window.abrirModoTvEstadio = function() {
+        if (!currentArenaEventId) return;
+        window.open(`/torneos/${currentArenaEventId}/tv`, '_blank');
+    };
 
     // Exportación global segura para todos los eventos del modal
     window.alternarLadosBatalla = alternarLadosBatalla;

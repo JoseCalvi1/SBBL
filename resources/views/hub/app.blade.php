@@ -84,7 +84,26 @@
     @include('hub.partials.header')
     @include('hub.partials.banners')
 
-    <!-- ÁREA DE CONTENIDO PRINCIPAL -->
+    <!-- BARRA DE PREVENCIÓN DE DESASTRES (COLA OFFLINE DE ARBITRAJE) -->
+    <div id="offlineSyncBanner" class="hidden bg-amber-950 border-b border-amber-500 px-4 py-2 flex items-center justify-between z-50">
+        <div class="flex items-center gap-2">
+            <i class="fas fa-wifi-slash text-amber-400 text-xs animate-pulse"></i>
+            <span id="offlineSyncText" class="text-[10px] font-mono font-bold text-amber-200 uppercase">MODO OFFLINE: 0 RESULTADOS EN COLA</span>
+        </div>
+        <button type="button" onclick="sincronizarColaOffline()" id="btnSyncOffline" class="bg-amber-400 hover:bg-amber-300 text-gray-950 font-black text-[10px] px-2.5 py-1 rounded uppercase tracking-wider">
+            SINCRONIZAR AHORA
+        </button>
+    </div>
+
+    <!-- INDICADOR PULL-TO-REFRESH NATIVO -->
+    <div id="ptr-indicator" class="fixed top-14 left-1/2 -translate-x-1/2 z-40 pointer-events-none transition-all duration-200 opacity-0 -translate-y-6">
+        <div class="bg-gray-900 border border-cyan-500/60 text-cyan-400 rounded-full px-3.5 py-1.5 shadow-xl flex items-center gap-2 text-[10px] font-mono font-bold uppercase">
+            <i id="ptr-icon" class="fas fa-arrow-down transition-transform duration-200"></i>
+            <span id="ptr-text">Desliza para actualizar</span>
+        </div>
+    </div>
+    
+    
     <!-- ÁREA DE CONTENIDO PRINCIPAL -->
     <main class="flex-1 overflow-y-auto no-scrollbar p-4 relative bg-black pb-24" id="main-content">
         

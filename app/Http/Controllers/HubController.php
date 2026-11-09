@@ -25,21 +25,23 @@ class HubController extends Controller
         $hoy = \Carbon\Carbon::now()->format('Y-m-d');
         $userId = Auth::id();
         $user = Auth::user();
-        
+
         $isAdmin = $user ? $user->hasRole('admin') : false;
         $isJuez = $user ? $user->hasRole('juez') : false;
         $isRevisor = $user ? $user->hasRole('revisor') : false;
 
         $query = Event::with(['region', 'users', 'judges.profile', 'judges.roles']);
-        // 1. FILTRO DE TEMPORADA ACTUAL
         $query->whereDate('date', '>=', '2026-09-01');
 
         $isPersonal = $request->filled('personal');
         if ($isPersonal) {
             if ($request->personal === 'inscrito') {
                 $query->whereHas('users', fn($q) => $q->where('users.id', $userId));
-            } elseif ($request->personal === 'juez' && ($isAdmin || $isJuez || $isRevisor)) {
-                $query->whereHas('judges', fn($q) => $q->where('users.id', $userId));
+            } elseif ($request->personal === 'juez') {
+                $query->where(function ($q) use ($userId) {
+                    $q->whereHas('judges', fn($sq) => $sq->where('users.id', $userId))
+                      ->orWhere('created_by', $userId);
+                });
             }
         }
 
@@ -76,34 +78,45 @@ class HubController extends Controller
             $torneo->is_inscribed = $torneo->users->contains('id', $userId);
             $torneo->total_inscritos = $torneo->users->count();
 
-            // Diferenciar Jueces de Revisores puros en la vista
+            // Diferenciar Jueces, Revisores y Ayudantes locales del evento
             $torneo->jueces_asignados = $torneo->judges->map(function ($juez) {
                 $roles = $juez->roles->pluck('name');
-                $isOnlyRevisor = $roles->contains('revisor') && !$roles->contains('juez') && !$roles->contains('admin');
-                
+                $isMainJudge = $roles->contains('admin') || $roles->contains('juez');
+                $isOnlyRevisor = !$isMainJudge && $roles->contains('revisor');
+                $isHelper = !$isMainJudge && !$isOnlyRevisor;
+
                 return [
-                    'id' => $juez->id,
-                    'name' => $juez->name,
-                    'avatar' => $juez->profile->avatar_url ?? '/images/default.png',
-                    'is_revisor' => $isOnlyRevisor
+                    'id'         => $juez->id,
+                    'name'       => $juez->name,
+                    'avatar'     => $juez->profile->avatar_url ?? '/images/default.png',
+                    'is_revisor' => $isOnlyRevisor,
+                    'is_helper'  => $isHelper,
+                    'role_rank'  => $isMainJudge ? 1 : ($isOnlyRevisor ? 2 : 3)
                 ];
             });
 
             $torneo->is_judge_assigned = $torneo->judges->contains('id', $userId);
-            $isRanking = in_array($torneo->beys, ['ranking', 'rankingplus']);
+            $isTeamEvent = in_array($torneo->beys, ['equipos', 'crew_battle']) || str_starts_with($torneo->name, 'Duelo Express:');
 
-            // Permisos calculados en Backend
-            $torneo->can_be_staff = $isAdmin || $isJuez || $isRevisor;
-            
+            // 1. Auto-apuntarse como Staff: Admin, Juez y Revisor pueden apuntarse a TODOS los torneos
+            $torneo->can_be_staff = ($isAdmin || $isJuez || $isRevisor);
+
+            // 2. Iniciar y Arbitrar la Arena:
             $canArbitrate = false;
-            if ($isAdmin || $isJuez) {
+            if ($isAdmin || $isJuez || $isRevisor) {
+                // Admin, Jueces y Revisores pueden iniciar y arbitrar cualquier torneo
                 $canArbitrate = true;
-            } elseif (!$isRanking) { // Si NO es ranking, pueden arbitrar los revisores o el creador
-                if ($torneo->created_by == $userId || ($isRevisor && $torneo->is_judge_assigned)) {
-                    $canArbitrate = true;
-                }
+            } elseif ($torneo->is_judge_assigned) {
+                // Cualquier ayudante asignado específicamente a este torneo puede arbitrarlo
+                $canArbitrate = true;
+            } elseif (!$isTeamEvent && $torneo->created_by == $userId) {
+                // El creador del evento puede gestionar su propio torneo (salvo duelos de equipos)
+                $canArbitrate = true;
             }
             $torneo->can_arbitrate = $canArbitrate;
+
+            // 3. Añadir ayudantes manuales al torneo: Staff oficial siempre, y el Creador en su propio torneo (salvo equipos)
+            $torneo->can_manage_helpers = ($isAdmin || $isJuez || $isRevisor) || (!$isTeamEvent && $torneo->created_by == $userId);
 
             $limite = 9999;
             if ($torneo->has_stadium_limit || !empty($torneo->max_players)) {
@@ -124,7 +137,7 @@ class HubController extends Controller
 
         return response()->json($torneos);
     }
-    
+
     public function getRegiones()
     {
         $regiones = Region::with('provinces')->orderBy('name')->get();
@@ -145,13 +158,32 @@ class HubController extends Controller
     public function guardarDeck(Request $request, $eventId)
     {
         $event = Event::findOrFail($eventId);
-        $userId = Auth::id();
-        $date = Carbon::parse($event->date);
+        $authUser = Auth::user();
+        $userId = $authUser->id;
 
+        // Comprobamos si un miembro del Staff o Creador está editando el deck de otro jugador
+        $isEditingOther = false;
+        if ($request->filled('target_user_id') && (int) $request->input('target_user_id') !== (int) $authUser->id) {
+            $isTeamEvent = in_array($event->beys, ['equipos', 'crew_battle']) || str_starts_with($event->name, 'Duelo Express:');
+            $isAssignedStaff = $event->judges()->where('user_id', $authUser->id)->exists();
+
+            $canEditOthers = $authUser->hasAnyRole(['admin', 'juez', 'arbitro', 'revisor'])
+                || $isAssignedStaff
+                || (!$isTeamEvent && $event->created_by == $authUser->id);
+
+            if (!$canEditOthers) {
+                return response()->json(['success' => false, 'message' => '⛔ No tienes permisos para editar el deck de otro jugador.'], 403);
+            }
+
+            $userId = (int) $request->input('target_user_id');
+            $isEditingOther = true;
+        }
+
+        $date = Carbon::parse($event->date);
         $isAlreadyInscribed = $event->users()->where('user_id', $userId)->exists();
 
-        // (Aquí mantienes tus comprobaciones de límite semanal/mensual que ya tienes...)
-        if (!$isAlreadyInscribed && in_array($event->beys, ['ranking', 'rankingplus'])) {
+        // Solo comprobamos límites semanales/mensuales si es el propio jugador inscribiéndose por primera vez
+        if (!$isEditingOther && !$isAlreadyInscribed && in_array($event->beys, ['ranking', 'rankingplus'])) {
             $registeredThisWeek = DB::table('assist_user_event')
                 ->join('events', 'assist_user_event.event_id', '=', 'events.id')
                 ->where('assist_user_event.user_id', $userId)
@@ -175,15 +207,14 @@ class HubController extends Controller
             }
         }
 
-        // --- REGISTRO FINAL EN EL TORNEO ---
+        // Aseguramos que el jugador objetivo esté en la lista del torneo (sin inscribir al juez)
         $event->users()->syncWithoutDetaching([$userId]);
 
-        // 🔥 NUEVO: Apuntarse como Jugador y Juez a la vez (2x1) en el Hub
-        if ($request->has('also_judge') && $request->also_judge == '1' && Auth::user()->hasAnyRole(['admin', 'juez'])) {
-            $event->judges()->syncWithoutDetaching([$userId]);
+        // 2x1 Juez + Jugador (Solo aplica si el juez se está inscribiendo a sí mismo)
+        if (!$isEditingOther && $request->has('also_judge') && $request->also_judge == '1' && $authUser->hasAnyRole(['admin', 'juez'])) {
+            $event->judges()->syncWithoutDetaching([$authUser->id]);
         }
 
-        // Si es tentativa, borra los beys antiguos y salimos con éxito
         if ($request->has('is_tentative') && $request->is_tentative == 'true') {
             TournamentResult::where('user_id', $userId)->where('event_id', $eventId)->delete();
             return response()->json(['success' => true, 'message' => '✅ Plaza asegurada (Inscripción Tentativa).']);
@@ -191,7 +222,6 @@ class HubController extends Controller
 
         TournamentResult::where('user_id', $userId)->where('event_id', $eventId)->delete();
 
-        // (Aquí sigue el guardado de los blades, ratchets... que ya tienes)
         $blades = $request->input("blade", []);
         $ratchets = $request->input("ratchet", []);
         $bits = $request->input("bit", []);
@@ -199,7 +229,7 @@ class HubController extends Controller
         $assistBlades = $request->input("assist_blade", []);
 
         foreach ($blades as $index => $blade) {
-            if (empty($blade)) continue; 
+            if (empty($blade)) continue;
 
             TournamentResult::create([
                 'user_id'         => $userId,
@@ -216,35 +246,37 @@ class HubController extends Controller
             ]);
         }
 
-        return response()->json(['success' => true, 'message' => '✅ ¡Deck de combate registrado!']);
+        $msg = $isEditingOther ? '✅ Deck del jugador actualizado correctamente.' : '✅ ¡Deck de combate registrado!';
+        return response()->json(['success' => true, 'message' => $msg]);
     }
 
     public function cancelarAsistencia($eventId)
     {
         $event = Event::findOrFail($eventId);
-        
+
         if ($event->status !== 'OPEN') {
             return response()->json(['success' => false, 'message' => '⛔ No puedes retirarte de un torneo en curso.'], 422);
         }
 
         $event->users()->detach(Auth::id());
-        
+
         return response()->json(['success' => true, 'message' => 'Asistencia cancelada correctamente.']);
     }
 
     public function comenzarTorneo($eventId)
     {
         $event = Event::findOrFail($eventId);
-        $isRanking = in_array($event->beys, ['ranking', 'rankingplus']);
-        
+        $user = Auth::user();
+        $isTeamEvent = in_array($event->beys, ['equipos', 'crew_battle']) || str_starts_with($event->name, 'Duelo Express:');
+        $isAssigned = $event->judges()->where('user_id', $user->id)->exists();
+
         $canStart = false;
-        if (Auth::user()->hasAnyRole(['admin', 'juez'])) {
+        if ($user->hasAnyRole(['admin', 'juez', 'arbitro', 'revisor'])) {
             $canStart = true;
-        } elseif (!$isRanking) {
-            // El revisor solo puede iniciar si está en la lista de jueces asignados y no es ranking
-            if ($event->created_by == Auth::id() || (Auth::user()->hasRole('revisor') && $event->judges()->where('user_id', Auth::id())->exists())) {
-                $canStart = true;
-            }
+        } elseif ($isAssigned) {
+            $canStart = true;
+        } elseif (!$isTeamEvent && $event->created_by == $user->id) {
+            $canStart = true;
         }
 
         if (!$canStart) {
@@ -264,7 +296,7 @@ class HubController extends Controller
         }
 
         $event = Event::with('users')->findOrFail($eventId);
-        
+
         $names = $event->users->map(function($user) {
             return $user->name . '#' . str_pad($user->id, 4, '0', STR_PAD_LEFT);
         })->implode("\n");
@@ -286,9 +318,9 @@ class HubController extends Controller
 
         // 1. TOP COMBOS
         $combos = \Illuminate\Support\Facades\DB::select("
-            SELECT 
-                blade, ratchet, bit, 
-                IFNULL(over_blade, '-') as over_blade, 
+            SELECT
+                blade, ratchet, bit,
+                IFNULL(over_blade, '-') as over_blade,
                 IFNULL(assist_blade, '-') as assist_blade,
                 COUNT(*) as total_partidas,
                 SUM(is_winner) as total_victorias,
@@ -302,7 +334,7 @@ class HubController extends Controller
                 SUM(burst_wins) as burst_wins,
                 SUM(xtreme_wins) as xtreme_wins
             FROM (
-                SELECT 
+                SELECT
                     c.blade, c.ratchet, c.bit, c.over_blade, c.assist_blade,
                     (mb.winner_id = c.user_id) as is_winner,
                     (mb.winner_id != c.user_id AND mb.winner_id IS NOT NULL) as is_loser,
@@ -317,10 +349,10 @@ class HubController extends Controller
                 JOIN events e ON tm.event_id = e.id
                 JOIN tournament_results c ON mb.player1_combo_id = c.id
                 WHERE mb.winner_id IS NOT NULL $dateFilter
-                
+
                 UNION ALL
-                
-                SELECT 
+
+                SELECT
                     c.blade, c.ratchet, c.bit, c.over_blade, c.assist_blade,
                     (mb.winner_id = c.user_id) as is_winner,
                     (mb.winner_id != c.user_id AND mb.winner_id IS NOT NULL) as is_loser,
@@ -344,7 +376,7 @@ class HubController extends Controller
 
         // 2. RED DE ENFRENTAMIENTOS: ¿Quién gana a quién?
         $matchupsRaw = \Illuminate\Support\Facades\DB::select("
-            SELECT 
+            SELECT
                 CONCAT(winner_c.blade, ' ', winner_c.ratchet, ' ', winner_c.bit) as winner_combo,
                 CONCAT(loser_c.blade, ' ', loser_c.ratchet, ' ', loser_c.bit) as loser_combo,
                 COUNT(*) as times_won
@@ -374,7 +406,7 @@ class HubController extends Controller
                 // Quitamos las victorias contra el mismo combo (espejo) y cogemos los 3 primeros
                 $filteredWins = array_filter($wins, fn($k) => $k !== $comboKey, ARRAY_FILTER_USE_KEY);
                 $top3Wins = array_slice($filteredWins, 0, 3, true);
-                
+
                 foreach($top3Wins as $enemy => $w) {
                     $bestMatchups[] = ['combo' => $enemy, 'victorias' => $w];
                 }
@@ -388,7 +420,7 @@ class HubController extends Controller
                 arsort($losses); // Ordenamos de más derrotas a menos
                 $filteredLosses = array_filter($losses, fn($k) => $k !== $comboKey, ARRAY_FILTER_USE_KEY);
                 $top3Losses = array_slice($filteredLosses, 0, 3, true);
-                
+
                 foreach($top3Losses as $enemy => $l) {
                     $worstMatchups[] = ['combo' => $enemy, 'derrotas' => $l];
                 }
@@ -510,7 +542,7 @@ class HubController extends Controller
                 SUM(CASE WHEN assist_user_event.puesto = "tercero" THEN 1 ELSE 0 END) as terceros
             ')
             ->first();
-            
+
         // 4. Calcular estadísticas de combate (Estilo de juego) (FILTRADO POR FECHA S3)
         $finish_stats = \Illuminate\Support\Facades\DB::table('match_battles')
             ->join('tournament_matches as tm', 'match_battles.tournament_match_id', '=', 'tm.id')
@@ -526,7 +558,7 @@ class HubController extends Controller
         $puntos = $profile->points_x3 ?? 0;
         $primeros = $stats->primeros ?? 0;
         $torneos_jugados = $stats->torneos_jugados ?? 0;
-        
+
         $xtremes = $finish_stats->xtremes ?? 0;
         $bursts = $finish_stats->bursts ?? 0;
 
@@ -591,8 +623,8 @@ class HubController extends Controller
             JOIN events e ON tm.event_id = e.id
             JOIN tournament_results c ON c.id = CASE WHEN mb.winner_id = tm.player1_id THEN mb.player1_combo_id ELSE mb.player2_combo_id END
             WHERE mb.winner_id = ? AND e.date >= ?
-            GROUP BY nombre 
-            ORDER BY victorias DESC 
+            GROUP BY nombre
+            ORDER BY victorias DESC
             LIMIT 3
         ", [$id, $s3StartDate]);
 
@@ -621,10 +653,10 @@ class HubController extends Controller
         if (!Auth::user()->hasAnyRole(['admin', 'juez', 'revisor'])) {
             return response()->json(['success' => false, 'message' => 'No tienes permisos de Staff.'], 403);
         }
-        
+
         $event = Event::findOrFail($eventId);
         $userId = Auth::id();
-        
+
         if ($event->judges()->where('user_id', $userId)->exists()) {
             $event->judges()->detach($userId);
             $msg = "Has salido del Staff de este torneo.";
@@ -632,7 +664,7 @@ class HubController extends Controller
             $event->judges()->attach($userId);
             $msg = "Te has apuntado como Staff del torneo.";
         }
-        
+
         return response()->json(['success' => true, 'message' => $msg]);
     }
 
@@ -666,14 +698,14 @@ class HubController extends Controller
 
         // Top de combos más jugados ampliando el límite para poder filtrar los ilegales
         $topMetaRaw = DB::select("
-            SELECT 
+            SELECT
                 blade, ratchet, bit,
                 CASE WHEN over_blade IS NULL OR over_blade = '' OR over_blade = '-' OR over_blade LIKE '%Selecciona%' THEN '-' ELSE over_blade END as over_blade,
                 CASE WHEN assist_blade IS NULL OR assist_blade = '' OR assist_blade = '-' OR assist_blade LIKE '%Selecciona%' THEN '-' ELSE assist_blade END as assist_blade,
                 COUNT(*) as usos
             FROM tournament_results tr
             JOIN events e ON tr.event_id = e.id
-            WHERE tr.blade IS NOT NULL 
+            WHERE tr.blade IS NOT NULL
               AND tr.blade NOT LIKE '%Selecciona%'
               AND tr.blade != 'DESCONOCIDO'
               AND e.date >= ?
@@ -741,7 +773,7 @@ class HubController extends Controller
             $assistCond = $assist ? "AND c.assist_blade = " . DB::getPdo()->quote($assist) : "";
 
             $exact = DB::selectOne("
-                SELECT 
+                SELECT
                     COUNT(*) as total,
                     SUM(is_win) as wins,
                     SUM(is_loss) as losses,
@@ -752,7 +784,7 @@ class HubController extends Controller
                     SUM(CASE WHEN is_win = 1 AND finish_type = 'over' THEN 1 ELSE 0 END) as over_w,
                     SUM(CASE WHEN is_win = 1 AND finish_type = 'spin' THEN 1 ELSE 0 END) as spin_w
                 FROM (
-                    SELECT 
+                    SELECT
                         (mb.winner_id = c.user_id) as is_win,
                         (mb.winner_id != c.user_id AND mb.winner_id IS NOT NULL) as is_loss,
                         CASE WHEN mb.winner_id = c.user_id THEN LEAST(3, GREATEST(1, mb.points_awarded)) ELSE 0 END as pts_won,
@@ -763,7 +795,7 @@ class HubController extends Controller
                     WHERE mb.winner_id IS NOT NULL AND mb.finish_type IN ('spin','over','burst','xtreme')
                       AND c.blade = ? AND c.ratchet = ? AND c.bit = ? $overCond $assistCond
                     UNION ALL
-                    SELECT 
+                    SELECT
                         (mb.winner_id = c.user_id) as is_win,
                         (mb.winner_id != c.user_id AND mb.winner_id IS NOT NULL) as is_loss,
                         CASE WHEN mb.winner_id = c.user_id THEN LEAST(3, GREATEST(1, mb.points_awarded)) ELSE 0 END as pts_won,
@@ -778,7 +810,7 @@ class HubController extends Controller
 
             if (!$exact || $exact->total < 3) {
                 $bladeOnly = DB::selectOne("
-                    SELECT 
+                    SELECT
                         COUNT(*) as total,
                         SUM(is_win) as wins,
                         SUM(is_loss) as losses,
@@ -789,7 +821,7 @@ class HubController extends Controller
                         SUM(CASE WHEN is_win = 1 AND finish_type = 'over' THEN 1 ELSE 0 END) as over_w,
                         SUM(CASE WHEN is_win = 1 AND finish_type = 'spin' THEN 1 ELSE 0 END) as spin_w
                     FROM (
-                        SELECT 
+                        SELECT
                             (mb.winner_id = c.user_id) as is_win,
                             (mb.winner_id != c.user_id AND mb.winner_id IS NOT NULL) as is_loss,
                             CASE WHEN mb.winner_id = c.user_id THEN LEAST(3, GREATEST(1, mb.points_awarded)) ELSE 0 END as pts_won,
@@ -799,7 +831,7 @@ class HubController extends Controller
                         JOIN tournament_results c ON mb.player1_combo_id = c.id
                         WHERE mb.winner_id IS NOT NULL AND mb.finish_type IN ('spin','over','burst','xtreme') AND c.blade = ?
                         UNION ALL
-                        SELECT 
+                        SELECT
                             (mb.winner_id = c.user_id) as is_win,
                             (mb.winner_id != c.user_id AND mb.winner_id IS NOT NULL) as is_loss,
                             CASE WHEN mb.winner_id = c.user_id THEN LEAST(3, GREATEST(1, mb.points_awarded)) ELSE 0 END as pts_won,
@@ -958,5 +990,48 @@ class HubController extends Controller
             'overall_winrate'  => $overallVsRival,
             'top_meta_boss'    => array_slice($topMetaBoss, 0, 3), // Devolvemos estrictamente los 3 filtrados
         ]);
+    }
+
+    public function addEventHelper(Request $request, $eventId)
+    {
+        $event = Event::findOrFail($eventId);
+        $user = Auth::user();
+        $isTeamEvent = in_array($event->beys, ['equipos', 'crew_battle']) || str_starts_with($event->name, 'Duelo Express:');
+
+        $canManageStaff = $user->hasAnyRole(['admin', 'juez']) || (!$isTeamEvent && $event->created_by == $user->id);
+        if (!$canManageStaff) {
+            return response()->json(['success' => false, 'message' => '⛔ Solo los Jueces o el creador del evento pueden añadir ayudantes.'], 403);
+        }
+
+        $helperId = $request->input('user_id');
+        if (!$helperId) {
+            return response()->json(['success' => false, 'message' => 'Selecciona un usuario válido.'], 422);
+        }
+
+        $event->judges()->syncWithoutDetaching([$helperId]);
+
+        return response()->json(['success' => true, 'message' => '🛠️ Ayudante asignado al Staff de este torneo.']);
+    }
+
+    public function removeEventHelper($eventId, $targetUserId)
+    {
+        $event = Event::findOrFail($eventId);
+        $user = Auth::user();
+        $isTeamEvent = in_array($event->beys, ['equipos', 'crew_battle']) || str_starts_with($event->name, 'Duelo Express:');
+
+        $canManageStaff = $user->hasAnyRole(['admin', 'juez']) || (!$isTeamEvent && $event->created_by == $user->id);
+        if (!$canManageStaff) {
+            return response()->json(['success' => false, 'message' => '⛔ No tienes permisos para gestionar el Staff de este torneo.'], 403);
+        }
+
+        // Un creador normal no puede expulsar a un Juez Oficial o Admin
+        $targetUser = \App\Models\User::findOrFail($targetUserId);
+        if (!$user->hasAnyRole(['admin', 'juez']) && $targetUser->hasAnyRole(['admin', 'juez'])) {
+            return response()->json(['success' => false, 'message' => '⛔ No puedes retirar a un Juez Oficial.'], 403);
+        }
+
+        $event->judges()->detach($targetUserId);
+
+        return response()->json(['success' => true, 'message' => 'Usuario retirado del Staff del torneo.']);
     }
 }
