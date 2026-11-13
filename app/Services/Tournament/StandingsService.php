@@ -17,9 +17,11 @@ class StandingsService
      */
     public function getStandings($eventId): array
     {
-        Event::findOrFail($eventId);
+        $event = Event::findOrFail($eventId);
         $allEventMatches = TournamentMatch::where('event_id', $eventId)->get();
         $matches = $allEventMatches->where('status', 'completed');
+        $isTeamEvent = in_array($event->beys, ['equipos', 'crew_battle'], true)
+            || $allEventMatches->whereNotNull('team1_id')->isNotEmpty();
 
         $bracketMatchesAll = $allEventMatches->whereIn('bracket_type', [
             'winners',
@@ -31,43 +33,81 @@ class StandingsService
         $hasBracket = $bracketMatchesAll->isNotEmpty();
         $hasSwiss = $allEventMatches->whereIn('bracket_type', ['swiss', 'round_robin'])->isNotEmpty();
 
-        $users = DB::table('assist_user_event')
-            ->join('users', 'assist_user_event.user_id', '=', 'users.id')
-            ->where('assist_user_event.event_id', $eventId)
-            ->where(function ($q) {
-                $q->whereNull('assist_user_event.puesto')
-                  ->orWhere('assist_user_event.puesto', '!=', 'dropped');
-            })
-            ->select('users.id', 'users.name', 'assist_user_event.puesto')
-            ->get();
-
         $playerStats = [];
         $headToHead = [];
 
-        foreach ($users as $u) {
-            $playerStats[$u->id] = [
-                'id'             => $u->id,
-                'name'           => $u->name,
-                'points'         => 0,
-                'wins'           => 0,
-                'losses'         => 0,
-                'byes'           => 0,
-                'buchholz'       => 0,
-                'pts_for'        => 0,
-                'pts_against'    => 0,
-                'point_diff'     => 0,
-                'h2h_wins'       => 0,
-                'bracket_score'  => 0,
-                'bracket_stage'  => '',
-                'shared_rank'    => null,
-                'puesto_oficial' => null,
-                'puesto'         => $u->puesto,
-            ];
+        if ($isTeamEvent) {
+            $inscribedTeamIds = DB::table('assist_user_event')
+                ->join('team_user', 'assist_user_event.user_id', '=', 'team_user.user_id')
+                ->where('assist_user_event.event_id', $eventId)
+                ->where(function ($q) {
+                    $q->whereNull('assist_user_event.puesto')
+                      ->orWhere('assist_user_event.puesto', '!=', 'dropped');
+                })
+                ->pluck('team_user.team_id');
+
+            $matchTeamIds = $allEventMatches->pluck('team1_id')
+                ->merge($allEventMatches->pluck('team2_id'));
+
+            $teamIds = $inscribedTeamIds->merge($matchTeamIds)->filter()->unique()->values();
+            $teams = DB::table('teams')->whereIn('id', $teamIds)->select('id', 'name')->get();
+
+            foreach ($teams as $t) {
+                $playerStats[$t->id] = [
+                    'id'             => $t->id,
+                    'name'           => $t->name,
+                    'points'         => 0,
+                    'wins'           => 0,
+                    'losses'         => 0,
+                    'byes'           => 0,
+                    'buchholz'       => 0,
+                    'pts_for'        => 0,
+                    'pts_against'    => 0,
+                    'point_diff'     => 0,
+                    'h2h_wins'       => 0,
+                    'bracket_score'  => 0,
+                    'bracket_stage'  => '',
+                    'shared_rank'    => null,
+                    'puesto_oficial' => null,
+                    'puesto'         => null,
+                ];
+            }
+        } else {
+            $users = DB::table('assist_user_event')
+                ->join('users', 'assist_user_event.user_id', '=', 'users.id')
+                ->where('assist_user_event.event_id', $eventId)
+                ->where(function ($q) {
+                    $q->whereNull('assist_user_event.puesto')
+                      ->orWhere('assist_user_event.puesto', '!=', 'dropped');
+                })
+                ->select('users.id', 'users.name', 'assist_user_event.puesto')
+                ->get();
+
+            foreach ($users as $u) {
+                $playerStats[$u->id] = [
+                    'id'             => $u->id,
+                    'name'           => $u->name,
+                    'points'         => 0,
+                    'wins'           => 0,
+                    'losses'         => 0,
+                    'byes'           => 0,
+                    'buchholz'       => 0,
+                    'pts_for'        => 0,
+                    'pts_against'    => 0,
+                    'point_diff'     => 0,
+                    'h2h_wins'       => 0,
+                    'bracket_score'  => 0,
+                    'bracket_stage'  => '',
+                    'shared_rank'    => null,
+                    'puesto_oficial' => null,
+                    'puesto'         => $u->puesto,
+                ];
+            }
         }
 
         // 1. Procesar partidas de Suizo / Round Robin
         $swissMatches = $matches->whereIn('bracket_type', ['swiss', 'round_robin']);
-        $this->processSwissMatches($swissMatches, $playerStats, $headToHead);
+        $this->processSwissMatches($swissMatches, $playerStats, $headToHead, $isTeamEvent);
 
         // 2. Procesar partidas de Doble Eliminación (Winners / Losers / Grand Final)
         $completedBracketMatches = $matches->whereIn('bracket_type', [
@@ -77,14 +117,14 @@ class StandingsService
             'grand_final_reset',
             'single_elimination',
         ]);
-        $this->processBracketMatches($completedBracketMatches, $playerStats, $headToHead, $hasSwiss, $hasBracket);
+        $this->processBracketMatches($completedBracketMatches, $playerStats, $headToHead, $hasSwiss, $hasBracket, $isTeamEvent);
 
         // Mini-liga H2H entre empatados
         $this->calculateHeadToHeadTiebreakers($playerStats, $headToHead);
 
         // 3. Puntuación de Progreso en el Árbol
         if ($hasBracket) {
-            $this->calculateBracketProgress($playerStats, $bracketMatchesAll, $completedBracketMatches, $allEventMatches);
+            $this->calculateBracketProgress($playerStats, $bracketMatchesAll, $completedBracketMatches, $allEventMatches, $isTeamEvent);
         }
 
         $standings = array_values($playerStats);
@@ -99,59 +139,80 @@ class StandingsService
             'success'       => true,
             'is_bracket'    => $hasBracket,
             'has_swiss'     => $hasSwiss,
+            'is_team_event' => $isTeamEvent,
             'clasificacion' => $standings,
         ];
     }
 
-    private function processSwissMatches(Collection $swissMatches, array &$playerStats, array &$headToHead): void
+    private function resolveP1Id(TournamentMatch $m, bool $isTeamEvent)
+    {
+        return $isTeamEvent ? $m->team1_id : $m->player1_id;
+    }
+
+    private function resolveP2Id(TournamentMatch $m, bool $isTeamEvent)
+    {
+        return $isTeamEvent ? $m->team2_id : $m->player2_id;
+    }
+
+    private function resolveWinnerId(TournamentMatch $m, bool $isTeamEvent)
+    {
+        return $isTeamEvent ? ($m->winner_team_id ?? $m->winner_id) : $m->winner_id;
+    }
+
+    private function processSwissMatches(Collection $swissMatches, array &$playerStats, array &$headToHead, bool $isTeamEvent = false): void
     {
         foreach ($swissMatches as $m) {
-            $isBye = is_null($m->player2_id) || $m->player1_score == 99 || $m->player2_score == 99;
+            $p1Id = $this->resolveP1Id($m, $isTeamEvent);
+            $p2Id = $this->resolveP2Id($m, $isTeamEvent);
+            $winnerId = $this->resolveWinnerId($m, $isTeamEvent);
+            $isBye = is_null($p2Id) || $m->player1_score == 99 || $m->player2_score == 99;
 
-            if ($isBye && $m->player1_id && isset($playerStats[$m->player1_id])) {
-                $playerStats[$m->player1_id]['points'] += 3;
-                $playerStats[$m->player1_id]['wins'] += 1;
-                $playerStats[$m->player1_id]['byes'] += 1;
-                $playerStats[$m->player1_id]['pts_for'] += 4;
-                $playerStats[$m->player1_id]['point_diff'] += 4;
+            if ($isBye && $p1Id && isset($playerStats[$p1Id])) {
+                $playerStats[$p1Id]['points'] += 3;
+                $playerStats[$p1Id]['wins'] += 1;
+                $playerStats[$p1Id]['byes'] += 1;
+                $playerStats[$p1Id]['pts_for'] += 4;
+                $playerStats[$p1Id]['point_diff'] += 4;
                 continue;
             }
 
-            if ($m->player1_id && $m->player2_id && isset($playerStats[$m->player1_id]) && isset($playerStats[$m->player2_id])) {
+            if ($p1Id && $p2Id && isset($playerStats[$p1Id]) && isset($playerStats[$p2Id])) {
                 $s1 = (int) $m->player1_score;
                 $s2 = (int) $m->player2_score;
 
-                $playerStats[$m->player1_id]['pts_for'] += $s1;
-                $playerStats[$m->player1_id]['pts_against'] += $s2;
-                $playerStats[$m->player1_id]['point_diff'] += ($s1 - $s2);
+                $playerStats[$p1Id]['pts_for'] += $s1;
+                $playerStats[$p1Id]['pts_against'] += $s2;
+                $playerStats[$p1Id]['point_diff'] += ($s1 - $s2);
 
-                $playerStats[$m->player2_id]['pts_for'] += $s2;
-                $playerStats[$m->player2_id]['pts_against'] += $s1;
-                $playerStats[$m->player2_id]['point_diff'] += ($s2 - $s1);
+                $playerStats[$p2Id]['pts_for'] += $s2;
+                $playerStats[$p2Id]['pts_against'] += $s1;
+                $playerStats[$p2Id]['point_diff'] += ($s2 - $s1);
 
-                if ($m->winner_id == $m->player1_id) {
-                    $playerStats[$m->player1_id]['points'] += 3;
-                    $playerStats[$m->player1_id]['wins'] += 1;
-                    $playerStats[$m->player2_id]['losses'] += 1;
-                    $headToHead[$m->player1_id][$m->player2_id] = true;
-                } elseif ($m->winner_id == $m->player2_id) {
-                    $playerStats[$m->player2_id]['points'] += 3;
-                    $playerStats[$m->player2_id]['wins'] += 1;
-                    $playerStats[$m->player1_id]['losses'] += 1;
-                    $headToHead[$m->player2_id][$m->player1_id] = true;
+                if ($winnerId == $p1Id) {
+                    $playerStats[$p1Id]['points'] += 3;
+                    $playerStats[$p1Id]['wins'] += 1;
+                    $playerStats[$p2Id]['losses'] += 1;
+                    $headToHead[$p1Id][$p2Id] = true;
+                } elseif ($winnerId == $p2Id) {
+                    $playerStats[$p2Id]['points'] += 3;
+                    $playerStats[$p2Id]['wins'] += 1;
+                    $playerStats[$p1Id]['losses'] += 1;
+                    $headToHead[$p2Id][$p1Id] = true;
                 } else {
-                    $playerStats[$m->player1_id]['points'] += 1;
-                    $playerStats[$m->player2_id]['points'] += 1;
+                    $playerStats[$p1Id]['points'] += 1;
+                    $playerStats[$p2Id]['points'] += 1;
                 }
             }
         }
 
         // Calcular Buchholz en Suizo
         foreach ($swissMatches as $m) {
-            $isBye = is_null($m->player2_id) || $m->player1_score == 99 || $m->player2_score == 99;
-            if (!$isBye && $m->player1_id && $m->player2_id && isset($playerStats[$m->player1_id]) && isset($playerStats[$m->player2_id])) {
-                $playerStats[$m->player1_id]['buchholz'] += $playerStats[$m->player2_id]['points'];
-                $playerStats[$m->player2_id]['buchholz'] += $playerStats[$m->player1_id]['points'];
+            $p1Id = $this->resolveP1Id($m, $isTeamEvent);
+            $p2Id = $this->resolveP2Id($m, $isTeamEvent);
+            $isBye = is_null($p2Id) || $m->player1_score == 99 || $m->player2_score == 99;
+            if (!$isBye && $p1Id && $p2Id && isset($playerStats[$p1Id]) && isset($playerStats[$p2Id])) {
+                $playerStats[$p1Id]['buchholz'] += $playerStats[$p2Id]['points'];
+                $playerStats[$p2Id]['buchholz'] += $playerStats[$p1Id]['points'];
             }
         }
     }
@@ -161,38 +222,42 @@ class StandingsService
         array &$playerStats,
         array &$headToHead,
         bool $hasSwiss,
-        bool $hasBracket
+        bool $hasBracket,
+        bool $isTeamEvent = false
     ): void {
         foreach ($completedBracketMatches as $bm) {
-            $isGhostOrBye = is_null($bm->player1_id) || is_null($bm->player2_id) || $bm->player1_score == 99 || $bm->player2_score == 99;
+            $p1Id = $this->resolveP1Id($bm, $isTeamEvent);
+            $p2Id = $this->resolveP2Id($bm, $isTeamEvent);
+            $winnerId = $this->resolveWinnerId($bm, $isTeamEvent);
+            $isGhostOrBye = is_null($p1Id) || is_null($p2Id) || $bm->player1_score == 99 || $bm->player2_score == 99;
             if ($isGhostOrBye) {
                 continue;
             }
-            if (isset($playerStats[$bm->player1_id]) && isset($playerStats[$bm->player2_id])) {
+            if (isset($playerStats[$p1Id]) && isset($playerStats[$p2Id])) {
                 $s1 = (int) $bm->player1_score;
                 $s2 = (int) $bm->player2_score;
 
-                $playerStats[$bm->player1_id]['pts_for'] += $s1;
-                $playerStats[$bm->player1_id]['pts_against'] += $s2;
-                $playerStats[$bm->player1_id]['point_diff'] += ($s1 - $s2);
+                $playerStats[$p1Id]['pts_for'] += $s1;
+                $playerStats[$p1Id]['pts_against'] += $s2;
+                $playerStats[$p1Id]['point_diff'] += ($s1 - $s2);
 
-                $playerStats[$bm->player2_id]['pts_for'] += $s2;
-                $playerStats[$bm->player2_id]['pts_against'] += $s1;
-                $playerStats[$bm->player2_id]['point_diff'] += ($s2 - $s1);
+                $playerStats[$p2Id]['pts_for'] += $s2;
+                $playerStats[$p2Id]['pts_against'] += $s1;
+                $playerStats[$p2Id]['point_diff'] += ($s2 - $s1);
 
-                if ($bm->winner_id == $bm->player1_id) {
-                    $playerStats[$bm->player1_id]['wins'] += 1;
-                    $playerStats[$bm->player2_id]['losses'] += 1;
+                if ($winnerId == $p1Id) {
+                    $playerStats[$p1Id]['wins'] += 1;
+                    $playerStats[$p2Id]['losses'] += 1;
                     if (!$hasSwiss) {
-                        $playerStats[$bm->player1_id]['points'] += 3;
-                        $headToHead[$bm->player1_id][$bm->player2_id] = true;
+                        $playerStats[$p1Id]['points'] += 3;
+                        $headToHead[$p1Id][$p2Id] = true;
                     }
-                } elseif ($bm->winner_id == $bm->player2_id) {
-                    $playerStats[$bm->player2_id]['wins'] += 1;
-                    $playerStats[$bm->player1_id]['losses'] += 1;
+                } elseif ($winnerId == $p2Id) {
+                    $playerStats[$p2Id]['wins'] += 1;
+                    $playerStats[$p1Id]['losses'] += 1;
                     if (!$hasSwiss) {
-                        $playerStats[$bm->player2_id]['points'] += 3;
-                        $headToHead[$bm->player2_id][$bm->player1_id] = true;
+                        $playerStats[$p2Id]['points'] += 3;
+                        $headToHead[$p2Id][$p1Id] = true;
                     }
                 }
             }
@@ -200,10 +265,12 @@ class StandingsService
 
         if (!$hasSwiss && $hasBracket) {
             foreach ($completedBracketMatches as $bm) {
-                $isGhostOrBye = is_null($bm->player1_id) || is_null($bm->player2_id) || $bm->player1_score == 99 || $bm->player2_score == 99;
-                if (!$isGhostOrBye && isset($playerStats[$bm->player1_id]) && isset($playerStats[$bm->player2_id])) {
-                    $playerStats[$bm->player1_id]['buchholz'] += $playerStats[$bm->player2_id]['points'];
-                    $playerStats[$bm->player2_id]['buchholz'] += $playerStats[$bm->player1_id]['points'];
+                $p1Id = $this->resolveP1Id($bm, $isTeamEvent);
+                $p2Id = $this->resolveP2Id($bm, $isTeamEvent);
+                $isGhostOrBye = is_null($p1Id) || is_null($p2Id) || $bm->player1_score == 99 || $bm->player2_score == 99;
+                if (!$isGhostOrBye && isset($playerStats[$p1Id]) && isset($playerStats[$p2Id])) {
+                    $playerStats[$p1Id]['buchholz'] += $playerStats[$p2Id]['points'];
+                    $playerStats[$p2Id]['buchholz'] += $playerStats[$p1Id]['points'];
                 }
             }
         }
@@ -226,19 +293,28 @@ class StandingsService
         array &$playerStats,
         Collection $bracketMatchesAll,
         Collection $completedBracketMatches,
-        Collection $allEventMatches
+        Collection $allEventMatches,
+        bool $isTeamEvent = false
     ): void {
         $hasResetCompleted = $completedBracketMatches->where('bracket_type', 'grand_final_reset')->isNotEmpty();
 
         foreach ($playerStats as $uid => &$stats) {
-            $allPlayerBracketMatches = $bracketMatchesAll->filter(fn($m) => $m->player1_id == $uid || $m->player2_id == $uid);
-            $compPlayerBracketMatches = $completedBracketMatches->filter(fn($m) => $m->player1_id == $uid || $m->player2_id == $uid);
+            $allPlayerBracketMatches = $bracketMatchesAll->filter(
+                fn($m) => $this->resolveP1Id($m, $isTeamEvent) == $uid || $this->resolveP2Id($m, $isTeamEvent) == $uid
+            );
+            $compPlayerBracketMatches = $completedBracketMatches->filter(
+                fn($m) => $this->resolveP1Id($m, $isTeamEvent) == $uid || $this->resolveP2Id($m, $isTeamEvent) == $uid
+            );
 
             if ($allPlayerBracketMatches->isNotEmpty()) {
-                $wonGFReset = $compPlayerBracketMatches->where('bracket_type', 'grand_final_reset')->where('winner_id', $uid)->isNotEmpty();
-                $lostGFReset = $compPlayerBracketMatches->where('bracket_type', 'grand_final_reset')->where('winner_id', '!=', $uid)->isNotEmpty();
-                $wonGF = $compPlayerBracketMatches->where('bracket_type', 'grand_final')->where('winner_id', $uid)->isNotEmpty();
-                $lostGF = $compPlayerBracketMatches->where('bracket_type', 'grand_final')->where('winner_id', '!=', $uid)->isNotEmpty();
+                $wonGFReset = $compPlayerBracketMatches->where('bracket_type', 'grand_final_reset')
+                    ->filter(fn($m) => $this->resolveWinnerId($m, $isTeamEvent) == $uid)->isNotEmpty();
+                $lostGFReset = $compPlayerBracketMatches->where('bracket_type', 'grand_final_reset')
+                    ->filter(fn($m) => $this->resolveWinnerId($m, $isTeamEvent) && $this->resolveWinnerId($m, $isTeamEvent) != $uid)->isNotEmpty();
+                $wonGF = $compPlayerBracketMatches->where('bracket_type', 'grand_final')
+                    ->filter(fn($m) => $this->resolveWinnerId($m, $isTeamEvent) == $uid)->isNotEmpty();
+                $lostGF = $compPlayerBracketMatches->where('bracket_type', 'grand_final')
+                    ->filter(fn($m) => $this->resolveWinnerId($m, $isTeamEvent) && $this->resolveWinnerId($m, $isTeamEvent) != $uid)->isNotEmpty();
 
                 if ($hasResetCompleted && $wonGFReset) {
                     $stats['bracket_score'] = 10000;
@@ -253,7 +329,8 @@ class StandingsService
                     $stats['bracket_score'] = 9000;
                     $stats['bracket_stage'] = 'FINALISTA';
                 } else {
-                    $lostInLosers = $compPlayerBracketMatches->where('bracket_type', 'losers')->filter(fn($m) => $m->winner_id && $m->winner_id != $uid);
+                    $lostInLosers = $compPlayerBracketMatches->where('bracket_type', 'losers')
+                        ->filter(fn($m) => $this->resolveWinnerId($m, $isTeamEvent) && $this->resolveWinnerId($m, $isTeamEvent) != $uid);
                     if ($lostInLosers->isNotEmpty()) {
                         $roundEliminated = $lostInLosers->max('round_number');
                         $stats['bracket_score'] = 5000 + $roundEliminated;

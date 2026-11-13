@@ -207,8 +207,9 @@
                                                 $p1Name = $isTeam ? ($match->team1->name ?? $p1Lbl) : ($match->player1->name ?? $p1Lbl);
                                                 $p2Name = $isTeam ? ($match->team2->name ?? $p2Lbl) : ($match->player2->name ?? $p2Lbl);
 
-                                                $p1Won = (!$isPlaceholder && $match->status === 'completed' && $match->winner_id && $match->winner_id == $p1Id);
-                                                $p2Won = (!$isPlaceholder && $match->status === 'completed' && $match->winner_id && $match->winner_id == $p2Id);
+                                                $resolvedWinnerId = $isTeam ? ($match->winner_team_id ?? $match->winner_id ?? null) : ($match->winner_id ?? null);
+                                                $p1Won = (!$isPlaceholder && $match->status === 'completed' && $resolvedWinnerId && $resolvedWinnerId == $p1Id);
+                                                $p2Won = (!$isPlaceholder && $match->status === 'completed' && $resolvedWinnerId && $resolvedWinnerId == $p2Id);
                                                 $bothEmpty = is_null($p1Id) && is_null($p2Id);
 
                                                 $cardStyle = ($isPlaceholder || $bothEmpty)
@@ -223,7 +224,7 @@
                                                  data-round="{{ $roundNumber }}"
                                                  data-index="{{ $index }}"
                                                  data-status="{{ $match->status }}"
-                                                 data-winner="{{ $match->winner_id ?? '' }}"
+                                                 data-winner="{{ $resolvedWinnerId ?? '' }}"
                                                  data-p1="{{ $p1Ghost ? '999999' : ($p1Id ?? '') }}"
                                                  data-p2="{{ $p2Ghost ? '999999' : ($p2Id ?? '') }}">
 
@@ -296,8 +297,9 @@
                                     $p2Lbl = $match->p2_placeholder ?? 'CAMPEÓN LOSERS';
                                     $p1Name = $isTeam ? ($match->team1->name ?? $p1Lbl) : ($match->player1->name ?? $p1Lbl);
                                     $p2Name = $isTeam ? ($match->team2->name ?? $p2Lbl) : ($match->player2->name ?? $p2Lbl);
-                                    $p1Won = (!$isPlaceholder && $match->status === 'completed' && $match->winner_id && $match->winner_id == $p1Id);
-                                    $p2Won = (!$isPlaceholder && $match->status === 'completed' && $match->winner_id && $match->winner_id == $p2Id);
+                                    $resolvedWinnerId = $isTeam ? ($match->winner_team_id ?? $match->winner_id ?? null) : ($match->winner_id ?? null);
+                                    $p1Won = (!$isPlaceholder && $match->status === 'completed' && $resolvedWinnerId && $resolvedWinnerId == $p1Id);
+                                    $p2Won = (!$isPlaceholder && $match->status === 'completed' && $resolvedWinnerId && $resolvedWinnerId == $p2Id);
                                     $bothEmpty = is_null($p1Id) && is_null($p2Id);
                                 @endphp
                                 <div class="bracket-round-col flex flex-col w-[300px] shrink-0 justify-center" data-bracket="finals" data-round="{{ $fIndex + 1 }}">
@@ -313,7 +315,7 @@
                                          data-round="{{ $fIndex + 1 }}"
                                          data-index="0"
                                          data-status="{{ $match->status }}"
-                                         data-winner="{{ $match->winner_id ?? '' }}"
+                                         data-winner="{{ $resolvedWinnerId ?? '' }}"
                                          data-p1="{{ $p1Id ?? '' }}"
                                          data-p2="{{ $p2Id ?? '' }}">
 
@@ -386,8 +388,9 @@
                                             $p2Lbl = $match->p2_placeholder ?? 'ESPERANDO...';
                                             $p1Name = $isTeam ? ($match->team1->name ?? $p1Lbl) : ($match->player1->name ?? $p1Lbl);
                                             $p2Name = $isTeam ? ($match->team2->name ?? $p2Lbl) : ($match->player2->name ?? $p2Lbl);
-                                            $p1Won = (!$isPlaceholder && $match->status === 'completed' && $match->winner_id && $match->winner_id == $p1Id);
-                                            $p2Won = (!$isPlaceholder && $match->status === 'completed' && $match->winner_id && $match->winner_id == $p2Id);
+                                            $resolvedWinnerId = $isTeam ? ($match->winner_team_id ?? $match->winner_id ?? null) : ($match->winner_id ?? null);
+                                            $p1Won = (!$isPlaceholder && $match->status === 'completed' && $resolvedWinnerId && $resolvedWinnerId == $p1Id);
+                                            $p2Won = (!$isPlaceholder && $match->status === 'completed' && $resolvedWinnerId && $resolvedWinnerId == $p2Id);
                                             $bothEmpty = is_null($p1Id) && is_null($p2Id);
 
                                             $cardStyle = ($isPlaceholder || $bothEmpty)
@@ -402,7 +405,7 @@
                                              data-round="{{ $roundNumber }}"
                                              data-index="{{ $index }}"
                                              data-status="{{ $match->status }}"
-                                             data-winner="{{ $match->winner_id ?? '' }}"
+                                             data-winner="{{ $resolvedWinnerId ?? '' }}"
                                              data-p1="{{ $p1Ghost ? '999999' : ($p1Id ?? '') }}"
                                              data-p2="{{ $p2Ghost ? '999999' : ($p2Id ?? '') }}">
 
@@ -492,8 +495,10 @@
                                     $isBye = is_null($m->team1_id) && (is_null($m->player2_id) || $m->player1_score == 99 || $m->player2_score == 99);
                                     $p1Name = $m->team1 ? $m->team1->name : ($m->player1 ? $m->player1->name : '---');
                                     $p2Name = $isBye ? 'BYE (PASE DIRECTO)' : ($m->team2 ? $m->team2->name : ($m->player2 ? $m->player2->name : '---'));
-                                    $w1 = $isBye || ($m->status === 'completed' && $m->winner_id && ($m->winner_id == $m->player1_id || $m->winner_id == $m->team1_id));
-                                    $w2 = !$isBye && $m->status === 'completed' && $m->winner_id && ($m->winner_id == $m->player2_id || $m->winner_id == $m->team2_id);
+                                    $isTeamM = !is_null($m->team1_id) || !is_null($m->team2_id);
+                                    $resolvedWinnerId = $isTeamM ? ($m->winner_team_id ?? $m->winner_id ?? null) : ($m->winner_id ?? null);
+                                    $w1 = $isBye || ($m->status === 'completed' && $resolvedWinnerId && ($isTeamM ? $resolvedWinnerId == $m->team1_id : $resolvedWinnerId == $m->player1_id));
+                                    $w2 = !$isBye && $m->status === 'completed' && $resolvedWinnerId && ($isTeamM ? $resolvedWinnerId == $m->team2_id : $resolvedWinnerId == $m->player2_id);
                                 @endphp
                                 <div class="swiss-match-card bg-gray-950 border {{ $m->status === 'completed' || $isBye ? 'border-gray-800/90' : 'border-cyan-700/60 shadow-[0_0_12px_rgba(6,182,212,0.12)]' }} rounded-xl p-3 flex items-center justify-between transition-all"
                                      data-p1-name="{{ mb_strtoupper($p1Name) }}"

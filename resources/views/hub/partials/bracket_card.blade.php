@@ -18,8 +18,9 @@
     $p1 = mb_strtoupper($p1Name);
     $p2 = mb_strtoupper($p2Name);
 
-    $w1 = (!$isPlaceholder && $match->status === 'completed' && $match->winner_id && $match->winner_id == $p1Id);
-    $w2 = (!$isPlaceholder && $match->status === 'completed' && $match->winner_id && $match->winner_id == $p2Id);
+    $resolvedWinnerId = $isTeam ? ($match->winner_team_id ?? $match->winner_id ?? null) : ($match->winner_id ?? null);
+    $w1 = (!$isPlaceholder && $match->status === 'completed' && $resolvedWinnerId && $resolvedWinnerId == $p1Id);
+    $w2 = (!$isPlaceholder && $match->status === 'completed' && $resolvedWinnerId && $resolvedWinnerId == $p2Id);
     
     $bothEmpty = is_null($p1Id) && is_null($p2Id);
     $canClick = !is_null($p1Id) && !is_null($p2Id) && !$isPlaceholder;
@@ -69,7 +70,7 @@
      data-round="{{ $roundNumber ?? $match->round_number }}"
      data-index="{{ $index ?? 0 }}"
      data-status="{{ $match->status }}"
-     data-winner="{{ $match->winner_id ?? '' }}"
+     data-winner="{{ $resolvedWinnerId ?? '' }}"
      data-p1="{{ $p1Ghost ? '999999' : ($p1Id ?? '') }}"
      data-p2="{{ $p2Ghost ? '999999' : ($p2Id ?? '') }}"
      @if($canClick) onclick="accionRapidaDesdeCuadro({{ $match->id }}, '{{ $match->status }}')" @endif>

@@ -287,7 +287,6 @@ class InicioController extends Controller
     public function rules()
     {
         return redirect('https://sbbl.es/blog/reglamento-s3-v1');
-        //return view('inicio.rules');
     }
 
     /**

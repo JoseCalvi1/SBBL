@@ -388,8 +388,13 @@ class DoubleEliminationEngine
      */
     public function progressMatch(TournamentMatch $match)
     {
+        $isTeam = !is_null($match->team1_id) || !is_null($match->team2_id);
+        $p1Id = $isTeam ? $match->team1_id : $match->player1_id;
+        $p2Id = $isTeam ? $match->team2_id : $match->player2_id;
+        $winnerId = $isTeam ? ($match->winner_team_id ?? $match->winner_id) : $match->winner_id;
+
         if ($match->bracket_type === 'grand_final') {
-            if ($match->winner_id != $match->player1_id) {
+            if ($winnerId != $p1Id) {
                 $existsReset = TournamentMatch::where('event_id', $match->event_id)
                     ->where('bracket_type', 'grand_final_reset')
                     ->exists();
@@ -400,6 +405,8 @@ class DoubleEliminationEngine
                     $resetMatch->bracket_type = 'grand_final_reset';
                     $resetMatch->player1_id = $match->player1_id;
                     $resetMatch->player2_id = $match->player2_id;
+                    $resetMatch->team1_id = $match->team1_id;
+                    $resetMatch->team2_id = $match->team2_id;
                     $resetMatch->player1_score = 0;
                     $resetMatch->player2_score = 0;
                     $resetMatch->status = 'pending';
@@ -413,9 +420,9 @@ class DoubleEliminationEngine
             return;
         }
 
-        $loser_id = ($match->winner_id == $match->player1_id) ? $match->player2_id : $match->player1_id;
+        $loser_id = ($winnerId == $p1Id) ? $p2Id : $p1Id;
         $loserIsGhost = is_null($loser_id);
-        $winnerIsGhost = is_null($match->winner_id);
+        $winnerIsGhost = is_null($winnerId);
 
         $topology = $this->buildBracketTopology($match->event_id);
         $route = $topology['targets'][$match->id] ?? null;
@@ -426,8 +433,9 @@ class DoubleEliminationEngine
             $this->assignPlayerToPrebuiltSlot(
                 $route['win']['match_id'],
                 $route['win']['slot'],
-                $match->winner_id,
-                $winnerIsGhost
+                $winnerId,
+                $winnerIsGhost,
+                $isTeam
             );
         }
 
@@ -436,21 +444,30 @@ class DoubleEliminationEngine
                 $route['lose']['match_id'],
                 $route['lose']['slot'],
                 $loser_id,
-                $loserIsGhost
+                $loserIsGhost,
+                $isTeam
             );
         }
     }
 
-    private function assignPlayerToPrebuiltSlot(int $targetMatchId, int $slot, $playerId, bool $isGhost)
+    private function assignPlayerToPrebuiltSlot(int $targetMatchId, int $slot, $participantId, bool $isGhost, bool $isTeam = false)
     {
         $targetMatch = TournamentMatch::find($targetMatchId);
         if (!$targetMatch) return;
 
         if ($slot === 1) {
-            $targetMatch->player1_id = $isGhost ? null : $playerId;
+            if ($isTeam) {
+                $targetMatch->team1_id = $isGhost ? null : $participantId;
+            } else {
+                $targetMatch->player1_id = $isGhost ? null : $participantId;
+            }
             $targetMatch->player1_score = $isGhost ? 99 : 0;
         } else {
-            $targetMatch->player2_id = $isGhost ? null : $playerId;
+            if ($isTeam) {
+                $targetMatch->team2_id = $isGhost ? null : $participantId;
+            } else {
+                $targetMatch->player2_id = $isGhost ? null : $participantId;
+            }
             $targetMatch->player2_score = $isGhost ? 99 : 0;
         }
 
@@ -460,30 +477,47 @@ class DoubleEliminationEngine
 
     private function checkAndAutoResolveGhostMatch(TournamentMatch $nextMatch)
     {
-        $slot1Filled = !is_null($nextMatch->player1_id) || $nextMatch->player1_score == 99;
-        $slot2Filled = !is_null($nextMatch->player2_id) || $nextMatch->player2_score == 99;
+        $isTeam = !is_null($nextMatch->team1_id) || !is_null($nextMatch->team2_id);
+        $p1Id = $isTeam ? $nextMatch->team1_id : $nextMatch->player1_id;
+        $p2Id = $isTeam ? $nextMatch->team2_id : $nextMatch->player2_id;
+
+        $slot1Filled = !is_null($p1Id) || $nextMatch->player1_score == 99;
+        $slot2Filled = !is_null($p2Id) || $nextMatch->player2_score == 99;
 
         if ($slot1Filled && $slot2Filled && $nextMatch->status !== 'completed') {
-            $p1Ghost = is_null($nextMatch->player1_id) && $nextMatch->player1_score == 99;
-            $p2Ghost = is_null($nextMatch->player2_id) && $nextMatch->player2_score == 99;
+            $p1Ghost = is_null($p1Id) && $nextMatch->player1_score == 99;
+            $p2Ghost = is_null($p2Id) && $nextMatch->player2_score == 99;
 
             if ($p1Ghost && $p2Ghost) {
                 $nextMatch->status = 'completed';
                 $nextMatch->winner_id = null;
+                $nextMatch->winner_team_id = null;
                 $nextMatch->player1_score = 99;
                 $nextMatch->player2_score = 99;
                 $nextMatch->save();
                 $this->progressMatch($nextMatch);
             } elseif ($p1Ghost) {
                 $nextMatch->status = 'completed';
-                $nextMatch->winner_id = $nextMatch->player2_id;
+                if ($isTeam) {
+                    $nextMatch->winner_team_id = $nextMatch->team2_id;
+                    $nextMatch->winner_id = null;
+                } else {
+                    $nextMatch->winner_id = $nextMatch->player2_id;
+                    $nextMatch->winner_team_id = null;
+                }
                 $nextMatch->player1_score = 99;
                 $nextMatch->player2_score = 4;
                 $nextMatch->save();
                 $this->progressMatch($nextMatch);
             } elseif ($p2Ghost) {
                 $nextMatch->status = 'completed';
-                $nextMatch->winner_id = $nextMatch->player1_id;
+                if ($isTeam) {
+                    $nextMatch->winner_team_id = $nextMatch->team1_id;
+                    $nextMatch->winner_id = null;
+                } else {
+                    $nextMatch->winner_id = $nextMatch->player1_id;
+                    $nextMatch->winner_team_id = null;
+                }
                 $nextMatch->player1_score = 4;
                 $nextMatch->player2_score = 99;
                 $nextMatch->save();

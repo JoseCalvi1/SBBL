@@ -240,8 +240,9 @@
                         const isComp = m.status === 'completed';
                         const isPlaying = !isComp && m.locked_by;
 
-                        const w1 = isComp && m.winner_id && (m.winner_id == m.player1_id || m.winner_id == m.team1_id);
-                        const w2 = isComp && m.winner_id && (m.winner_id == m.player2_id || m.winner_id == m.team2_id);
+                        const resolvedWinnerId = isTeam ? (m.winner_team_id ?? m.winner_id) : m.winner_id;
+                        const w1 = isComp && resolvedWinnerId && (isTeam ? resolvedWinnerId == m.team1_id : resolvedWinnerId == m.player1_id);
+                        const w2 = isComp && resolvedWinnerId && (isTeam ? resolvedWinnerId == m.team2_id : resolvedWinnerId == m.player2_id);
 
                         const cardStyle = isPlaying
                             ? 'bg-cyan-950/30 border-2 border-cyan-400 match-live'

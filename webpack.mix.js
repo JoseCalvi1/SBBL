@@ -16,4 +16,6 @@ mix.js('resources/js/app.js', 'public/js')
     .autoload({
         jQuery:  ['$', 'window.jQuery', 'jQuery']
     })
-    .sass('resources/sass/app.scss', 'public/css');
+    .sass('resources/sass/app.scss', 'public/css')
+    .copy('resources/js/hub.js', 'public/js/hub.js')
+    .copy('resources/js/stats.js', 'public/js/stats.js');

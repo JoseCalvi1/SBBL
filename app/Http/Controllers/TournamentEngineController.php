@@ -59,6 +59,8 @@ class TournamentEngineController extends Controller
         TournamentMatch::where('event_id', $eventId)
             ->whereIn('bracket_type', ['swiss', 'round_robin'])
             ->where('status', '!=', 'completed')
+            ->whereNull('team1_id')
+            ->whereNull('team2_id')
             ->where(function ($q) {
                 $q->whereNull('player2_id')
                   ->orWhere('player1_score', 99)
@@ -144,6 +146,8 @@ class TournamentEngineController extends Controller
             ->where('event_id', $eventId)
             ->where('round_number', $requestedRound)
             ->whereIn('bracket_type', ['swiss', 'round_robin'])
+            ->whereNull('team1_id')
+            ->whereNull('team2_id')
             ->where(function ($q) {
                 $q->whereNull('player2_id')->orWhere('player1_score', 99)->orWhere('player2_score', 99);
             })
@@ -188,6 +192,8 @@ class TournamentEngineController extends Controller
         TournamentMatch::where('event_id', $eventId)
             ->whereIn('bracket_type', ['swiss', 'round_robin'])
             ->where('status', '!=', 'completed')
+            ->whereNull('team1_id')
+            ->whereNull('team2_id')
             ->where(function ($q) {
                 $q->whereNull('player2_id')
                   ->orWhere('player1_score', 99)
@@ -226,6 +232,8 @@ class TournamentEngineController extends Controller
         TournamentMatch::where('event_id', $eventId)
             ->whereIn('bracket_type', ['swiss', 'round_robin'])
             ->where('status', '!=', 'completed')
+            ->whereNull('team1_id')
+            ->whereNull('team2_id')
             ->where(function ($q) {
                 $q->whereNull('player2_id')
                   ->orWhere('player1_score', 99)
@@ -614,7 +622,8 @@ class TournamentEngineController extends Controller
 
                 if ($matchesPlayed >= $limit) {
                     if ($match->player1_score !== $match->player2_score) {
-                        $match->winner_id = $match->player1_score > $match->player2_score ? $match->team1_id : $match->team2_id;
+                        $match->winner_team_id = $match->player1_score > $match->player2_score ? $match->team1_id : $match->team2_id;
+                        $match->winner_id = null;
                         $match->status = 'completed';
                         $matchCompleted = true;
                     } else {
@@ -629,6 +638,7 @@ class TournamentEngineController extends Controller
                 $limit = 4;
                 if ($match->player1_score >= $limit || $match->player2_score >= $limit) {
                     $match->winner_id = $match->player1_score >= $limit ? $match->player1_id : $match->player2_id;
+                    $match->winner_team_id = null;
                     $match->status = 'completed';
                     $matchCompleted = true;
                 } else {
@@ -683,6 +693,7 @@ class TournamentEngineController extends Controller
                     $match->player1_score = 0;
                     $match->player2_score = 0;
                     $match->winner_id = null;
+                    $match->winner_team_id = null;
                     $match->status = 'playing';
                     $match->save();
 
@@ -710,6 +721,7 @@ class TournamentEngineController extends Controller
                 $match->player1_score = $p1_score;
                 $match->player2_score = $p2_score;
                 $match->winner_id = null;
+                $match->winner_team_id = null;
                 $match->status = $remainingBattles->count() > 0 ? 'playing' : 'pending';
             } else {
                 $p1_score = $remainingBattles->where('winner_id', $match->player1_id)->sum('points_awarded') ?? 0;
@@ -720,9 +732,11 @@ class TournamentEngineController extends Controller
 
                 if ($match->player1_score >= 4 || $match->player2_score >= 4) {
                     $match->winner_id = $match->player1_score >= 4 ? $match->player1_id : $match->player2_id;
+                    $match->winner_team_id = null;
                     $match->status = 'completed';
                 } else {
                     $match->winner_id = null;
+                    $match->winner_team_id = null;
                     $match->status = $remainingBattles->count() > 0 ? 'playing' : 'pending';
                 }
             }
@@ -788,7 +802,13 @@ class TournamentEngineController extends Controller
                 $match->player2_score = 4;
             }
 
-            $match->winner_id = $resolvedWinnerId;
+            if ($isTeamMatch) {
+                $match->winner_team_id = $resolvedWinnerId;
+                $match->winner_id = null;
+            } else {
+                $match->winner_id = $resolvedWinnerId;
+                $match->winner_team_id = null;
+            }
             $match->status = 'completed';
             $match->locked_by = null;
             $match->save();
@@ -850,7 +870,13 @@ class TournamentEngineController extends Controller
 
             $match->player1_score = $s1;
             $match->player2_score = $s2;
-            $match->winner_id = $resolvedWinnerId;
+            if ($isTeamMatch) {
+                $match->winner_team_id = $resolvedWinnerId;
+                $match->winner_id = null;
+            } else {
+                $match->winner_id = $resolvedWinnerId;
+                $match->winner_team_id = null;
+            }
             $match->status = 'completed';
             $match->locked_by = null;
             $match->save();
@@ -873,7 +899,7 @@ class TournamentEngineController extends Controller
 
     private function safeProgressMatch(TournamentMatch $match)
     {
-        if (!$match->winner_id) return;
+        if (!$match->winner_id && !$match->winner_team_id) return;
         $engine = new \App\Services\Tournament\DoubleEliminationEngine();
         $engine->progressMatch($match);
     }
@@ -907,12 +933,15 @@ class TournamentEngineController extends Controller
                     }
                     if ($slot === 1) {
                         $targetMatch->player1_id = null;
+                        $targetMatch->team1_id = null;
                         $targetMatch->player1_score = 0;
                     } else {
                         $targetMatch->player2_id = null;
+                        $targetMatch->team2_id = null;
                         $targetMatch->player2_score = 0;
                     }
                     $targetMatch->winner_id = null;
+                    $targetMatch->winner_team_id = null;
                     $targetMatch->status = 'pending';
                     $targetMatch->save();
                 }
@@ -1045,7 +1074,8 @@ class TournamentEngineController extends Controller
 
             if ($matchesPlayed >= $limit && $p1_score !== $p2_score) {
                 $match->status = 'completed';
-                $match->winner_id = $p1_score > $p2_score ? $match->team1_id : $match->team2_id;
+                $match->winner_team_id = $p1_score > $p2_score ? $match->team1_id : $match->team2_id;
+                $match->winner_id = null;
                 $matchCompleted = true;
                 $msg .= " ¡Duelo Finalizado!";
             }
@@ -1053,6 +1083,7 @@ class TournamentEngineController extends Controller
             if ($p1_score >= 4 || $p2_score >= 4) {
                 $match->status = 'completed';
                 $match->winner_id = $p1_score >= 4 ? $match->player1_id : $match->player2_id;
+                $match->winner_team_id = null;
                 $matchCompleted = true;
                 $msg .= " ¡Partida finalizada!";
             }
@@ -1483,12 +1514,20 @@ class TournamentEngineController extends Controller
             return response()->json(['success' => false, 'message' => 'Esta partida aún no se puede avanzar.'], 400);
         }
 
+        $isTeamMatch = !is_null($match->team1_id) && !is_null($match->team2_id);
+        $effectiveWinnerId = $isTeamMatch ? ($match->winner_team_id ?? $match->winner_id) : $match->winner_id;
+
         $alreadyAdvanced = TournamentMatch::where('event_id', $match->event_id)
             ->where('round_number', '>', $match->round_number)
             ->whereIn('bracket_type', ['winners', 'losers', 'grand_final', 'grand_final_reset'])
-            ->where(function($q) use ($match) {
-                $q->where('player1_id', $match->winner_id)
-                  ->orWhere('player2_id', $match->winner_id);
+            ->where(function($q) use ($isTeamMatch, $effectiveWinnerId) {
+                if ($isTeamMatch) {
+                    $q->where('team1_id', $effectiveWinnerId)
+                      ->orWhere('team2_id', $effectiveWinnerId);
+                } else {
+                    $q->where('player1_id', $effectiveWinnerId)
+                      ->orWhere('player2_id', $effectiveWinnerId);
+                }
             })
             ->exists();
 

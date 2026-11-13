@@ -10,7 +10,7 @@ class TournamentMatch extends Model
 
     protected $fillable = [
         'event_id', 'round_number', 'bracket_type', 'player1_id', 'player2_id', 
-        'status', 'locked_by', 'winner_id', 'player1_score', 'player2_score', 'match_number', 'team1_id', 'team2_id'
+        'status', 'locked_by', 'winner_id', 'winner_team_id', 'player1_score', 'player2_score', 'match_number', 'team1_id', 'team2_id'
     ];
 
     // MAGIA: Se ejecuta justo antes de crear una partida nueva en la BD
@@ -30,8 +30,8 @@ class TournamentMatch extends Model
             elseif ($match->status === 'completed') {
                 $isBye = true;
             }
-            // Condición C: Byes del Sistema Suizo (Falta el jugador 2 y no va a llegar)
-            elseif ($match->bracket_type === 'swiss' && is_null($match->player2_id)) {
+            // Condición C: Byes del Sistema Suizo (Falta el jugador 2 y no va a llegar, solo en individual)
+            elseif ($match->bracket_type === 'swiss' && is_null($match->player2_id) && is_null($match->team1_id)) {
                 $isBye = true;
             }
 
@@ -59,6 +59,10 @@ class TournamentMatch extends Model
         return $this->belongsTo(User::class, 'winner_id');
     }
 
+    public function winnerTeam() {
+        return $this->belongsTo(Team::class, 'winner_team_id');
+    }
+
     public function battles() {
         return $this->hasMany(MatchBattle::class);
     }
@@ -68,7 +72,6 @@ class TournamentMatch extends Model
         return $this->belongsTo(User::class, 'locked_by');
     }
 
-    // Añade estas dos funciones al final del modelo:
     public function team1()
     {
         return $this->belongsTo(Team::class, 'team1_id');
