@@ -76,7 +76,7 @@ class EventController extends Controller
                 'id', 'name', 'city', 'location', 'region_id', 'date', 'time',
                 'mode', 'status', 'beys', 'iframe', 'challonge', 'created_by'
             )
-            ->where('date', '>=', '2025-09-01')
+            ->where('date', '>=', config('sbbl.season_start'))
             ->orderBy('date', 'DESC')
             ->orderBy('time', 'DESC');
 

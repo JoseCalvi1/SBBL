@@ -580,7 +580,7 @@ class InicioController extends Controller
                     END AS puntos_partida
                 FROM assist_user_event a
                 JOIN events e ON a.event_id = e.id
-                WHERE (e.beys = 'grancopa' OR e.name LIKE 'COPA STOCK%') AND e.date >= '2025-09-01'
+                WHERE (e.beys = 'grancopa' OR e.name LIKE 'COPA STOCK%') AND e.date >= ?
             ),
             CupAggregates AS (
                 SELECT user_id,
@@ -656,7 +656,7 @@ class InicioController extends Controller
 
     public function rankingNacional()
     {
-        $participantes = DB::select($this->getRankingQuery());
+        $participantes = DB::select($this->getRankingQuery(), [config('sbbl.season_start')]);
 
         // Enviamos el mismo nombre de variables que usa el proceso del CSV
         // para que la vista no falle
@@ -692,7 +692,7 @@ class InicioController extends Controller
         }
         fclose($handle);
 
-        $todosLosParticipantes = DB::select($this->getRankingQuery());
+        $todosLosParticipantes = DB::select($this->getRankingQuery(), [config('sbbl.season_start')]);
 
         $filtrar = function($maestro, $solicitudes) {
             return collect($maestro)->filter(function($jugador) use ($solicitudes) {

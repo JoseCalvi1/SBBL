@@ -31,7 +31,7 @@ class HubController extends Controller
         $isRevisor = $user ? $user->hasRole('revisor') : false;
 
         $query = Event::with(['region', 'users', 'judges.profile', 'judges.roles']);
-        $query->whereDate('date', '>=', '2026-09-01');
+        $query->whereDate('date', '>=', config('sbbl.season_start'));
 
         $isPersonal = $request->filled('personal');
         if ($isPersonal) {
@@ -514,7 +514,7 @@ class HubController extends Controller
 
     public function getPlayerProfile($id)
     {
-        $s3StartDate = '2026-09-01';
+        $s3StartDate = config('sbbl.season_start');
 
         $profile = \App\Models\Profile::with(['user', 'region'])->where('user_id', $id)->first();
         if (!$profile) {

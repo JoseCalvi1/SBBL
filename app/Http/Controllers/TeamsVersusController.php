@@ -23,7 +23,7 @@ class TeamsVersusController extends Controller
         // 1. Usamos 'with' para traer los equipos de golpe (Evita N+1)
         // 2. Paginamos de 15 en 15 o 20 en 20 para no saturar la vista.
         $versus = TeamsVersus::with(['versus_1', 'versus_2'])
-            ->where('created_at', '>=', '2025-09-01 00:00:00')
+            ->where('created_at', '>=', config('sbbl.season_start') . ' 00:00:00')
             ->orderBy('id', 'DESC')
             ->paginate(50);
 

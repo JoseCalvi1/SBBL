@@ -210,7 +210,7 @@ class ProfileController extends Controller
         // 4. TESORERÍA: INGRESOS GRAN COPA
         // Traemos los eventos de la Gran Copa directamente
         $granCopaEvents = \App\Models\Event::where('beys', 'grancopa')
-            ->where('date', '>=', '2025-09-01') // <-- FILTRO EN EL EVENTO
+            ->where('date', '>=', config('sbbl.season_start')) // <-- FILTRO EN EL EVENTO
             ->orderByDesc('date')
             ->get();
 
@@ -907,11 +907,11 @@ class ProfileController extends Controller
             if ($suscrito) {
                 $mostrarEstadisticas = true;
 
-                // 🔹 Contar los eventos después del 1 de septiembre de 2025
+                // 🔹 Contar los eventos de la temporada activa
                 $bladerData = DB::table('assist_user_event')
                     ->join('events', 'assist_user_event.event_id', '=', 'events.id')
                     ->where('assist_user_event.user_id', $user->id)
-                    ->where('events.date', '>', '2025-09-01')
+                    ->where('events.date', '>=', config('sbbl.season_start'))
                     ->select('assist_user_event.puesto')
                     ->get();
 

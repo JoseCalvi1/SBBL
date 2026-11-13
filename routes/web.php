@@ -302,11 +302,17 @@ Route::get('/events/{event}/participant/results', [EventController::class, 'getP
 // Resultados de Decks y Estadísticas Globales
 Route::post('/event/{eventId}/results', [TournamentResultController::class, 'store'])->name('tournament.results.store');
 Route::post('/versus/{versusId}/results', [TournamentResultController::class, 'storeduel'])->name('versus.results.store');
-Route::get('/beyblade-stats', [TournamentResultController::class, 'beybladeStats'])->name('inicio.stats');
-Route::get('/stats', [TournamentResultController::class, 'beybladeStats'])->name('stats.index');
-Route::get('/separate-stats', [TournamentResultController::class, 'separateStats'])->name('stats.separate');
-Route::get('/rankingstats', [TournamentResultController::class, 'showRanking'])->name('stats.rankingstats');
 
+Route::get('/beyblade-database/beyblade-stats', [TournamentResultController::class, 'beybladeStats'])->name('inicio.stats');
+Route::get('/beyblade-database/stats', [TournamentResultController::class, 'beybladeStats'])->name('stats.index');
+Route::get('/beyblade-database/separate-stats', [TournamentResultController::class, 'separateStats'])->name('stats.separate');
+Route::get('/beyblade-database/rankingstats', [TournamentResultController::class, 'showRanking'])->name('stats.rankingstats');
+
+// Endpoints AJAX de Telemetría, Evolución, H2H y Bey-Lab PRO
+Route::post('/beyblade-database/stats/lab-analyze', [TournamentResultController::class, 'analyzeWebLab'])->name('stats.lab.analyze');
+Route::get('/beyblade-database/stats/tournament/{eventId}', [TournamentResultController::class, 'getTournamentStatsDetail'])->name('stats.tournament.detail');
+Route::get('/beyblade-database/stats/combo-trend', [TournamentResultController::class, 'getComboTrend'])->name('stats.combo.trend');
+Route::get('/beyblade-database/stats/player-h2h', [TournamentResultController::class, 'getPlayerH2H'])->name('stats.player.h2h');
 /*
 |--------------------------------------------------------------------------
 | 9. PERFILES, RANKINGS, RETOS Y TROFEOS

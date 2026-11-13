@@ -77,7 +77,7 @@ class TeamController extends Controller
         $stats = [
             'total_teams' => Team::where('status', 'accepted')->count(),
             'total_players' => DB::table('team_user')->count(),
-            'total_duels' => DB::table('teams_versus')->where('status', 'CLOSED')->where('created_at', '>=', '2026-09-01 00:00:00')->count(),
+            'total_duels' => DB::table('teams_versus')->where('status', 'CLOSED')->where('created_at', '>=', config('sbbl.season_start') . ' 00:00:00')->count(),
         ];
 
         // 2. EQUIPO DEL USUARIO ACTUAL (Para el panel destacado)
