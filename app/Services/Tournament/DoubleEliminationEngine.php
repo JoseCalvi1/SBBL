@@ -8,6 +8,13 @@ use Illuminate\Support\Facades\DB;
 
 class DoubleEliminationEngine
 {
+    private StandingsService $standingsService;
+
+    public function __construct(?StandingsService $standingsService = null)
+    {
+        $this->standingsService = $standingsService ?? app(StandingsService::class);
+    }
+
     /**
      * Obtiene únicamente los jugadores TITULARES y ACTIVOS (No Dropped y dentro del límite de aforo)
      */
@@ -114,8 +121,7 @@ class DoubleEliminationEngine
             return ['success' => false, 'message' => 'El tamaño del Top Cut debe estar entre 4 y 64 jugadores.'];
         }
 
-        $engineController = app(\App\Http\Controllers\TournamentEngineController::class);
-        $standingsData = $engineController->getStandings($event->id)->getData(true);
+        $standingsData = $this->standingsService->getStandings($event->id);
         $clasificacion = $standingsData['clasificacion'] ?? [];
 
         $topPlayers = array_slice($clasificacion, 0, $topSize);

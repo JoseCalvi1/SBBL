@@ -741,8 +741,8 @@ class TournamentResultController extends Controller
     {
         $event = \App\Models\Event::with('region')->findOrFail($eventId);
 
-        $engineController = app(\App\Http\Controllers\TournamentEngineController::class);
-        $standingsData    = $engineController->getStandings($event->id)->getData(true);
+        $standingsService = app(\App\Services\Tournament\StandingsService::class);
+        $standingsData    = $standingsService->getStandings($event->id);
         $clasificacion    = $standingsData['clasificacion'] ?? [];
 
         $battleStats = DB::table('match_battles as mb')

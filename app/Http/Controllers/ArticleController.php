@@ -5,12 +5,18 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\Article;
 use App\Models\User;
+use App\Services\Discord\DiscordNotifier;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Http;
 
 class ArticleController extends Controller
 {
+    private DiscordNotifier $discordNotifier;
+
+    public function __construct(?DiscordNotifier $discordNotifier = null)
+    {
+        $this->discordNotifier = $discordNotifier ?? app(DiscordNotifier::class);
+    }
 
     public function index(Request $request)
     {
@@ -82,7 +88,7 @@ class ArticleController extends Controller
         } else {
             $imageData = null;
         }
-        $articleId = Article::create([
+        $article = Article::create([
             'title' => $request->title,
             'user_id' => Auth::user()->id,
             'description' => $request->description,
@@ -91,8 +97,7 @@ class ArticleController extends Controller
             'image' => $imageData,
         ]);
 
-        // TODO Comentar para probar en local
-        //Self::notification(Article::find($articleId));
+        $this->discordNotifier->sendArticleNotification($article, Auth::user());
 
         return redirect()->route('blog.index')->with('success', '¡Artículo creado exitosamente!');
     }
@@ -132,29 +137,8 @@ class ArticleController extends Controller
 }
 
 
-public function notification($articleId)
+    public function notification($articleId)
     {
-        $user = User::find(Auth::user()->id);
-
-        // Construyes el mensaje
-        $message = "¡Hay un nuevo anuncio de compra/venta!";
-
-        $webhookUrl = config('services.discord.articles_webhook');
-        if (!$webhookUrl) {
-            return null;
-        }
-
-        // Envías el mensaje al webhook de Discord
-        return Http::post($webhookUrl, [
-            'content' => $message,
-            'embeds' => [
-                [
-                    'title' => $user->name . " ha publicado un nuevo anuncio de " . $articleId[0]->article_type,
-                    'description' => $articleId[0]->title . ". Accede en: https://sbbl.es/mercado/" . $articleId[0]->custom_url,
-                    'color' => '7506394',
-                ]
-            ],
-        ]);
+        $this->discordNotifier->sendArticleNotification($articleId);
     }
-
 }

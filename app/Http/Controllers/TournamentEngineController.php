@@ -4,12 +4,23 @@ namespace App\Http\Controllers;
 
 use App\Models\Event;
 use App\Models\TournamentMatch;
+use App\Services\Discord\DiscordNotifier;
+use App\Services\Tournament\StandingsService;
 use App\Services\Tournament\SwissEngine;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
 class TournamentEngineController extends Controller
 {
+    private StandingsService $standingsService;
+    private DiscordNotifier $discordNotifier;
+
+    public function __construct(?StandingsService $standingsService = null, ?DiscordNotifier $discordNotifier = null)
+    {
+        $this->standingsService = $standingsService ?? app(StandingsService::class);
+        $this->discordNotifier = $discordNotifier ?? app(DiscordNotifier::class);
+    }
+
     /**
      * VERIFICADOR CENTRALIZADO DE PERMISOS DE ARENA
      */
@@ -231,7 +242,7 @@ class TournamentEngineController extends Controller
                 $event->save();
             }
             try {
-                \App\Http\Controllers\EventController::sendDiscordBracketNotificationHUB($event, true);
+                $this->discordNotifier->sendBracketNotification($event, true);
             } catch (\Exception $e) {}
         }
 
@@ -914,265 +925,7 @@ class TournamentEngineController extends Controller
      */
     public function getStandings($eventId)
     {
-        $event = \App\Models\Event::findOrFail($eventId);
-        $allEventMatches = \App\Models\TournamentMatch::where('event_id', $eventId)->get();
-        $matches = $allEventMatches->where('status', 'completed');
-
-        $bracketMatchesAll = $allEventMatches->whereIn('bracket_type', ['winners', 'losers', 'grand_final', 'grand_final_reset', 'single_elimination']);
-        $hasBracket = $bracketMatchesAll->isNotEmpty();
-        $hasSwiss = $allEventMatches->whereIn('bracket_type', ['swiss', 'round_robin'])->isNotEmpty();
-
-        $users = \Illuminate\Support\Facades\DB::table('assist_user_event')
-            ->join('users', 'assist_user_event.user_id', '=', 'users.id')
-            ->where('assist_user_event.event_id', $eventId)
-            ->where(function($q) {
-                $q->whereNull('assist_user_event.puesto')
-                  ->orWhere('assist_user_event.puesto', '!=', 'dropped');
-            })
-            ->select('users.id', 'users.name', 'assist_user_event.puesto')
-            ->get();
-
-        $playerStats = [];
-        $headToHead = [];
-
-        foreach ($users as $u) {
-            $playerStats[$u->id] = [
-                'id'             => $u->id,
-                'name'           => $u->name,
-                'points'         => 0,
-                'wins'           => 0,
-                'losses'         => 0,
-                'byes'           => 0,
-                'buchholz'       => 0,
-                'pts_for'        => 0,
-                'pts_against'    => 0,
-                'point_diff'     => 0,
-                'h2h_wins'       => 0,
-                'bracket_score'  => 0,
-                'bracket_stage'  => '',
-                'shared_rank'    => null,
-                'puesto_oficial' => null,
-                'puesto'         => $u->puesto
-            ];
-        }
-
-        // 1. Procesar partidas de Suizo / Round Robin
-        $swissMatches = $matches->whereIn('bracket_type', ['swiss', 'round_robin']);
-        foreach ($swissMatches as $m) {
-            $isBye = is_null($m->player2_id) || $m->player1_score == 99 || $m->player2_score == 99;
-
-            if ($isBye && $m->player1_id && isset($playerStats[$m->player1_id])) {
-                $playerStats[$m->player1_id]['points'] += 3;
-                $playerStats[$m->player1_id]['wins'] += 1;
-                $playerStats[$m->player1_id]['byes'] += 1;
-                $playerStats[$m->player1_id]['pts_for'] += 4;
-                $playerStats[$m->player1_id]['point_diff'] += 4;
-                continue;
-            }
-
-            if ($m->player1_id && $m->player2_id && isset($playerStats[$m->player1_id]) && isset($playerStats[$m->player2_id])) {
-                $s1 = (int) $m->player1_score;
-                $s2 = (int) $m->player2_score;
-
-                $playerStats[$m->player1_id]['pts_for'] += $s1;
-                $playerStats[$m->player1_id]['pts_against'] += $s2;
-                $playerStats[$m->player1_id]['point_diff'] += ($s1 - $s2);
-
-                $playerStats[$m->player2_id]['pts_for'] += $s2;
-                $playerStats[$m->player2_id]['pts_against'] += $s1;
-                $playerStats[$m->player2_id]['point_diff'] += ($s2 - $s1);
-
-                if ($m->winner_id == $m->player1_id) {
-                    $playerStats[$m->player1_id]['points'] += 3;
-                    $playerStats[$m->player1_id]['wins'] += 1;
-                    $playerStats[$m->player2_id]['losses'] += 1;
-                    $headToHead[$m->player1_id][$m->player2_id] = true;
-                } elseif ($m->winner_id == $m->player2_id) {
-                    $playerStats[$m->player2_id]['points'] += 3;
-                    $playerStats[$m->player2_id]['wins'] += 1;
-                    $playerStats[$m->player1_id]['losses'] += 1;
-                    $headToHead[$m->player2_id][$m->player1_id] = true;
-                } else {
-                    $playerStats[$m->player1_id]['points'] += 1;
-                    $playerStats[$m->player2_id]['points'] += 1;
-                }
-            }
-        }
-
-        // Calcular Buchholz en Suizo
-        foreach ($swissMatches as $m) {
-            $isBye = is_null($m->player2_id) || $m->player1_score == 99 || $m->player2_score == 99;
-            if (!$isBye && $m->player1_id && $m->player2_id && isset($playerStats[$m->player1_id]) && isset($playerStats[$m->player2_id])) {
-                $playerStats[$m->player1_id]['buchholz'] += $playerStats[$m->player2_id]['points'];
-                $playerStats[$m->player2_id]['buchholz'] += $playerStats[$m->player1_id]['points'];
-            }
-        }
-
-        // 2. Procesar partidas de Doble Eliminación (Winners / Losers / Grand Final)
-        $completedBracketMatches = $matches->whereIn('bracket_type', ['winners', 'losers', 'grand_final', 'grand_final_reset', 'single_elimination']);
-        foreach ($completedBracketMatches as $bm) {
-            $isGhostOrBye = is_null($bm->player1_id) || is_null($bm->player2_id) || $bm->player1_score == 99 || $bm->player2_score == 99;
-            if ($isGhostOrBye) {
-                continue;
-            }
-            if (isset($playerStats[$bm->player1_id]) && isset($playerStats[$bm->player2_id])) {
-                $s1 = (int) $bm->player1_score;
-                $s2 = (int) $bm->player2_score;
-
-                $playerStats[$bm->player1_id]['pts_for'] += $s1;
-                $playerStats[$bm->player1_id]['pts_against'] += $s2;
-                $playerStats[$bm->player1_id]['point_diff'] += ($s1 - $s2);
-
-                $playerStats[$bm->player2_id]['pts_for'] += $s2;
-                $playerStats[$bm->player2_id]['pts_against'] += $s1;
-                $playerStats[$bm->player2_id]['point_diff'] += ($s2 - $s1);
-
-                if ($bm->winner_id == $bm->player1_id) {
-                    $playerStats[$bm->player1_id]['wins'] += 1;
-                    $playerStats[$bm->player2_id]['losses'] += 1;
-                    if (!$hasSwiss) {
-                        $playerStats[$bm->player1_id]['points'] += 3;
-                        $headToHead[$bm->player1_id][$bm->player2_id] = true;
-                    }
-                } elseif ($bm->winner_id == $bm->player2_id) {
-                    $playerStats[$bm->player2_id]['wins'] += 1;
-                    $playerStats[$bm->player1_id]['losses'] += 1;
-                    if (!$hasSwiss) {
-                        $playerStats[$bm->player2_id]['points'] += 3;
-                        $headToHead[$bm->player2_id][$bm->player1_id] = true;
-                    }
-                }
-            }
-        }
-
-        if (!$hasSwiss && $hasBracket) {
-            foreach ($completedBracketMatches as $bm) {
-                $isGhostOrBye = is_null($bm->player1_id) || is_null($bm->player2_id) || $bm->player1_score == 99 || $bm->player2_score == 99;
-                if (!$isGhostOrBye && isset($playerStats[$bm->player1_id]) && isset($playerStats[$bm->player2_id])) {
-                    $playerStats[$bm->player1_id]['buchholz'] += $playerStats[$bm->player2_id]['points'];
-                    $playerStats[$bm->player2_id]['buchholz'] += $playerStats[$bm->player1_id]['points'];
-                }
-            }
-        }
-
-        // Mini-liga H2H entre empatados
-        foreach ($playerStats as $uid => &$st) {
-            $tiedOpponents = array_filter($playerStats, fn($other) => $other['id'] !== $uid && $other['points'] === $st['points']);
-            foreach ($tiedOpponents as $opp) {
-                if (!empty($headToHead[$uid][$opp['id']])) {
-                    $st['h2h_wins']++;
-                }
-            }
-        }
-        unset($st);
-
-        // 3. Puntuación de Progreso en el Árbol
-        if ($hasBracket) {
-            $hasResetCompleted = $completedBracketMatches->where('bracket_type', 'grand_final_reset')->isNotEmpty();
-
-            foreach ($playerStats as $uid => &$stats) {
-                $allPlayerBracketMatches = $bracketMatchesAll->filter(fn($m) => $m->player1_id == $uid || $m->player2_id == $uid);
-                $compPlayerBracketMatches = $completedBracketMatches->filter(fn($m) => $m->player1_id == $uid || $m->player2_id == $uid);
-
-                if ($allPlayerBracketMatches->isNotEmpty()) {
-                    $wonGFReset = $compPlayerBracketMatches->where('bracket_type', 'grand_final_reset')->where('winner_id', $uid)->isNotEmpty();
-                    $lostGFReset = $compPlayerBracketMatches->where('bracket_type', 'grand_final_reset')->where('winner_id', '!=', $uid)->isNotEmpty();
-                    $wonGF = $compPlayerBracketMatches->where('bracket_type', 'grand_final')->where('winner_id', $uid)->isNotEmpty();
-                    $lostGF = $compPlayerBracketMatches->where('bracket_type', 'grand_final')->where('winner_id', '!=', $uid)->isNotEmpty();
-
-                    if ($hasResetCompleted && $wonGFReset) {
-                        $stats['bracket_score'] = 10000;
-                        $stats['bracket_stage'] = 'CAMPEÓN';
-                    } elseif ($hasResetCompleted && $lostGFReset) {
-                        $stats['bracket_score'] = 9000;
-                        $stats['bracket_stage'] = 'FINALISTA';
-                    } elseif (!$hasResetCompleted && $wonGF && !$allEventMatches->where('bracket_type', 'grand_final_reset')->isNotEmpty()) {
-                        $stats['bracket_score'] = 10000;
-                        $stats['bracket_stage'] = 'CAMPEÓN';
-                    } elseif (!$hasResetCompleted && $lostGF && !$allEventMatches->where('bracket_type', 'grand_final_reset')->isNotEmpty()) {
-                        $stats['bracket_score'] = 9000;
-                        $stats['bracket_stage'] = 'FINALISTA';
-                    } else {
-                        $lostInLosers = $compPlayerBracketMatches->where('bracket_type', 'losers')->filter(fn($m) => $m->winner_id && $m->winner_id != $uid);
-                        if ($lostInLosers->isNotEmpty()) {
-                            $roundEliminated = $lostInLosers->max('round_number');
-                            $stats['bracket_score'] = 5000 + $roundEliminated;
-                            $stats['bracket_stage'] = 'ELIM. LOSERS R' . $roundEliminated;
-                        } else {
-                            $maxRoundReached = $allPlayerBracketMatches->max('round_number') ?? 1;
-                            $inWinners = $allPlayerBracketMatches->whereIn('bracket_type', ['winners', 'grand_final', 'grand_final_reset'])
-                                ->where('status', '!=', 'completed')->isNotEmpty();
-                            $stats['bracket_score'] = ($inWinners ? 7500 : 7000) + $maxRoundReached;
-                            $stats['bracket_stage'] = $inWinners ? 'EN WINNERS' : 'EN LOSERS';
-                        }
-                    }
-                }
-            }
-            unset($stats);
-        }
-
-        $standings = array_values($playerStats);
-
-        // Ordenar: 1º bracket_score -> 2º Puntos -> 3º Buchholz -> 4º H2H -> 5º DIF -> 6º Puntos a favor
-        usort($standings, function($a, $b) use ($headToHead) {
-            if ($a['bracket_score'] != $b['bracket_score']) return $b['bracket_score'] <=> $a['bracket_score'];
-            if ($a['points'] != $b['points']) return $b['points'] <=> $a['points'];
-            if ($a['buchholz'] != $b['buchholz']) return $b['buchholz'] <=> $a['buchholz'];
-
-            if (!empty($headToHead[$a['id']][$b['id']])) return -1;
-            if (!empty($headToHead[$b['id']][$a['id']])) return 1;
-            if ($a['h2h_wins'] != $b['h2h_wins']) return $b['h2h_wins'] <=> $a['h2h_wins'];
-
-            if ($a['point_diff'] != $b['point_diff']) return $b['point_diff'] <=> $a['point_diff'];
-            return $b['pts_for'] <=> $a['pts_for'];
-        });
-
-        // 4. ASIGNACIÓN DE POSICIONES COMPARTIDAS EN DOBLE ELIMINACIÓN Y NOMBRE OFICIAL
-        $rankToPuestoName = function (int $rank): string {
-            if ($rank === 1) return 'primero';
-            if ($rank === 2) return 'segundo';
-            if ($rank === 3) return 'tercero';
-            if ($rank === 4) return 'cuarto';
-            if ($rank <= 6) return 'quinto';         // 5º - 6º
-            if ($rank <= 8) return 'septimo';        // 7º - 8º
-            if ($rank <= 12) return 'noveno';        // 9º - 12º
-            if ($rank <= 16) return 'decimotercero'; // 13º - 16º
-            return 'decimoseptimo';                  // 17º+
-        };
-
-        $currentSharedRank = 1;
-        foreach ($standings as $idx => &$player) {
-            $actualPos = $idx + 1;
-            if ($idx === 0) {
-                $currentSharedRank = 1;
-            } else {
-                $prev = $standings[$idx - 1];
-                if ($hasBracket && $player['bracket_score'] > 0 && $prev['bracket_score'] > 0) {
-                    if ($player['bracket_score'] !== $prev['bracket_score']) {
-                        $currentSharedRank = $actualPos;
-                    }
-                } else {
-                    $sameSwiss = ($player['points'] === $prev['points'])
-                        && ($player['buchholz'] === $prev['buchholz'])
-                        && ($player['point_diff'] === $prev['point_diff'])
-                        && ($player['h2h_wins'] === $prev['h2h_wins']);
-                    if (!$sameSwiss) {
-                        $currentSharedRank = $actualPos;
-                    }
-                }
-            }
-
-            $player['shared_rank'] = $currentSharedRank;
-            $player['puesto_oficial'] = $rankToPuestoName($currentSharedRank);
-        }
-        unset($player);
-
-        return response()->json([
-            'success'       => true,
-            'is_bracket'    => $hasBracket,
-            'has_swiss'     => $hasSwiss,
-            'clasificacion' => $standings
-        ]);
+        return response()->json($this->standingsService->getStandings($eventId));
     }
 
     public function generateTop(Request $request, $eventId, \App\Services\Tournament\DoubleEliminationEngine $engine)
@@ -1187,7 +940,7 @@ class TournamentEngineController extends Controller
 
         if ($result['success']) {
             try {
-                \App\Http\Controllers\EventController::sendDiscordBracketNotificationHUB($event);
+                $this->discordNotifier->sendBracketNotification($event, false);
             } catch (\Exception $e) {}
         }
 
@@ -1603,7 +1356,7 @@ class TournamentEngineController extends Controller
 
         if ($teamMatches->isEmpty() && !in_array($event->beys, ['equipos', 'crew_battle'])) {
             try {
-                $standingsData = $this->getStandings($event->id)->getData(true);
+                $standingsData = $this->standingsService->getStandings($event->id);
                 $clasificacion = $standingsData['clasificacion'] ?? [];
 
                 foreach ($clasificacion as $player) {
@@ -1622,7 +1375,7 @@ class TournamentEngineController extends Controller
                         ->update(['puesto' => $nombrePuesto]);
                 }
 
-                $this->sendDiscordTournamentReport($event);
+                $this->discordNotifier->sendTournamentReport($event, $clasificacion);
             } catch (\Exception $e) {
                 \Illuminate\Support\Facades\Log::warning("Error post-cierre torneo: " . $e->getMessage());
             }
@@ -1828,149 +1581,6 @@ class TournamentEngineController extends Controller
         [$winnersBracket, $losersBracket, $finals] = $this->buildFullBracketTree($eventId);
 
         return view('hub.partials.bracket_content', compact('winnersBracket', 'losersBracket', 'finals'));
-    }
-
-    private function sendDiscordTournamentReport(Event $event)
-    {
-        if (!in_array($event->beys, ['ranking', 'rankingplus', 'copaespecial1'])) {
-            return;
-        }
-
-        $webhookUrl = config('services.discord.webhook_url');
-        if (config('app.env') !== 'production' || !$webhookUrl) {
-            return;
-        }
-
-        $event->loadMissing('region');
-        $regionName = $event->region->name ?? 'Global';
-        $rolId = \App\Http\Controllers\EventController::DISCORD_ROLES[$regionName] ?? '';
-        $mention = $rolId ? "<@&{$rolId}>" : '';
-
-        $standingsResponse = $this->getStandings($event->id)->getData(true);
-        $clasificacion = $standingsResponse['clasificacion'] ?? [];
-        $top3 = array_slice($clasificacion, 0, 3);
-
-        if (empty($top3)) return;
-
-        $formatPlayerDeck = function ($userId) use ($event) {
-            $combos = \App\Models\TournamentResult::where('event_id', $event->id)
-                ->where('user_id', $userId)
-                ->whereNotNull('blade')
-                ->orderBy('id', 'asc')
-                ->limit(3)
-                ->get();
-
-            if ($combos->isEmpty()) return "_Sin deck registrado_";
-
-            return $combos->map(function ($c) {
-                $extras = array_filter([$c->over_blade, $c->assist_blade], fn($v) => !empty($v) && $v !== '-');
-                $extraStr = !empty($extras) ? ' (' . implode('/', $extras) . ')' : '';
-                return "• `{$c->blade}{$extraStr} {$c->ratchet} {$c->bit}`";
-            })->implode("\n");
-        };
-
-        $medals = ['🥇 1º PUESTO', '🥈 2º PUESTO', '🥉 3º PUESTO'];
-        $podiumFields = [];
-
-        foreach ($top3 as $idx => $player) {
-            $podiumFields[] = [
-                'name'   => "{$medals[$idx]} — {$player['name']}",
-                'value'  => $formatPlayerDeck($player['id']),
-                'inline' => false
-            ];
-        }
-
-        $battleStats = \Illuminate\Support\Facades\DB::table('match_battles as mb')
-            ->join('tournament_matches as tm', 'mb.tournament_match_id', '=', 'tm.id')
-            ->where('tm.event_id', $event->id)
-            ->whereIn('mb.finish_type', ['spin', 'over', 'burst', 'xtreme'])
-            ->selectRaw("
-                COUNT(*) as total_bouts,
-                SUM(CASE WHEN mb.finish_type = 'xtreme' THEN 1 ELSE 0 END) as xtremes,
-                SUM(CASE WHEN mb.finish_type = 'burst' THEN 1 ELSE 0 END) as bursts,
-                SUM(CASE WHEN mb.finish_type = 'over' THEN 1 ELSE 0 END) as overs,
-                SUM(CASE WHEN mb.finish_type = 'spin' THEN 1 ELSE 0 END) as spins
-            ")
-            ->first();
-
-        $mvpCombo = \Illuminate\Support\Facades\DB::selectOne("
-            SELECT
-                CONCAT(c.blade, ' ', IFNULL(c.ratchet, ''), ' ', IFNULL(c.bit, '')) as combo_name,
-                u.name as owner_name,
-                COUNT(*) as wins,
-                SUM(mb.points_awarded) as pts
-            FROM match_battles mb
-            JOIN tournament_matches tm ON mb.tournament_match_id = tm.id
-            JOIN tournament_results c ON c.id = CASE
-                WHEN mb.winner_id = tm.player1_id THEN mb.player1_combo_id
-                ELSE mb.player2_combo_id
-            END
-            JOIN users u ON c.user_id = u.id
-            WHERE tm.event_id = ?
-              AND mb.winner_id IS NOT NULL
-              AND mb.finish_type IN ('spin', 'over', 'burst', 'xtreme')
-            GROUP BY combo_name, u.name
-            ORDER BY wins DESC, pts DESC
-            LIMIT 1
-        ", [$event->id]);
-
-        $xtremeKing = \Illuminate\Support\Facades\DB::table('match_battles as mb')
-            ->join('tournament_matches as tm', 'mb.tournament_match_id', '=', 'tm.id')
-            ->join('users as u', 'mb.winner_id', '=', 'u.id')
-            ->where('tm.event_id', $event->id)
-            ->where('mb.finish_type', 'xtreme')
-            ->select('u.name', \Illuminate\Support\Facades\DB::raw('COUNT(*) as total_xtremes'))
-            ->groupBy('u.id', 'u.name')
-            ->orderByDesc('total_xtremes')
-            ->first();
-
-        if ($mvpCombo) {
-            $podiumFields[] = [
-                'name'   => '🔥 BEYBLADE MVP DEL TORNEO',
-                'value'  => "**{$mvpCombo->combo_name}** (de *{$mvpCombo->owner_name}*)\n`{$mvpCombo->wins} victorias` · `{$mvpCombo->pts} pts generados`",
-                'inline' => true
-            ];
-        }
-
-        if ($xtremeKing && $xtremeKing->total_xtremes > 0) {
-            $podiumFields[] = [
-                'name'   => '⚡ REY DEL XTREME',
-                'value'  => "**{$xtremeKing->name}**\n`{$xtremeKing->total_xtremes} Xtreme Finishes`",
-                'inline' => true
-            ];
-        }
-
-        if ($battleStats && $battleStats->total_bouts > 0) {
-            $podiumFields[] = [
-                'name'   => "📊 TELEMETRÍA DE LA ARENA ({$battleStats->total_bouts} lanzamientos)",
-                'value'  => "💥 **Xtreme:** `{$battleStats->xtremes}`  |  💣 **Burst:** `{$battleStats->bursts}`  |  🚀 **Over:** `{$battleStats->overs}`  |  🌀 **Spin:** `{$battleStats->spins}`",
-                'inline' => false
-            ];
-        }
-
-        $totalPlayers = count($clasificacion);
-        $bracketUrl = route('torneo.bracket', $event->id);
-
-        $embed = [
-            'title'       => "🏆 CRÓNICA OFICIAL: {$event->name}",
-            'url'         => $bracketUrl,
-            'description' => "¡Torneo finalizado en **{$event->city}** ({$regionName}) con **{$totalPlayers} Bladers** participantes!\nAquí tenéis el podio oficial, los decks campeones y el resumen estadístico de la jornada:",
-            'color'       => 16766720,
-            'fields'      => $podiumFields,
-            'footer'      => [
-                'text' => "SBBL Hub • Temporada 3 • Pulsa en el título para ver el cuadro completo"
-            ],
-            'timestamp'   => now()->toIso8601String()
-        ];
-
-        try {
-            \Illuminate\Support\Facades\Http::post($webhookUrl, [
-                'content' => "📢 **¡ACTA CERRADA Y RESULTADOS OFICIALES!** {$mention}",
-                'embeds'  => [$embed],
-            ]);
-        } catch (\Exception $e) {
-            \Illuminate\Support\Facades\Log::warning("Error enviando reporte final a Discord: " . $e->getMessage());
-        }
     }
 
     public function showStadiumTv($eventId)

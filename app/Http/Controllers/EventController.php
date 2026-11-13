@@ -9,11 +9,11 @@ use App\Models\Region;
 use App\Models\TournamentResult;
 use App\Models\User;
 use App\Models\Video;
+use App\Services\Discord\DiscordNotifier;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 
 class EventController extends Controller
@@ -21,18 +21,7 @@ class EventController extends Controller
     // --- CONFIGURACIÓN Y CONSTANTES ---
     // Centralizamos los IDs y rutas para no tenerlos dispersos por el código
 
-    const DISCORD_ROLES = [
-        'Andalucía' => '1206704489990459452', 'Aragón' => '1209155125654978663',
-        'Asturias' => '1209155336033017876', 'Baleares' => '1209155169917476874',
-        'Canarias' => '1209154917449859143', 'Cantabria' => '1209155399920386109',
-        'Castilla La Mancha' => '1209154971229093978', 'Castilla y León' => '1209154789003239504',
-        'Catalunya' => '1209154633227046983', 'Extremadura' => '1209155220450582618',
-        'Galicia' => '1209154737220354048', 'Rioja' => '1209155480342106132',
-        'Madrid' => '1209154530890219520', 'Murcia' => '1209155058562895944',
-        'Navarra' => '1209155367578370059', 'País Vasco' => '1209154853872345138',
-        'Valencia' => '1209154705327132712', 'Melilla' => '1209155513967845438',
-        'Ceuta' => '1209155549468434432',
-    ];
+    const DISCORD_ROLES = DiscordNotifier::DISCORD_ROLES;
 
     const REGION_IMAGES = [
         1 => 'upload-events/andalucia3.webp',
@@ -52,9 +41,12 @@ class EventController extends Controller
         'crew_battle' => 'Torneo por Equipos', // <--- NUEVO
     ];
 
-    public function __construct()
+    private DiscordNotifier $discordNotifier;
+
+    public function __construct(?DiscordNotifier $discordNotifier = null)
     {
         $this->middleware('auth');
+        $this->discordNotifier = $discordNotifier ?? app(DiscordNotifier::class);
     }
 
     /**
@@ -199,7 +191,7 @@ class EventController extends Controller
 
             // 6. NOTIFICACIÓN A DISCORD (Envuelto en try/catch para no romper si falla discord)
             try {
-                $this->sendDiscordNotification($event, false);
+                $this->discordNotifier->sendEventNotification($event, false);
             } catch (\Exception $e) {
                 Log::error("Error enviando a Discord: " . $e->getMessage());
             }
@@ -580,7 +572,7 @@ class EventController extends Controller
             $event->save();
 
             // 5. NOTIFICACIÓN (Opcional, solo si quieres notificar ediciones)
-            // $this->sendDiscordNotification($event, true);
+            // $this->discordNotifier->sendEventNotification($event, true);
 
             return redirect()->route('events.show', ['event' => $event->id])
                              ->with('success', 'Evento actualizado correctamente.');
@@ -1244,140 +1236,6 @@ private function sendResponse($type, $message, $request, $code = 200)
         return 'upload-events/quedada.jpg';
     }
 
-    private function sendDiscordNotification(Event $event, bool $isEdit = false)
-    {
-        // 1. Si NO es producción, no hace nada y sale de la función.
-        if (config('app.env') !== 'production') {
-            return;
-        }
-
-        $webhookUrl = config('services.discord.webhook_url');
-        if (!$webhookUrl) return;
-
-        $regionName = $event->region->name ?? 'Global';
-        $rolId = self::DISCORD_ROLES[$regionName] ?? '';
-        $fecha = Carbon::parse($event->date)->translatedFormat('d \d\e F \d\e\l Y');
-
-        if ($isEdit) {
-            $content = "⚠️ ¡El torneo de **{$event->city}** ({$regionName}) ha sido **modificado**!\n<@&{$rolId}>";
-            $embed = [
-                'title' => "{$event->name} ({$event->mode})",
-                'description' => "📅 Nueva fecha: **{$fecha}** a las **{$event->time}**.\n📍 Ubicación: {$event->location}\n🔗 Más info: https://sbbl.es/events/{$event->id}",
-                'color' => 16753920
-            ];
-        } else {
-            $content = "¡Hay un nuevo torneo disponible para {$event->city} ({$regionName})!\n<@&{$rolId}>";
-            $embed = [
-                'title' => "{$event->name} ({$event->mode})",
-                'description' => "El día {$fecha} a las {$event->time}. Inscríbete en: https://sbbl.es/events/{$event->id}",
-                'color' => 7506394
-            ];
-        }
-
-        Http::post($webhookUrl, [
-            'content' => $content,
-            'embeds' => [$embed],
-        ]);
-    }
-
-    // ==============================================================
-    // NOTIFICACIONES A DISCORD DESDE LA PWA (NUEVO TORNEO / EDICIÓN)
-    // ==============================================================
-    private function sendDiscordNotificationHUB(Event $event, bool $isEdit = false)
-    {
-        $webhookUrl = config('services.discord.webhook_url');
-        if (config('app.env') !== 'production' || !$webhookUrl) {
-            return;
-        }
-
-        $event->loadMissing('region');
-        $regionName = $event->region->name ?? 'Global';
-
-        // Mapeo desde la constante
-        $rolId = self::DISCORD_ROLES[$regionName] ?? '';
-        $mention = $rolId ? "\n<@&{$rolId}>" : '';
-
-        $fecha = \Carbon\Carbon::parse($event->date)->translatedFormat('d \d\e F \d\e\l Y');
-        $hora = substr($event->time, 0, 5);
-
-        // Smart-Link que abre el HUB directamente en el torneo en cuestión
-        $hubUrl = "https://hub.sbbl.es/?evento={$event->id}";
-
-        if ($isEdit) {
-            $content = "⚠️ ¡El torneo de **{$event->city}** ({$regionName}) ha sido **modificado**!{$mention}";
-            $embed = [
-                'title' => "🏆 {$event->name} (" . strtoupper($event->mode) . ")",
-                'url'   => $hubUrl,
-                'description' => "📅 **Nueva fecha:** {$fecha} a las **{$hora}**\n📍 **Ubicación:** {$event->location}\n⚔️ **Formato:** " . strtoupper($event->beys) . "\n\n📲 **[Abrir e inscribirse en el Hub]({$hubUrl})**",
-                'color' => 16753920 // Naranja para ediciones
-            ];
-        } else {
-            $content = "🔥 ¡Nuevo torneo disponible en **{$event->city}** ({$regionName})!{$mention}";
-            $embed = [
-                'title' => "🏆 {$event->name} (" . strtoupper($event->mode) . ")",
-                'url'   => $hubUrl,
-                'description' => "📅 **Fecha:** {$fecha} a las **{$hora}**\n📍 **Ubicación:** {$event->location}\n⚔️ **Formato:** " . strtoupper($event->beys) . "\n\n📲 **[Inscríbete y registra tu Deck en el Hub]({$hubUrl})**",
-                'color' => 65521 // Cian neón para torneos nuevos
-            ];
-        }
-
-        try {
-            \Illuminate\Support\Facades\Http::post($webhookUrl, [
-                'content' => $content,
-                'embeds'  => [$embed],
-            ]);
-        } catch (\Exception $e) {
-            \Illuminate\Support\Facades\Log::warning("Error webhook Hub Discord: " . $e->getMessage());
-        }
-    }
-
-    // ==============================================================
-    // NOTIFICACIÓN A DISCORD AL GENERAR EL ÁRBOL (PUBLIC O JUEZ)
-    // ==============================================================
-    public static function sendDiscordBracketNotificationHUB(Event $event, bool $isSwissStart = false)
-    {
-        $webhookUrl = config('services.discord.hub_webhook') ?: config('services.discord.webhook_url');
-        if (config('app.env') !== 'production' || !$webhookUrl) {
-            // return; // <-- Comenta esta línea temporalmente si quieres hacer pruebas en local
-        }
-
-        $event->loadMissing('region');
-        $regionName = $event->region->name ?? 'Global';
-        $rolId = self::DISCORD_ROLES[$regionName] ?? '';
-        $mention = $rolId ? "\n<@&{$rolId}>" : '';
-
-        $bracketUrl = route('torneo.bracket', $event->id);
-
-        if ($isSwissStart) {
-            $content = "⚔️ ¡Ha comenzado **{$event->name}**! La **Ronda 1** ya está en marcha en directo.{$mention}";
-            $embed = [
-                'title'       => "📡 Seguir Rondas, Clasificación y Cuadro en Vivo - {$event->name}",
-                'url'         => $bracketUrl,
-                'description' => "¡El torneo ha comenzado! Consulta los emparejamientos de cada ronda, la tabla de clasificación con desempates y el cuadro eliminatorio en tiempo real:\n\n📲 **[Abrir Seguimiento en Vivo]({$bracketUrl})**",
-                'color'       => 65521, // Cian neón
-                'footer'      => [ 'text' => 'SBBL Hub • Spanish Beybattle League' ]
-            ];
-        } else {
-            $content = "🏆 ¡El **Cuadro Eliminatorio (Top Cut)** de **{$event->name}** ya está disponible en directo!{$mention}";
-            $embed = [
-                'title'       => "🔗 Sigue el Árbol Eliminatorio en Vivo - {$event->name}",
-                'url'         => $bracketUrl,
-                'description' => "¡La fase eliminatoria ha comenzado!\n\n📲 **[Ver el Cuadro Interactivo en tiempo real]({$bracketUrl})**",
-                'color'       => 14177041, // Fucsia vibrante
-                'footer'      => [ 'text' => 'SBBL Hub • Spanish Beybattle League' ]
-            ];
-        }
-
-        try {
-            \Illuminate\Support\Facades\Http::post($webhookUrl, [
-                'content' => $content,
-                'embeds'  => [$embed],
-            ]);
-        } catch (\Exception $e) {
-            \Illuminate\Support\Facades\Log::warning("Error webhook Bracket Discord: " . $e->getMessage());
-        }
-    }
-
     private function calculateRankingLimits(Event $event): array
     {
         $date = Carbon::parse($event->date);
@@ -1524,7 +1382,7 @@ private function sendResponse($type, $message, $request, $code = 200)
             ]);
 
             try {
-                $this->sendDiscordNotificationHUB($event, false);
+                $this->discordNotifier->sendHubEventNotification($event, false);
             } catch (\Exception $e) {
                 Log::error("Error enviando Webhook de Discord desde PWA: " . $e->getMessage());
             }
