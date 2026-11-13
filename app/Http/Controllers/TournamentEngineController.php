@@ -6,6 +6,7 @@ use App\Models\Event;
 use App\Models\TournamentMatch;
 use App\Services\Tournament\SwissEngine;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class TournamentEngineController extends Controller
 {
@@ -525,246 +526,280 @@ class TournamentEngineController extends Controller
 
     public function storeBattle(Request $request, $matchId)
     {
-        $match = TournamentMatch::findOrFail($matchId);
-        $event = Event::findOrFail($match->event_id);
-
-        if (!$this->canManageEvent($event)) {
-            return response()->json(['success' => false, 'message' => '⛔ Acceso denegado.'], 403);
-        }
-
-        $wasCompletedBefore = ($match->status === 'completed');
-
-        if ($wasCompletedBefore && !in_array($match->bracket_type, ['swiss', 'round_robin'])) {
-            $this->revertMatchProgression($match);
-        }
-
-        $points = 0;
         $finishType = $request->finish_type;
-
-        if ($finishType === 'spin') $points = 1;
-        if ($finishType === 'over' || $finishType === 'burst') $points = 2;
-        if ($finishType === 'xtreme') $points = 3;
-
-        \App\Models\MatchBattle::create([
-            'tournament_match_id' => $match->id,
-            'player1_combo_id' => $request->player1_combo_id,
-            'player2_combo_id' => $request->player2_combo_id,
-            'winner_id' => $request->winner_id,
-            'finish_type' => $finishType,
-            'points_awarded' => $points,
-        ]);
-
-        $isTeamMatch = !is_null($match->team1_id) && !is_null($match->team2_id);
-        $isTiebreakerActive = false;
-
-        if ($isTeamMatch) {
-            $winnerTeam = \Illuminate\Support\Facades\DB::table('team_user')->where('user_id', $request->winner_id)->value('team_id');
-            if ($winnerTeam == $match->team1_id) $match->player1_score += $points;
-            if ($winnerTeam == $match->team2_id) $match->player2_score += $points;
-        } else {
-            if ($request->winner_id == $match->player1_id) {
-                $match->player1_score = min(4, $match->player1_score + $points);
-            } elseif ($request->winner_id == $match->player2_id) {
-                $match->player2_score = min(4, $match->player2_score + $points);
-            }
+        if (!in_array($finishType, ['spin', 'over', 'burst', 'xtreme'], true)) {
+            return response()->json(['success' => false, 'message' => '⚠️ Tipo de finalización no válido.'], 422);
         }
 
-        $matchCompleted = false;
+        return DB::transaction(function () use ($request, $matchId, $finishType) {
+            $match = TournamentMatch::where('id', $matchId)->lockForUpdate()->firstOrFail();
+            $event = Event::findOrFail($match->event_id);
 
-        if ($isTeamMatch) {
-            $allBattles = \Illuminate\Support\Facades\DB::table('match_battles')->where('tournament_match_id', $matchId)->get();
-            $matchesPlayed = $allBattles->whereNotIn('finish_type', ['warning_p1', 'warning_p2', 'penalty'])->count();
+            if (!$this->canManageEvent($event)) {
+                return response()->json(['success' => false, 'message' => '⛔ Acceso denegado.'], 403);
+            }
 
-            $team1UsersCount = $this->getActiveTeamMembers($match->event_id, $match->team1_id)->count();
-            $team2UsersCount = $this->getActiveTeamMembers($match->event_id, $match->team2_id)->count();
-            $limit = max($team1UsersCount, $team2UsersCount);
+            if ($match->status === 'completed') {
+                return response()->json([
+                    'success' => false,
+                    'message' => '⚠️ Esta partida ya figura como finalizada. Deshaz la última acción si necesitas editarla.',
+                    'match_completed' => true,
+                    'p1_score' => $match->player1_score,
+                    'p2_score' => $match->player2_score
+                ], 409);
+            }
 
-            if ($matchesPlayed >= $limit) {
-                if ($match->player1_score !== $match->player2_score) {
-                    $match->winner_id = $match->player1_score > $match->player2_score ? $match->team1_id : $match->team2_id;
+            $isTeamMatch = !is_null($match->team1_id) && !is_null($match->team2_id);
+            $winnerId = $request->winner_id;
+            $winnerTeam = null;
+
+            if ($isTeamMatch) {
+                $winnerTeam = DB::table('team_user')->where('user_id', $winnerId)->value('team_id');
+                if (!$winnerId || !in_array((int) $winnerTeam, [(int) $match->team1_id, (int) $match->team2_id], true)) {
+                    return response()->json(['success' => false, 'message' => '⚠️ El ganador seleccionado no pertenece a los equipos enfrentados.'], 422);
+                }
+            } else {
+                if (!$winnerId || !in_array((int) $winnerId, [(int) $match->player1_id, (int) $match->player2_id], true)) {
+                    return response()->json(['success' => false, 'message' => '⚠️ El ganador seleccionado no corresponde a ninguno de los jugadores del combate.'], 422);
+                }
+            }
+
+            $points = 0;
+            if ($finishType === 'spin') $points = 1;
+            if ($finishType === 'over' || $finishType === 'burst') $points = 2;
+            if ($finishType === 'xtreme') $points = 3;
+
+            \App\Models\MatchBattle::create([
+                'tournament_match_id' => $match->id,
+                'player1_combo_id' => $request->player1_combo_id,
+                'player2_combo_id' => $request->player2_combo_id,
+                'winner_id' => $winnerId,
+                'finish_type' => $finishType,
+                'points_awarded' => $points,
+            ]);
+
+            $isTiebreakerActive = false;
+
+            if ($isTeamMatch) {
+                if ($winnerTeam == $match->team1_id) $match->player1_score += $points;
+                if ($winnerTeam == $match->team2_id) $match->player2_score += $points;
+            } else {
+                if ($winnerId == $match->player1_id) {
+                    $match->player1_score = min(4, $match->player1_score + $points);
+                } elseif ($winnerId == $match->player2_id) {
+                    $match->player2_score = min(4, $match->player2_score + $points);
+                }
+            }
+
+            $matchCompleted = false;
+
+            if ($isTeamMatch) {
+                $allBattles = DB::table('match_battles')->where('tournament_match_id', $matchId)->get();
+                $matchesPlayed = $allBattles->whereNotIn('finish_type', ['warning_p1', 'warning_p2', 'penalty'])->count();
+
+                $team1UsersCount = $this->getActiveTeamMembers($match->event_id, $match->team1_id)->count();
+                $team2UsersCount = $this->getActiveTeamMembers($match->event_id, $match->team2_id)->count();
+                $limit = max($team1UsersCount, $team2UsersCount);
+
+                if ($matchesPlayed >= $limit) {
+                    if ($match->player1_score !== $match->player2_score) {
+                        $match->winner_id = $match->player1_score > $match->player2_score ? $match->team1_id : $match->team2_id;
+                        $match->status = 'completed';
+                        $matchCompleted = true;
+                    } else {
+                        $match->status = 'playing';
+                        $matchCompleted = false;
+                        $isTiebreakerActive = true;
+                    }
+                } else {
+                    $match->status = 'playing';
+                }
+            } else {
+                $limit = 4;
+                if ($match->player1_score >= $limit || $match->player2_score >= $limit) {
+                    $match->winner_id = $match->player1_score >= $limit ? $match->player1_id : $match->player2_id;
                     $match->status = 'completed';
                     $matchCompleted = true;
                 } else {
                     $match->status = 'playing';
-                    $matchCompleted = false;
-                    $isTiebreakerActive = true;
                 }
-            } else {
-                $match->status = 'playing';
             }
-        } else {
-            $limit = 4;
-            if ($match->player1_score >= $limit || $match->player2_score >= $limit) {
-                $match->winner_id = $match->player1_score >= $limit ? $match->player1_id : $match->player2_id;
-                $match->status = 'completed';
-                $matchCompleted = true;
-            } else {
-                $match->status = 'playing';
+
+            $match->save();
+
+            if ($isTeamMatch && $matchCompleted) {
+                $this->syncTeamMonthlyLimits($match->event_id);
             }
-        }
 
-        $match->save();
+            if ($matchCompleted && !in_array($match->bracket_type, ['swiss', 'round_robin'])) {
+                $this->safeProgressMatch($match);
+            }
 
-        if ($isTeamMatch && ($matchCompleted || $wasCompletedBefore)) {
-            $this->syncTeamMonthlyLimits($match->event_id);
-        }
-
-        if ($matchCompleted && !in_array($match->bracket_type, ['swiss', 'round_robin'])) {
-            $this->safeProgressMatch($match);
-        }
-
-        return response()->json([
-            'success' => true,
-            'message' => $isTiebreakerActive ? '⚡ ¡EMPATE! Todos los jugadores habilitados para el duelo de desempate.' : 'Resultado registrado',
-            'match_completed' => $matchCompleted,
-            'is_tiebreaker' => $isTiebreakerActive,
-            'p1_score' => $match->player1_score,
-            'p2_score' => $match->player2_score
-        ]);
+            return response()->json([
+                'success' => true,
+                'message' => $isTiebreakerActive ? '⚡ ¡EMPATE! Todos los jugadores habilitados para el duelo de desempate.' : 'Resultado registrado',
+                'match_completed' => $matchCompleted,
+                'is_tiebreaker' => $isTiebreakerActive,
+                'p1_score' => $match->player1_score,
+                'p2_score' => $match->player2_score
+            ]);
+        });
     }
 
     public function deshacerUltimoRegistro($matchId)
     {
-        $match = TournamentMatch::findOrFail($matchId);
-        $event = Event::findOrFail($match->event_id);
+        return DB::transaction(function () use ($matchId) {
+            $match = TournamentMatch::where('id', $matchId)->lockForUpdate()->firstOrFail();
+            $event = Event::findOrFail($match->event_id);
 
-        if (!$this->canManageEvent($event)) {
-            return response()->json(['success' => false, 'message' => '⛔ Acceso denegado.'], 403);
-        }
+            if (!$this->canManageEvent($event)) {
+                return response()->json(['success' => false, 'message' => '⛔ Acceso denegado.'], 403);
+            }
 
-        $isTeamMatch = !is_null($match->team1_id) && !is_null($match->team2_id);
+            $isTeamMatch = !is_null($match->team1_id) && !is_null($match->team2_id);
 
-        if ($match->status === 'completed' && !in_array($match->bracket_type, ['swiss', 'round_robin'])) {
-            $this->revertMatchProgression($match);
-        }
+            if ($match->status === 'completed' && !in_array($match->bracket_type, ['swiss', 'round_robin'])) {
+                $this->revertMatchProgression($match);
+            }
 
-        $lastBattle = \App\Models\MatchBattle::where('tournament_match_id', $matchId)
-            ->orderBy('id', 'desc')
-            ->first();
+            $lastBattle = \App\Models\MatchBattle::where('tournament_match_id', $matchId)
+                ->lockForUpdate()
+                ->orderBy('id', 'desc')
+                ->first();
 
-        if (!$lastBattle) {
-            if ($match->player1_score > 0 || $match->player2_score > 0 || $match->status === 'completed') {
-                $match->player1_score = 0;
-                $match->player2_score = 0;
-                $match->winner_id = null;
-                $match->status = 'playing';
-                $match->save();
+            if (!$lastBattle) {
+                if ($match->player1_score > 0 || $match->player2_score > 0 || $match->status === 'completed') {
+                    $match->player1_score = 0;
+                    $match->player2_score = 0;
+                    $match->winner_id = null;
+                    $match->status = 'playing';
+                    $match->save();
 
-                if ($isTeamMatch) {
-                    $this->syncTeamMonthlyLimits($match->event_id);
+                    if ($isTeamMatch) {
+                        $this->syncTeamMonthlyLimits($match->event_id);
+                    }
+
+                    return response()->json(['success' => true, 'message' => '↩️ Resultado manual/rápido anulado y avance revertido.']);
                 }
-
-                return response()->json(['success' => true, 'message' => '↩️ Resultado manual/rápido anulado y avance revertido.']);
+                return response()->json(['success' => false, 'message' => 'No hay acciones para deshacer en esta partida.']);
             }
-            return response()->json(['success' => false, 'message' => 'No hay acciones para deshacer en esta partida.']);
-        }
 
-        $lastBattle->delete();
+            $lastBattle->delete();
 
-        $remainingBattles = \Illuminate\Support\Facades\DB::table('match_battles')->where('tournament_match_id', $matchId)->get();
+            $remainingBattles = DB::table('match_battles')->where('tournament_match_id', $matchId)->get();
 
-        if ($isTeamMatch) {
-            $p1_score = 0;
-            $p2_score = 0;
-            foreach ($remainingBattles as $b) {
-                $wTeam = \Illuminate\Support\Facades\DB::table('team_user')->where('user_id', $b->winner_id)->value('team_id');
-                if ($wTeam == $match->team1_id) $p1_score += $b->points_awarded;
-                if ($wTeam == $match->team2_id) $p2_score += $b->points_awarded;
-            }
-            $match->player1_score = $p1_score;
-            $match->player2_score = $p2_score;
-            $match->winner_id = null;
-            $match->status = $remainingBattles->count() > 0 ? 'playing' : 'pending';
-        } else {
-            $p1_score = $remainingBattles->where('winner_id', $match->player1_id)->sum('points_awarded') ?? 0;
-            $p2_score = $remainingBattles->where('winner_id', $match->player2_id)->sum('points_awarded') ?? 0;
-
-            $match->player1_score = min(4, $p1_score);
-            $match->player2_score = min(4, $p2_score);
-
-            if ($match->player1_score >= 4 || $match->player2_score >= 4) {
-                $match->winner_id = $match->player1_score >= 4 ? $match->player1_id : $match->player2_id;
-                $match->status = 'completed';
-            } else {
+            if ($isTeamMatch) {
+                $p1_score = 0;
+                $p2_score = 0;
+                foreach ($remainingBattles as $b) {
+                    $wTeam = DB::table('team_user')->where('user_id', $b->winner_id)->value('team_id');
+                    if ($wTeam == $match->team1_id) $p1_score += $b->points_awarded;
+                    if ($wTeam == $match->team2_id) $p2_score += $b->points_awarded;
+                }
+                $match->player1_score = $p1_score;
+                $match->player2_score = $p2_score;
                 $match->winner_id = null;
                 $match->status = $remainingBattles->count() > 0 ? 'playing' : 'pending';
+            } else {
+                $p1_score = $remainingBattles->where('winner_id', $match->player1_id)->sum('points_awarded') ?? 0;
+                $p2_score = $remainingBattles->where('winner_id', $match->player2_id)->sum('points_awarded') ?? 0;
+
+                $match->player1_score = min(4, $p1_score);
+                $match->player2_score = min(4, $p2_score);
+
+                if ($match->player1_score >= 4 || $match->player2_score >= 4) {
+                    $match->winner_id = $match->player1_score >= 4 ? $match->player1_id : $match->player2_id;
+                    $match->status = 'completed';
+                } else {
+                    $match->winner_id = null;
+                    $match->status = $remainingBattles->count() > 0 ? 'playing' : 'pending';
+                }
             }
-        }
 
-        $match->save();
+            $match->save();
 
-        if ($isTeamMatch) {
-            $this->syncTeamMonthlyLimits($match->event_id);
-        }
+            if ($isTeamMatch) {
+                $this->syncTeamMonthlyLimits($match->event_id);
+            }
 
-        if ($match->status === 'completed' && !in_array($match->bracket_type, ['swiss', 'round_robin'])) {
-            $this->safeProgressMatch($match);
-        }
+            if ($match->status === 'completed' && !in_array($match->bracket_type, ['swiss', 'round_robin'])) {
+                $this->safeProgressMatch($match);
+            }
 
-        return response()->json([
-            'success' => true,
-            'message' => '↩️ Última acción deshecha correctamente.',
-            'p1_score' => $match->player1_score,
-            'p2_score' => $match->player2_score
-        ]);
+            return response()->json([
+                'success' => true,
+                'message' => '↩️ Última acción deshecha correctamente.',
+                'p1_score' => $match->player1_score,
+                'p2_score' => $match->player2_score
+            ]);
+        });
     }
 
     public function fastWinMatch(Request $request, $matchId)
     {
-        $match = TournamentMatch::findOrFail($matchId);
-        $event = Event::findOrFail($match->event_id);
-
-        if (!$this->canManageEvent($event)) {
-            return response()->json(['success' => false, 'message' => '⛔ Acceso denegado.'], 403);
-        }
-
-        if ($match->status === 'completed' && !in_array($match->bracket_type, ['swiss', 'round_robin'])) {
-            $this->revertMatchProgression($match);
-        }
-
         $winnerSide = $request->winner_side;
-        $isTeamMatch = !is_null($match->team1_id) && !is_null($match->team2_id);
-
-        \Illuminate\Support\Facades\DB::table('match_battles')->where('tournament_match_id', $match->id)->delete();
-
-        if ($winnerSide === 'p1') {
-            $match->player1_score = 4;
-            $match->player2_score = 0;
-            $match->winner_id = $isTeamMatch ? $match->team1_id : $match->player1_id;
-        } else {
-            $match->player1_score = 0;
-            $match->player2_score = 4;
-            $match->winner_id = $isTeamMatch ? $match->team2_id : $match->player2_id;
+        if (!in_array($winnerSide, ['p1', 'p2'], true)) {
+            return response()->json(['success' => false, 'message' => '⚠️ Lado ganador no válido.'], 422);
         }
 
-        $match->status = 'completed';
-        $match->locked_by = null;
-        $match->save();
+        return DB::transaction(function () use ($matchId, $winnerSide) {
+            $match = TournamentMatch::where('id', $matchId)->lockForUpdate()->firstOrFail();
+            $event = Event::findOrFail($match->event_id);
 
-        if ($isTeamMatch) {
-            $this->syncTeamMonthlyLimits($match->event_id);
-        }
+            if (!$this->canManageEvent($event)) {
+                return response()->json(['success' => false, 'message' => '⛔ Acceso denegado.'], 403);
+            }
 
-        if (!in_array($match->bracket_type, ['swiss', 'round_robin'])) {
-            $this->safeProgressMatch($match);
-        }
+            if ($match->status === 'completed') {
+                return response()->json([
+                    'success' => false,
+                    'message' => '⚠️ Esta partida ya figura como finalizada. Deshaz el resultado actual si necesitas modificarlo.',
+                    'match_completed' => true
+                ], 409);
+            }
 
-        return response()->json([
-            'success' => true,
-            'message' => '✅ Incomparecencia registrada. El rival avanza automáticamente.',
-            'match_completed' => true
-        ]);
+            $isTeamMatch = !is_null($match->team1_id) && !is_null($match->team2_id);
+            $resolvedWinnerId = ($winnerSide === 'p1')
+                ? ($isTeamMatch ? $match->team1_id : $match->player1_id)
+                : ($isTeamMatch ? $match->team2_id : $match->player2_id);
+
+            if (empty($resolvedWinnerId)) {
+                return response()->json(['success' => false, 'message' => '⚠️ El participante ganador no está asignado en esta partida.'], 422);
+            }
+
+            DB::table('match_battles')->where('tournament_match_id', $match->id)->delete();
+
+            if ($winnerSide === 'p1') {
+                $match->player1_score = 4;
+                $match->player2_score = 0;
+            } else {
+                $match->player1_score = 0;
+                $match->player2_score = 4;
+            }
+
+            $match->winner_id = $resolvedWinnerId;
+            $match->status = 'completed';
+            $match->locked_by = null;
+            $match->save();
+
+            if ($isTeamMatch) {
+                $this->syncTeamMonthlyLimits($match->event_id);
+            }
+
+            if (!in_array($match->bracket_type, ['swiss', 'round_robin'])) {
+                $this->safeProgressMatch($match);
+            }
+
+            return response()->json([
+                'success' => true,
+                'message' => '✅ Incomparecencia registrada. El rival avanza automáticamente.',
+                'match_completed' => true
+            ]);
+        });
     }
 
     public function setManualScore(Request $request, $matchId)
     {
-        $match = TournamentMatch::findOrFail($matchId);
-        $event = Event::findOrFail($match->event_id);
-
-        if (!$this->canManageEvent($event)) {
-            return response()->json(['success' => false, 'message' => '⛔ Acceso denegado.'], 403);
-        }
-
         $s1 = max(0, min(4, (int) $request->p1_score));
         $s2 = max(0, min(4, (int) $request->p2_score));
 
@@ -775,33 +810,54 @@ class TournamentEngineController extends Controller
             return response()->json(['success' => false, 'message' => '⚠️ No puede haber un empate 4 a 4.'], 422);
         }
 
-        if ($match->status === 'completed' && !in_array($match->bracket_type, ['swiss', 'round_robin'])) {
-            $this->revertMatchProgression($match);
-        }
+        return DB::transaction(function () use ($matchId, $s1, $s2) {
+            $match = TournamentMatch::where('id', $matchId)->lockForUpdate()->firstOrFail();
+            $event = Event::findOrFail($match->event_id);
 
-        \Illuminate\Support\Facades\DB::table('match_battles')->where('tournament_match_id', $match->id)->delete();
+            if (!$this->canManageEvent($event)) {
+                return response()->json(['success' => false, 'message' => '⛔ Acceso denegado.'], 403);
+            }
 
-        $isTeamMatch = !is_null($match->team1_id) && !is_null($match->team2_id);
-        $match->player1_score = $s1;
-        $match->player2_score = $s2;
-        $match->winner_id = ($s1 > $s2) ? ($isTeamMatch ? $match->team1_id : $match->player1_id) : ($isTeamMatch ? $match->team2_id : $match->player2_id);
-        $match->status = 'completed';
-        $match->locked_by = null;
-        $match->save();
+            if ($match->status === 'completed') {
+                return response()->json([
+                    'success' => false,
+                    'message' => '⚠️ Esta partida ya figura como finalizada. Deshaz el resultado actual si necesitas modificarlo.',
+                    'match_completed' => true
+                ], 409);
+            }
 
-        if ($isTeamMatch) {
-            $this->syncTeamMonthlyLimits($match->event_id);
-        }
+            $isTeamMatch = !is_null($match->team1_id) && !is_null($match->team2_id);
+            $resolvedWinnerId = ($s1 > $s2)
+                ? ($isTeamMatch ? $match->team1_id : $match->player1_id)
+                : ($isTeamMatch ? $match->team2_id : $match->player2_id);
 
-        if (!in_array($match->bracket_type, ['swiss', 'round_robin'])) {
-            $this->safeProgressMatch($match);
-        }
+            if (empty($resolvedWinnerId)) {
+                return response()->json(['success' => false, 'message' => '⚠️ El participante ganador no está asignado en esta partida.'], 422);
+            }
 
-        return response()->json([
-            'success' => true,
-            'message' => "✅ Marcador manual ($s1 - $s2) guardado y cuadro actualizado.",
-            'match_completed' => true
-        ]);
+            DB::table('match_battles')->where('tournament_match_id', $match->id)->delete();
+
+            $match->player1_score = $s1;
+            $match->player2_score = $s2;
+            $match->winner_id = $resolvedWinnerId;
+            $match->status = 'completed';
+            $match->locked_by = null;
+            $match->save();
+
+            if ($isTeamMatch) {
+                $this->syncTeamMonthlyLimits($match->event_id);
+            }
+
+            if (!in_array($match->bracket_type, ['swiss', 'round_robin'])) {
+                $this->safeProgressMatch($match);
+            }
+
+            return response()->json([
+                'success' => true,
+                'message' => "✅ Marcador manual ($s1 - $s2) guardado y cuadro actualizado.",
+                'match_completed' => true
+            ]);
+        });
     }
 
     private function safeProgressMatch(TournamentMatch $match)

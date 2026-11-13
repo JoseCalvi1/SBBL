@@ -388,63 +388,67 @@ class EventController extends Controller
 
     public function actualizarPuntuaciones(Request $request, $id, $mode)
     {
-        $evento = Event::findOrFail($id);
+        return DB::transaction(function () use ($request, $id, $mode) {
+            $evento = Event::where('id', $id)->lockForUpdate()->firstOrFail();
 
-        if (!in_array($evento->beys, ['ranking', 'rankingplus'])) {
-            $this->actualizarStatus($id, 'CLOSE');
-            return redirect()->back()->with('success', 'Evento cerrado sin puntuaciones');
-        }
+            if ($evento->status === 'CLOSE') {
+                return redirect()->back()->with('error', 'Este evento ya ha sido cerrado y sus puntuaciones ya fueron procesadas.');
+            }
 
-        if ($request->comment) {
-            EventJudgeReview::create([
-                'event_id' => $id, 'judge_id' => Auth::id(),
-                'final_status' => 'approved', 'comment' => $request->comment
-            ]);
-        }
+            if (!in_array($evento->beys, ['ranking', 'rankingplus'])) {
+                $this->actualizarStatus($id, 'CLOSE');
+                return redirect()->back()->with('success', 'Evento cerrado sin puntuaciones');
+            }
 
-        $faltanPuestos = DB::table('assist_user_event')
-            ->where('event_id', $id)
-            ->where(fn($q) => $q->whereNull('puesto')->orWhere('puesto', ''))
-            ->exists();
+            $faltanPuestos = DB::table('assist_user_event')
+                ->where('event_id', $id)
+                ->where(fn($q) => $q->whereNull('puesto')->orWhere('puesto', ''))
+                ->exists();
 
-        if ($faltanPuestos) {
-            return redirect()->back()->with('error', 'No se han enviado los resultados del torneo.');
-        }
+            if ($faltanPuestos) {
+                return redirect()->back()->with('error', 'No se han enviado los resultados del torneo.');
+            }
 
-        // Excluimos tanto a 'nopresentado' como a 'dropped' del reparto de puntos
-        $participantes = DB::table('assist_user_event')
-            ->where('event_id', $id)
-            ->whereNotIn('puesto', ['nopresentado', 'dropped'])
-            ->get();
+            if ($request->comment) {
+                EventJudgeReview::create([
+                    'event_id' => $id, 'judge_id' => Auth::id(),
+                    'final_status' => 'approved', 'comment' => $request->comment
+                ]);
+            }
 
-        $pointsTable = $this->getPointsTable($participantes->count());
+            // Excluimos tanto a 'nopresentado' como a 'dropped' del reparto de puntos
+            $participantes = DB::table('assist_user_event')
+                ->where('event_id', $id)
+                ->whereNotIn('puesto', ['nopresentado', 'dropped'])
+                ->get();
 
-        // Mapeo completo de posiciones (1º al 17º) según la tabla oficial de tramos SBBL:
-        // Índices de $pointsTable: 0=>1º, 1=>2º, 2=>3º, 3=>4º, 4=>5º-6º, 5=>7º-8º, 6=>9º-12º, 7=>13º-16º, 8=>17º
-        $puestoMap = [
-            'primero'        => 0,
-            'segundo'        => 1,
-            'tercero'        => 2,
-            'cuarto'         => 3,
-            'quinto'         => 4,
-            'sexto'          => 4,
-            'septimo'        => 5,
-            'octavo'         => 5,
-            'noveno'         => 6,
-            'decimo'         => 6,
-            'undecimo'       => 6,
-            'duodecimo'      => 6,
-            'treceavo'       => 7,
-            'decimotercero'  => 7,
-            'decimocuarto'   => 7,
-            'decimoquinto'   => 7,
-            'decimosexto'    => 7,
-            'diecisieteavo'  => 8,
-            'decimoseptimo'  => 8,
-        ];
-        $eventMode = 'points_x3';
+            $pointsTable = $this->getPointsTable($participantes->count());
 
-        DB::transaction(function () use ($participantes, $pointsTable, $puestoMap, $eventMode, $id) {
+            // Mapeo completo de posiciones (1º al 17º) según la tabla oficial de tramos SBBL:
+            // Índices de $pointsTable: 0=>1º, 1=>2º, 2=>3º, 3=>4º, 4=>5º-6º, 5=>7º-8º, 6=>9º-12º, 7=>13º-16º, 8=>17º
+            $puestoMap = [
+                'primero'        => 0,
+                'segundo'        => 1,
+                'tercero'        => 2,
+                'cuarto'         => 3,
+                'quinto'         => 4,
+                'sexto'          => 4,
+                'septimo'        => 5,
+                'octavo'         => 5,
+                'noveno'         => 6,
+                'decimo'         => 6,
+                'undecimo'       => 6,
+                'duodecimo'      => 6,
+                'treceavo'       => 7,
+                'decimotercero'  => 7,
+                'decimocuarto'   => 7,
+                'decimoquinto'   => 7,
+                'decimosexto'    => 7,
+                'diecisieteavo'  => 8,
+                'decimoseptimo'  => 8,
+            ];
+            $eventMode = 'points_x3';
+
             foreach ($participantes as $p) {
                 $puesto = strtolower($p->puesto);
                 $index = $puestoMap[$puesto] ?? null;
@@ -502,10 +506,10 @@ class EventController extends Controller
                     }
                 }
             }
-        });
 
-        $this->actualizarStatus($id, 'CLOSE');
-        return redirect()->back()->with('success', 'Puntuaciones actualizadas correctamente');
+            $this->actualizarStatus($id, 'CLOSE');
+            return redirect()->back()->with('success', 'Puntuaciones actualizadas correctamente');
+        });
     }
 
     public function edit(Event $event)
