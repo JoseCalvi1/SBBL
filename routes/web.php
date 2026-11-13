@@ -43,7 +43,14 @@ $dominio = env('APP_DOMAIN', 'sbbl.es');
 | 1. CRON Y UTILIDADES DE SISTEMA
 |--------------------------------------------------------------------------
 */
-Route::get('/cron/ejecutar-turno/conquista-modo-manual-SBBLS2', function () {
+Route::get('/cron/ejecutar-turno/conquista-modo-manual-SBBLS2', function (\Illuminate\Http\Request $request) {
+    $expectedToken = (string) config('sbbl.cron_token');
+    $providedToken = (string) ($request->header('X-Cron-Token') ?: $request->query('token', ''));
+
+    if ($expectedToken === '' || !hash_equals($expectedToken, $providedToken)) {
+        abort(403, 'Acceso no autorizado.');
+    }
+
     set_time_limit(0);
     try {
         Artisan::call('game:resolve');
@@ -53,7 +60,14 @@ Route::get('/cron/ejecutar-turno/conquista-modo-manual-SBBLS2', function () {
     }
 });
 
-Route::get('/limpiar-cache', function () {
+Route::get('/limpiar-cache', function (\Illuminate\Http\Request $request) {
+    $expectedToken = (string) config('sbbl.cron_token');
+    $providedToken = (string) ($request->header('X-Cron-Token') ?: $request->query('token', ''));
+
+    if ($expectedToken === '' || !hash_equals($expectedToken, $providedToken)) {
+        abort(403, 'Acceso no autorizado.');
+    }
+
     Artisan::call('cache:clear');
     return '¡Caché borrada correctamente!';
 });
@@ -253,10 +267,8 @@ Route::get('/combates', [InicioController::class, 'eventstats'])->name('combates
 Route::get('/subscriptions', [InicioController::class, 'suscriptions'])->name('subscriptions');
 Route::get('/planes', [PlanController::class, 'index'])->name('planes.index');
 
-// Nacional (Ranking e Importación CSV)
+// Nacional (Ranking)
 Route::get('/nacional/ranking', [InicioController::class, 'rankingNacional'])->name('nacional.ranking');
-Route::get('/nacional/importar', [InicioController::class, 'mostrarFormulario'])->name('nacional.importar');
-Route::post('/nacional/procesar-csv', [InicioController::class, 'procesarCsv'])->name('nacional.procesar');
 
 // Blog / Artículos
 Route::get('/blog', [ArticleController::class, 'index'])->name('blog.index');
@@ -325,7 +337,6 @@ Route::put('/profiles/{profile}', [ProfileController::class, 'update'])->name('p
 Route::put('/profiles-admin/{profile}', [ProfileController::class, 'updatePoints'])->name('profiles.updatePoints');
 Route::put('/profiles-admin-x/{profile}', [ProfileController::class, 'updatePointsX'])->name('profiles.updatePointsX');
 Route::put('/update-admin-x/update-all', [ProfileController::class, 'updateAllPointsX'])->name('profiles.updateAllPointsX');
-Route::put('/profiles/update-roles/{user}', [ProfileController::class, 'updateRoles'])->name('profiles.updateRoles');
 
 Route::get('/rankings', [ProfileController::class, 'ranking'])->name('profiles.ranking');
 Route::get('/ranking-splits', [ProfileController::class, 'rankingPorSplits'])->name('profiles.splits');
@@ -507,23 +518,28 @@ Route::get('/dashboard/beyblade-parts', [BeybladeDatabaseController::class, 'ind
 Route::get('/dashboard/beyblades', [BeybladeDatabaseController::class, 'indexBeys'])->name('database.indexBeys');
 Route::get('/dashboard/reviews', [EventController::class, 'reviews_seguimiento'])->middleware('auth')->name('admin.dashboard.reviews');
 
-// Inventario, Tesorería y Suscripciones
-Route::get('/dashboard/admin/inventory', [InventoryController::class, 'index'])->name('admin.inventory.index');
-Route::post('/admin/inventory', [InventoryController::class, 'store'])->name('admin.inventory.store');
-Route::put('/admin/inventory/{id}', [InventoryController::class, 'update'])->name('admin.inventory.update');
-Route::delete('/admin/inventory/{id}', [InventoryController::class, 'destroy'])->name('admin.inventory.destroy');
+// Exclusivo Middleware Admin (Auth + Rol Admin)
+Route::middleware(['auth', 'admin'])->group(function () {
+    // Inventario, Tesorería y Suscripciones
+    Route::get('/dashboard/admin/inventory', [InventoryController::class, 'index'])->name('admin.inventory.index');
+    Route::post('/admin/inventory', [InventoryController::class, 'store'])->name('admin.inventory.store');
+    Route::put('/admin/inventory/{id}', [InventoryController::class, 'update'])->name('admin.inventory.update');
+    Route::delete('/admin/inventory/{id}', [InventoryController::class, 'destroy'])->name('admin.inventory.destroy');
 
-Route::get('/dashboard/admin/treasury', [TreasuryController::class, 'index'])->name('admin.treasury.index');
-Route::post('/admin/treasury/income', [TreasuryController::class, 'storeIncome'])->name('admin.treasury.income.store');
-Route::post('/admin/treasury/expense', [TreasuryController::class, 'storeExpense'])->name('admin.treasury.expense.store');
+    Route::get('/dashboard/admin/treasury', [TreasuryController::class, 'index'])->name('admin.treasury.index');
+    Route::post('/admin/treasury/income', [TreasuryController::class, 'storeIncome'])->name('admin.treasury.income.store');
+    Route::post('/admin/treasury/expense', [TreasuryController::class, 'storeExpense'])->name('admin.treasury.expense.store');
 
-Route::delete('/admin/historial/borrar/{id}', [ProfileController::class, 'destroyHistory'])->name('admin.history.destroy');
-Route::post('/admin/suscripciones', [ProfileController::class, 'storeSubscription'])->name('admin.subscriptions.store');
-Route::put('/admin/suscripciones/{id}', [ProfileController::class, 'updateSubscription'])->name('admin.subscriptions.update');
-Route::delete('/admin/suscripciones/{id}', [ProfileController::class, 'destroySubscription'])->name('admin.subscriptions.destroy');
+    Route::delete('/admin/historial/borrar/{id}', [ProfileController::class, 'destroyHistory'])->name('admin.history.destroy');
+    Route::post('/admin/suscripciones', [ProfileController::class, 'storeSubscription'])->name('admin.subscriptions.store');
+    Route::put('/admin/suscripciones/{id}', [ProfileController::class, 'updateSubscription'])->name('admin.subscriptions.update');
+    Route::delete('/admin/suscripciones/{id}', [ProfileController::class, 'destroySubscription'])->name('admin.subscriptions.destroy');
 
-// Exclusivo Middleware Admin
-Route::middleware('admin')->group(function () {
+    Route::put('/profiles/update-roles/{user}', [ProfileController::class, 'updateRoles'])->name('profiles.updateRoles');
+
+    Route::get('/nacional/importar', [InicioController::class, 'mostrarFormulario'])->name('nacional.importar');
+    Route::post('/nacional/procesar-csv', [InicioController::class, 'procesarCsv'])->name('nacional.procesar');
+
     Route::get('/dashboard/profiles', [ProfileController::class, 'indexAdmin'])->name('profiles.indexAdmin');
     Route::get('/dashboard/profiles-x', [ProfileController::class, 'indexAdminX'])->name('profiles.indexAdminX');
     Route::resource('/dashboard/trophies', TrophyController::class);

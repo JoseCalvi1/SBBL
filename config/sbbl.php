@@ -11,4 +11,11 @@ return [
     |
     */
     'season_start' => env('SBBL_SEASON_START', '2026-09-01'),
+
+    /*
+    |--------------------------------------------------------------------------
+    | Token de seguridad para tareas programadas (Cron) y mantenimiento
+    |--------------------------------------------------------------------------
+    */
+    'cron_token' => env('SBBL_CRON_TOKEN'),
 ];

@@ -351,11 +351,18 @@ class ProfileController extends Controller
 
     public function storeSubscription(Request $request)
     {
+        if (!\Illuminate\Support\Facades\Auth::user()->hasRole('admin')) {
+            abort(403, 'Acceso denegado.');
+        }
+
         $request->validate([
             'user_id' => 'required|exists:users,id',
             'plan_id' => 'required|exists:plans,id',
             'period' => 'required|in:monthly,annual',
-            'status' => 'required',
+            'status' => 'required|in:active,pending,canceled,expired',
+            'paypal_subscription_id' => 'nullable|string|max:255',
+            'started_at' => 'nullable|date',
+            'ended_at' => 'nullable|date',
         ]);
 
         \App\Models\Subscription::create([
@@ -373,14 +380,31 @@ class ProfileController extends Controller
 
     public function updateSubscription(Request $request, $id)
     {
+        if (!\Illuminate\Support\Facades\Auth::user()->hasRole('admin')) {
+            abort(403, 'Acceso denegado.');
+        }
+
         $sub = \App\Models\Subscription::findOrFail($id);
-        $sub->update($request->all());
+
+        $validated = $request->validate([
+            'plan_id'                => 'required|exists:plans,id',
+            'period'                 => 'required|in:monthly,annual',
+            'status'                 => 'required|in:active,pending,canceled,expired',
+            'paypal_subscription_id' => 'nullable|string|max:255',
+            'ended_at'               => 'nullable|date',
+        ]);
+
+        $sub->update($validated);
 
         return back()->with('success', 'Suscripción actualizada correctamente.');
     }
 
     public function destroySubscription($id)
     {
+        if (!\Illuminate\Support\Facades\Auth::user()->hasRole('admin')) {
+            abort(403, 'Acceso denegado.');
+        }
+
         \App\Models\Subscription::findOrFail($id)->delete();
         return back()->with('success', 'Suscripción eliminada.');
     }
@@ -402,6 +426,10 @@ class ProfileController extends Controller
     // Actualizar roles (Nuevo Sistema Nativo)
     public function updateRoles(Request $request, $userId)
     {
+        if (!\Illuminate\Support\Facades\Auth::user()->hasRole('admin')) {
+            abort(403, 'Acceso denegado.');
+        }
+
         if ($userId == 0) {
             $user = User::findOrFail($request->input('user_id'));
         } else {
