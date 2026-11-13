@@ -30,6 +30,9 @@ return [
         'region' => env('AWS_DEFAULT_REGION', 'us-east-1'),
     ],
     'discord' => [
+        'webhook_url' => env('DISCORD_WEBHOOK_URL'),
+        'hub_webhook' => env('DISCORD_HUB_WEBHOOK'),
+        'articles_webhook' => env('DISCORD_ARTICLES_WEBHOOK_URL'),
         'announcements' => env('DISCORD_ANNOUNCEMENTS_WEBHOOK'),
         'warfeed' => env('DISCORD_WARFEED_WEBHOOK'),
         'client_id' => env('DISCORD_CLIENT_ID'),

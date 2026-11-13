@@ -13,9 +13,11 @@ class AddDiscordIdToUsersTable extends Migration
      */
     public function up()
     {
-        Schema::table('users', function (Blueprint $table) {
-            //
-        });
+        if (!Schema::hasColumn('users', 'discord_id')) {
+            Schema::table('users', function (Blueprint $table) {
+                $table->string('discord_id')->nullable()->unique('discord_id')->after('email');
+            });
+        }
     }
 
     /**
@@ -25,8 +27,11 @@ class AddDiscordIdToUsersTable extends Migration
      */
     public function down()
     {
-        Schema::table('users', function (Blueprint $table) {
-            //
-        });
+        if (Schema::hasColumn('users', 'discord_id')) {
+            Schema::table('users', function (Blueprint $table) {
+                $table->dropUnique('discord_id');
+                $table->dropColumn('discord_id');
+            });
+        }
     }
 }

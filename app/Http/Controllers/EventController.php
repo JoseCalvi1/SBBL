@@ -1247,7 +1247,8 @@ private function sendResponse($type, $message, $request, $code = 200)
             return;
         }
 
-        if (!env('DISCORD_WEBHOOK_URL')) return;
+        $webhookUrl = config('services.discord.webhook_url');
+        if (!$webhookUrl) return;
 
         $regionName = $event->region->name ?? 'Global';
         $rolId = self::DISCORD_ROLES[$regionName] ?? '';
@@ -1269,7 +1270,7 @@ private function sendResponse($type, $message, $request, $code = 200)
             ];
         }
 
-        Http::post(env('DISCORD_WEBHOOK_URL'), [
+        Http::post($webhookUrl, [
             'content' => $content,
             'embeds' => [$embed],
         ]);
@@ -1280,8 +1281,9 @@ private function sendResponse($type, $message, $request, $code = 200)
     // ==============================================================
     private function sendDiscordNotificationHUB(Event $event, bool $isEdit = false)
     {
-        if (config('app.env') !== 'production' || !env('DISCORD_WEBHOOK_URL')) {
-            // return; // <-- Comenta esta línea temporalmente si quieres hacer pruebas en local
+        $webhookUrl = config('services.discord.webhook_url');
+        if (config('app.env') !== 'production' || !$webhookUrl) {
+            return;
         }
 
         $event->loadMissing('region');
@@ -1316,7 +1318,7 @@ private function sendResponse($type, $message, $request, $code = 200)
         }
 
         try {
-            \Illuminate\Support\Facades\Http::post(env('DISCORD_WEBHOOK_URL'), [
+            \Illuminate\Support\Facades\Http::post($webhookUrl, [
                 'content' => $content,
                 'embeds'  => [$embed],
             ]);
@@ -1330,7 +1332,7 @@ private function sendResponse($type, $message, $request, $code = 200)
     // ==============================================================
     public static function sendDiscordBracketNotificationHUB(Event $event, bool $isSwissStart = false)
     {
-        $webhookUrl = env('DISCORD_HUB_WEBHOOK') ?: env('DISCORD_WEBHOOK_URL');
+        $webhookUrl = config('services.discord.hub_webhook') ?: config('services.discord.webhook_url');
         if (config('app.env') !== 'production' || !$webhookUrl) {
             // return; // <-- Comenta esta línea temporalmente si quieres hacer pruebas en local
         }

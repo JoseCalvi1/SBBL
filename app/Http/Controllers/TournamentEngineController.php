@@ -1780,8 +1780,9 @@ class TournamentEngineController extends Controller
             return;
         }
 
-        if (config('app.env') !== 'production' || !env('DISCORD_WEBHOOK_URL')) {
-            // return;
+        $webhookUrl = config('services.discord.webhook_url');
+        if (config('app.env') !== 'production' || !$webhookUrl) {
+            return;
         }
 
         $event->loadMissing('region');
@@ -1907,7 +1908,7 @@ class TournamentEngineController extends Controller
         ];
 
         try {
-            \Illuminate\Support\Facades\Http::post(env('DISCORD_WEBHOOK_URL'), [
+            \Illuminate\Support\Facades\Http::post($webhookUrl, [
                 'content' => "📢 **¡ACTA CERRADA Y RESULTADOS OFICIALES!** {$mention}",
                 'embeds'  => [$embed],
             ]);

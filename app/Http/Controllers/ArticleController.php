@@ -139,8 +139,13 @@ public function notification($articleId)
         // Construyes el mensaje
         $message = "¡Hay un nuevo anuncio de compra/venta!";
 
+        $webhookUrl = config('services.discord.articles_webhook');
+        if (!$webhookUrl) {
+            return null;
+        }
+
         // Envías el mensaje al webhook de Discord
-        return Http::post('https://discord.com/api/webhooks/1293511125538832405/8K0_bqpwuIpwcPedfhETr8fOpOBsOKMMZONy-21_iezWUn2MXMA23dxBQtWVMUls1WQ_', [
+        return Http::post($webhookUrl, [
             'content' => $message,
             'embeds' => [
                 [
