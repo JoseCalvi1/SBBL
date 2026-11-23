@@ -70,10 +70,16 @@ class DoubleEliminationEngine
 
     /**
      * GENERA EL CUADRO INICIAL COMPLETO (TODAS LAS RONDAS PRE-CREADAS)
+     * Aleatoriza 3 veces la lista de jugadores antes de asignar los cruces.
      */
     public function generateInitialBracket(Event $event)
     {
-        $players = $this->getActiveSeatedPlayers($event)->shuffle()->values();
+        $players = $this->getActiveSeatedPlayers($event);
+        for ($i = 0; $i < 3; $i++) {
+            $players = $players->shuffle();
+        }
+        $players = $players->values();
+
         $numPlayers = $players->count();
 
         if ($numPlayers < 4) {
@@ -105,26 +111,103 @@ class DoubleEliminationEngine
 
         $this->createFullPrebuiltBracket($event->id, $bracketSize, 1, $pairings);
 
-        return ['success' => true, 'message' => "Cuadro completo de $bracketSize pre-generado ($numPlayers jugadores activos)."];
+        return ['success' => true, 'message' => "Cuadro completo de $bracketSize pre-generado ($numPlayers jugadores activos, aleatorizado 3 veces)."];
+    }
+
+    /**
+     * RE-ALEATORIZA EL CUADRO INICIAL DE DOBLE ELIMINACIÓN SI NO HA COMENZADO NINGUNA PARTIDA REAL
+     */
+    public function rerandomizeInitialBracket(Event $event)
+    {
+        $hasSwiss = TournamentMatch::where('event_id', $event->id)
+            ->whereIn('bracket_type', ['swiss', 'round_robin'])
+            ->exists();
+
+        if ($hasSwiss) {
+            return ['success' => false, 'message' => '⛔ No se puede re-aleatorizar un cuadro generado desde fase Suiza.'];
+        }
+
+        $matchIds = TournamentMatch::where('event_id', $event->id)->pluck('id');
+        if ($matchIds->isEmpty()) {
+            return $this->generateInitialBracket($event);
+        }
+
+        $hasBattles = DB::table('match_battles')
+            ->whereIn('tournament_match_id', $matchIds)
+            ->exists();
+
+        $hasStartedRealMatch = TournamentMatch::where('event_id', $event->id)
+            ->where('player1_score', '!=', 99)
+            ->where('player2_score', '!=', 99)
+            ->whereNotNull('player2_id')
+            ->where(function ($q) {
+                $q->where('status', '!=', 'pending')
+                  ->orWhere('player1_score', '>', 0)
+                  ->orWhere('player2_score', '>', 0)
+                  ->orWhereNotNull('winner_id');
+            })
+            ->exists();
+
+        if ($hasBattles || $hasStartedRealMatch) {
+            return ['success' => false, 'message' => '⛔ No se puede re-aleatorizar el cuadro porque ya hay partidas iniciadas o completadas.'];
+        }
+
+        return DB::transaction(function () use ($event) {
+            TournamentMatch::where('event_id', $event->id)->delete();
+            $result = $this->generateInitialBracket($event);
+            if (!empty($result['success'])) {
+                $result['message'] = '🔀 Cuadro re-aleatorizado 3 veces correctamente.';
+            }
+            return $result;
+        });
     }
 
     /**
      * GENERA EL TOP CUT DESDE SUIZO ADMITIENDO CUALQUIER TAMAÑO (4, 6, 8, 10, 12, 14, 16, 32...)
-     * - Si el número no es potencia de 2 (ej. Top 10 en cuadro de 16), los mejores clasificados (1º al 6º)
-     *   se emparejan contra los seeds 16..11 (vacíos) y pasan de ronda automáticamente por BYE.
-     * - Los restantes se cruzan en espejo (7º vs 10º, 8º vs 9º).
+     * - Si el torneo tiene varios grupos de Suizo y se indica $topPerGroup, toma el Top X de cada grupo
+     *   y los siembra por posición de grupo (1ºs, luego 2ºs en orden inverso, etc.) para evitar cruces tempranos del mismo grupo.
+     * - Si el número total no es potencia de 2 (ej. Top 10 en cuadro de 16), los mejores clasificados
+     *   se emparejan contra los seeds vacíos y pasan de ronda automáticamente por BYE.
      */
-    public function generateTopCut(Event $event, int $topSize)
+    public function generateTopCut(Event $event, int $topSize, ?int $topPerGroup = null)
     {
-        $topSize = (int) $topSize;
-        if ($topSize < 4 || $topSize > 64) {
-            return ['success' => false, 'message' => 'El tamaño del Top Cut debe estar entre 4 y 64 jugadores.'];
+        $standingsData = $this->standingsService->getStandings($event->id);
+        $hasGroups = !empty($standingsData['has_swiss_groups']);
+
+        if ($hasGroups && !is_null($topPerGroup) && $topPerGroup >= 1) {
+            $swissGroups = (array) ($standingsData['swiss_groups'] ?? []);
+            if (empty($swissGroups)) {
+                return ['success' => false, 'message' => 'No se encontraron grupos de Suizo activos.'];
+            }
+
+            foreach ($swissGroups as $groupNum => $groupRows) {
+                if (count($groupRows) < $topPerGroup) {
+                    return [
+                        'success' => false,
+                        'message' => "El Grupo $groupNum solo tiene " . count($groupRows) . " jugador(es) activos, insuficiente para un Top $topPerGroup por grupo."
+                    ];
+                }
+            }
+
+            $groupKeys = array_keys($swissGroups);
+            $topPlayers = [];
+            for ($tier = 0; $tier < $topPerGroup; $tier++) {
+                $tierOrder = ($tier % 2 === 1) ? array_reverse($groupKeys) : $groupKeys;
+                foreach ($tierOrder as $gKey) {
+                    $topPlayers[] = $swissGroups[$gKey][$tier];
+                }
+            }
+
+            $topSize = count($topPlayers);
+        } else {
+            $topSize = (int) $topSize;
+            $clasificacion = $standingsData['clasificacion'] ?? [];
+            $topPlayers = array_slice($clasificacion, 0, $topSize);
         }
 
-        $standingsData = $this->standingsService->getStandings($event->id);
-        $clasificacion = $standingsData['clasificacion'] ?? [];
-
-        $topPlayers = array_slice($clasificacion, 0, $topSize);
+        if ($topSize < 4 || $topSize > 64) {
+            return ['success' => false, 'message' => 'El tamaño total del Top Cut debe estar entre 4 y 64 jugadores.'];
+        }
 
         if (count($topPlayers) < $topSize) {
             return ['success' => false, 'message' => "No hay suficientes jugadores activos sin retirar para un Top $topSize."];
@@ -154,7 +237,8 @@ class DoubleEliminationEngine
         $this->createFullPrebuiltBracket($event->id, $bracketSize, $startRound, $pairings);
 
         $msgExtra = $numAutoByes > 0 ? " (Cuadro de $bracketSize con pase directo para el Top $numAutoByes)." : ".";
-        return ['success' => true, 'message' => "Top $topSize generado correctamente" . $msgExtra];
+        $perGroupMsg = ($hasGroups && !is_null($topPerGroup)) ? " (Top $topPerGroup por grupo)" : "";
+        return ['success' => true, 'message' => "Top $topSize$perGroupMsg generado correctamente" . $msgExtra];
     }
 
     /**

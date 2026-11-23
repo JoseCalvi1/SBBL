@@ -441,10 +441,13 @@
                             <label class="filter-label">Mín. Combates</label>
                             <select name="min_partidas" class="form-select" onchange="this.form.submit()">
                                 <option value="1" {{ $minPartidas == 1 ? 'selected' : '' }}>1+ Combates</option>
-                                <option value="3" {{ $minPartidas == 3 ? 'selected' : '' }}>3+ Combates</option>
                                 <option value="5" {{ $minPartidas == 5 ? 'selected' : '' }}>5+ Combates</option>
                                 <option value="10" {{ $minPartidas == 10 ? 'selected' : '' }}>10+ Combates</option>
                                 <option value="25" {{ $minPartidas == 25 ? 'selected' : '' }}>25+ Combates</option>
+                                <option value="50" {{ $minPartidas == 50 ? 'selected' : '' }}>50+ Combates</option>
+                                <option value="100" {{ $minPartidas == 100 ? 'selected' : '' }}>100+ Combates</option>
+                                <option value="150" {{ $minPartidas == 150 ? 'selected' : '' }}>150+ Combates</option>
+                                <option value="200" {{ $minPartidas == 200 ? 'selected' : '' }}>200+ Combates</option>
                             </select>
                         </div>
                     </div>

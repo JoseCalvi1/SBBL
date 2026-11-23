@@ -56,6 +56,7 @@ class StandingsService
                 $playerStats[$t->id] = [
                     'id'             => $t->id,
                     'name'           => $t->name,
+                    'swiss_group'    => null,
                     'points'         => 0,
                     'wins'           => 0,
                     'losses'         => 0,
@@ -80,13 +81,14 @@ class StandingsService
                     $q->whereNull('assist_user_event.puesto')
                       ->orWhere('assist_user_event.puesto', '!=', 'dropped');
                 })
-                ->select('users.id', 'users.name', 'assist_user_event.puesto')
+                ->select('users.id', 'users.name', 'assist_user_event.puesto', 'assist_user_event.swiss_group')
                 ->get();
 
             foreach ($users as $u) {
                 $playerStats[$u->id] = [
                     'id'             => $u->id,
                     'name'           => $u->name,
+                    'swiss_group'    => !is_null($u->swiss_group) ? (int) $u->swiss_group : null,
                     'points'         => 0,
                     'wins'           => 0,
                     'losses'         => 0,
@@ -108,6 +110,90 @@ class StandingsService
         // 1. Procesar partidas de Suizo / Round Robin
         $swissMatches = $matches->whereIn('bracket_type', ['swiss', 'round_robin']);
         $this->processSwissMatches($swissMatches, $playerStats, $headToHead, $isTeamEvent);
+
+        // Snapshot puro de Fase Suiza (sin contaminar con V-D / DIF del Top Cut)
+        $swissStandings = [];
+        $swissGroups = [];
+        $swissTiesAfter = [];
+        $swissGroupTiesAfter = [];
+        if ($hasSwiss) {
+            $swissOnlyStats = $playerStats;
+            $this->calculateHeadToHeadTiebreakers($swissOnlyStats, $headToHead);
+            $swissStandings = array_values($swissOnlyStats);
+            usort($swissStandings, fn(array $a, array $b) => $this->comparePlayers($a, $b, $headToHead));
+            $this->assignSharedRanks($swissStandings, false);
+            $swissTiesAfter = $this->findExactTiePositions($swissStandings);
+
+            foreach ($swissStandings as $row) {
+                if (!is_null($row['swiss_group'])) {
+                    $g = (int) $row['swiss_group'];
+                    if (!isset($swissGroups[$g])) {
+                        $swissGroups[$g] = [];
+                    }
+                    $row['group_rank'] = count($swissGroups[$g]) + 1;
+                    $swissGroups[$g][] = $row;
+                }
+            }
+            ksort($swissGroups);
+            foreach ($swissGroups as $g => $gRows) {
+                $swissGroupTiesAfter[$g] = $this->findExactTiePositions($gRows);
+            }
+        }
+
+        // Snapshot puro de Top Cut (solo partidas y estadísticas del Top Cut, sin sumar victorias de Suizo/grupos)
+        $topCutStandings = [];
+        if ($hasSwiss && $hasBracket) {
+            $bracketParticipantIds = [];
+            foreach ($bracketMatchesAll as $bm) {
+                $p1 = $this->resolveP1Id($bm, $isTeamEvent);
+                $p2 = $this->resolveP2Id($bm, $isTeamEvent);
+                if ($p1) $bracketParticipantIds[$p1] = true;
+                if ($p2) $bracketParticipantIds[$p2] = true;
+            }
+
+            $topCutStats = [];
+            foreach ($bracketParticipantIds as $pid => $_) {
+                if (isset($playerStats[$pid])) {
+                    $topCutStats[$pid] = [
+                        'id'             => $playerStats[$pid]['id'],
+                        'name'           => $playerStats[$pid]['name'],
+                        'swiss_group'    => $playerStats[$pid]['swiss_group'],
+                        'points'         => 0,
+                        'wins'           => 0,
+                        'losses'         => 0,
+                        'byes'           => 0,
+                        'buchholz'       => 0,
+                        'pts_for'        => 0,
+                        'pts_against'    => 0,
+                        'point_diff'     => 0,
+                        'h2h_wins'       => 0,
+                        'bracket_score'  => 0,
+                        'bracket_stage'  => '',
+                        'shared_rank'    => null,
+                        'puesto_oficial' => null,
+                        'puesto'         => $playerStats[$pid]['puesto'],
+                    ];
+                }
+            }
+
+            if (!empty($topCutStats)) {
+                $topCutH2H = [];
+                $completedBracketOnly = $matches->whereIn('bracket_type', [
+                    'winners',
+                    'losers',
+                    'grand_final',
+                    'grand_final_reset',
+                    'single_elimination',
+                ]);
+                $this->processBracketMatches($completedBracketOnly, $topCutStats, $topCutH2H, false, true, $isTeamEvent);
+                $this->calculateHeadToHeadTiebreakers($topCutStats, $topCutH2H);
+                $this->calculateBracketProgress($topCutStats, $bracketMatchesAll, $completedBracketOnly, $allEventMatches, $isTeamEvent);
+
+                $topCutStandings = array_values($topCutStats);
+                usort($topCutStandings, fn(array $a, array $b) => $this->comparePlayers($a, $b, $topCutH2H));
+                $this->assignSharedRanks($topCutStandings, true);
+            }
+        }
 
         // 2. Procesar partidas de Doble Eliminación (Winners / Losers / Grand Final)
         $completedBracketMatches = $matches->whereIn('bracket_type', [
@@ -136,11 +222,17 @@ class StandingsService
         $this->assignSharedRanks($standings, $hasBracket);
 
         return [
-            'success'       => true,
-            'is_bracket'    => $hasBracket,
-            'has_swiss'     => $hasSwiss,
-            'is_team_event' => $isTeamEvent,
-            'clasificacion' => $standings,
+            'success'               => true,
+            'is_bracket'            => $hasBracket,
+            'has_swiss'             => $hasSwiss,
+            'has_swiss_groups'      => count($swissGroups) > 1,
+            'swiss_groups'          => count($swissGroups) > 1 ? $swissGroups : new \stdClass(),
+            'swiss_clasificacion'   => $swissStandings,
+            'topcut_clasificacion'  => $topCutStandings,
+            'swiss_ties_after'      => $swissTiesAfter,
+            'swiss_group_ties_after'=> !empty($swissGroupTiesAfter) ? $swissGroupTiesAfter : new \stdClass(),
+            'is_team_event'         => $isTeamEvent,
+            'clasificacion'         => $standings,
         ];
     }
 
@@ -297,6 +389,10 @@ class StandingsService
         bool $isTeamEvent = false
     ): void {
         $hasResetCompleted = $completedBracketMatches->where('bracket_type', 'grand_final_reset')->isNotEmpty();
+        $singleElimMatchesAll = $bracketMatchesAll->where('bracket_type', 'single_elimination');
+        $isSingleElim = $singleElimMatchesAll->isNotEmpty()
+            && $bracketMatchesAll->whereIn('bracket_type', ['winners', 'losers', 'grand_final', 'grand_final_reset'])->isEmpty();
+        $singleElimFinalRound = $isSingleElim ? (int) ($singleElimMatchesAll->max('round_number') ?? 1) : 1;
 
         foreach ($playerStats as $uid => &$stats) {
             $allPlayerBracketMatches = $bracketMatchesAll->filter(
@@ -306,37 +402,83 @@ class StandingsService
                 fn($m) => $this->resolveP1Id($m, $isTeamEvent) == $uid || $this->resolveP2Id($m, $isTeamEvent) == $uid
             );
 
-            if ($allPlayerBracketMatches->isNotEmpty()) {
-                $wonGFReset = $compPlayerBracketMatches->where('bracket_type', 'grand_final_reset')
-                    ->filter(fn($m) => $this->resolveWinnerId($m, $isTeamEvent) == $uid)->isNotEmpty();
-                $lostGFReset = $compPlayerBracketMatches->where('bracket_type', 'grand_final_reset')
-                    ->filter(fn($m) => $this->resolveWinnerId($m, $isTeamEvent) && $this->resolveWinnerId($m, $isTeamEvent) != $uid)->isNotEmpty();
-                $wonGF = $compPlayerBracketMatches->where('bracket_type', 'grand_final')
-                    ->filter(fn($m) => $this->resolveWinnerId($m, $isTeamEvent) == $uid)->isNotEmpty();
-                $lostGF = $compPlayerBracketMatches->where('bracket_type', 'grand_final')
-                    ->filter(fn($m) => $this->resolveWinnerId($m, $isTeamEvent) && $this->resolveWinnerId($m, $isTeamEvent) != $uid)->isNotEmpty();
+            if ($allPlayerBracketMatches->isEmpty()) {
+                continue;
+            }
 
-                if ($hasResetCompleted && $wonGFReset) {
-                    $stats['bracket_score'] = 10000;
-                    $stats['bracket_stage'] = 'CAMPEÓN';
-                } elseif ($hasResetCompleted && $lostGFReset) {
-                    $stats['bracket_score'] = 9000;
-                    $stats['bracket_stage'] = 'FINALISTA';
-                } elseif (!$hasResetCompleted && $wonGF && !$allEventMatches->where('bracket_type', 'grand_final_reset')->isNotEmpty()) {
-                    $stats['bracket_score'] = 10000;
-                    $stats['bracket_stage'] = 'CAMPEÓN';
-                } elseif (!$hasResetCompleted && $lostGF && !$allEventMatches->where('bracket_type', 'grand_final_reset')->isNotEmpty()) {
-                    $stats['bracket_score'] = 9000;
-                    $stats['bracket_stage'] = 'FINALISTA';
-                } else {
-                    $lostInLosers = $compPlayerBracketMatches->where('bracket_type', 'losers')
-                        ->filter(fn($m) => $this->resolveWinnerId($m, $isTeamEvent) && $this->resolveWinnerId($m, $isTeamEvent) != $uid);
-                    if ($lostInLosers->isNotEmpty()) {
-                        $roundEliminated = $lostInLosers->max('round_number');
-                        $stats['bracket_score'] = 5000 + $roundEliminated;
-                        $stats['bracket_stage'] = 'ELIM. LOSERS R' . $roundEliminated;
+            if ($isSingleElim) {
+                $finalMatch = $compPlayerBracketMatches
+                    ->where('bracket_type', 'single_elimination')
+                    ->where('round_number', $singleElimFinalRound)
+                    ->first();
+
+                if ($finalMatch && $this->resolveWinnerId($finalMatch, $isTeamEvent)) {
+                    if ($this->resolveWinnerId($finalMatch, $isTeamEvent) == $uid) {
+                        $stats['bracket_score'] = 10000;
+                        $stats['bracket_stage'] = 'CAMPEÓN';
                     } else {
-                        $maxRoundReached = $allPlayerBracketMatches->max('round_number') ?? 1;
+                        $stats['bracket_score'] = 9000;
+                        $stats['bracket_stage'] = 'FINALISTA';
+                    }
+                    continue;
+                }
+
+                $lostSingle = $compPlayerBracketMatches
+                    ->where('bracket_type', 'single_elimination')
+                    ->filter(fn($m) => $this->resolveWinnerId($m, $isTeamEvent) && $this->resolveWinnerId($m, $isTeamEvent) != $uid);
+
+                if ($lostSingle->isNotEmpty()) {
+                    $roundEliminated = (int) $lostSingle->max('round_number');
+                    $stats['bracket_score'] = 5000 + $roundEliminated;
+                    $stats['bracket_stage'] = 'ELIM. R' . $roundEliminated;
+                } else {
+                    $maxRoundReached = (int) ($allPlayerBracketMatches->max('round_number') ?? 1);
+                    $stats['bracket_score'] = 7500 + $maxRoundReached;
+                    $stats['bracket_stage'] = 'EN CUADRO';
+                }
+                continue;
+            }
+
+            $wonGFReset = $compPlayerBracketMatches->where('bracket_type', 'grand_final_reset')
+                ->filter(fn($m) => $this->resolveWinnerId($m, $isTeamEvent) == $uid)->isNotEmpty();
+            $lostGFReset = $compPlayerBracketMatches->where('bracket_type', 'grand_final_reset')
+                ->filter(fn($m) => $this->resolveWinnerId($m, $isTeamEvent) && $this->resolveWinnerId($m, $isTeamEvent) != $uid)->isNotEmpty();
+            $wonGF = $compPlayerBracketMatches->where('bracket_type', 'grand_final')
+                ->filter(fn($m) => $this->resolveWinnerId($m, $isTeamEvent) == $uid)->isNotEmpty();
+            $lostGF = $compPlayerBracketMatches->where('bracket_type', 'grand_final')
+                ->filter(fn($m) => $this->resolveWinnerId($m, $isTeamEvent) && $this->resolveWinnerId($m, $isTeamEvent) != $uid)->isNotEmpty();
+
+            if ($hasResetCompleted && $wonGFReset) {
+                $stats['bracket_score'] = 10000;
+                $stats['bracket_stage'] = 'CAMPEÓN';
+            } elseif ($hasResetCompleted && $lostGFReset) {
+                $stats['bracket_score'] = 9000;
+                $stats['bracket_stage'] = 'FINALISTA';
+            } elseif (!$hasResetCompleted && $wonGF) {
+                $stats['bracket_score'] = 10000;
+                $stats['bracket_stage'] = 'CAMPEÓN';
+            } elseif (!$hasResetCompleted && $lostGF) {
+                $stats['bracket_score'] = 9000;
+                $stats['bracket_stage'] = 'FINALISTA';
+            } else {
+                $lostInLosers = $compPlayerBracketMatches->where('bracket_type', 'losers')
+                    ->filter(fn($m) => $this->resolveWinnerId($m, $isTeamEvent) && $this->resolveWinnerId($m, $isTeamEvent) != $uid);
+
+                if ($lostInLosers->isNotEmpty()) {
+                    $roundEliminated = (int) $lostInLosers->max('round_number');
+                    $stats['bracket_score'] = 5000 + $roundEliminated;
+                    $stats['bracket_stage'] = 'ELIM. LOSERS R' . $roundEliminated;
+                } else {
+                    $hasPending = $allPlayerBracketMatches->where('status', '!=', 'completed')->isNotEmpty();
+                    $lostInWinners = $compPlayerBracketMatches->where('bracket_type', 'winners')
+                        ->filter(fn($m) => $this->resolveWinnerId($m, $isTeamEvent) && $this->resolveWinnerId($m, $isTeamEvent) != $uid);
+
+                    if (!$hasPending && $lostInWinners->isNotEmpty()) {
+                        $roundEliminated = (int) $lostInWinners->max('round_number');
+                        $stats['bracket_score'] = 4000 + $roundEliminated;
+                        $stats['bracket_stage'] = 'ELIM. WINNERS R' . $roundEliminated;
+                    } else {
+                        $maxRoundReached = (int) ($allPlayerBracketMatches->max('round_number') ?? 1);
                         $inWinners = $allPlayerBracketMatches->whereIn('bracket_type', ['winners', 'grand_final', 'grand_final_reset'])
                             ->where('status', '!=', 'completed')->isNotEmpty();
                         $stats['bracket_score'] = ($inWinners ? 7500 : 7000) + $maxRoundReached;
@@ -390,6 +532,30 @@ class StandingsService
             $player['puesto_oficial'] = $this->rankToPuestoName($currentSharedRank);
         }
         unset($player);
+    }
+
+    /**
+     * Detecta posiciones (base 1) donde el jugador en posición k y k+1 tienen exactamente
+     * los mismos criterios de desempate (puntos, buchholz, H2H, diferencia y puntos a favor).
+     */
+    private function findExactTiePositions(array $rows): array
+    {
+        $ties = [];
+        $count = count($rows);
+        for ($i = 0; $i < $count - 1; $i++) {
+            $a = $rows[$i];
+            $b = $rows[$i + 1];
+            if (
+                $a['points'] === $b['points']
+                && $a['buchholz'] === $b['buchholz']
+                && $a['h2h_wins'] === $b['h2h_wins']
+                && $a['point_diff'] === $b['point_diff']
+                && $a['pts_for'] === $b['pts_for']
+            ) {
+                $ties[] = $i + 1;
+            }
+        }
+        return $ties;
     }
 
     private function rankToPuestoName(int $rank): string

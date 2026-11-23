@@ -237,8 +237,12 @@
                     </div>
                     <div class="relative w-1/3">
                         <select id="meta-filtro-rango" onchange="cargarMeta()" class="w-full bg-gray-900 border border-gray-700 text-purple-400 text-[10px] font-bold tracking-widest p-2.5 rounded-lg appearance-none outline-none focus:border-purple-500 shadow-inner">
-                            <option value="5">TOP 50</option>
-                            <option value="1">VER TODOS</option>
+                            <option value="5">MÍN. 5+</option>
+                            <option value="10">MÍN. 10+</option>
+                            <option value="25">MÍN. 25+</option>
+                            <option value="50">MÍN. 50+</option>
+                            <option value="100">MÍN. 100+</option>
+                            <option value="1">TODOS (1+)</option>
                         </select>
                         <i class="fas fa-chevron-down absolute right-3 top-3 text-gray-500 text-xs pointer-events-none"></i>
                     </div>

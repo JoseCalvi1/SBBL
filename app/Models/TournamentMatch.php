@@ -9,7 +9,7 @@ class TournamentMatch extends Model
     protected $guarded = [];
 
     protected $fillable = [
-        'event_id', 'round_number', 'bracket_type', 'player1_id', 'player2_id', 
+        'event_id', 'round_number', 'bracket_type', 'swiss_group', 'player1_id', 'player2_id', 
         'status', 'locked_by', 'winner_id', 'winner_team_id', 'player1_score', 'player2_score', 'match_number', 'team1_id', 'team2_id'
     ];
 

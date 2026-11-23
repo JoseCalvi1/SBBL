@@ -222,7 +222,6 @@
 
         if (selectedPlayerId === 'general') {
             const top3 = standings.slice(0, 3);
-            const medals = ['1º CAMPEÓN', '2º FINALISTA', '3º PUESTO'];
 
             html += `
                 <div class="bg-black border border-secondary p-3 mb-4">
@@ -244,12 +243,14 @@
                 </div>
 
                 <div class="row g-3 mb-4">
-                    ${top3.map((pl, idx) => `
+                    ${top3.map(pl => {
+                        const rankLabel = pl.shared_rank === 1 ? '1º CAMPEÓN' : (pl.shared_rank === 2 ? '2º FINALISTA' : `${pl.shared_rank}º PUESTO`);
+                        return `
                         <div class="col-md-4">
-                            <div class="bg-black border ${idx === 0 ? 'border-warning' : 'border-secondary'} p-3 h-100 d-flex flex-column justify-content-between">
+                            <div class="bg-black border ${pl.shared_rank === 1 ? 'border-warning' : 'border-secondary'} p-3 h-100 d-flex flex-column justify-content-between">
                                 <div>
                                     <div class="d-flex justify-content-between align-items-center border-bottom border-secondary pb-2 mb-2">
-                                        <span class="font-Oswald ${idx === 0 ? 'text-warning' : 'text-info'}">${medals[idx]}</span>
+                                        <span class="font-Oswald ${pl.shared_rank === 1 ? 'text-warning' : 'text-info'}">${rankLabel}</span>
                                         <button type="button" onclick="renderVistaTorneo('${pl.id}')" class="btn btn-xs btn-outline-warning font-Oswald py-0 px-2" style="font-size:0.75rem;">VER FICHA</button>
                                     </div>
                                     <div class="font-Oswald fs-4 text-white text-uppercase mb-2">${pl.name} <small class="text-secondary fs-6">(${pl.wins}V - ${pl.losses}D)</small></div>
@@ -270,7 +271,8 @@
                                 ` : ''}
                             </div>
                         </div>
-                    `).join('')}
+                        `;
+                    }).join('')}
                 </div>
 
                 <div class="row g-4">
@@ -299,6 +301,7 @@
                                     <tr class="font-Oswald small text-secondary">
                                         <th>POS</th>
                                         <th>BLADER</th>
+                                        <th class="text-center">FASE</th>
                                         <th class="text-center">V - D</th>
                                         <th class="text-center text-warning">PTS</th>
                                         <th class="text-center text-info">BCH</th>
@@ -311,6 +314,7 @@
                                         <tr style="cursor:pointer;" onclick="renderVistaTorneo('${pl.id}')">
                                             <td class="font-Oswald fs-5 ${pl.shared_rank <= 4 ? 'text-warning' : 'text-secondary'}">#${pl.shared_rank}º</td>
                                             <td class="font-Oswald text-white text-uppercase">${pl.name}</td>
+                                            <td class="text-center"><span class="badge bg-dark border border-secondary text-info font-Oswald" style="font-size:0.7rem;">${pl.bracket_stage || pl.puesto || 'SUIZO'}</span></td>
                                             <td class="text-center font-Oswald"><span class="text-success">${pl.wins}V</span> - <span class="text-danger">${pl.losses}D</span></td>
                                             <td class="text-center font-Oswald text-warning fs-5">${pl.points}</td>
                                             <td class="text-center font-Oswald text-info">${pl.buchholz}</td>

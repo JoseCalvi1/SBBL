@@ -333,6 +333,11 @@ class BeyLabService
         ];
     }
 
+    private function metaScoreSql(): string
+    {
+        return 'ROUND(((SUM(is_winner) + 10) / (COUNT(*) + 20)) * 100 + LEAST(18, LOG10(COUNT(*) + 1) * 6.5), 2)';
+    }
+
     /**
      * Obtiene el ranking de combos del Meta para el Hub (GET /api/meta).
      *
@@ -343,30 +348,34 @@ class BeyLabService
     public function getHubMeta(int $minPartidas = 5, string $dias = '30'): array
     {
         $seasonStart = (string) config('sbbl.season_start', '2026-09-01');
-        $cacheKey = sprintf('beylab:hub_meta:%s:dias_%s:min_%d', $seasonStart, $dias, $minPartidas);
+        $minPartidas = max(1, $minPartidas);
+        $cacheKey = sprintf('beylab:hub_meta:v2:%s:dias_%s:min_%d', $seasonStart, $dias, $minPartidas);
 
-        return Cache::remember($cacheKey, self::CACHE_TTL_SECONDS, function () use ($minPartidas, $dias) {
-            $dateSql = '';
-            $dateBindings = [];
-
+        return Cache::remember($cacheKey, self::CACHE_TTL_SECONDS, function () use ($minPartidas, $dias, $seasonStart) {
+            $fechaCorte = $seasonStart;
             if ($dias !== 'all') {
                 $diasInt = max(1, (int) $dias);
-                $fechaCorte = Carbon::now()->subDays($diasInt)->toDateString();
-                $dateSql = ' AND e.date >= ? ';
-                $dateBindings[] = $fechaCorte;
+                $diasCorte = Carbon::now()->subDays($diasInt)->toDateString();
+                if ($diasCorte > $seasonStart) {
+                    $fechaCorte = $diasCorte;
+                }
             }
 
+            $dateSql = ' AND e.date >= ? ';
+            $dateBindings = [$fechaCorte];
             $comboBindings = array_merge($dateBindings, $dateBindings, [$minPartidas]);
+            $metaScoreSql = $this->metaScoreSql();
 
             $combos = DB::select("
                 SELECT
                     blade, ratchet, bit,
-                    IFNULL(over_blade, '-') as over_blade,
-                    IFNULL(assist_blade, '-') as assist_blade,
+                    CASE WHEN over_blade IS NULL OR over_blade = '' OR over_blade LIKE '%Selecciona%' THEN '-' ELSE over_blade END as over_blade,
+                    CASE WHEN assist_blade IS NULL OR assist_blade = '' OR assist_blade LIKE '%Selecciona%' THEN '-' ELSE assist_blade END as assist_blade,
                     COUNT(*) as total_partidas,
                     SUM(is_winner) as total_victorias,
                     SUM(is_loser) as total_derrotas,
-                    (SUM(is_winner) / COUNT(*)) * 100 as percentage_victories,
+                    (SUM(is_winner) / GREATEST(COUNT(*), 1)) * 100 as percentage_victories,
+                    {$metaScoreSql} as meta_score,
                     SUM(points_won) as eficiencia,
                     ROUND(IFNULL(SUM(points_won) / NULLIF(SUM(is_winner), 0), 0), 2) as puntos_ganados_por_combate,
                     ROUND(IFNULL(SUM(points_lost) / NULLIF(SUM(is_loser), 0), 0), 2) as puntos_perdidos_por_combate,
@@ -379,8 +388,8 @@ class BeyLabService
                         c.blade, c.ratchet, c.bit, c.over_blade, c.assist_blade,
                         (mb.winner_id = c.user_id) as is_winner,
                         (mb.winner_id != c.user_id AND mb.winner_id IS NOT NULL) as is_loser,
-                        CASE WHEN mb.winner_id = c.user_id THEN mb.points_awarded ELSE 0 END as points_won,
-                        CASE WHEN mb.winner_id != c.user_id AND mb.winner_id IS NOT NULL THEN mb.points_awarded ELSE 0 END as points_lost,
+                        CASE WHEN mb.winner_id = c.user_id THEN LEAST(3, GREATEST(1, mb.points_awarded)) ELSE 0 END as points_won,
+                        CASE WHEN mb.winner_id != c.user_id AND mb.winner_id IS NOT NULL THEN LEAST(3, GREATEST(1, mb.points_awarded)) ELSE 0 END as points_lost,
                         CASE WHEN mb.winner_id = c.user_id AND mb.finish_type = 'spin' THEN 1 ELSE 0 END as spin_wins,
                         CASE WHEN mb.winner_id = c.user_id AND mb.finish_type = 'over' THEN 1 ELSE 0 END as over_wins,
                         CASE WHEN mb.winner_id = c.user_id AND mb.finish_type = 'burst' THEN 1 ELSE 0 END as burst_wins,
@@ -389,7 +398,8 @@ class BeyLabService
                     JOIN tournament_matches tm ON mb.tournament_match_id = tm.id
                     JOIN events e ON tm.event_id = e.id
                     JOIN tournament_results c ON mb.player1_combo_id = c.id
-                    WHERE mb.winner_id IS NOT NULL {$dateSql}
+                    WHERE mb.winner_id IS NOT NULL AND mb.finish_type IN ('spin','over','burst','xtreme')
+                      AND c.blade IS NOT NULL AND c.blade NOT LIKE '%Selecciona%' AND c.blade != 'DESCONOCIDO' {$dateSql}
 
                     UNION ALL
 
@@ -397,8 +407,8 @@ class BeyLabService
                         c.blade, c.ratchet, c.bit, c.over_blade, c.assist_blade,
                         (mb.winner_id = c.user_id) as is_winner,
                         (mb.winner_id != c.user_id AND mb.winner_id IS NOT NULL) as is_loser,
-                        CASE WHEN mb.winner_id = c.user_id THEN mb.points_awarded ELSE 0 END as points_won,
-                        CASE WHEN mb.winner_id != c.user_id AND mb.winner_id IS NOT NULL THEN mb.points_awarded ELSE 0 END as points_lost,
+                        CASE WHEN mb.winner_id = c.user_id THEN LEAST(3, GREATEST(1, mb.points_awarded)) ELSE 0 END as points_won,
+                        CASE WHEN mb.winner_id != c.user_id AND mb.winner_id IS NOT NULL THEN LEAST(3, GREATEST(1, mb.points_awarded)) ELSE 0 END as points_lost,
                         CASE WHEN mb.winner_id = c.user_id AND mb.finish_type = 'spin' THEN 1 ELSE 0 END as spin_wins,
                         CASE WHEN mb.winner_id = c.user_id AND mb.finish_type = 'over' THEN 1 ELSE 0 END as over_wins,
                         CASE WHEN mb.winner_id = c.user_id AND mb.finish_type = 'burst' THEN 1 ELSE 0 END as burst_wins,
@@ -407,11 +417,14 @@ class BeyLabService
                     JOIN tournament_matches tm ON mb.tournament_match_id = tm.id
                     JOIN events e ON tm.event_id = e.id
                     JOIN tournament_results c ON mb.player2_combo_id = c.id
-                    WHERE mb.winner_id IS NOT NULL {$dateSql}
+                    WHERE mb.winner_id IS NOT NULL AND mb.finish_type IN ('spin','over','burst','xtreme')
+                      AND c.blade IS NOT NULL AND c.blade NOT LIKE '%Selecciona%' AND c.blade != 'DESCONOCIDO' {$dateSql}
                 ) as combates_unificados
-                GROUP BY blade, ratchet, bit, over_blade, assist_blade
+                GROUP BY blade, ratchet, bit,
+                    CASE WHEN over_blade IS NULL OR over_blade = '' OR over_blade LIKE '%Selecciona%' THEN '-' ELSE over_blade END,
+                    CASE WHEN assist_blade IS NULL OR assist_blade = '' OR assist_blade LIKE '%Selecciona%' THEN '-' ELSE assist_blade END
                 HAVING total_partidas >= ?
-                ORDER BY percentage_victories DESC, total_partidas DESC, eficiencia DESC
+                ORDER BY meta_score DESC, total_partidas DESC, percentage_victories DESC
                 LIMIT 50
             ", $comboBindings);
 
@@ -533,7 +546,7 @@ class BeyLabService
 
         $sortCol = in_array($sort, self::ALLOWED_COMBO_SORTS, true) ? $sort : 'meta_score';
 
-        $statsCacheKey = 'beylab:dashboard_stats:' . $seasonStart . ':' . md5(json_encode([
+        $statsCacheKey = 'beylab:dashboard_stats:v2:' . $seasonStart . ':' . md5(json_encode([
             'sort'         => $sortCol,
             'order'        => $order,
             'min_partidas' => $minPartidas,
@@ -559,6 +572,7 @@ class BeyLabService
             $eventBindings
         ) {
             $unionBindings = array_merge($bindings, $bindings, [$minPartidas]);
+            $metaScoreSql  = $this->metaScoreSql();
 
             $beybladeStats = collect(DB::select("
                 SELECT 
@@ -569,7 +583,7 @@ class BeyLabService
                     SUM(is_winner) as total_victorias,
                     SUM(is_loser) as total_derrotas,
                     (SUM(is_winner) / GREATEST(COUNT(*), 1)) * 100 as percentage_victories,
-                    ROUND(((SUM(is_winner) + 5) / (COUNT(*) + 10)) * 100 + (LOG(COUNT(*) + 1) * 3.5), 2) as meta_score,
+                    {$metaScoreSql} as meta_score,
                     SUM(points_won) as eficiencia,
                     ROUND(IFNULL(SUM(points_won) / NULLIF(SUM(is_winner), 0), 0), 2) as puntos_ganados_por_combate,
                     ROUND(IFNULL(SUM(points_lost) / NULLIF(SUM(is_loser), 0), 0), 2) as puntos_perdidos_por_combate,
@@ -989,7 +1003,12 @@ class BeyLabService
 
         $topCombosTorneo = DB::select("
             SELECT 
-                CONCAT(c.blade, ' ', IFNULL(c.ratchet, ''), ' ', IFNULL(c.bit, '')) as combo_name,
+                TRIM(CONCAT(
+                    c.blade,
+                    CASE WHEN c.over_blade IS NOT NULL AND c.over_blade != '' AND c.over_blade != '-' THEN CONCAT(' ', c.over_blade) ELSE '' END,
+                    CASE WHEN c.assist_blade IS NOT NULL AND c.assist_blade != '' AND c.assist_blade != '-' THEN CONCAT(' ', c.assist_blade) ELSE '' END,
+                    ' · ', IFNULL(c.ratchet, ''), ' · ', IFNULL(c.bit, '')
+                )) as combo_name,
                 u.name as owner_name,
                 COUNT(*) as total_bouts,
                 SUM(is_win) as wins,
@@ -1162,10 +1181,19 @@ class BeyLabService
                     $myComboObj  = $amP1 ? $c1 : $c2;
                     $rivComboObj = $amP1 ? $c2 : $c1;
 
+                    $formatComboLabel = static function ($comboObj, string $fallback): string {
+                        if (!$comboObj) {
+                            return $fallback;
+                        }
+                        $extras = array_filter([$comboObj->over_blade, $comboObj->assist_blade], fn($v) => !empty($v) && $v !== '-');
+                        $extraStr = !empty($extras) ? ' ' . implode(' ', $extras) : '';
+                        return trim("{$comboObj->blade}{$extraStr} · {$comboObj->ratchet} · {$comboObj->bit}");
+                    };
+
                     $timeline[] = [
                         'bout_num'  => $boutStep,
-                        'my_combo'  => $myComboObj ? trim("{$myComboObj->blade} {$myComboObj->ratchet} {$myComboObj->bit}") : 'Tu Bey',
-                        'riv_combo' => $rivComboObj ? trim("{$rivComboObj->blade} {$rivComboObj->ratchet} {$rivComboObj->bit}") : 'Bey Rival',
+                        'my_combo'  => $formatComboLabel($myComboObj, 'Tu Bey'),
+                        'riv_combo' => $formatComboLabel($rivComboObj, 'Bey Rival'),
                         'i_won'     => $iWonBout,
                         'finish'    => strtoupper($b->finish_type ?? 'PT'),
                         'points'    => (int) $b->points_awarded,
@@ -1186,10 +1214,11 @@ class BeyLabService
             }
 
             $playersTelemetry[$uid] = [
-                'id'          => $uid,
-                'name'        => $pl['name'],
-                'shared_rank' => $pl['shared_rank'] ?? 1,
-                'puesto'      => strtoupper($pl['puesto_oficial'] ?? $pl['puesto'] ?? 'PART.'),
+                'id'            => $uid,
+                'name'          => $pl['name'],
+                'shared_rank'   => $pl['shared_rank'] ?? 1,
+                'puesto'        => strtoupper($pl['puesto_oficial'] ?? $pl['puesto'] ?? 'PART.'),
+                'bracket_stage' => $pl['bracket_stage'] ?? '',
                 'wins'        => $pl['wins'] ?? 0,
                 'losses'      => $pl['losses'] ?? 0,
                 'points'      => $pl['points'] ?? 0,
@@ -1820,6 +1849,7 @@ class BeyLabService
         }
 
         $partBindings = array_merge($bindings, $bindings, [max(1, $minPartidas)]);
+        $metaScoreSql = $this->metaScoreSql();
         $rows = DB::select("
             SELECT 
                 part_name,
@@ -1827,7 +1857,7 @@ class BeyLabService
                 SUM(is_winner) as total_victorias,
                 SUM(is_loser) as total_derrotas,
                 ROUND((SUM(is_winner) / GREATEST(COUNT(*), 1)) * 100, 1) as winrate,
-                ROUND(((SUM(is_winner) + 5) / (COUNT(*) + 10)) * 100 + (LOG(COUNT(*) + 1) * 3.5), 2) as meta_score,
+                {$metaScoreSql} as meta_score,
                 ROUND(IFNULL(SUM(points_won) / NULLIF(SUM(is_winner), 0), 0), 2) as avg_dmg,
                 SUM(xtreme_wins) as xtremes,
                 SUM(burst_wins) as bursts,

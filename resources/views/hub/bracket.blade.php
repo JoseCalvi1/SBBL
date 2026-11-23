@@ -463,6 +463,66 @@
     <!-- ZONA 2: RONDAS SUIZAS / LIGUILLA -->
     <div id="view-suizo" class="hidden flex-1 overflow-y-auto p-4 sm:p-8 bg-grid-pattern">
         <div id="swiss-rounds-container" class="max-w-5xl mx-auto w-full space-y-6 pb-12">
+            @if(!empty($standingsData['has_swiss_groups']) && !empty($standingsData['swiss_groups']))
+                @php
+                    $pubGroups = (array) $standingsData['swiss_groups'];
+                    ksort($pubGroups);
+                @endphp
+                <div class="bg-gray-900/95 border border-gray-800 rounded-2xl p-4 shadow-2xl">
+                    <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
+                        <span class="text-xs font-mono font-black text-cyan-400 uppercase tracking-widest">
+                            <i class="fas fa-layer-group mr-1.5"></i> FILTRAR POR GRUPO
+                        </span>
+                        <div class="flex flex-wrap gap-1.5">
+                            <button type="button" onclick="filterPublicSwissGroup('all')" data-pub-grp="all" class="pub-swiss-grp-btn px-3 py-1 rounded-lg text-[10px] font-mono font-black border border-cyan-500 bg-cyan-900/50 text-cyan-300 transition-colors">TODOS</button>
+                            @foreach(array_keys($pubGroups) as $gNum)
+                                <button type="button" onclick="filterPublicSwissGroup('{{ $gNum }}')" data-pub-grp="{{ $gNum }}" class="pub-swiss-grp-btn px-3 py-1 rounded-lg text-[10px] font-mono font-bold border border-gray-700 bg-gray-950 text-gray-400 hover:text-white transition-colors">GRUPO {{ $gNum }}</button>
+                            @endforeach
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        @foreach($pubGroups as $gNum => $gPlayers)
+                            <div class="pub-swiss-group-block bg-gray-950/90 border border-gray-800 rounded-xl overflow-hidden" data-swiss-group="{{ $gNum }}">
+                                <div class="bg-gray-900 px-3 py-2 border-b border-gray-800 flex justify-between items-center">
+                                    <span class="text-xs font-mono font-black text-cyan-400 uppercase">GRUPO {{ $gNum }}</span>
+                                    <span class="text-[10px] font-mono text-gray-400">{{ count($gPlayers) }} JUGADORES</span>
+                                </div>
+                                <div class="overflow-x-auto">
+                                    <table class="w-full text-left text-xs text-gray-300">
+                                        <thead class="bg-gray-950 text-[9px] uppercase text-gray-500 font-bold border-b border-gray-800">
+                                            <tr>
+                                                <th class="px-2.5 py-2 text-center w-8">#</th>
+                                                <th class="px-2 py-2">BLADER</th>
+                                                <th class="px-1.5 py-2 text-center">V-D</th>
+                                                <th class="px-1.5 py-2 text-center text-yellow-400">PTS</th>
+                                                <th class="px-1.5 py-2 text-center">BCH</th>
+                                                <th class="px-2 py-2 text-center">DIF</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody class="divide-y divide-gray-800/60">
+                                            @foreach($gPlayers as $idx => $gp)
+                                                @php
+                                                    $gRank = $gp['group_rank'] ?? ($idx + 1);
+                                                    $gDiff = $gp['point_diff'] ?? 0;
+                                                @endphp
+                                                <tr class="hover:bg-gray-900/60">
+                                                    <td class="px-2.5 py-2 text-center font-mono font-black {{ $gRank === 1 ? 'text-yellow-400' : 'text-cyan-400' }}">{{ $gRank }}</td>
+                                                    <td class="px-2 py-2 font-bold text-white uppercase truncate max-w-[130px]">{{ $gp['name'] }}</td>
+                                                    <td class="px-1.5 py-2 text-center font-mono text-[11px]"><span class="text-emerald-400 font-bold">{{ $gp['wins'] ?? 0 }}</span>-<span class="text-rose-400 font-bold">{{ $gp['losses'] ?? 0 }}</span></td>
+                                                    <td class="px-1.5 py-2 text-center font-mono font-black text-yellow-400">{{ $gp['points'] ?? 0 }}</td>
+                                                    <td class="px-1.5 py-2 text-center font-mono text-cyan-300">{{ $gp['buchholz'] ?? 0 }}</td>
+                                                    <td class="px-2 py-2 text-center font-mono font-bold {{ $gDiff > 0 ? 'text-emerald-400' : ($gDiff < 0 ? 'text-rose-400' : 'text-gray-500') }}">{{ $gDiff > 0 ? '+' . $gDiff : $gDiff }}</td>
+                                                </tr>
+                                            @endforeach
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        @endforeach
+                    </div>
+                </div>
+            @endif
             @if(isset($swissRounds) && $swissRounds->isNotEmpty())
                 @foreach($swissRounds->sortKeysDesc() as $roundNum => $matchesInRound)
                     @php
@@ -500,9 +560,18 @@
                                     $w1 = $isBye || ($m->status === 'completed' && $resolvedWinnerId && ($isTeamM ? $resolvedWinnerId == $m->team1_id : $resolvedWinnerId == $m->player1_id));
                                     $w2 = !$isBye && $m->status === 'completed' && $resolvedWinnerId && ($isTeamM ? $resolvedWinnerId == $m->team2_id : $resolvedWinnerId == $m->player2_id);
                                 @endphp
-                                <div class="swiss-match-card bg-gray-950 border {{ $m->status === 'completed' || $isBye ? 'border-gray-800/90' : 'border-cyan-700/60 shadow-[0_0_12px_rgba(6,182,212,0.12)]' }} rounded-xl p-3 flex items-center justify-between transition-all"
+                                <div class="swiss-match-card bg-gray-950 border {{ $m->status === 'completed' || $isBye ? 'border-gray-800/90' : 'border-cyan-700/60 shadow-[0_0_12px_rgba(6,182,212,0.12)]' }} rounded-xl p-3 flex flex-col gap-1.5 transition-all"
+                                     data-swiss-group="{{ $m->swiss_group ?? '' }}"
                                      data-p1-name="{{ mb_strtoupper($p1Name) }}"
                                      data-p2-name="{{ mb_strtoupper($p2Name) }}">
+                                    @if(!is_null($m->swiss_group))
+                                        <div class="flex justify-between items-center">
+                                            <span class="bg-cyan-950/70 text-cyan-300 border border-cyan-700/60 text-[9px] font-mono font-black px-2 py-0.5 rounded uppercase tracking-wider">
+                                                GRUPO {{ $m->swiss_group }}
+                                            </span>
+                                        </div>
+                                    @endif
+                                    <div class="flex items-center justify-between w-full">
                                     <div class="flex-1 truncate pr-2">
                                         <span class="text-xs font-bold uppercase {{ $w1 ? 'text-yellow-400 font-black' : 'text-white' }}">
                                             @if($w1) <i class="fas fa-caret-right text-yellow-400 mr-1"></i> @endif
@@ -523,6 +592,7 @@
                                             {{ $p2Name }}
                                             @if($w2) <i class="fas fa-caret-left text-yellow-400 ml-1"></i> @endif
                                         </span>
+                                    </div>
                                     </div>
                                 </div>
                             @endforeach
@@ -809,102 +879,187 @@
             }
         }
 
+        let selectedPublicSwissGroup = 'all';
+        let currentPublicStandingsTab = 'final';
+
+        function filterPublicSwissGroup(groupNum) {
+            selectedPublicSwissGroup = String(groupNum);
+            document.querySelectorAll('.pub-swiss-grp-btn').forEach(btn => {
+                const g = btn.getAttribute('data-pub-grp');
+                if (g === selectedPublicSwissGroup) {
+                    btn.className = "pub-swiss-grp-btn px-3 py-1 rounded-lg text-[10px] font-mono font-black border border-cyan-500 bg-cyan-900/50 text-cyan-300 transition-colors";
+                } else {
+                    btn.className = "pub-swiss-grp-btn px-3 py-1 rounded-lg text-[10px] font-mono font-bold border border-gray-700 bg-gray-950 text-gray-400 hover:text-white transition-colors";
+                }
+            });
+            document.querySelectorAll('.swiss-match-card, .pub-swiss-group-block').forEach(el => {
+                const g = el.getAttribute('data-swiss-group') || '';
+                if (selectedPublicSwissGroup === 'all' || g === selectedPublicSwissGroup) {
+                    el.classList.remove('hidden');
+                } else {
+                    el.classList.add('hidden');
+                }
+            });
+        }
+
+        function switchPublicStandingsSubTab(tab) {
+            currentPublicStandingsTab = tab;
+            const finalEl = document.getElementById('pub-standings-final');
+            const swissEl = document.getElementById('pub-standings-swiss');
+            const btnFinal = document.getElementById('pub-btn-standings-final');
+            const btnSwiss = document.getElementById('pub-btn-standings-swiss');
+            if (!finalEl || !swissEl || !btnFinal || !btnSwiss) return;
+            if (tab === 'swiss') {
+                finalEl.classList.add('hidden');
+                swissEl.classList.remove('hidden');
+                btnSwiss.className = "flex-1 py-2.5 rounded-lg text-[11px] font-mono font-black tracking-wider uppercase bg-cyan-950/70 text-cyan-300 border border-cyan-500/60 transition-all";
+                btnFinal.className = "flex-1 py-2.5 rounded-lg text-[11px] font-mono font-bold tracking-wider uppercase text-gray-400 hover:text-white border border-transparent transition-all";
+            } else {
+                swissEl.classList.add('hidden');
+                finalEl.classList.remove('hidden');
+                btnFinal.className = "flex-1 py-2.5 rounded-lg text-[11px] font-mono font-black tracking-wider uppercase bg-fuchsia-950/70 text-fuchsia-300 border border-fuchsia-500/60 transition-all";
+                btnSwiss.className = "flex-1 py-2.5 rounded-lg text-[11px] font-mono font-bold tracking-wider uppercase text-gray-400 hover:text-white border border-transparent transition-all";
+            }
+        }
+
+        function buildPublicTableHtml(jugadores, isEliminatoria, isGroupTable = false) {
+            let html = `
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-xs sm:text-sm text-gray-300">
+                        <thead class="bg-gray-950/90 text-[10px] sm:text-xs uppercase text-gray-400 font-bold tracking-wider border-b border-gray-800">
+                            <tr>
+                                <th class="px-3 py-4 w-12 text-center">POS</th>
+                                <th class="px-3 py-4">BLADER</th>
+                                <th class="px-2 py-4 text-center">V - D</th>
+                                <th class="px-2 py-4 text-center text-yellow-400">PTS</th>
+                                <th class="px-2 py-4 text-center">
+                                    BCH
+                                    <button type="button" onclick="mostrarInfoDesempate('BUCHHOLZ (BCH)', 'Suma los puntos totales conseguidos por todos los rivales a los que te has enfrentado. Desempata a favor de quien haya jugado contra oponentes más fuertes.')" class="text-cyan-400 hover:text-white ml-0.5"><i class="fas fa-question-circle"></i></button>
+                                </th>
+                                <th class="px-2 py-4 text-center">
+                                    DIF
+                                    <button type="button" onclick="mostrarInfoDesempate('DIFERENCIA DE PUNTOS (+/-)', 'Resta entre los puntos individuales de Beyblade que has anotado (Spin, Over, Burst, Xtreme) y los que has encajado.')" class="text-cyan-400 hover:text-white ml-0.5"><i class="fas fa-question-circle"></i></button>
+                                </th>
+                                ${isEliminatoria ? '<th class="px-3 py-4 text-center">ESTADO / CORTE</th>' : ''}
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-800/80">`;
+
+            if (jugadores.length > 0) {
+                jugadores.forEach((player, index) => {
+                    const sharedRank = isGroupTable ? (player.group_rank || (index + 1)) : (player.shared_rank || (index + 1));
+                    const isTop = sharedRank <= 4 ? 'bg-cyan-900/10' : '';
+                    const rankColor = sharedRank === 1 ? 'text-yellow-400' : (sharedRank <= 4 ? 'text-cyan-400' : 'text-gray-400');
+
+                    const wins = player.wins ?? 0;
+                    const losses = player.losses ?? 0;
+                    const byes = player.byes ?? 0;
+                    const diff = player.point_diff ?? 0;
+                    const diffStr = diff > 0 ? `+${diff}` : `${diff}`;
+                    const diffColor = diff > 0 ? 'text-emerald-400' : (diff < 0 ? 'text-rose-400' : 'text-gray-500');
+
+                    const h2hBadge = player.h2h_wins > 0
+                        ? `<span class="ml-1.5 text-[9px] bg-cyan-950 text-cyan-300 border border-cyan-700/60 px-1.5 py-0.5 rounded font-mono" title="Gana desempate por Enfrentamiento Directo">H2H</span>`
+                        : '';
+                    const byeBadge = byes > 0
+                        ? `<span class="ml-1 text-[9px] bg-gray-800 text-gray-400 px-1.5 py-0.5 rounded font-mono">BYE</span>`
+                        : '';
+                    const grpBadge = (!isGroupTable && player.swiss_group)
+                        ? `<span class="ml-1.5 text-[9px] bg-cyan-950/70 text-cyan-300 border border-cyan-800/60 px-1.5 py-0.5 rounded font-mono">G${player.swiss_group}</span>`
+                        : '';
+
+                    let faseCol = '';
+                    if (isEliminatoria) {
+                        if (sharedRank === 1 && player.bracket_score >= 10000) {
+                            faseCol = `<td class="px-3 py-3.5 text-center"><span class="font-bold text-[10px] text-yellow-400 bg-yellow-900/30 border border-yellow-700/50 px-2.5 py-1 rounded-full uppercase tracking-widest whitespace-nowrap"><i class="fas fa-trophy mr-1"></i> CAMPEÓN</span></td>`;
+                        } else if (sharedRank === 2 && player.bracket_score >= 9000) {
+                            faseCol = `<td class="px-3 py-3.5 text-center"><span class="font-bold text-[10px] text-gray-300 bg-gray-700/50 border border-gray-600 px-2.5 py-1 rounded-full uppercase tracking-widest whitespace-nowrap">FINALISTA (2º)</span></td>`;
+                        } else if (sharedRank === 3 && player.bracket_score > 0) {
+                            faseCol = `<td class="px-3 py-3.5 text-center"><span class="font-bold text-[10px] text-orange-400 bg-orange-900/30 border border-orange-800/50 px-2.5 py-1 rounded-full uppercase tracking-widest whitespace-nowrap">3º PUESTO</span></td>`;
+                        } else if (sharedRank === 4 && player.bracket_score > 0) {
+                            faseCol = `<td class="px-3 py-3.5 text-center"><span class="font-bold text-[10px] text-cyan-400 bg-cyan-900/30 border border-cyan-800/50 px-2.5 py-1 rounded-full uppercase tracking-widest whitespace-nowrap">4º PUESTO</span></td>`;
+                        } else if (player.bracket_score >= 7000) {
+                            faseCol = `<td class="px-3 py-3.5 text-center"><span class="font-bold text-[10px] text-emerald-400 bg-emerald-950/40 border border-emerald-700/50 px-2 py-0.5 rounded uppercase tracking-widest">${player.bracket_stage || 'EN JUEGO'}</span></td>`;
+                        } else if (player.bracket_score > 0) {
+                            faseCol = `<td class="px-3 py-3.5 text-center"><span class="font-bold text-[10px] text-fuchsia-400 uppercase tracking-widest">${sharedRank}º PUESTO</span></td>`;
+                        } else {
+                            faseCol = `<td class="px-3 py-3.5 text-center"><span class="font-mono text-gray-500 text-[10px] tracking-widest">FASE SUIZA</span></td>`;
+                        }
+                    }
+
+                    html += `
+                        <tr class="${isTop} hover:bg-gray-800/50 transition-colors">
+                            <td class="px-3 py-3.5 text-center font-mono font-black text-base ${rankColor}">${sharedRank}º</td>
+                            <td class="px-3 py-3.5 font-black text-white uppercase tracking-wider">
+                                ${player.name || player.user_name}${grpBadge}${h2hBadge}${byeBadge}
+                            </td>
+                            <td class="px-2 py-3.5 text-center font-mono text-xs">
+                                <span class="text-emerald-400 font-bold">${wins}V</span> <span class="text-gray-600">-</span> <span class="text-rose-400 font-bold">${losses}D</span>
+                            </td>
+                            <td class="px-2 py-3.5 text-center font-black font-mono text-yellow-400 text-base">${player.points}</td>
+                            <td class="px-2 py-3.5 text-center font-mono text-cyan-300 font-bold text-xs">${player.buchholz}</td>
+                            <td class="px-2 py-3.5 text-center font-mono font-bold text-xs ${diffColor}" title="${player.pts_for || 0} a favor / ${player.pts_against || 0} en contra">${diffStr}</td>
+                            ${faseCol}
+                        </tr>`;
+                });
+            } else {
+                html += `<tr><td colspan="7" class="px-4 py-12 text-center text-gray-500 font-bold tracking-widest text-xs">NO HAY RESULTADOS AÚN</td></tr>`;
+            }
+
+            html += `</tbody></table></div>`;
+            return html;
+        }
+
         async function cargarTablaPublica(eventId) {
             const container = document.getElementById('tabla-content');
             try {
                 const res = await fetch(`/api/torneos/${eventId}/clasificacion`);
                 const data = await res.json();
 
-                const isEliminatoria = data.is_bracket;
-
-                let htmlTemp = `
-                    <div class="overflow-x-auto">
-                        <table class="w-full text-left text-xs sm:text-sm text-gray-300">
-                            <thead class="bg-gray-950/90 text-[10px] sm:text-xs uppercase text-gray-400 font-bold tracking-wider border-b border-gray-800">
-                                <tr>
-                                    <th class="px-3 py-4 w-12 text-center">POS</th>
-                                    <th class="px-3 py-4">BLADER</th>
-                                    <th class="px-2 py-4 text-center">V - D</th>
-                                    <th class="px-2 py-4 text-center text-yellow-400">PTS</th>
-                                    <th class="px-2 py-4 text-center">
-                                        BCH
-                                        <button type="button" onclick="mostrarInfoDesempate('BUCHHOLZ (BCH)', 'Suma los puntos totales conseguidos por todos los rivales a los que te has enfrentado. Desempata a favor de quien haya jugado contra oponentes más fuertes.')" class="text-cyan-400 hover:text-white ml-0.5"><i class="fas fa-question-circle"></i></button>
-                                    </th>
-                                    <th class="px-2 py-4 text-center">
-                                        DIF
-                                        <button type="button" onclick="mostrarInfoDesempate('DIFERENCIA DE PUNTOS (+/-)', 'Resta entre los puntos individuales de Beyblade que has anotado (Spin, Over, Burst, Xtreme) y los que has encajado.')" class="text-cyan-400 hover:text-white ml-0.5"><i class="fas fa-question-circle"></i></button>
-                                    </th>
-                                    ${isEliminatoria ? '<th class="px-3 py-4 text-center">ESTADO / CORTE</th>' : ''}
-                                </tr>
-                            </thead>
-                            <tbody class="divide-y divide-gray-800/80">
-                `;
-
+                const isEliminatoria = Boolean(data.is_bracket);
+                const hasSwiss = Boolean(data.has_swiss);
                 const jugadores = data.clasificacion || data.standings || [];
+                const topCutJugadores = (data.topcut_clasificacion && data.topcut_clasificacion.length > 0) ? data.topcut_clasificacion : jugadores;
+                const swissJugadores = (data.swiss_clasificacion && data.swiss_clasificacion.length > 0) ? data.swiss_clasificacion : jugadores;
+                const hasSwissGroups = Boolean(data.has_swiss_groups) && data.swiss_groups && Object.keys(data.swiss_groups).length > 1;
 
-                if (jugadores.length > 0) {
-                    jugadores.forEach((player, index) => {
-                        const sharedRank = player.shared_rank || (index + 1);
-                        const isTop = sharedRank <= 4 ? 'bg-cyan-900/10' : '';
-                        const rankColor = sharedRank === 1 ? 'text-yellow-400' : (sharedRank <= 4 ? 'text-cyan-400' : 'text-gray-400');
-
-                        const wins = player.wins ?? 0;
-                        const losses = player.losses ?? 0;
-                        const byes = player.byes ?? 0;
-                        const diff = player.point_diff ?? 0;
-                        const diffStr = diff > 0 ? `+${diff}` : `${diff}`;
-                        const diffColor = diff > 0 ? 'text-emerald-400' : (diff < 0 ? 'text-rose-400' : 'text-gray-500');
-
-                        const h2hBadge = player.h2h_wins > 0
-                            ? `<span class="ml-1.5 text-[9px] bg-cyan-950 text-cyan-300 border border-cyan-700/60 px-1.5 py-0.5 rounded font-mono" title="Gana desempate por Enfrentamiento Directo">H2H</span>`
-                            : '';
-                        const byeBadge = byes > 0
-                            ? `<span class="ml-1 text-[9px] bg-gray-800 text-gray-400 px-1.5 py-0.5 rounded font-mono">BYE</span>`
-                            : '';
-
-                        let faseCol = '';
-                        if (isEliminatoria) {
-                            if (sharedRank === 1 && player.bracket_score >= 10000) {
-                                faseCol = `<td class="px-3 py-3.5 text-center"><span class="font-bold text-[10px] text-yellow-400 bg-yellow-900/30 border border-yellow-700/50 px-2.5 py-1 rounded-full uppercase tracking-widest whitespace-nowrap"><i class="fas fa-trophy mr-1"></i> CAMPEÓN</span></td>`;
-                            } else if (sharedRank === 2 && player.bracket_score >= 9000) {
-                                faseCol = `<td class="px-3 py-3.5 text-center"><span class="font-bold text-[10px] text-gray-300 bg-gray-700/50 border border-gray-600 px-2.5 py-1 rounded-full uppercase tracking-widest whitespace-nowrap">FINALISTA (2º)</span></td>`;
-                            } else if (sharedRank === 3 && player.bracket_score > 0) {
-                                faseCol = `<td class="px-3 py-3.5 text-center"><span class="font-bold text-[10px] text-orange-400 bg-orange-900/30 border border-orange-800/50 px-2.5 py-1 rounded-full uppercase tracking-widest whitespace-nowrap">3º PUESTO</span></td>`;
-                            } else if (sharedRank === 4 && player.bracket_score > 0) {
-                                faseCol = `<td class="px-3 py-3.5 text-center"><span class="font-bold text-[10px] text-cyan-400 bg-cyan-900/30 border border-cyan-800/50 px-2.5 py-1 rounded-full uppercase tracking-widest whitespace-nowrap">4º PUESTO</span></td>`;
-                            } else if (player.bracket_score >= 7000) {
-                                faseCol = `<td class="px-3 py-3.5 text-center"><span class="font-bold text-[10px] text-emerald-400 bg-emerald-950/40 border border-emerald-700/50 px-2 py-0.5 rounded uppercase tracking-widest">${player.bracket_stage || 'EN JUEGO'}</span></td>`;
-                            } else if (player.bracket_score > 0) {
-                                faseCol = `<td class="px-3 py-3.5 text-center"><span class="font-bold text-[10px] text-fuchsia-400 uppercase tracking-widest">${sharedRank}º PUESTO</span></td>`;
-                            } else {
-                                faseCol = `<td class="px-3 py-3.5 text-center"><span class="font-mono text-gray-500 text-[10px] tracking-widest">FASE SUIZA</span></td>`;
-                            }
-                        }
-
-                        htmlTemp += `
-                            <tr class="${isTop} hover:bg-gray-800/50 transition-colors">
-                                <td class="px-3 py-3.5 text-center font-mono font-black text-base ${rankColor}">${sharedRank}º</td>
-                                <td class="px-3 py-3.5 font-black text-white uppercase tracking-wider">
-                                    ${player.name || player.user_name}${h2hBadge}${byeBadge}
-                                </td>
-                                <td class="px-2 py-3.5 text-center font-mono text-xs">
-                                    <span class="text-emerald-400 font-bold">${wins}V</span> <span class="text-gray-600">-</span> <span class="text-rose-400 font-bold">${losses}D</span>
-                                </td>
-                                <td class="px-2 py-3.5 text-center font-black font-mono text-yellow-400 text-base">${player.points}</td>
-                                <td class="px-2 py-3.5 text-center font-mono text-cyan-300 font-bold text-xs">${player.buchholz}</td>
-                                <td class="px-2 py-3.5 text-center font-mono font-bold text-xs ${diffColor}" title="${player.pts_for || 0} a favor / ${player.pts_against || 0} en contra">${diffStr}</td>
-                                ${faseCol}
-                            </tr>
-                        `;
+                let swissHtml = '';
+                if (hasSwissGroups) {
+                    Object.keys(data.swiss_groups).sort((a, b) => Number(a) - Number(b)).forEach(gNum => {
+                        const gRows = data.swiss_groups[gNum] || [];
+                        swissHtml += `
+                            <div class="mb-5 border border-gray-800 rounded-xl overflow-hidden bg-gray-950/60">
+                                <div class="bg-gray-900 px-4 py-2.5 border-b border-gray-800 flex justify-between items-center">
+                                    <span class="text-xs font-mono font-black text-cyan-400 uppercase tracking-widest">GRUPO ${gNum}</span>
+                                    <span class="text-[10px] font-mono text-gray-400">${gRows.length} JUGADORES</span>
+                                </div>
+                                ${buildPublicTableHtml(gRows, false, true)}
+                            </div>`;
                     });
                 } else {
-                    htmlTemp += `<tr><td colspan="7" class="px-4 py-12 text-center text-gray-500 font-bold tracking-widest text-xs">NO HAY RESULTADOS AÚN</td></tr>`;
+                    swissHtml = buildPublicTableHtml(swissJugadores, false, false);
+                }
+
+                let htmlTemp = '';
+                if (hasSwiss && isEliminatoria) {
+                    htmlTemp = `
+                        <div class="p-3 bg-gray-950 border-b border-gray-800 flex gap-2">
+                            <button type="button" id="pub-btn-standings-final" onclick="switchPublicStandingsSubTab('final')" class="flex-1 py-2.5 rounded-lg text-[11px] font-mono font-black tracking-wider uppercase bg-fuchsia-950/70 text-fuchsia-300 border border-fuchsia-500/60 transition-all">
+                                <i class="fas fa-trophy mr-1"></i> TOP CUT
+                            </button>
+                            <button type="button" id="pub-btn-standings-swiss" onclick="switchPublicStandingsSubTab('swiss')" class="flex-1 py-2.5 rounded-lg text-[11px] font-mono font-bold tracking-wider uppercase text-gray-400 hover:text-white border border-transparent transition-all">
+                                <i class="fas fa-layer-group mr-1"></i> FASE SUIZA${hasSwissGroups ? ' (GRUPOS)' : ''}
+                            </button>
+                        </div>
+                        <div id="pub-standings-final">${buildPublicTableHtml(topCutJugadores, true, false)}</div>
+                        <div id="pub-standings-swiss" class="hidden p-3 sm:p-4">${swissHtml}</div>`;
+                } else if (hasSwiss) {
+                    htmlTemp = hasSwissGroups ? `<div class="p-3 sm:p-4">${swissHtml}</div>` : swissHtml;
+                } else {
+                    htmlTemp = buildPublicTableHtml(jugadores, isEliminatoria, false);
                 }
 
                 htmlTemp += `
-                        </tbody>
-                    </table>
-                </div>
                 <div class="bg-gray-950 px-4 py-3 border-t border-gray-800 text-[10px] font-mono text-gray-400 flex flex-wrap justify-between gap-2">
                     <span><b class="text-white">CRITERIOS DE CLASIFICACIÓN:</b></span>
                     <span><b class="text-fuchsia-400">1º Ronda Eliminatoria</b> (Posiciones compartidas 5º, 7º, 9º, 13º)</span>
@@ -915,6 +1070,9 @@
                 </div>`;
 
                 container.innerHTML = htmlTemp;
+                if (hasSwiss && isEliminatoria) {
+                    switchPublicStandingsSubTab(currentPublicStandingsTab);
+                }
                 tablaYaCargada = true;
 
             } catch (error) {
@@ -980,6 +1138,9 @@
                         const currentSwiss = document.getElementById('swiss-rounds-container');
                         if (newSwiss && currentSwiss) {
                             currentSwiss.innerHTML = newSwiss.innerHTML;
+                            if (selectedPublicSwissGroup !== 'all') {
+                                filterPublicSwissGroup(selectedPublicSwissGroup);
+                            }
                         }
 
                         const currentSearch = document.getElementById('player-search')?.value || '';

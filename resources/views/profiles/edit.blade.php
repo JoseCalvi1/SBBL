@@ -434,6 +434,160 @@ h4 {
                 <input type="submit" class="btn btn-primary" value="Actualizar perfil">
             </div>
         </form>
+
+        @if(Auth::id() === $profile->user_id)
+            <hr class="my-5" style="border-color: #3a4c63;">
+
+            <div id="account-security" class="mb-5">
+                <h3 class="text-white fw-bold mb-3">Seguridad de la cuenta</h3>
+
+                @if (session('account_status'))
+                    <div class="alert alert-success alert-dismissible fade show" role="alert">
+                        {{ session('account_status') }}
+                        <button type="button" class="close" data-dismiss="alert" aria-label="Cerrar">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                @endif
+
+                @if (session('account_warning'))
+                    <div class="alert alert-warning alert-dismissible fade show" role="alert">
+                        {{ session('account_warning') }}
+                        <button type="button" class="close" data-dismiss="alert" aria-label="Cerrar">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                @endif
+
+                <div class="row">
+                    {{-- Cambiar correo electrónico --}}
+                    <div class="col-lg-6 mb-4">
+                        <div class="card h-100" style="background-color: #13293d; border: 1px solid #3a4c63; color: #f8f9fa;">
+                            <div class="card-header d-flex justify-content-between align-items-center" style="border-bottom: 1px solid #3a4c63;">
+                                <span class="font-weight-bold text-primary">Cambiar correo electrónico</span>
+                                @if(Auth::user()->email_verified_at)
+                                    <span class="badge badge-success">Verificado</span>
+                                @else
+                                    <span class="badge badge-warning">Sin verificar</span>
+                                @endif
+                            </div>
+                            <div class="card-body">
+                                <p class="small text-muted mb-3">
+                                    Correo actual: <strong class="text-white">{{ Auth::user()->email }}</strong>
+                                </p>
+
+                                <form method="POST" action="{{ route('account.email.update') }}">
+                                    @csrf
+                                    @method('PUT')
+
+                                    <div class="form-group">
+                                        <label for="account_email">Nuevo correo electrónico</label>
+                                        <input
+                                            type="email"
+                                            id="account_email"
+                                            name="email"
+                                            class="form-control @if($errors->emailUpdate->has('email')) is-invalid @endif"
+                                            value="{{ old('email', Auth::user()->email) }}"
+                                            required
+                                            autocomplete="email"
+                                        >
+                                        @if($errors->emailUpdate->has('email'))
+                                            <span class="invalid-feedback d-block" role="alert">
+                                                <strong>{{ $errors->emailUpdate->first('email') }}</strong>
+                                            </span>
+                                        @endif
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label for="email_current_password">Contraseña actual</label>
+                                        <input
+                                            type="password"
+                                            id="email_current_password"
+                                            name="current_password"
+                                            class="form-control @if($errors->emailUpdate->has('current_password')) is-invalid @endif"
+                                            required
+                                            autocomplete="current-password"
+                                        >
+                                        @if($errors->emailUpdate->has('current_password'))
+                                            <span class="invalid-feedback d-block" role="alert">
+                                                <strong>{{ $errors->emailUpdate->first('current_password') }}</strong>
+                                            </span>
+                                        @endif
+                                    </div>
+
+                                    <button type="submit" class="btn btn-primary">Actualizar correo</button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+
+                    {{-- Cambiar contraseña --}}
+                    <div class="col-lg-6 mb-4">
+                        <div class="card h-100" style="background-color: #13293d; border: 1px solid #3a4c63; color: #f8f9fa;">
+                            <div class="card-header font-weight-bold text-primary" style="border-bottom: 1px solid #3a4c63;">
+                                Cambiar contraseña
+                            </div>
+                            <div class="card-body">
+                                <form method="POST" action="{{ route('account.password.update') }}">
+                                    @csrf
+                                    @method('PUT')
+
+                                    <div class="form-group">
+                                        <label for="password_current">Contraseña actual</label>
+                                        <input
+                                            type="password"
+                                            id="password_current"
+                                            name="current_password"
+                                            class="form-control @if($errors->passwordUpdate->has('current_password')) is-invalid @endif"
+                                            required
+                                            autocomplete="current-password"
+                                        >
+                                        @if($errors->passwordUpdate->has('current_password'))
+                                            <span class="invalid-feedback d-block" role="alert">
+                                                <strong>{{ $errors->passwordUpdate->first('current_password') }}</strong>
+                                            </span>
+                                        @endif
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label for="new_password">Nueva contraseña (mín. 8 caracteres)</label>
+                                        <input
+                                            type="password"
+                                            id="new_password"
+                                            name="password"
+                                            class="form-control @if($errors->passwordUpdate->has('password')) is-invalid @endif"
+                                            required
+                                            minlength="8"
+                                            autocomplete="new-password"
+                                        >
+                                        @if($errors->passwordUpdate->has('password'))
+                                            <span class="invalid-feedback d-block" role="alert">
+                                                <strong>{{ $errors->passwordUpdate->first('password') }}</strong>
+                                            </span>
+                                        @endif
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label for="new_password_confirmation">Confirmar nueva contraseña</label>
+                                        <input
+                                            type="password"
+                                            id="new_password_confirmation"
+                                            name="password_confirmation"
+                                            class="form-control"
+                                            required
+                                            minlength="8"
+                                            autocomplete="new-password"
+                                        >
+                                    </div>
+
+                                    <button type="submit" class="btn btn-primary">Actualizar contraseña</button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        @endif
     </div>
 </div>
 @endif

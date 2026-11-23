@@ -40,7 +40,23 @@
         </div>
 
         <!-- Botonera Inferior del Juez (Ronda 1) -->
-        <div id="arbitrajeFooter" class="p-3.5 bg-gray-950 border-t border-gray-800 shrink-0 hidden">
+        <div id="arbitrajeFooter" class="p-3.5 bg-gray-950 border-t border-gray-800 shrink-0 hidden space-y-2.5">
+            <div id="swissGroupsSelectorBox" class="hidden bg-gray-900 border border-gray-800 rounded-xl p-2.5">
+                <div class="flex items-center justify-between gap-2 mb-1.5">
+                    <label for="swiss_groups_count" class="text-[10px] text-cyan-400 font-mono font-bold uppercase tracking-wider">
+                        <i class="fas fa-layer-group mr-1"></i> Nº DE GRUPOS SUIZO
+                    </label>
+                    <span class="text-[10px] text-gray-400 font-mono">Reparto aleatorio equilibrado</span>
+                </div>
+                <div class="flex items-center gap-1.5">
+                    <button type="button" onclick="setSwissGroupsCount(1)" class="swiss-grp-preset flex-1 py-1.5 rounded-lg text-xs font-mono font-bold border border-cyan-500 bg-cyan-900/50 text-cyan-300 transition-colors" data-groups="1">1</button>
+                    <button type="button" onclick="setSwissGroupsCount(2)" class="swiss-grp-preset flex-1 py-1.5 rounded-lg text-xs font-mono font-bold border border-gray-700 bg-gray-950 text-gray-400 hover:text-white transition-colors" data-groups="2">2</button>
+                    <button type="button" onclick="setSwissGroupsCount(3)" class="swiss-grp-preset flex-1 py-1.5 rounded-lg text-xs font-mono font-bold border border-gray-700 bg-gray-950 text-gray-400 hover:text-white transition-colors" data-groups="3">3</button>
+                    <button type="button" onclick="setSwissGroupsCount(4)" class="swiss-grp-preset flex-1 py-1.5 rounded-lg text-xs font-mono font-bold border border-gray-700 bg-gray-950 text-gray-400 hover:text-white transition-colors" data-groups="4">4</button>
+                    <input type="number" id="swiss_groups_count" min="1" max="16" value="1" oninput="syncSwissGroupsPresetUI()" class="w-16 bg-gray-950 border border-gray-700 text-white text-center font-mono font-black text-xs rounded-lg py-1.5 outline-none focus:border-cyan-400" title="Número personalizado de grupos">
+                </div>
+                <div id="swissRecommendedRoundsHint" class="text-[10px] font-mono text-cyan-300/90 mt-2 text-center hidden"></div>
+            </div>
             <button onclick="generarSiguienteRonda()" id="btnGenerarRonda" class="w-full bg-green-700 hover:bg-green-600 active:bg-green-800 text-white font-black py-3.5 rounded-xl text-sm tracking-widest uppercase shadow-[0_0_15px_rgba(22,163,74,0.4)] border border-green-500 transition-all">
                 <i class="fas fa-cogs mr-2"></i> GENERAR RONDA 1
             </button>

@@ -83,6 +83,9 @@ Route::middleware('auth')->prefix('api')->group(function () {
     Route::get('/torneos/{eventId}/arena', [TournamentEngineController::class, 'getArenaDashboard']);
     Route::post('/torneos/{eventId}/arena/ronda', [TournamentEngineController::class, 'generateRound']);
     Route::post('/torneos/{eventId}/arena/top', [TournamentEngineController::class, 'generateTop']);
+    Route::post('/torneos/{eventId}/arena/realeatorizar', [TournamentEngineController::class, 'rerandomizeBracket']);
+    Route::post('/torneos/{eventId}/arena/realeatorizar-suizo', [TournamentEngineController::class, 'rerandomizeSwiss']);
+    Route::post('/torneos/{eventId}/arena/swap-grupos', [TournamentEngineController::class, 'swapSwissPlayers']);
     Route::post('/torneos/{eventId}/finalizar', [TournamentEngineController::class, 'finalizeTournament']);
     Route::post('/torneos/duelo-rapido', [TournamentEngineController::class, 'createFastDuel']);
 

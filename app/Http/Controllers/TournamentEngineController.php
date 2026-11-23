@@ -128,6 +128,7 @@ class TournamentEngineController extends Controller
                 })
                 ->orWhereNotNull('team1_id');
             })
+            ->orderByRaw('COALESCE(swiss_group, 0) asc')
             ->orderBy('bracket_type', 'desc')
             ->orderBy('id', 'asc')
             ->get();
@@ -142,7 +143,7 @@ class TournamentEngineController extends Controller
             }
         }
 
-        $byeMatch = TournamentMatch::with('player1:id,name')
+        $byeMatches = TournamentMatch::with('player1:id,name')
             ->where('event_id', $eventId)
             ->where('round_number', $requestedRound)
             ->whereIn('bracket_type', ['swiss', 'round_robin'])
@@ -151,7 +152,67 @@ class TournamentEngineController extends Controller
             ->where(function ($q) {
                 $q->whereNull('player2_id')->orWhere('player1_score', 99)->orWhere('player2_score', 99);
             })
-            ->first();
+            ->orderByRaw('COALESCE(swiss_group, 0) asc')
+            ->get();
+
+        $byeMatch = $byeMatches->first();
+        $byePlayers = $byeMatches->filter(fn($bm) => $bm->player1)->map(fn($bm) => [
+            'name'        => $bm->player1->name,
+            'swiss_group' => $bm->swiss_group ? (int) $bm->swiss_group : null,
+        ])->values();
+
+        $swissGroupCounts = DB::table('assist_user_event')
+            ->where('event_id', $eventId)
+            ->whereNotNull('swiss_group')
+            ->where(function ($q) {
+                $q->whereNull('puesto')->orWhere('puesto', '!=', 'dropped');
+            })
+            ->select('swiss_group', DB::raw('count(*) as total'))
+            ->groupBy('swiss_group')
+            ->pluck('total', 'swiss_group');
+
+        $swissGroupsCount = $swissGroupCounts->count();
+        $swissGroupMinPlayers = $swissGroupsCount > 0 ? (int) $swissGroupCounts->min() : 0;
+
+        $matchIds = $allMatches->pluck('id');
+        $hasBattles = $matchIds->isNotEmpty() && DB::table('match_battles')
+            ->whereIn('tournament_match_id', $matchIds)
+            ->exists();
+        $hasStartedReal = $matchIds->isNotEmpty() && TournamentMatch::where('event_id', $eventId)
+            ->where('player1_score', '!=', 99)
+            ->where('player2_score', '!=', 99)
+            ->whereNotNull('player2_id')
+            ->where(function ($q) {
+                $q->where('status', '!=', 'pending')
+                  ->orWhere('player1_score', '>', 0)
+                  ->orWhere('player2_score', '>', 0)
+                  ->orWhereNotNull('winner_id');
+            })
+            ->exists();
+
+        $canRerandomizeBracket = false;
+        if ($isBracket && $allMatches->whereIn('bracket_type', ['swiss', 'round_robin'])->isEmpty()) {
+            $canRerandomizeBracket = !$hasBattles && !$hasStartedReal;
+        }
+
+        $isTeamEvent = in_array($event->beys, ['equipos', 'crew_battle']);
+        $canRerandomizeSwiss = !$isBracket && !$isTeamEvent && $maxRound === 1 && !$hasBattles && !$hasStartedReal;
+        $activePlayersCount = !$isTeamEvent ? (new SwissEngine())->countActivePlayers($event) : 0;
+
+        $swissGroupPlayers = [];
+        if ($canRerandomizeSwiss && $swissGroupsCount > 1) {
+            $swissGroupPlayers = DB::table('assist_user_event')
+                ->join('users', 'assist_user_event.user_id', '=', 'users.id')
+                ->where('assist_user_event.event_id', $eventId)
+                ->whereNotNull('assist_user_event.swiss_group')
+                ->where(function ($q) {
+                    $q->whereNull('assist_user_event.puesto')->orWhere('assist_user_event.puesto', '!=', 'dropped');
+                })
+                ->orderBy('assist_user_event.swiss_group', 'asc')
+                ->orderBy('users.name', 'asc')
+                ->select('users.id', 'users.name', 'assist_user_event.swiss_group')
+                ->get();
+        }
 
         if ($isBracket) {
             $engine = new \App\Services\Tournament\DoubleEliminationEngine();
@@ -169,19 +230,27 @@ class TournamentEngineController extends Controller
         }
 
         return response()->json([
-            'success'       => true,
-            'event_name'    => $event->name,
-            'current_round' => (int) $requestedRound,
-            'max_round'     => (int) $maxRound,
-            'rounds_status' => $roundsStatus,
-            'is_bracket'    => $isBracket,
-            'is_team_event' => in_array($event->beys, ['equipos', 'crew_battle']),
-            'bye_player'    => $byeMatch && $byeMatch->player1 ? $byeMatch->player1->name : null,
-            'matches'       => $matches
+            'success'                 => true,
+            'event_name'              => $event->name,
+            'configuration'           => $event->configuration ?? 'DoubleElimination',
+            'current_round'           => (int) $requestedRound,
+            'max_round'               => (int) $maxRound,
+            'rounds_status'           => $roundsStatus,
+            'is_bracket'              => $isBracket,
+            'is_team_event'           => in_array($event->beys, ['equipos', 'crew_battle']),
+            'swiss_groups_count'       => $swissGroupsCount,
+            'swiss_group_min_players'  => $swissGroupMinPlayers,
+            'active_players_count'     => $activePlayersCount,
+            'can_rerandomize_bracket'  => $canRerandomizeBracket,
+            'can_rerandomize_swiss'    => $canRerandomizeSwiss,
+            'swiss_group_players'      => $swissGroupPlayers,
+            'bye_player'              => $byeMatch && $byeMatch->player1 ? $byeMatch->player1->name : null,
+            'bye_players'             => $byePlayers,
+            'matches'                 => $matches
         ]);
     }
 
-    public function generateRound($eventId, \App\Services\Tournament\SwissEngine $engine)
+    public function generateRound(Request $request, $eventId, \App\Services\Tournament\SwissEngine $engine)
     {
         $event = Event::findOrFail($eventId);
 
@@ -227,7 +296,8 @@ class TournamentEngineController extends Controller
             return $this->generateTeamRoundRobin($event, $validTeams);
         }
 
-        $result = $engine->generateNextRound($event);
+        $groupsCount = max(1, (int) $request->input('groups_count', 1));
+        $result = $engine->generateNextRound($event, $groupsCount);
 
         TournamentMatch::where('event_id', $eventId)
             ->whereIn('bracket_type', ['swiss', 'round_robin'])
@@ -965,7 +1035,8 @@ class TournamentEngineController extends Controller
             return response()->json(['success' => false, 'message' => '⛔ Acceso denegado.'], 403);
         }
 
-        $result = $engine->generateTopCut($event, (int) $request->top_size);
+        $topPerGroup = $request->filled('top_per_group') ? (int) $request->input('top_per_group') : null;
+        $result = $engine->generateTopCut($event, (int) $request->top_size, $topPerGroup);
 
         if ($result['success']) {
             try {
@@ -974,6 +1045,43 @@ class TournamentEngineController extends Controller
         }
 
         return response()->json($result);
+    }
+
+    public function rerandomizeBracket($eventId, \App\Services\Tournament\DoubleEliminationEngine $engine)
+    {
+        $event = Event::findOrFail($eventId);
+
+        if (!$this->canManageEvent($event)) {
+            return response()->json(['success' => false, 'message' => '⛔ Acceso denegado.'], 403);
+        }
+
+        return response()->json($engine->rerandomizeInitialBracket($event));
+    }
+
+    public function rerandomizeSwiss(Request $request, $eventId, SwissEngine $engine)
+    {
+        $event = Event::findOrFail($eventId);
+
+        if (!$this->canManageEvent($event)) {
+            return response()->json(['success' => false, 'message' => '⛔ Acceso denegado.'], 403);
+        }
+
+        $groupsCount = max(1, (int) $request->input('groups_count', 1));
+        return response()->json($engine->rerandomizeFirstRound($event, $groupsCount));
+    }
+
+    public function swapSwissPlayers(Request $request, $eventId, SwissEngine $engine)
+    {
+        $event = Event::findOrFail($eventId);
+
+        if (!$this->canManageEvent($event)) {
+            return response()->json(['success' => false, 'message' => '⛔ Acceso denegado.'], 403);
+        }
+
+        $p1 = (int) $request->input('player1_id');
+        $p2 = (int) $request->input('player2_id');
+
+        return response()->json($engine->swapPlayersBetweenGroups($event, $p1, $p2));
     }
 
     public function getMiDeck(Request $request, $eventId)
@@ -1608,11 +1716,14 @@ class TournamentEngineController extends Controller
             ->where('event_id', $eventId)
             ->whereIn('bracket_type', ['swiss', 'round_robin'])
             ->orderBy('round_number', 'asc')
+            ->orderByRaw('COALESCE(swiss_group, 0) asc')
             ->orderBy('id', 'asc')
             ->get()
             ->groupBy('round_number');
 
-        return view('hub.bracket', compact('event', 'winnersBracket', 'losersBracket', 'finals', 'swissRounds'));
+        $standingsData = $this->standingsService->getStandings($eventId);
+
+        return view('hub.bracket', compact('event', 'winnersBracket', 'losersBracket', 'finals', 'swissRounds', 'standingsData'));
     }
 
     public function renderBracketHtml($eventId)

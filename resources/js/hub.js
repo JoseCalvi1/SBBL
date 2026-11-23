@@ -510,7 +510,10 @@
             let htmlTemp = '';
             combos.forEach((combo, index) => {
                 const wr = parseFloat(combo.percentage_victories).toFixed(1);
+                const metaScore = combo.meta_score !== undefined ? parseFloat(combo.meta_score).toFixed(1) : null;
                 const rank = index + 1;
+                const extraParts = [combo.over_blade, combo.assist_blade].filter(p => p && p !== '-' && p !== 'null');
+                const partsHtml = `${extraParts.length ? `<span class="text-purple-300">${extraParts.join(' · ')}</span> · ` : ''}${combo.ratchet} <span class="text-yellow-500 mx-1">X</span> ${combo.bit}`;
 
                 let cText = 'text-red-500'; let cBg = 'bg-red-600';
                 if (wr >= 60) { cText = 'text-green-400'; cBg = 'bg-green-500'; }
@@ -524,12 +527,12 @@
                                 <div class="font-mono text-2xl font-black italic ${rank <= 1 ? 'text-yellow-400' : (rank === 2 ? 'text-gray-300' : (rank === 3 ? 'text-orange-400' : 'text-gray-600'))}">#${rank}</div>
                                 <div>
                                     <h3 class="text-yellow-500 font-bold text-lg font-mono leading-none tracking-wide uppercase">${combo.blade}</h3>
-                                    <p class="text-white text-sm font-bold mt-1 opacity-75">${combo.ratchet} <span class="text-yellow-500 mx-1">X</span> ${combo.bit}</p>
+                                    <p class="text-white text-sm font-bold mt-1 opacity-75">${partsHtml}</p>
                                 </div>
                             </div>
                             <div class="text-right">
                                 <span class="text-xl font-black font-mono ${cText}">${wr}%</span>
-                                <p class="text-[10px] text-gray-400 font-bold tracking-widest uppercase">${combo.total_partidas} BATALLAS</p>
+                                <p class="text-[10px] text-gray-400 font-bold tracking-widest uppercase">${combo.total_partidas} BATALLAS${metaScore ? ` · <span class="text-purple-400">MS ${metaScore}</span>` : ''}</p>
                             </div>
                         </div>
 
@@ -564,9 +567,9 @@
 
     let currentTargetUserId = null;
 
-    function abrirModalDeckJuez(eventId, userId, userName, eventType = null) {
+    function abrirModalDeckJuez(eventId, userId, userName, eventType = null, focusIndex = null) {
         cerrarListaModal();
-        abrirModal(eventId, 'OPEN', userId, userName, eventType);
+        abrirModal(eventId, 'OPEN', userId, userName, eventType, focusIndex);
     }
 
     async function enviarDeck(e) {
@@ -655,8 +658,9 @@
         document.getElementById('metaModal').classList.add('flex', 'active');
         document.body.style.overflow = 'hidden';
 
+        const modalExtraParts = [combo.over_blade, combo.assist_blade].filter(p => p && p !== '-' && p !== 'null');
         document.getElementById('modal_meta_blade').innerText = combo.blade || '---';
-        document.getElementById('modal_meta_parts').innerText = `${combo.ratchet} X ${combo.bit}`;
+        document.getElementById('modal_meta_parts').innerText = [...modalExtraParts, combo.ratchet, combo.bit].filter(Boolean).join(' · ');
         document.getElementById('modal_meta_style').innerText = combo.estilo_combate || 'ESTÁNDAR';
         document.getElementById('modal_meta_wr').innerText = `${parseFloat(combo.percentage_victories).toFixed(1)}%`;
         document.getElementById('modal_meta_wl').innerText = `${combo.total_victorias || 0}W - ${combo.total_derrotas || 0}L`;
@@ -1152,7 +1156,7 @@
 
         const numBeys = (currentEventType === 'equipos' || currentEventType === 'crew_battle') ? 1 : 3;
         for (let i = 1; i <= numBeys; i++) {
-            htmlTemp += `<div class="bg-gray-800/50 p-4 rounded-xl border border-gray-700/50 mb-4 shadow-inner"><div class="flex items-center gap-2 text-cyan-400 font-bold text-xs mb-3 tracking-widest border-b border-gray-700/50 pb-2"><i class="fas fa-compact-disc"></i> BEYBLADE #${i}</div><div class="grid grid-cols-1 gap-3 mb-3">${crearSelect('blade', i, dbPiezas.blades, 'Selecciona Blade...', true)}</div><div class="grid grid-cols-2 gap-3 mb-3">${crearSelect('ratchet', i, dbPiezas.ratchets, 'Ratchet...', true)}${crearSelect('bit', i, dbPiezas.bits, 'Bit...', true)}</div><div class="grid grid-cols-2 gap-3">${crearSelect('over_blade', i, dbPiezas.over_blades, 'Over (Opcional)', false)}${crearSelect('assist_blade', i, dbPiezas.assist_blades, 'Assist (Opcional)', false)}</div></div>`;
+            htmlTemp += `<div id="deck_bey_card_${i}" class="bg-gray-800/50 p-4 rounded-xl border border-gray-700/50 mb-4 shadow-inner transition-all"><div class="flex items-center gap-2 text-cyan-400 font-bold text-xs mb-3 tracking-widest border-b border-gray-700/50 pb-2"><i class="fas fa-compact-disc"></i> BEYBLADE #${i}</div><div class="grid grid-cols-1 gap-3 mb-3">${crearSelect('blade', i, dbPiezas.blades, 'Selecciona Blade...', true)}</div><div class="grid grid-cols-2 gap-3 mb-3">${crearSelect('ratchet', i, dbPiezas.ratchets, 'Ratchet...', true)}${crearSelect('bit', i, dbPiezas.bits, 'Bit...', true)}</div><div class="grid grid-cols-2 gap-3">${crearSelect('over_blade', i, dbPiezas.over_blades, 'Over (Opcional)', false)}${crearSelect('assist_blade', i, dbPiezas.assist_blades, 'Assist (Opcional)', false)}</div></div>`;
         }
         container.innerHTML = htmlTemp;
 
@@ -1161,7 +1165,7 @@
         });
     }
 
-    async function abrirModal(eventId, status = 'OPEN', targetUserId = null, targetUserName = null, eventType = null) {
+    async function abrirModal(eventId, status = 'OPEN', targetUserId = null, targetUserName = null, eventType = null, focusIndex = null) {
         triggerHaptic('light');
         currentTargetUserId = targetUserId;
         currentEventType = eventType;
@@ -1226,6 +1230,17 @@
         } else {
             formElements.forEach(el => { if (el.tomselect) el.tomselect.enable(); else el.disabled = false; });
             btnSubmit.style.display = 'block';
+        }
+
+        if (focusIndex) {
+            setTimeout(() => {
+                const targetCard = document.getElementById(`deck_bey_card_${focusIndex}`);
+                if (targetCard) {
+                    targetCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    targetCard.classList.add('border-cyan-400', 'ring-2', 'ring-cyan-500/40');
+                    setTimeout(() => targetCard.classList.remove('border-cyan-400', 'ring-2', 'ring-cyan-500/40'), 1800);
+                }
+            }, 120);
         }
     }
 
@@ -1366,7 +1381,12 @@
 
             currentArenaRound = data.current_round;
             currentRoundMatchesCache = data.matches || [];
+            currentSwissGroupsCount = data.swiss_groups_count || 0;
+            currentGroupMinPlayers = data.swiss_group_min_players || 0;
+            currentActivePlayersCount = data.active_players_count || 0;
             document.getElementById('arbitraje_event_name').innerText = data.event_name;
+
+            const swissGroupsBox = document.getElementById('swissGroupsSelectorBox');
 
             if (data.max_round === 0) {
                 container.innerHTML = `
@@ -1377,9 +1397,19 @@
                         <h3 class="text-white font-black font-mono text-xl mb-2">ARENA PREPARADA</h3>
                         <p class="text-gray-400 text-xs leading-relaxed">El torneo está en curso y los decks están bloqueados. Pulsa el botón inferior para generar los emparejamientos de la Ronda 1.</p>
                     </div>`;
+                if (swissGroupsBox) {
+                    const isIndividualSwiss = (data.configuration === 'Swiss' || !data.configuration) && !data.is_team_event;
+                    if (isIndividualSwiss) {
+                        swissGroupsBox.classList.remove('hidden');
+                        setSwissGroupsCount(1);
+                    } else {
+                        swissGroupsBox.classList.add('hidden');
+                    }
+                }
                 if(footer) footer.classList.remove('hidden');
                 if(btnGenerar) btnGenerar.classList.remove('hidden');
             } else {
+                if (swissGroupsBox) swissGroupsBox.classList.add('hidden');
                 if(footer) footer.classList.add('hidden');
                 if(btnGenerar) btnGenerar.classList.add('hidden');
 
@@ -1432,8 +1462,46 @@
                                 <button onclick="setFiltroEstadoMesa('completed')" id="flt-mesa-completed" class="px-2.5 py-1.5 rounded-lg text-[10px] font-bold tracking-wider border bg-gray-950 border-gray-800 text-gray-400">FIN (${completedMatches})</button>
                             </div>
                         </div>
+                        ${data.can_rerandomize_bracket ? `
+                            <div class="mt-2.5 pt-2.5 border-t border-gray-800 flex items-center justify-between gap-2">
+                                <span class="text-[10px] text-gray-400 font-mono">Cuadro sin iniciar (aleatorizado 3x)</span>
+                                <button onclick="realeatorizarCuadro(${eventId})" class="bg-fuchsia-950/70 hover:bg-fuchsia-900 text-fuchsia-300 border border-fuchsia-500/60 px-3 py-1.5 rounded-lg text-[10px] font-black tracking-wider uppercase transition-all active:scale-95">
+                                    <i class="fas fa-random mr-1"></i> RE-ALEATORIZAR CUADRO
+                                </button>
+                            </div>
+                        ` : ''}
+                        ${data.can_rerandomize_swiss ? `
+                            <div class="mt-2.5 pt-2.5 border-t border-gray-800 space-y-2">
+                                <div class="flex items-center justify-between gap-2">
+                                    <span class="text-[10px] text-gray-400 font-mono">Ronda 1 sin iniciar${data.swiss_groups_count > 1 ? ` (${data.swiss_groups_count} grupos)` : ''}</span>
+                                    <button onclick="realeatorizarSuizo(${eventId}, ${data.swiss_groups_count || 1})" class="bg-cyan-950/70 hover:bg-cyan-900 text-cyan-300 border border-cyan-500/60 px-3 py-1.5 rounded-lg text-[10px] font-black tracking-wider uppercase transition-all active:scale-95">
+                                        <i class="fas fa-random mr-1"></i> RE-SORTEAR R1
+                                    </button>
+                                </div>
+                                ${data.swiss_groups_count > 1 && data.swiss_group_players && data.swiss_group_players.length > 1 ? `
+                                    <div class="bg-gray-950/80 border border-gray-800 rounded-lg p-2">
+                                        <div class="text-[9px] font-mono font-bold text-cyan-400 uppercase tracking-wider mb-1.5">
+                                            <i class="fas fa-exchange-alt mr-1"></i> INTERCAMBIAR JUGADORES ENTRE GRUPOS
+                                        </div>
+                                        <div class="flex flex-col sm:flex-row gap-1.5">
+                                            <select id="swap_p1_id" class="flex-1 bg-gray-900 border border-gray-700 text-white text-[11px] rounded-lg px-2 py-1.5 outline-none focus:border-cyan-400">
+                                                ${data.swiss_group_players.map(p => `<option value="${p.id}">[G${p.swiss_group}] ${p.name}</option>`).join('')}
+                                            </select>
+                                            <select id="swap_p2_id" class="flex-1 bg-gray-900 border border-gray-700 text-white text-[11px] rounded-lg px-2 py-1.5 outline-none focus:border-cyan-400">
+                                                ${data.swiss_group_players.map((p, idx) => `<option value="${p.id}" ${idx === data.swiss_group_players.length - 1 ? 'selected' : ''}>[G${p.swiss_group}] ${p.name}</option>`).join('')}
+                                            </select>
+                                            <button type="button" onclick="intercambiarJugadoresGrupo(${eventId})" class="bg-cyan-700 hover:bg-cyan-600 text-white font-black text-[10px] px-3 py-1.5 rounded-lg uppercase tracking-wider shrink-0">
+                                                CAMBIAR
+                                            </button>
+                                        </div>
+                                    </div>
+                                ` : ''}
+                            </div>
+                        ` : ''}
                     </div>
-                    ${data.bye_player ? `<div class="mb-2.5 bg-cyan-950/40 border border-cyan-700/50 rounded-xl px-3 py-2 flex items-center justify-between text-xs"><span class="text-cyan-400 font-bold uppercase"><i class="fas fa-forward mr-1.5"></i> BYE EN ESTA RONDA: <b class="text-white">${data.bye_player}</b></span><span class="font-mono text-[10px] bg-cyan-900/60 text-cyan-200 px-2 py-0.5 rounded font-bold">+3 PTS (AUTO)</span></div>` : ''}
+                    ${(data.bye_players && data.bye_players.length > 0)
+                        ? data.bye_players.map(bp => `<div class="mb-2 bg-cyan-950/40 border border-cyan-700/50 rounded-xl px-3 py-2 flex items-center justify-between text-xs"><span class="text-cyan-400 font-bold uppercase"><i class="fas fa-forward mr-1.5"></i> ${bp.swiss_group ? `<span class="bg-cyan-900/70 text-cyan-200 px-1.5 py-0.5 rounded text-[9px] font-mono mr-1.5">G${bp.swiss_group}</span>` : ''}BYE EN ESTA RONDA: <b class="text-white">${bp.name}</b></span><span class="font-mono text-[10px] bg-cyan-900/60 text-cyan-200 px-2 py-0.5 rounded font-bold">+3 PTS (AUTO)</span></div>`).join('')
+                        : (data.bye_player ? `<div class="mb-2.5 bg-cyan-950/40 border border-cyan-700/50 rounded-xl px-3 py-2 flex items-center justify-between text-xs"><span class="text-cyan-400 font-bold uppercase"><i class="fas fa-forward mr-1.5"></i> BYE EN ESTA RONDA: <b class="text-white">${data.bye_player}</b></span><span class="font-mono text-[10px] bg-cyan-900/60 text-cyan-200 px-2 py-0.5 rounded font-bold">+3 PTS (AUTO)</span></div>` : '')}
                     <div id="arenaMatchesListContainer" class="space-y-2.5 pb-4"></div>
                 `;
 
@@ -1591,9 +1659,12 @@
             html += `
                 <div class="${borderClass} border rounded-xl p-3 shadow-md relative overflow-hidden transition-all">
                     <div class="flex justify-between items-center mb-2.5">
-                        <span class="bg-gray-950 text-gray-400 border border-gray-800 text-[9px] font-mono font-bold px-2 py-0.5 rounded">
-                            PARTIDA #${match.match_number || (idx + 1)}
-                        </span>
+                        <div class="flex items-center gap-1.5">
+                            <span class="bg-gray-950 text-gray-400 border border-gray-800 text-[9px] font-mono font-bold px-2 py-0.5 rounded">
+                                PARTIDA #${match.match_number || (idx + 1)}
+                            </span>
+                            ${match.swiss_group ? `<span class="bg-cyan-950 text-cyan-300 border border-cyan-700/70 text-[9px] font-mono font-black px-2 py-0.5 rounded uppercase tracking-wider">GRUPO ${match.swiss_group}</span>` : ''}
+                        </div>
                         ${match.bracket_type !== 'swiss' && match.bracket_type !== 'round_robin' ? `<span class="${match.bracket_type === 'winners' ? 'bg-fuchsia-950 text-fuchsia-300 border-fuchsia-800' : (match.bracket_type === 'losers' ? 'bg-orange-950 text-orange-300 border-orange-800' : 'bg-yellow-950 text-yellow-300 border-yellow-700')} border text-[9px] font-black px-2 py-0.5 rounded uppercase tracking-widest">${match.bracket_type.replace(/_/g, ' ')}</span>` : ''}
                     </div>
 
@@ -1700,6 +1771,107 @@
         document.body.style.overflow = 'auto';
     }
 
+    function setSwissGroupsCount(n) {
+        triggerHaptic('light');
+        const input = document.getElementById('swiss_groups_count');
+        if (input) input.value = Math.max(1, parseInt(n) || 1);
+        syncSwissGroupsPresetUI();
+    }
+
+    function syncSwissGroupsPresetUI() {
+        const val = Math.max(1, parseInt(document.getElementById('swiss_groups_count')?.value || '1'));
+        document.querySelectorAll('.swiss-grp-preset').forEach(btn => {
+            const g = parseInt(btn.getAttribute('data-groups'));
+            if (g === val) {
+                btn.className = "swiss-grp-preset flex-1 py-1.5 rounded-lg text-xs font-mono font-bold border border-cyan-500 bg-cyan-900/50 text-cyan-300 transition-colors";
+            } else {
+                btn.className = "swiss-grp-preset flex-1 py-1.5 rounded-lg text-xs font-mono font-bold border border-gray-700 bg-gray-950 text-gray-400 hover:text-white transition-colors";
+            }
+        });
+
+        const hintEl = document.getElementById('swissRecommendedRoundsHint');
+        if (hintEl) {
+            if (currentActivePlayersCount >= 2) {
+                const minPerGroup = Math.floor(currentActivePlayersCount / val);
+                const maxPerGroup = Math.ceil(currentActivePlayersCount / val);
+                const sizeText = minPerGroup === maxPerGroup ? `${maxPerGroup}` : `${minPerGroup}-${maxPerGroup}`;
+                const recRounds = Math.max(1, Math.ceil(Math.log2(Math.max(2, maxPerGroup))));
+                hintEl.innerHTML = `Activos: <b class="text-white">${currentActivePlayersCount}</b> · Por grupo: <b class="text-white">${sizeText}</b> · Rondas recomendadas: <b class="text-yellow-400">~${recRounds}</b>`;
+                hintEl.classList.remove('hidden');
+            } else {
+                hintEl.classList.add('hidden');
+            }
+        }
+    }
+
+    async function realeatorizarSuizo(eventId, defaultGroups = 1) {
+        const input = prompt(`🔀 ¿Cuántos grupos quieres para el re-sorteo de Ronda 1?`, String(defaultGroups));
+        if (input === null) return;
+        const groupsCount = Math.max(1, parseInt(input) || 1);
+        triggerHaptic('heavy');
+        try {
+            const res = await fetch(`/api/torneos/${eventId}/arena/realeatorizar-suizo`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                    'Accept': 'application/json'
+                },
+                body: JSON.stringify({ groups_count: groupsCount })
+            });
+            const data = await res.json();
+            mostrarToast(data.message, !data.success);
+            if (data.success) abrirPanelArbitraje(eventId);
+        } catch (error) {
+            mostrarToast("Error al re-sortear la Ronda 1.", true);
+        }
+    }
+
+    async function intercambiarJugadoresGrupo(eventId) {
+        const p1 = document.getElementById('swap_p1_id')?.value;
+        const p2 = document.getElementById('swap_p2_id')?.value;
+        if (!p1 || !p2 || p1 === p2) {
+            mostrarToast("Selecciona dos jugadores distintos de diferentes grupos.", true);
+            return;
+        }
+        triggerHaptic('medium');
+        try {
+            const res = await fetch(`/api/torneos/${eventId}/arena/swap-grupos`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                    'Accept': 'application/json'
+                },
+                body: JSON.stringify({ player1_id: p1, player2_id: p2 })
+            });
+            const data = await res.json();
+            mostrarToast(data.message, !data.success);
+            if (data.success) abrirPanelArbitraje(eventId);
+        } catch (error) {
+            mostrarToast("Error al intercambiar jugadores.", true);
+        }
+    }
+
+    async function realeatorizarCuadro(eventId) {
+        if (!confirm("🔀 ¿Re-aleatorizar los emparejamientos iniciales del cuadro (3 veces)?")) return;
+        triggerHaptic('heavy');
+        try {
+            const res = await fetch(`/api/torneos/${eventId}/arena/realeatorizar`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                    'Accept': 'application/json'
+                }
+            });
+            const data = await res.json();
+            mostrarToast(data.message, !data.success);
+            if (data.success) abrirPanelArbitraje(eventId);
+        } catch (error) {
+            mostrarToast("Error al re-aleatorizar el cuadro.", true);
+        }
+    }
+
     async function generarSiguienteRonda() {
         if(!confirm("¿Atención Juez: Generar los emparejamientos de esta ronda?")) return;
         triggerHaptic('heavy');
@@ -1708,10 +1880,20 @@
         let oldText = '';
         if (btn) { oldText = btn.innerHTML; btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> GENERANDO...'; }
 
+        const swissBox = document.getElementById('swissGroupsSelectorBox');
+        const groupsCount = (swissBox && !swissBox.classList.contains('hidden'))
+            ? Math.max(1, parseInt(document.getElementById('swiss_groups_count')?.value || '1'))
+            : 1;
+
         try {
             const res = await fetch(`/api/torneos/${currentArenaEventId}/arena/ronda`, {
                 method: 'POST',
-                headers: { 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'), 'Accept': 'application/json' }
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                    'Accept': 'application/json'
+                },
+                body: JSON.stringify({ groups_count: groupsCount })
             });
             const data = await res.json();
             mostrarToast(data.message, !data.success);
@@ -1940,29 +2122,46 @@
             return;
         }
 
+        const matchObj = currentMatchData && currentMatchData.match ? currentMatchData.match : null;
+        const eventId = matchObj ? matchObj.event_id : currentArenaEventId;
+        const userId = matchObj
+            ? (playerKey === 'p1' ? matchObj.player1_id : matchObj.player2_id)
+            : document.getElementById(`batalla_${playerKey}_id`)?.value;
+        const rawPlayerName = matchObj
+            ? ((playerKey === 'p1' ? matchObj.player1?.name : matchObj.player2?.name) || (playerKey === 'p1' ? 'JUGADOR 1' : 'JUGADOR 2'))
+            : (playerKey === 'p1' ? 'JUGADOR 1' : 'JUGADOR 2');
+        const safePlayerName = rawPlayerName.replace(/'/g, "\\'");
+
         let html = '';
         let disponiblesIds = [];
 
         deckArray.forEach((bey, idx) => {
             const yaUsado = usedIds.includes(Number(bey.id));
+            const partsText = [bey.over_blade, bey.assist_blade, bey.ratchet, bey.bit]
+                .filter(p => p && p !== '-' && p !== 'null')
+                .join(' · ');
+
             if (yaUsado) {
                 html += `
-                    <div class="w-full text-left bg-gray-950/50 border border-gray-800/80 px-2.5 py-1.5 rounded-xl flex items-center justify-between opacity-35 select-none pointer-events-none">
-                        <div class="truncate pr-1 line-through text-gray-500">
+                    <div class="w-full text-left bg-gray-950/50 border border-gray-800/80 px-2 py-1.5 rounded-xl flex items-center justify-between gap-1.5 opacity-35 select-none pointer-events-none">
+                        <div class="truncate flex-1 min-w-0 line-through text-gray-500">
                             <span class="font-bold text-[11px] uppercase block truncate leading-tight">${idx + 1}. ${bey.blade}</span>
-                            <span class="text-[9px] font-mono leading-none">${bey.ratchet} ${bey.bit}</span>
+                            <span class="text-[9px] font-mono block truncate leading-tight mt-0.5">${partsText || '---'}</span>
                         </div>
                         <span class="text-[8px] bg-gray-800 text-gray-400 px-1.5 py-0.5 rounded font-bold uppercase shrink-0"><i class="fas fa-check"></i></span>
                     </div>`;
             } else {
                 disponiblesIds.push(bey.id);
                 html += `
-                    <button type="button" onclick="seleccionarBey('${playerKey}', ${bey.id})" id="btn_bey_${bey.id}" class="bey-btn-${playerKey} w-full text-left bg-gray-900 border-2 border-gray-700 hover:border-gray-500 px-2.5 py-1.5 rounded-xl transition-all flex items-center justify-between shadow-sm active:scale-95">
-                        <div class="truncate">
+                    <div role="button" tabindex="0" onclick="seleccionarBey('${playerKey}', ${bey.id})" id="btn_bey_${bey.id}" class="bey-btn-${playerKey} w-full text-left bg-gray-900 border-2 border-gray-700 hover:border-gray-500 px-2 py-1.5 rounded-xl transition-all flex items-center justify-between gap-1.5 shadow-sm cursor-pointer active:scale-[0.98]">
+                        <div class="truncate flex-1 min-w-0">
                             <span class="text-white font-black text-[11px] uppercase block truncate leading-tight">${idx + 1}. ${bey.blade}</span>
-                            <span class="text-gray-400 text-[9px] font-mono leading-none">${bey.ratchet} · ${bey.bit}</span>
+                            <span class="text-gray-400 text-[9px] font-mono block truncate leading-tight mt-0.5">${partsText || '---'}</span>
                         </div>
-                    </button>`;
+                        <button type="button" onclick="event.stopPropagation(); abrirModalDeckJuez(${eventId}, ${userId}, '${safePlayerName}', null, ${idx + 1})" title="Editar combo #${idx + 1} de ${rawPlayerName}" class="shrink-0 w-7 h-7 rounded-lg bg-gray-950 hover:bg-cyan-600 text-cyan-400 hover:text-white border border-gray-700 hover:border-cyan-400 flex items-center justify-center transition-all shadow-inner active:scale-90">
+                            <i class="fas fa-pen text-[10px]"></i>
+                        </button>
+                    </div>`;
             }
         });
         container.innerHTML = html;
@@ -2266,84 +2465,175 @@
             const res = await fetch(`/api/torneos/${eventId}/clasificacion`);
             const data = await res.json();
 
-            const isEliminatoria = data.is_bracket;
+            const isEliminatoria = Boolean(data.is_bracket);
+            const hasSwiss = Boolean(data.has_swiss);
+            const jugadores = data.clasificacion || data.standings || [];
+            const topCutJugadores = (data.topcut_clasificacion && data.topcut_clasificacion.length > 0) ? data.topcut_clasificacion : jugadores;
+            const swissJugadores = (data.swiss_clasificacion && data.swiss_clasificacion.length > 0) ? data.swiss_clasificacion : jugadores;
+            currentSwissTiesAfter = data.swiss_ties_after || [];
+            currentSwissGroupTiesAfter = data.swiss_group_ties_after || {};
+            const hasSwissGroups = Boolean(data.has_swiss_groups) && data.swiss_groups && Object.keys(data.swiss_groups).length > 1;
+            if (hasSwissGroups) {
+                currentSwissGroupsCount = Object.keys(data.swiss_groups).length;
+                currentGroupMinPlayers = Math.min(...Object.values(data.swiss_groups).map(g => g.length));
+            }
 
             let htmlTemp = `
                 <div class="flex bg-gray-900 border border-gray-800 rounded-xl p-1 mb-4">
                     <button onclick="volverACrucesArena(${eventId})" class="flex-1 text-center text-[11px] tracking-widest py-2 rounded-lg text-gray-400 hover:text-white font-bold transition-colors"><i class="fas fa-swords mr-1"></i> CRUCES</button>
                     <button class="flex-1 text-center text-[11px] tracking-widest py-2 rounded-lg text-cyan-400 bg-gray-800 font-black transition-colors"><i class="fas fa-list-ol mr-1"></i> TABLA</button>
                     <button onclick="verCuadroArena(${eventId})" class="flex-1 text-center text-[11px] tracking-widest py-2 rounded-lg text-gray-400 hover:text-white font-bold transition-colors"><i class="fas fa-sitemap mr-1"></i> CUADRO</button>
-                </div>
+                </div>`;
 
-                <div class="bg-gray-900/90 border border-gray-800 rounded-xl overflow-hidden shadow-lg">
-                    <div class="overflow-x-auto">
-                        <table class="w-full text-left text-xs sm:text-sm text-gray-300">
-                            <thead class="bg-gray-950 text-[9px] sm:text-[10px] uppercase text-gray-400 font-bold tracking-wider border-b border-gray-800">
-                                <tr>
-                                    <th class="px-2.5 py-3 w-8 text-center">#</th>
-                                    <th class="px-2 py-3">BLADER</th>
-                                    <th class="px-1.5 py-3 text-center" title="Rondas Ganadas - Perdidas">V - D</th>
-                                    <th class="px-1.5 py-3 text-center text-yellow-400" title="Puntos de Torneo (3 por victoria)">PTS</th>
-                                    <th class="px-1.5 py-3 text-center" title="Buchholz: Suma de puntos de tus rivales">BCH</th>
-                                    <th class="px-2 py-3 text-center" title="Diferencia de puntos de Beyblade (A favor - En contra)">DIF</th>
-                                    ${isEliminatoria ? '<th class="px-2 py-3 text-center">FASE</th>' : ''}
-                                </tr>
-                            </thead>
-                            <tbody class="divide-y divide-gray-800/70">
-            `;
-
-            const jugadores = data.clasificacion || data.standings || [];
-
-            if (jugadores.length > 0) {
-                jugadores.forEach((player, index) => {
-                    const currentRank = player.shared_rank || (index + 1);
-                    const isTop = currentRank <= 4 ? 'bg-cyan-900/10' : '';
-                    const rankColor = currentRank === 1 ? 'text-yellow-400' : (currentRank <= 4 ? 'text-cyan-400' : 'text-gray-500');
-
-                    const wins = player.wins ?? 0;
-                    const losses = player.losses ?? 0;
-                    const byes = player.byes ?? 0;
-                    const diff = player.point_diff ?? 0;
-                    const diffStr = diff > 0 ? `+${diff}` : `${diff}`;
-                    const diffColor = diff > 0 ? 'text-emerald-400' : (diff < 0 ? 'text-rose-400' : 'text-gray-500');
-
-                    const h2hBadge = player.h2h_wins > 0
-                        ? `<span class="ml-1 text-[8px] bg-cyan-950 text-cyan-300 border border-cyan-700/60 px-1 py-0.5 rounded font-mono" title="Ventaja en Enfrentamiento Directo">H2H</span>`
-                        : '';
-                    const byeBadge = byes > 0
-                        ? `<span class="ml-1 text-[8px] bg-gray-800 text-gray-400 px-1 py-0.5 rounded font-mono">BYE</span>`
-                        : '';
-
-                    let faseColumn = '';
-                    if (isEliminatoria) {
-                        if (currentRank === 1 && player.bracket_score > 8000) faseColumn = `<td class="px-2 py-2.5 text-center font-bold text-[9px] text-yellow-400 bg-yellow-900/30 uppercase"><i class="fas fa-trophy"></i> 1º</td>`;
-                        else if (currentRank === 2 && player.bracket_score > 8000) faseColumn = `<td class="px-2 py-2.5 text-center font-bold text-[9px] text-gray-300 bg-gray-700/50 uppercase">2º</td>`;
-                        else if (currentRank === 3 && player.bracket_score > 0) faseColumn = `<td class="px-2 py-2.5 text-center font-bold text-[9px] text-orange-400 bg-orange-900/30 uppercase">3º</td>`;
-                        else if (currentRank === 4 && player.bracket_score > 0) faseColumn = `<td class="px-2 py-2.5 text-center font-bold text-[9px] text-cyan-400 bg-cyan-900/30 uppercase">4º</td>`;
-                        else if (player.bracket_score > 0) faseColumn = `<td class="px-2 py-2.5 text-center font-bold text-[9px] text-fuchsia-400 uppercase">TOP</td>`;
-                        else faseColumn = `<td class="px-2 py-2.5 text-center font-mono text-gray-600 text-[9px]">SUIZO</td>`;
-                    }
-
-                    htmlTemp += `
-                        <tr class="${isTop} hover:bg-gray-800/40 transition-colors">
-                            <td class="px-2.5 py-2.5 text-center font-mono font-black ${rankColor}">${currentRank}</td>
-                            <td class="px-2 py-2.5 font-bold text-white uppercase tracking-wide truncate max-w-[125px] sm:max-w-[180px]">
-                                ${player.name || player.user_name}${h2hBadge}${byeBadge}
-                            </td>
-                            <td class="px-1.5 py-2.5 text-center font-mono text-xs">
-                                <span class="text-emerald-400 font-bold">${wins}</span><span class="text-gray-600">-</span><span class="text-rose-400 font-bold">${losses}</span>
-                            </td>
-                            <td class="px-1.5 py-2.5 text-center font-black font-mono text-yellow-400 text-sm">${player.points}</td>
-                            <td class="px-1.5 py-2.5 text-center font-mono text-cyan-300 font-bold text-xs">${player.buchholz}</td>
-                            <td class="px-2 py-2.5 text-center font-mono font-bold text-xs ${diffColor}" title="${player.pts_for || 0} a favor / ${player.pts_against || 0} en contra">${diffStr}</td>
-                            ${faseColumn}
-                        </tr>`;
+            let swissSectionHtml = '';
+            if (hasSwissGroups) {
+                Object.keys(data.swiss_groups).sort((a, b) => Number(a) - Number(b)).forEach(groupNum => {
+                    const groupPlayers = data.swiss_groups[groupNum] || [];
+                    swissSectionHtml += `
+                        <div class="mb-4">
+                            <div class="flex items-center justify-between mb-1.5 px-1">
+                                <span class="text-xs font-mono font-black text-cyan-400 uppercase tracking-widest">
+                                    <i class="fas fa-layer-group mr-1"></i> GRUPO ${groupNum}
+                                </span>
+                                <span class="text-[10px] font-mono text-gray-400">${groupPlayers.length} JUGADORES</span>
+                            </div>
+                            ${renderStandingsTableHtml(groupPlayers, false, true)}
+                        </div>`;
                 });
+
+                swissSectionHtml += `
+                    <details class="mt-4 bg-gray-900/60 border border-gray-800 rounded-xl p-2">
+                        <summary class="cursor-pointer text-[11px] font-mono font-bold text-gray-400 hover:text-white uppercase tracking-wider px-2 py-1">
+                            <i class="fas fa-globe mr-1"></i> VER CLASIFICACIÓN GENERAL SUIZO (${swissJugadores.length})
+                        </summary>
+                        <div class="mt-2">
+                            ${renderStandingsTableHtml(swissJugadores, false, false)}
+                        </div>
+                    </details>`;
             } else {
-                htmlTemp += `<tr><td colspan="7" class="px-4 py-8 text-center text-gray-500 font-bold tracking-widest text-xs">NO HAY RESULTADOS AÚN</td></tr>`;
+                swissSectionHtml = renderStandingsTableHtml(swissJugadores, false, false);
             }
 
-            htmlTemp += `
+            if (hasSwiss && isEliminatoria) {
+                htmlTemp += `
+                    <div class="flex bg-gray-950 border border-gray-800 rounded-xl p-1 mb-3 gap-1">
+                        <button type="button" id="btn-standings-final" onclick="switchStandingsSubTab('final')" class="flex-1 py-2 rounded-lg text-[10px] font-mono font-black tracking-wider uppercase bg-fuchsia-950/70 text-fuchsia-300 border border-fuchsia-600/60 transition-all">
+                            <i class="fas fa-trophy mr-1"></i> TOP CUT / FINAL
+                        </button>
+                        <button type="button" id="btn-standings-swiss" onclick="switchStandingsSubTab('swiss')" class="flex-1 py-2 rounded-lg text-[10px] font-mono font-bold tracking-wider uppercase text-gray-400 hover:text-white border border-transparent transition-all">
+                            <i class="fas fa-layer-group mr-1"></i> FASE SUIZA${hasSwissGroups ? ' (GRUPOS)' : ''}
+                        </button>
+                    </div>
+                    <div id="standings-subview-final">
+                        ${renderStandingsTableHtml(topCutJugadores, true, false)}
+                    </div>
+                    <div id="standings-subview-swiss" class="hidden">
+                        ${swissSectionHtml}
+                    </div>`;
+            } else if (hasSwiss) {
+                htmlTemp += swissSectionHtml;
+            } else {
+                htmlTemp += renderStandingsTableHtml(jugadores, isEliminatoria, false);
+            }
+
+            container.innerHTML = htmlTemp;
+        } catch (error) {
+            container.innerHTML = '<p class="text-red-500 text-center font-bold mt-10">Error al cargar la clasificación.</p>';
+        }
+    }
+
+    function switchStandingsSubTab(tab) {
+        triggerHaptic('light');
+        const finalView = document.getElementById('standings-subview-final');
+        const swissView = document.getElementById('standings-subview-swiss');
+        const btnFinal = document.getElementById('btn-standings-final');
+        const btnSwiss = document.getElementById('btn-standings-swiss');
+        if (!finalView || !swissView || !btnFinal || !btnSwiss) return;
+
+        if (tab === 'swiss') {
+            finalView.classList.add('hidden');
+            swissView.classList.remove('hidden');
+            btnSwiss.className = "flex-1 py-2 rounded-lg text-[10px] font-mono font-black tracking-wider uppercase bg-cyan-950/70 text-cyan-300 border border-cyan-600/60 transition-all";
+            btnFinal.className = "flex-1 py-2 rounded-lg text-[10px] font-mono font-bold tracking-wider uppercase text-gray-400 hover:text-white border border-transparent transition-all";
+        } else {
+            swissView.classList.add('hidden');
+            finalView.classList.remove('hidden');
+            btnFinal.className = "flex-1 py-2 rounded-lg text-[10px] font-mono font-black tracking-wider uppercase bg-fuchsia-950/70 text-fuchsia-300 border border-fuchsia-600/60 transition-all";
+            btnSwiss.className = "flex-1 py-2 rounded-lg text-[10px] font-mono font-bold tracking-wider uppercase text-gray-400 hover:text-white border border-transparent transition-all";
+        }
+    }
+
+    function renderStandingsTableHtml(jugadores, isEliminatoria, isGroupTable = false) {
+        let rowsHtml = '';
+        if (jugadores.length > 0) {
+            jugadores.forEach((player, index) => {
+                const currentRank = isGroupTable ? (player.group_rank || (index + 1)) : (player.shared_rank || (index + 1));
+                const isTop = currentRank <= 4 ? 'bg-cyan-900/10' : '';
+                const rankColor = currentRank === 1 ? 'text-yellow-400' : (currentRank <= 4 ? 'text-cyan-400' : 'text-gray-500');
+
+                const wins = player.wins ?? 0;
+                const losses = player.losses ?? 0;
+                const byes = player.byes ?? 0;
+                const diff = player.point_diff ?? 0;
+                const diffStr = diff > 0 ? `+${diff}` : `${diff}`;
+                const diffColor = diff > 0 ? 'text-emerald-400' : (diff < 0 ? 'text-rose-400' : 'text-gray-500');
+
+                const h2hBadge = player.h2h_wins > 0
+                    ? `<span class="ml-1 text-[8px] bg-cyan-950 text-cyan-300 border border-cyan-700/60 px-1 py-0.5 rounded font-mono" title="Ventaja en Enfrentamiento Directo">H2H</span>`
+                    : '';
+                const byeBadge = byes > 0
+                    ? `<span class="ml-1 text-[8px] bg-gray-800 text-gray-400 px-1 py-0.5 rounded font-mono">BYE</span>`
+                    : '';
+                const grpBadge = (!isGroupTable && player.swiss_group)
+                    ? `<span class="ml-1 text-[8px] bg-cyan-950/70 text-cyan-300 border border-cyan-800/60 px-1 py-0.5 rounded font-mono">G${player.swiss_group}</span>`
+                    : '';
+
+                let faseColumn = '';
+                if (isEliminatoria) {
+                    if (currentRank === 1 && player.bracket_score > 8000) faseColumn = `<td class="px-2 py-2.5 text-center font-bold text-[9px] text-yellow-400 bg-yellow-900/30 uppercase"><i class="fas fa-trophy"></i> 1º</td>`;
+                    else if (currentRank === 2 && player.bracket_score > 8000) faseColumn = `<td class="px-2 py-2.5 text-center font-bold text-[9px] text-gray-300 bg-gray-700/50 uppercase">2º</td>`;
+                    else if (currentRank === 3 && player.bracket_score > 0) faseColumn = `<td class="px-2 py-2.5 text-center font-bold text-[9px] text-orange-400 bg-orange-900/30 uppercase">3º</td>`;
+                    else if (currentRank === 4 && player.bracket_score > 0) faseColumn = `<td class="px-2 py-2.5 text-center font-bold text-[9px] text-cyan-400 bg-cyan-900/30 uppercase">4º</td>`;
+                    else if (player.bracket_score > 0) faseColumn = `<td class="px-2 py-2.5 text-center font-bold text-[9px] text-fuchsia-400 uppercase">TOP</td>`;
+                    else faseColumn = `<td class="px-2 py-2.5 text-center font-mono text-gray-600 text-[9px]">SUIZO</td>`;
+                }
+
+                rowsHtml += `
+                    <tr class="${isTop} hover:bg-gray-800/40 transition-colors">
+                        <td class="px-2.5 py-2.5 text-center font-mono font-black ${rankColor}">${currentRank}</td>
+                        <td class="px-2 py-2.5 font-bold text-white uppercase tracking-wide truncate max-w-[125px] sm:max-w-[180px]">
+                            ${player.name || player.user_name}${grpBadge}${h2hBadge}${byeBadge}
+                        </td>
+                        <td class="px-1.5 py-2.5 text-center font-mono text-xs">
+                            <span class="text-emerald-400 font-bold">${wins}</span><span class="text-gray-600">-</span><span class="text-rose-400 font-bold">${losses}</span>
+                        </td>
+                        <td class="px-1.5 py-2.5 text-center font-black font-mono text-yellow-400 text-sm">${player.points}</td>
+                        <td class="px-1.5 py-2.5 text-center font-mono text-cyan-300 font-bold text-xs">${player.buchholz}</td>
+                        <td class="px-2 py-2.5 text-center font-mono font-bold text-xs ${diffColor}" title="${player.pts_for || 0} a favor / ${player.pts_against || 0} en contra">${diffStr}</td>
+                        ${faseColumn}
+                    </tr>`;
+            });
+        } else {
+            rowsHtml = `<tr><td colspan="7" class="px-4 py-8 text-center text-gray-500 font-bold tracking-widest text-xs">NO HAY RESULTADOS AÚN</td></tr>`;
+        }
+
+        return `
+            <div class="bg-gray-900/90 border border-gray-800 rounded-xl overflow-hidden shadow-lg">
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-xs sm:text-sm text-gray-300">
+                        <thead class="bg-gray-950 text-[9px] sm:text-[10px] uppercase text-gray-400 font-bold tracking-wider border-b border-gray-800">
+                            <tr>
+                                <th class="px-2.5 py-3 w-8 text-center">#</th>
+                                <th class="px-2 py-3">BLADER</th>
+                                <th class="px-1.5 py-3 text-center" title="Rondas Ganadas - Perdidas">V - D</th>
+                                <th class="px-1.5 py-3 text-center text-yellow-400" title="Puntos de Torneo (3 por victoria)">PTS</th>
+                                <th class="px-1.5 py-3 text-center" title="Buchholz: Suma de puntos de tus rivales">BCH</th>
+                                <th class="px-2 py-3 text-center" title="Diferencia de puntos de Beyblade (A favor - En contra)">DIF</th>
+                                ${isEliminatoria ? '<th class="px-2 py-3 text-center">FASE</th>' : ''}
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-800/70">
+                            ${rowsHtml}
                         </tbody>
                     </table>
                 </div>
@@ -2354,30 +2644,95 @@
                     <span><b class="text-emerald-400">4º DIF:</b> +/- Puntos Bey</span>
                 </div>
             </div>`;
-            container.innerHTML = htmlTemp;
-        } catch (error) {
-            container.innerHTML = '<p class="text-red-500 text-center font-bold mt-10">Error al cargar la clasificación.</p>';
-        }
     }
 
     let currentTotalPlayers = 0;
+    let currentSwissGroupsCount = 0;
+    let currentGroupMinPlayers = 0;
+    let currentActivePlayersCount = 0;
+    let currentSwissTiesAfter = [];
+    let currentSwissGroupTiesAfter = {};
 
-    function abrirModalTopCut() {
+    async function abrirModalTopCut() {
         triggerHaptic('light');
         document.getElementById('topCutModal').classList.remove('hidden');
         document.getElementById('topCutModal').classList.add('flex', 'active');
 
-        [4, 6, 8, 10, 12, 14, 16, 32].forEach(size => {
-            const btn = document.getElementById(`btn_top_${size}`);
-            if (!btn) return;
-            if (currentTotalPlayers > 0 && size > currentTotalPlayers) {
-                btn.disabled = true;
-                btn.classList.add('opacity-30', 'pointer-events-none');
-            } else {
-                btn.disabled = false;
-                btn.classList.remove('opacity-30', 'pointer-events-none');
+        const tieBox = document.getElementById('topCutTieWarningBox');
+        if (tieBox) tieBox.classList.add('hidden');
+
+        try {
+            const res = await fetch(`/api/torneos/${currentArenaEventId}/clasificacion`);
+            const sData = await res.json();
+            currentSwissTiesAfter = sData.swiss_ties_after || [];
+            currentSwissGroupTiesAfter = sData.swiss_group_ties_after || {};
+            if (sData.has_swiss_groups && sData.swiss_groups) {
+                currentSwissGroupsCount = Object.keys(sData.swiss_groups).length;
+                currentGroupMinPlayers = Math.min(...Object.values(sData.swiss_groups).map(g => g.length));
             }
-        });
+        } catch (e) {}
+
+        const singleSec = document.getElementById('topCutSingleGroupSection');
+        const multiSec = document.getElementById('topCutMultiGroupSection');
+        const subtitle = document.getElementById('topCutSubtitle');
+
+        if (currentSwissGroupsCount > 1) {
+            if (singleSec) singleSec.classList.add('hidden');
+            if (multiSec) multiSec.classList.remove('hidden');
+            if (subtitle) {
+                subtitle.innerHTML = `Torneo con <b class="text-cyan-400">${currentSwissGroupsCount} grupos</b> (${currentTotalPlayers} jugadores activos). Elige el <b class="text-white">Top X de cada grupo</b> para formar el cuadro de Doble Eliminación.`;
+            }
+
+            const tieMsgs = [];
+            Object.keys(currentSwissGroupTiesAfter || {}).forEach(g => {
+                const posList = currentSwissGroupTiesAfter[g] || [];
+                if (posList.length > 0) {
+                    tieMsgs.push(`Grupo ${g}: empate exacto tras puesto(s) ${posList.join(', ')}`);
+                }
+            });
+            if (tieBox && tieMsgs.length > 0) {
+                tieBox.innerHTML = `<i class="fas fa-exclamation-triangle mr-1 text-amber-400"></i> <b>AVISO DE EMPATE EXACTO:</b> ${tieMsgs.join(' · ')}. Revisa la tabla si el corte coincide con esa posición.`;
+                tieBox.classList.remove('hidden');
+            }
+
+            [1, 2, 3, 4, 6, 8].forEach(perGrp => {
+                const btn = document.getElementById(`btn_top_grp_${perGrp}`);
+                if (!btn) return;
+                const totalCut = perGrp * currentSwissGroupsCount;
+                const invalid = totalCut < 4 || totalCut > 64 || (currentGroupMinPlayers > 0 && perGrp > currentGroupMinPlayers);
+                btn.innerHTML = `TOP ${perGrp} / GRP<span class="block text-[9px] text-cyan-400 font-mono mt-0.5">= TOP ${totalCut}</span>`;
+                if (invalid) {
+                    btn.disabled = true;
+                    btn.classList.add('opacity-30', 'pointer-events-none');
+                } else {
+                    btn.disabled = false;
+                    btn.classList.remove('opacity-30', 'pointer-events-none');
+                }
+            });
+        } else {
+            if (multiSec) multiSec.classList.add('hidden');
+            if (singleSec) singleSec.classList.remove('hidden');
+            if (subtitle) {
+                subtitle.innerHTML = `Jugadores activos: <span id="total_jugadores_top" class="text-white font-bold">${currentTotalPlayers}</span>. Si eliges un Top intermedio (ej. Top 10 o Top 12), los mejores clasificados recibirán <b class="text-cyan-400">BYE automático</b> en 1ª ronda.`;
+            }
+
+            if (tieBox && currentSwissTiesAfter.length > 0) {
+                tieBox.innerHTML = `<i class="fas fa-exclamation-triangle mr-1 text-amber-400"></i> <b>AVISO DE EMPATE EXACTO:</b> Hay empate en todos los criterios tras el puesto(s): <b>${currentSwissTiesAfter.join(', ')}</b>.`;
+                tieBox.classList.remove('hidden');
+            }
+
+            [4, 6, 8, 10, 12, 14, 16, 32].forEach(size => {
+                const btn = document.getElementById(`btn_top_${size}`);
+                if (!btn) return;
+                if (currentTotalPlayers > 0 && size > currentTotalPlayers) {
+                    btn.disabled = true;
+                    btn.classList.add('opacity-30', 'pointer-events-none');
+                } else {
+                    btn.disabled = false;
+                    btn.classList.remove('opacity-30', 'pointer-events-none');
+                }
+            });
+        }
     }
 
     function ejecutarTopCutPersonalizado() {
@@ -2393,17 +2748,51 @@
         ejecutarTopCut(val);
     }
 
-    async function ejecutarTopCut(size) {
-        if(!confirm(`¿Seguro que quieres cerrar la fase suiza y generar el TOP ${size}?`)) return;
+    function ejecutarTopCutPorGrupoPersonalizado() {
+        const val = parseInt(document.getElementById('custom_top_per_group_input')?.value || '0');
+        if (!val || val < 1) {
+            mostrarToast("Introduce al menos 1 clasificado por grupo.", true);
+            return;
+        }
+        ejecutarTopCutPorGrupo(val);
+    }
+
+    function ejecutarTopCutPorGrupo(perGroup) {
+        const totalCut = perGroup * currentSwissGroupsCount;
+        if (totalCut < 4 || totalCut > 64) {
+            mostrarToast(`El Top total (${totalCut}) debe estar entre 4 y 64 jugadores.`, true);
+            return;
+        }
+        ejecutarTopCut(totalCut, perGroup);
+    }
+
+    async function ejecutarTopCut(size, topPerGroup = null) {
+        let tieAlert = '';
+        if (topPerGroup) {
+            const affectedGroups = Object.keys(currentSwissGroupTiesAfter || {}).filter(g => (currentSwissGroupTiesAfter[g] || []).includes(topPerGroup));
+            if (affectedGroups.length > 0) {
+                tieAlert = `\n\n⚠️ ATENCIÓN: Hay un empate exacto en el puesto ${topPerGroup} de corte en el Grupo ${affectedGroups.join(', ')}.`;
+            }
+        } else if ((currentSwissTiesAfter || []).includes(size)) {
+            tieAlert = `\n\n⚠️ ATENCIÓN: Hay un empate exacto en el puesto ${size} de corte en todos los criterios de desempate.`;
+        }
+
+        const confirmMsg = (topPerGroup
+            ? `¿Seguro que quieres cerrar la fase suiza y clasificar al TOP ${topPerGroup} de cada grupo (TOP ${size} total)?`
+            : `¿Seguro que quieres cerrar la fase suiza y generar el TOP ${size}?`) + tieAlert;
+        if(!confirm(confirmMsg)) return;
         triggerHaptic('heavy');
         document.getElementById('topCutModal').classList.remove('flex', 'active');
         document.getElementById('topCutModal').classList.add('hidden');
+
+        const payload = { top_size: size };
+        if (topPerGroup) payload.top_per_group = topPerGroup;
 
         try {
             const res = await fetch(`/api/torneos/${currentArenaEventId}/arena/top`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'), 'Accept': 'application/json' },
-                body: JSON.stringify({ top_size: size })
+                body: JSON.stringify(payload)
             });
             const data = await res.json();
             mostrarToast(data.message, !data.success);

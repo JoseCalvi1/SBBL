@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AccountController;
 use App\Http\Controllers\Admin\InventoryController;
 use App\Http\Controllers\Admin\PedidoController;
 use App\Http\Controllers\Admin\TreasuryController;
@@ -332,6 +333,10 @@ Route::domain($dominio)->group(function () {
         // Vinculación Discord
         Route::get('/auth/discord/redirect', [DiscordController::class, 'redirectToDiscord'])->name('discord.login');
         Route::get('/auth/discord/callback', [DiscordController::class, 'handleDiscordCallback']);
+
+        // Seguridad y Cuenta (Correo y Contraseña)
+        Route::put('/account/email', [AccountController::class, 'updateEmail'])->name('account.email.update');
+        Route::put('/account/password', [AccountController::class, 'updatePassword'])->name('account.password.update');
     });
 
     /*
