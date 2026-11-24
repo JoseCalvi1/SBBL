@@ -92,8 +92,9 @@
                                     @if (Auth::user()->hasAnyRole(['admin']))
                                         <option value="grancopa" {{ (old('imagen', $event->beys) == 'grancopa') ? 'selected' : '' }}>Gran Copa (Especial)</option>
                                     @endif
-                                    @if (Auth::user()->hasAnyRole(['admin', 'juez']))
+                                    @if (Auth::user()->hasAnyRole(['admin', 'juez', 'judge']))
                                         <option value="crew_battle" {{ (old('imagen', $event->beys) == 'crew_battle') ? 'selected' : '' }}>Torneo por Equipos (Crew Battle)</option>
+                                        <option value="clasificatorio" {{ (old('imagen', $event->beys) == 'clasificatorio') ? 'selected' : '' }}>🏆 Clasificatorio (Nacional)</option>
                                     @endif
                                     @if (Auth::user()->hasAnyRole(['admin', 'juez']))
                                         <option value="copaespecial1" {{ (old('imagen', $event->beys) == 'copaespecial1') ? 'selected' : '' }}>Copa SOLO CX</option>

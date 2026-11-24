@@ -605,8 +605,22 @@
                             @endif
 
                             @if($event->isPaidEvent())
-                                @php $effectiveFee = $event->getEffectiveEntryFee(); @endphp
-                                @if($effectiveFee === null)
+                                @php
+                                    $isAlreadyQualified = isset($qualifierInfo) && !empty($qualifierInfo['already_qualified']);
+                                    $effectiveFee = $event->isQualifier()
+                                        ? ($qualifierInfo['fee'] ?? null)
+                                        : $event->getEffectiveEntryFee(Auth::id());
+                                @endphp
+                                @if($isAlreadyQualified)
+                                    <div class="text-center p-4 border border-warning" style="background: rgba(234, 179, 8, 0.12);">
+                                        <p class="text-warning font-Oswald fs-3 mb-2">
+                                            <i class="fas fa-crown me-2"></i> ¡YA ESTÁS CLASIFICADO AL NACIONAL!
+                                        </p>
+                                        <p class="text-white fw-bold mb-0">
+                                            Obtuviste tu plaza en <strong>{{ $qualifierInfo['qualified_event_name'] }}</strong>. No es necesario (ni está permitido) inscribirse en más clasificatorios.
+                                        </p>
+                                    </div>
+                                @elseif($effectiveFee === null)
                                     <div class="text-center p-4 border border-warning" style="background: #111;">
                                         <p class="text-warning font-Oswald fs-3 mb-2">
                                             <i class="fas fa-hourglass-half me-2"></i> INSCRIPCIÓN DE PAGO PENDIENTE DE TARIFA
@@ -622,9 +636,14 @@
                                     </div>
                                 @else
                                     <div class="text-center p-4 border border-warning" style="background: #111;">
-                                        <p class="text-white font-Oswald fs-3 mb-3">
-                                            COSTE DE INSCRIPCIÓN: <span style="color: var(--sbbl-gold);">{{ number_format($effectiveFee, 2, ',', '.') }} €</span>
+                                        <p class="text-white font-Oswald fs-3 mb-1">
+                                            TU COSTE DE INSCRIPCIÓN: <span style="color: var(--sbbl-gold);">{{ number_format($effectiveFee, 2, ',', '.') }} €</span>
                                         </p>
+                                        @if($event->isQualifier() && !empty($qualifierInfo['tier_label']))
+                                            <p class="text-info small fw-bold mb-3">
+                                                <i class="fas fa-info-circle me-1"></i> {{ $qualifierInfo['tier_label'] }}
+                                            </p>
+                                        @endif
                                         <button type="button" class="btn-shonen w-100 text-center" data-bs-toggle="modal" data-bs-target="#formModal" style="background: var(--sbbl-gold); color: #000; border-color: #000; padding: 15px; font-size: 1.7rem;"
                                             @if(in_array($event->beys, ['ranking', 'rankingplus']) &&
                                             ((isset($rankingTournamentsLeft) && $rankingTournamentsLeft == 0) || (isset($isRegistered) && $isRegistered)))
@@ -1009,7 +1028,7 @@
     $paypalClientId = $paypalServiceWeb->getClientId();
     $paypalCurrency = $paypalServiceWeb->getCurrency();
 @endphp
-@if($event->isPaidEvent() && $event->getEffectiveEntryFee() > 0 && !empty($paypalClientId))
+@if($event->isPaidEvent() && ($event->getEffectiveEntryFee(Auth::id()) > 0) && !empty($paypalClientId))
     <script src="https://www.paypal.com/sdk/js?client-id={{ $paypalClientId }}&currency={{ $paypalCurrency }}"></script>
 @endif
 

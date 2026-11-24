@@ -39,6 +39,7 @@
                                 <option value="quedada">Quedada</option>
                                 <option value="ranking">Ranking</option>
                                 <option value="crew_battle">Torneo Equipos</option>
+                                <option value="clasificatorio">🏆 Clasificatorio (Nacional)</option>
                                 <option value="hasbro">Hasbro</option>
                             </select>
                         </div>

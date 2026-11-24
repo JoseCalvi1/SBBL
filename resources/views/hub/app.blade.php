@@ -133,6 +133,7 @@
                         <option value="quedada">QUEDADAS</option>
                         <option value="copaespecial1">COPA SOLO CX</option>
                         <option value="crew_battle">TORNEOS DE EQUIPOS</option>
+                        <option value="clasificatorio">🏆 CLASIFICATORIOS</option>
                         @if(Auth::check() && Auth::user()->hasAnyRole(['admin', 'juez', 'arbitro', 'revisor']))
                             <option value="express">DUELOS EXPRESS (STAFF)</option>
                         @endif

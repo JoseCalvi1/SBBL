@@ -47,13 +47,26 @@ class Event extends Model
         'date' => 'datetime',             // Permite usar ->format('d/m/Y') en la vista
     ];
 
-    public function isPaidEvent(): bool
+    public function isQualifier(): bool
     {
-        return (bool) $this->is_paid || $this->beys === 'copapaypal' || ((float) $this->entry_fee > 0);
+        return $this->beys === 'clasificatorio';
     }
 
-    public function getEffectiveEntryFee(): ?float
+    public function isPaidEvent(): bool
     {
+        return (bool) $this->is_paid || $this->isQualifier() || $this->beys === 'copapaypal' || ((float) $this->entry_fee > 0);
+    }
+
+    public function getEffectiveEntryFee(?int $userId = null): ?float
+    {
+        if ($this->isQualifier()) {
+            if ($userId !== null) {
+                $eval = app(\App\Services\Tournament\QualifierService::class)->evaluateForUser($this, $userId);
+                return $eval['fee'];
+            }
+            return \App\Services\Tournament\QualifierService::FEE_FIRST_ATTEMPT;
+        }
+
         if ($this->entry_fee !== null && (float) $this->entry_fee > 0) {
             return round((float) $this->entry_fee, 2);
         }

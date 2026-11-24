@@ -252,7 +252,10 @@
                 const hora = torneo.time ? torneo.time.substring(0, 5) : '--:--';
 
                 const isRank = torneo.beys === 'ranking' || torneo.beys === 'rankingplus';
-                const badge = isRank ? 'bg-red-950/80 text-red-400 border-red-700/50' : 'bg-cyan-950/80 text-cyan-400 border-cyan-700/50';
+                const isQualifier = torneo.beys === 'clasificatorio' || torneo.is_qualifier;
+                const badge = isQualifier
+                    ? 'bg-yellow-500/20 text-yellow-300 border-yellow-500/60'
+                    : (isRank ? 'bg-red-950/80 text-red-400 border-red-700/50' : 'bg-cyan-950/80 text-cyan-400 border-cyan-700/50');
                 const cardTheme = torneo.is_inscribed ? 'bg-cyan-900/20 border-cyan-500 shadow-[0_0_15px_rgba(6,182,212,0.15)]' : 'bg-gray-900 border-gray-700 shadow-lg';
                 const limitText = torneo.aforo_maximo > 1000 ? '∞' : torneo.aforo_maximo;
                 const aforoLleno = torneo.total_inscritos >= torneo.aforo_maximo;
@@ -297,11 +300,14 @@
                 else {
                     if (torneo.is_inscribed) {
                         botonesHTML = `<div class="flex gap-2 relative z-10"><button onclick="abrirModal(${torneo.id}, '${torneo.status}', null, null, '${torneo.beys}')" class="flex-1 bg-cyan-700 active:bg-cyan-600 border border-cyan-400 text-white font-bold py-3 rounded-lg text-sm tracking-wide transition-colors"><i class="fas fa-layer-group me-1"></i> MI DECK</button><button onclick="cancelarAsistencia(${torneo.id})" class="w-14 bg-red-900/50 active:bg-red-800 border border-red-500 text-red-400 font-bold py-3 rounded-lg text-sm transition-colors flex items-center justify-center"><i class="fas fa-times"></i></button></div>`;
+                    } else if (torneo.is_qualifier && torneo.already_qualified) {
+                        botonesHTML = `<div class="w-full bg-yellow-950/40 border border-yellow-500/60 text-yellow-300 font-bold py-3 px-3 rounded-lg text-xs text-center relative z-10"><i class="fas fa-crown mr-1"></i> ¡YA ESTÁS CLASIFICADO AL NACIONAL!</div>`;
                     } else if (torneo.is_paid_event && !(torneo.effective_entry_fee > 0)) {
                         botonesHTML = `<button type="button" disabled class="w-full bg-gray-800 border border-yellow-600/50 text-yellow-400 font-bold py-3 rounded-lg text-xs tracking-wide relative z-10 cursor-not-allowed opacity-80"><i class="fas fa-hourglass-half mr-1"></i> PENDIENTE DE TARIFA (ADMIN)</button>`;
                     } else if (torneo.is_paid_event && torneo.effective_entry_fee > 0) {
                         const feeTxt = Number(torneo.effective_entry_fee).toFixed(2).replace('.', ',');
-                        botonesHTML = `<button onclick="abrirModal(${torneo.id}, '${torneo.status}', null, null, '${torneo.beys}')" class="w-full bg-yellow-500 hover:bg-yellow-400 active:bg-yellow-600 text-gray-950 font-black py-3 rounded-lg text-sm tracking-wide relative z-10 transition-colors shadow-[0_0_15px_rgba(234,179,8,0.3)]"><i class="fab fa-paypal mr-1.5"></i> INSCRIBIRSE Y PAGAR (${feeTxt} €)</button>`;
+                        const tierHint = torneo.qualifier_tier_label ? `<div class="text-[10px] text-cyan-300 text-center font-bold mt-1.5 relative z-10"><i class="fas fa-info-circle mr-1"></i>${torneo.qualifier_tier_label}</div>` : '';
+                        botonesHTML = `<button onclick="abrirModal(${torneo.id}, '${torneo.status}', null, null, '${torneo.beys}')" class="w-full bg-yellow-500 hover:bg-yellow-400 active:bg-yellow-600 text-gray-950 font-black py-3 rounded-lg text-sm tracking-wide relative z-10 transition-colors shadow-[0_0_15px_rgba(234,179,8,0.3)]"><i class="fab fa-paypal mr-1.5"></i> INSCRIBIRSE Y PAGAR (${feeTxt} €)</button>${tierHint}`;
                     } else {
                         botonesHTML = `<button onclick="abrirModal(${torneo.id}, '${torneo.status}', null, null, '${torneo.beys}')" class="w-full bg-cyan-600 active:bg-cyan-500 text-white font-bold py-3 rounded-lg text-sm tracking-wide relative z-10 transition-colors">INSCRIBIRSE</button>`;
                     }

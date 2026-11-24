@@ -146,8 +146,9 @@
                     'quedada'     => ['label' => 'QUEDADA', 'class' => 'badge-type-quedada', 'icon' => 'fa-users'],
                     'grancopa'    => ['label' => 'GRAN COPA', 'class' => 'badge-type-grancopa', 'icon' => 'fa-crown'],
                     'crew_battle' => ['label' => 'EQUIPOS', 'class' => 'badge-type-crew', 'icon' => 'fa-shield-alt'],
-                    'hasbro'      => ['label' => 'HASBRO', 'class' => 'badge-type-other', 'icon' => 'fa-box'],
-                    'copapaypal'  => ['label' => 'CONQUEROR', 'class' => 'badge-type-grancopa', 'icon' => 'fa-gem'],
+                    'hasbro'         => ['label' => 'HASBRO', 'class' => 'badge-type-other', 'icon' => 'fa-box'],
+                    'copapaypal'     => ['label' => 'CONQUEROR', 'class' => 'badge-type-grancopa', 'icon' => 'fa-gem'],
+                    'clasificatorio' => ['label' => 'CLASIFICATORIO', 'class' => 'badge-type-grancopa', 'icon' => 'fa-crown'],
                 ];
                 $currentType = $typeLabels[$beysType] ?? ['label' => strtoupper($event->beys ?: 'EVENTO'), 'class' => 'badge-type-other', 'icon' => 'fa-calendar'];
             @endphp
@@ -165,7 +166,11 @@
                             <i class="fas {{ $currentType['icon'] }} me-1"></i> {{ $currentType['label'] }}
                         </span>
 
-                        @if($event->isPaidEvent())
+                        @if($event->isQualifier())
+                            <span class="badge bg-warning text-dark border border-dark px-2 py-1 fw-bold">
+                                <i class="fab fa-paypal me-1"></i> 15€ / 5€ / 25€
+                            </span>
+                        @elseif($event->isPaidEvent())
                             @if($event->getEffectiveEntryFee() > 0)
                                 <span class="badge bg-warning text-dark border border-dark px-2 py-1 fw-bold">
                                     <i class="fab fa-paypal me-1"></i> {{ number_format($event->getEffectiveEntryFee(), 2, ',', '.') }} €

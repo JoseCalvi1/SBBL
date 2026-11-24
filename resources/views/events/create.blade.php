@@ -155,8 +155,9 @@
                                     <option value="grancopa" {{ old('imagen') == 'grancopa' ? 'selected' : '' }}>Gran Copa (Especial)</option>
                                 @endif
 
-                                @if (Auth::user()->hasAnyRole(['admin', 'juez']))
+                                @if (Auth::user()->hasAnyRole(['admin', 'juez', 'judge']))
                                     <option value="crew_battle" {{ old('imagen') == 'crew_battle' ? 'selected' : '' }}>Torneo por Equipos (Crew Battle)</option>
+                                    <option value="clasificatorio" {{ old('imagen') == 'clasificatorio' ? 'selected' : '' }}>🏆 Clasificatorio (Nacional)</option>
                                 @endif
                             </select>
                         </div>

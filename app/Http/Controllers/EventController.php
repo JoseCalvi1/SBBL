@@ -38,7 +38,8 @@ class EventController extends Controller
         'quedada' => 'Quedada', 'ranking' => 'Ranking', 'rankingplus' => 'Ranking Plus',
         'grancopa' => 'Gran Copa', 'hasbro' => 'Hasbro', 'copalloros' => 'Copa Lloros',
         'copaligera' => 'Copa Ligera', 'copapaypal' => 'Copa Conqueror',
-        'crew_battle' => 'Torneo por Equipos', // <--- NUEVO
+        'crew_battle' => 'Torneo por Equipos',
+        'clasificatorio' => 'Clasificatorio',
     ];
 
     private DiscordNotifier $discordNotifier;
@@ -150,19 +151,20 @@ class EventController extends Controller
             'image_mod'         => 'nullable|image|mimes:jpeg,png,jpg,webp|max:5120',
         ]);
 
-        // PROTECCIÓN BACKEND: Solo Jueces y Admins pueden crear Torneos Oficiales o Eventos de Pago
-        $categoriasOficiales = ['ranking', 'grancopa', 'hasbro', 'copaespecial1', 'copaespecial2', 'copaespecial3', 'copaespecial4', 'crew_battle', 'copapaypal'];
+        // PROTECCIÓN BACKEND: Solo Jueces y Admins pueden crear Torneos Oficiales o Clasificatorios
+        $categoriasOficiales = ['ranking', 'grancopa', 'hasbro', 'copaespecial1', 'copaespecial2', 'copaespecial3', 'copaespecial4', 'crew_battle', 'copapaypal', 'clasificatorio'];
         if (in_array($data['imagen'], $categoriasOficiales) && !Auth::user()->hasAnyRole(['admin', 'juez', 'judge'])) {
             return back()->withInput()->with('error', '⚠️ Acceso denegado: Solo los Jueces Oficiales y Administradores de la SBBL pueden crear Eventos Oficiales.');
         }
 
-        if ($request->boolean('is_paid') && !Auth::user()->hasRole('admin')) {
+        if ($request->boolean('is_paid') && $data['imagen'] !== 'clasificatorio' && !Auth::user()->hasRole('admin')) {
             return back()->withInput()->with('error', '⚠️ Acceso denegado: De momento solo Administradores pueden crear eventos de pago.');
         }
 
         $isAdmin = Auth::user()->hasRole('admin');
-        $isPaid = $isAdmin && ($request->boolean('is_paid') || $data['imagen'] === 'copapaypal');
-        $entryFee = ($isAdmin && $request->filled('entry_fee') && (float) $request->input('entry_fee') > 0)
+        $isQualifier = ($data['imagen'] === 'clasificatorio');
+        $isPaid = $isQualifier || ($isAdmin && ($request->boolean('is_paid') || $data['imagen'] === 'copapaypal'));
+        $entryFee = (!$isQualifier && $isAdmin && $request->filled('entry_fee') && (float) $request->input('entry_fee') > 0)
             ? round((float) $request->input('entry_fee'), 2)
             : null;
 
@@ -344,11 +346,15 @@ class EventController extends Controller
             ->whereNotIn('bracket_type', ['swiss', 'round_robin'])
             ->exists();
 
+        $qualifierInfo = (Auth::check() && $event->isQualifier())
+            ? app(\App\Services\Tournament\QualifierService::class)->evaluateForUser($event, Auth::id())
+            : null;
+
         return view('events.show', array_merge(compact(
             'event', 'videos', 'assists', 'suscribe', 'hoy',
             'bladeOptions', 'overBladeOptions', 'assistBladeOptions', 'ratchetOptions', 'bitOptions',
             'results', 'extraLines', 'resultsByParticipant', 'participantes',
-            'totalParticipantes', 'equiposAsistentes', 'hasEngineMatches', 'hasEngineBracket'
+            'totalParticipantes', 'equiposAsistentes', 'hasEngineMatches', 'hasEngineBracket', 'qualifierInfo'
         ), $limits));
     }
 
@@ -564,13 +570,17 @@ class EventController extends Controller
             // 3. IMAGEN BASE
             $rutaImagen = $this->resolveImage($request->region_id, $request->imagen);
 
-            // Regla de negocio: De momento solo Admin puede activar/desactivar evento de pago y fijar el precio
+            // Regla de negocio: Clasificatorios son siempre de pago dinámico; resto solo Admin
             $isAdmin = Auth::user()->hasRole('admin');
+            $isQualifier = ($request->imagen === 'clasificatorio');
 
             $newIsPaid = $event->is_paid;
             $newEntryFee = $event->entry_fee;
 
-            if ($isAdmin) {
+            if ($isQualifier) {
+                $newIsPaid = true;
+                $newEntryFee = null;
+            } elseif ($isAdmin) {
                 $newIsPaid = $request->boolean('is_paid') || $request->imagen === 'copapaypal';
                 if ($newIsPaid && $request->filled('entry_fee') && (float) $request->input('entry_fee') > 0) {
                     $newEntryFee = round((float) $request->input('entry_fee'), 2);
@@ -1183,7 +1193,18 @@ private function sendResponse($type, $message, $request, $code = 200)
             return response()->json(['error' => 'Este evento no es de pago.'], 422);
         }
 
-        $entryFee = $event->getEffectiveEntryFee();
+        if ($event->isQualifier()) {
+            $qEval = app(\App\Services\Tournament\QualifierService::class)->evaluateForUser($event, $user->id);
+            if ($qEval['already_qualified']) {
+                return response()->json([
+                    'error' => "🏆 Ya estás clasificado al Nacional ({$qEval['qualified_event_name']}). No puedes participar en más clasificatorios."
+                ], 422);
+            }
+            $entryFee = $qEval['fee'];
+        } else {
+            $entryFee = $event->getEffectiveEntryFee($user->id);
+        }
+
         if ($entryFee === null || $entryFee <= 0) {
             return response()->json([
                 'error' => 'Este evento de pago está pendiente de que Administración asigne su tarifa.'
@@ -1260,7 +1281,21 @@ private function sendResponse($type, $message, $request, $code = 200)
         ]);
 
         $user = Auth::user();
-        $entryFee = $event->getEffectiveEntryFee();
+        $qualifierTierNote = null;
+
+        if ($event->isQualifier()) {
+            $qEval = app(\App\Services\Tournament\QualifierService::class)->evaluateForUser($event, $user->id);
+            if ($qEval['already_qualified']) {
+                return response()->json([
+                    'status'  => 'error',
+                    'message' => "Ya estás clasificado al Nacional ({$qEval['qualified_event_name']}).",
+                ], 422);
+            }
+            $entryFee = $qEval['fee'];
+            $qualifierTierNote = $qEval['tier_label'];
+        } else {
+            $entryFee = $event->getEffectiveEntryFee($user->id);
+        }
 
         if (!$event->isPaidEvent() || $entryFee === null || $entryFee <= 0) {
             return response()->json(['status' => 'error', 'message' => 'Configuración de tarifa inválida para este evento.'], 422);
@@ -1285,13 +1320,14 @@ private function sendResponse($type, $message, $request, $code = 200)
             }
 
             // 2. Transacción atómica: Libro Mayor de Tesorería + Inscripción + Deck
-            DB::transaction(function () use ($request, $event, $user, $verified, $treasuryService) {
+            DB::transaction(function () use ($request, $event, $user, $verified, $treasuryService, $qualifierTierNote) {
                 $treasuryService->recordPayPalIncome([
-                    'category'          => 'Inscripción Torneo',
+                    'category'          => $event->isQualifier() ? 'Clasificatorio Nacional' : 'Inscripción Torneo',
                     'gross_amount'      => $verified['gross_amount'],
                     'fee'               => $verified['fee'],
                     'net_amount'        => $verified['net_amount'],
-                    'description'       => "Inscripción Torneo: {$event->name} - {$user->name}",
+                    'description'       => ($event->isQualifier() ? 'Clasificatorio: ' : 'Inscripción Torneo: ') . "{$event->name} - {$user->name}",
+                    'notes'             => $qualifierTierNote,
                     'reference_id'      => $verified['capture_id'],
                     'paypal_order_id'   => $verified['order_id'],
                     'paypal_capture_id' => $verified['capture_id'],
@@ -1387,10 +1423,14 @@ private function sendResponse($type, $message, $request, $code = 200)
         try {
             $rutaImagen = $this->resolveImage($data['region_id'], $request->imagen);
 
-            // Solo Admin puede crear eventos de pago y fijar su precio
+            // Clasificatorios (admin y juez) son siempre de pago dinámico; resto solo Admin
             $isAdmin = Auth::user()->hasRole('admin');
-            $isPaid = $isAdmin && ($request->boolean('is_paid') || $request->imagen === 'copapaypal');
-            $entryFee = ($isAdmin && $request->filled('entry_fee') && (float) $request->input('entry_fee') > 0)
+            $isQualifier = ($request->imagen === 'clasificatorio');
+            if ($isQualifier && !Auth::user()->hasAnyRole(['admin', 'juez', 'judge'])) {
+                return response()->json(['success' => false, 'message' => 'Solo Admin y Jueces pueden crear Clasificatorios.'], 403);
+            }
+            $isPaid = $isQualifier || ($isAdmin && ($request->boolean('is_paid') || $request->imagen === 'copapaypal'));
+            $entryFee = (!$isQualifier && $isAdmin && $request->filled('entry_fee') && (float) $request->input('entry_fee') > 0)
                 ? round((float) $request->input('entry_fee'), 2)
                 : null;
             if ($entryFee !== null) {
@@ -1465,12 +1505,16 @@ private function sendResponse($type, $message, $request, $code = 200)
         try {
             $rutaImagen = $this->resolveImage($data['region_id'], $request->imagen);
 
-            // Solo Admin puede modificar si es evento de pago o su precio
+            // Clasificatorios son siempre de pago dinámico; resto solo Admin
             $isAdmin = Auth::user()->hasRole('admin');
+            $isQualifier = ($request->imagen === 'clasificatorio');
             $newIsPaid = $event->is_paid;
             $newEntryFee = $event->entry_fee;
 
-            if ($isAdmin) {
+            if ($isQualifier) {
+                $newIsPaid = true;
+                $newEntryFee = null;
+            } elseif ($isAdmin) {
                 $newIsPaid = $request->boolean('is_paid') || $request->imagen === 'copapaypal';
                 if ($newIsPaid && $request->filled('entry_fee') && (float) $request->input('entry_fee') > 0) {
                     $newEntryFee = round((float) $request->input('entry_fee'), 2);

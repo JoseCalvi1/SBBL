@@ -78,8 +78,21 @@ class HubController extends Controller
         $torneos->map(function ($torneo) use ($userId, $isAdmin, $isJuez, $isRevisor) {
             $torneo->is_inscribed = $torneo->users->contains('id', $userId);
             $torneo->total_inscritos = $torneo->users->count();
+            $torneo->is_qualifier = $torneo->isQualifier();
             $torneo->is_paid_event = $torneo->isPaidEvent();
-            $torneo->effective_entry_fee = $torneo->getEffectiveEntryFee();
+
+            if ($torneo->is_qualifier && $userId) {
+                $qEval = app(\App\Services\Tournament\QualifierService::class)->evaluateForUser($torneo, (int) $userId);
+                $torneo->effective_entry_fee = $qEval['fee'];
+                $torneo->already_qualified = $qEval['already_qualified'];
+                $torneo->qualified_event_name = $qEval['qualified_event_name'];
+                $torneo->qualifier_tier_label = $qEval['tier_label'];
+            } else {
+                $torneo->effective_entry_fee = $torneo->getEffectiveEntryFee($userId ? (int) $userId : null);
+                $torneo->already_qualified = false;
+                $torneo->qualified_event_name = null;
+                $torneo->qualifier_tier_label = null;
+            }
 
             // Diferenciar Jueces, Revisores y Ayudantes locales del evento
             $torneo->jueces_asignados = $torneo->judges->map(function ($juez) {

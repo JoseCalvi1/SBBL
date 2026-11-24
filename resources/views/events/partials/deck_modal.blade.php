@@ -166,7 +166,8 @@
                         </div>
 
                         @php
-                            $requiresEventPayment = !$isUserInscribed && $event->isPaidEvent() && ($event->getEffectiveEntryFee() > 0);
+                            $effectiveFeeModal = $event->getEffectiveEntryFee(Auth::id());
+                            $requiresEventPayment = !$isUserInscribed && $event->isPaidEvent() && ($effectiveFeeModal > 0);
                         @endphp
 
                         <div class="modal-footer border-top border-secondary justify-content-between flex-wrap gap-3" style="background-color: #1e293b;">
@@ -179,7 +180,7 @@
                             @if($requiresEventPayment)
                                 <div id="event-paypal-wrapper" class="flex-grow-1" style="max-width: 440px;">
                                     <div class="text-warning small fw-bold mb-2 text-end">
-                                        <i class="fas fa-shield-alt me-1"></i> Pago verificado de {{ number_format($event->getEffectiveEntryFee(), 2, ',', '.') }} € vía PayPal Business
+                                        <i class="fas fa-shield-alt me-1"></i> Pago verificado de {{ number_format($effectiveFeeModal, 2, ',', '.') }} € vía PayPal Business
                                     </div>
                                     <div id="event-paypal-buttons"></div>
                                     <div id="eventPaypalMsg" class="mt-2 small fw-bold text-end"></div>
@@ -382,7 +383,7 @@
         window.location.reload();
     }
 
-    @if(!$isUserInscribed && $event->isPaidEvent() && ($event->getEffectiveEntryFee() > 0))
+    @if(!$isUserInscribed && $event->isPaidEvent() && ($event->getEffectiveEntryFee(Auth::id()) > 0))
     document.addEventListener("DOMContentLoaded", function () {
         const paypalContainer = document.getElementById('event-paypal-buttons');
         const paypalMsg = document.getElementById('eventPaypalMsg');

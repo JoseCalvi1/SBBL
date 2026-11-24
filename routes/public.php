@@ -3,6 +3,7 @@
 use App\Http\Controllers\AccountController;
 use App\Http\Controllers\Admin\InventoryController;
 use App\Http\Controllers\Admin\PedidoController;
+use App\Http\Controllers\Admin\QualifierController;
 use App\Http\Controllers\Admin\RaffleController;
 use App\Http\Controllers\Admin\TreasuryController;
 use App\Http\Controllers\ArticleController;
@@ -367,6 +368,9 @@ Route::domain($dominio)->group(function () {
         Route::put('/admin/treasury/{log}/refund', [TreasuryController::class, 'markRefunded'])->name('admin.treasury.refund');
         Route::post('/admin/treasury/reset', [TreasuryController::class, 'resetPeriod'])->name('admin.treasury.reset');
         Route::get('/admin/treasury/export', [TreasuryController::class, 'exportCsv'])->name('admin.treasury.export');
+
+        // Gestión de Clasificatorios Nacional (Exclusivo Admin)
+        Route::get('/dashboard/admin/clasificatorios', [QualifierController::class, 'index'])->name('admin.qualifiers.index');
 
         // Gestión de Rifas y Bombo de Sorteo (Exclusivo Admin)
         Route::get('/dashboard/admin/raffles', [RaffleController::class, 'index'])->name('admin.raffles.index');
