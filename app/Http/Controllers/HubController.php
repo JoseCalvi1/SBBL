@@ -78,6 +78,8 @@ class HubController extends Controller
         $torneos->map(function ($torneo) use ($userId, $isAdmin, $isJuez, $isRevisor) {
             $torneo->is_inscribed = $torneo->users->contains('id', $userId);
             $torneo->total_inscritos = $torneo->users->count();
+            $torneo->is_paid_event = $torneo->isPaidEvent();
+            $torneo->effective_entry_fee = $torneo->getEffectiveEntryFee();
 
             // Diferenciar Jueces, Revisores y Ayudantes locales del evento
             $torneo->jueces_asignados = $torneo->judges->map(function ($juez) {
@@ -183,6 +185,14 @@ class HubController extends Controller
         $date = Carbon::parse($event->date);
         $isAlreadyInscribed = $event->users()->where('user_id', $userId)->exists();
 
+        // Blindaje: impedir inscripción gratuita por API en eventos de pago
+        if (!$isEditingOther && !$isAlreadyInscribed && $event->isPaidEvent()) {
+            return response()->json([
+                'success' => false,
+                'message' => '💳 Este es un evento de pago. Debes completar el pago mediante PayPal para confirmar tu plaza.',
+            ], 402);
+        }
+
         // Solo comprobamos límites semanales/mensuales si es el propio jugador inscribiéndose por primera vez
         if (!$isEditingOther && !$isAlreadyInscribed && in_array($event->beys, ['ranking', 'rankingplus'])) {
             $registeredThisWeek = DB::table('assist_user_event')
@@ -251,7 +261,7 @@ class HubController extends Controller
         return response()->json(['success' => true, 'message' => $msg]);
     }
 
-    public function cancelarAsistencia($eventId)
+    public function cancelarAsistencia($eventId, \App\Services\Payment\TreasuryService $treasuryService)
     {
         $event = Event::findOrFail($eventId);
 
@@ -259,7 +269,16 @@ class HubController extends Controller
             return response()->json(['success' => false, 'message' => '⛔ No puedes retirarte de un torneo en curso.'], 422);
         }
 
-        $event->users()->detach(Auth::id());
+        $userId = Auth::id();
+        $event->users()->detach($userId);
+
+        $flaggedRefund = $treasuryService->flagEventCancellationForRefund($event->id, $userId);
+        if ($flaggedRefund) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Asistencia cancelada. Al ser un evento de pago, Administración ha recibido el aviso para tramitar tu reembolso manualmente.',
+            ]);
+        }
 
         return response()->json(['success' => true, 'message' => 'Asistencia cancelada correctamente.']);
     }

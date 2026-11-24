@@ -1,6 +1,7 @@
     let dbPiezas = null;
     let allTeamsList = [];
     let currentEventType = null;
+    let hubTorneosCache = {};
 
     let currentArenaEventId = null;
     let currentArenaRound = null;
@@ -244,7 +245,9 @@
             }
 
             let htmlTemp = '';
+            hubTorneosCache = {};
             torneos.forEach(torneo => {
+                hubTorneosCache[torneo.id] = torneo;
                 const fecha = new Date(torneo.date).toLocaleDateString('es-ES');
                 const hora = torneo.time ? torneo.time.substring(0, 5) : '--:--';
 
@@ -294,6 +297,11 @@
                 else {
                     if (torneo.is_inscribed) {
                         botonesHTML = `<div class="flex gap-2 relative z-10"><button onclick="abrirModal(${torneo.id}, '${torneo.status}', null, null, '${torneo.beys}')" class="flex-1 bg-cyan-700 active:bg-cyan-600 border border-cyan-400 text-white font-bold py-3 rounded-lg text-sm tracking-wide transition-colors"><i class="fas fa-layer-group me-1"></i> MI DECK</button><button onclick="cancelarAsistencia(${torneo.id})" class="w-14 bg-red-900/50 active:bg-red-800 border border-red-500 text-red-400 font-bold py-3 rounded-lg text-sm transition-colors flex items-center justify-center"><i class="fas fa-times"></i></button></div>`;
+                    } else if (torneo.is_paid_event && !(torneo.effective_entry_fee > 0)) {
+                        botonesHTML = `<button type="button" disabled class="w-full bg-gray-800 border border-yellow-600/50 text-yellow-400 font-bold py-3 rounded-lg text-xs tracking-wide relative z-10 cursor-not-allowed opacity-80"><i class="fas fa-hourglass-half mr-1"></i> PENDIENTE DE TARIFA (ADMIN)</button>`;
+                    } else if (torneo.is_paid_event && torneo.effective_entry_fee > 0) {
+                        const feeTxt = Number(torneo.effective_entry_fee).toFixed(2).replace('.', ',');
+                        botonesHTML = `<button onclick="abrirModal(${torneo.id}, '${torneo.status}', null, null, '${torneo.beys}')" class="w-full bg-yellow-500 hover:bg-yellow-400 active:bg-yellow-600 text-gray-950 font-black py-3 rounded-lg text-sm tracking-wide relative z-10 transition-colors shadow-[0_0_15px_rgba(234,179,8,0.3)]"><i class="fab fa-paypal mr-1.5"></i> INSCRIBIRSE Y PAGAR (${feeTxt} €)</button>`;
                     } else {
                         botonesHTML = `<button onclick="abrirModal(${torneo.id}, '${torneo.status}', null, null, '${torneo.beys}')" class="w-full bg-cyan-600 active:bg-cyan-500 text-white font-bold py-3 rounded-lg text-sm tracking-wide relative z-10 transition-colors">INSCRIBIRSE</button>`;
                     }
@@ -359,9 +367,12 @@
                                 </div>
                             </div>
 
-                            <!-- Etiqueta derecha (Tipo de Evento) -->
-                            <div class="pt-3.5 pr-4 shrink-0">
+                            <!-- Etiqueta derecha (Tipo de Evento y Pago) -->
+                            <div class="pt-3.5 pr-4 shrink-0 flex flex-col items-end gap-1">
                                 <span class="text-[9px] ${badge} border px-2 py-1 rounded font-black uppercase shadow-sm">${torneo.beys || 'EVENTO'}</span>
+                                ${torneo.is_paid_event ? (torneo.effective_entry_fee > 0
+                                    ? `<span class="text-[9px] bg-yellow-500/20 text-yellow-300 border border-yellow-500/60 px-2 py-0.5 rounded font-mono font-black shadow-sm"><i class="fab fa-paypal mr-1"></i>${Number(torneo.effective_entry_fee).toFixed(2).replace('.', ',')} €</span>`
+                                    : `<span class="text-[9px] bg-red-950/90 text-red-300 border border-red-500/60 px-2 py-0.5 rounded font-black shadow-sm">SIN TARIFA</span>`) : ''}
                             </div>
                         </div>
 
@@ -574,6 +585,11 @@
 
     async function enviarDeck(e) {
         e.preventDefault();
+        const paypalWrap = document.getElementById('hubPaypalWrapper');
+        if (paypalWrap && !paypalWrap.classList.contains('hidden')) {
+            mostrarToast("Completa el pago con PayPal para confirmar tu plaza.", true);
+            return;
+        }
         const btn = document.getElementById('btnSubmitDeck');
         const isTentative = document.getElementById('tentativeCheck').checked;
 
@@ -1218,7 +1234,21 @@
         } catch (error) { console.warn("Deck nuevo o error de carga"); }
 
         const btnSubmit = document.getElementById('btnSubmitDeck');
+        const paypalWrap = document.getElementById('hubPaypalWrapper');
+        const paypalBtns = document.getElementById('hubPaypalButtons');
+        const paypalMsg = document.getElementById('hubPaypalMsg');
         const formElements = document.querySelectorAll('#deckForm select, #deckForm input');
+        const torneoInfo = hubTorneosCache[eventId] || null;
+        const requiresHubPayment = !targetUserId
+            && torneoInfo
+            && torneoInfo.is_paid_event
+            && !torneoInfo.is_inscribed
+            && (torneoInfo.effective_entry_fee > 0)
+            && status === 'OPEN';
+
+        if (paypalWrap) paypalWrap.classList.add('hidden');
+        if (paypalBtns) paypalBtns.innerHTML = '';
+        if (paypalMsg) paypalMsg.innerHTML = '';
 
         if ((status === 'LIVE' || status === 'COMPLETED') && !targetUserId) {
             formElements.forEach(el => { if (el.tomselect) el.tomselect.disable(); else el.disabled = true; });
@@ -1226,6 +1256,15 @@
             if (warning) {
                 warning.innerHTML = '<span class="text-red-400 font-bold uppercase tracking-widest"><i class="fas fa-lock mr-2"></i> TORNEO EN CURSO. DECK BLOQUEADO.</span>';
                 warning.classList.remove('hidden');
+            }
+        } else if (requiresHubPayment) {
+            formElements.forEach(el => { if (el.tomselect) el.tomselect.enable(); else el.disabled = false; });
+            btnSubmit.style.display = 'none';
+            if (paypalWrap) {
+                paypalWrap.classList.remove('hidden');
+                const feeBadge = document.getElementById('hubPaypalFeeBadge');
+                if (feeBadge) feeBadge.textContent = Number(torneoInfo.effective_entry_fee).toFixed(2).replace('.', ',') + ' €';
+                renderizarPayPalHub(eventId);
             }
         } else {
             formElements.forEach(el => { if (el.tomselect) el.tomselect.enable(); else el.disabled = false; });
@@ -1263,8 +1302,127 @@
         } catch (error) { mostrarToast("Error al recuperar el historial.", true); }
     }
 
+    function renderizarPayPalHub(eventId) {
+        const container = document.getElementById('hubPaypalButtons');
+        const msg = document.getElementById('hubPaypalMsg');
+        if (!container) return;
+        container.innerHTML = '';
+
+        if (typeof window.paypal === 'undefined') {
+            if (msg) msg.innerHTML = '<span class="text-red-400">⚠️ Pasarela PayPal no disponible en este momento.</span>';
+            return;
+        }
+
+        const csrf = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+
+        window.paypal.Buttons({
+            style: { color: 'gold', shape: 'rect', label: 'pay', height: 42 },
+
+            createOrder: function () {
+                if (msg) msg.innerHTML = '';
+                const isTentative = document.getElementById('tentativeCheck')?.checked;
+                if (!isTentative) {
+                    let valido = true;
+                    document.querySelectorAll('select.deck-req').forEach(s => {
+                        const val = s.tomselect ? s.tomselect.getValue() : s.value;
+                        if (!val || val.trim() === '') valido = false;
+                    });
+                    if (!valido) {
+                        if (msg) msg.innerHTML = '<span class="text-red-400">❌ Selecciona las piezas obligatorias de tu Deck o activa "Inscripción Tentativa".</span>';
+                        triggerHaptic('error');
+                        return Promise.reject(new Error('Deck incompleto'));
+                    }
+                }
+
+                return fetch(`/api/torneos/${eventId}/paypal/order`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json',
+                        'X-CSRF-TOKEN': csrf
+                    },
+                    body: JSON.stringify({})
+                }).then(async res => {
+                    const data = await res.json();
+                    if (!res.ok || !data.id) {
+                        const err = data.error || 'No se pudo iniciar la orden en PayPal.';
+                        if (msg) msg.innerHTML = `<span class="text-red-400">❌ ${err}</span>`;
+                        triggerHaptic('error');
+                        throw new Error(err);
+                    }
+                    return data.id;
+                });
+            },
+
+            onApprove: function (data) {
+                if (msg) msg.innerHTML = '<span class="text-yellow-400"><i class="fas fa-spinner fa-spin mr-1"></i> Verificando pago e inscribiendo...</span>';
+
+                const isTentative = !!(document.getElementById('tentativeCheck')?.checked);
+                const blades = [], ratchets = [], bits = [], over_blades = [], assist_blades = [];
+
+                for (let i = 1; i <= 3; i++) {
+                    const bEl = document.getElementById(`blade_${i}`);
+                    if (!bEl) continue;
+                    const readVal = (id) => {
+                        const el = document.getElementById(id);
+                        if (!el) return '';
+                        return el.tomselect ? el.tomselect.getValue() : el.value;
+                    };
+                    blades.push(readVal(`blade_${i}`));
+                    ratchets.push(readVal(`ratchet_${i}`));
+                    bits.push(readVal(`bit_${i}`));
+                    over_blades.push(readVal(`over_blade_${i}`));
+                    assist_blades.push(readVal(`assist_blade_${i}`));
+                }
+
+                return fetch(`/api/torneos/${eventId}/paypal/capture`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json',
+                        'X-CSRF-TOKEN': csrf
+                    },
+                    body: JSON.stringify({
+                        orderID: data.orderID,
+                        is_tentative: isTentative,
+                        blades: blades,
+                        ratchets: ratchets,
+                        bits: bits,
+                        over_blades: over_blades,
+                        assist_blades: assist_blades
+                    })
+                }).then(async res => {
+                    const result = await res.json();
+                    if (res.ok && result.status === 'success') {
+                        mostrarToast('✅ ¡Pago confirmado e inscripción completada!');
+                        triggerHaptic('heavy');
+                        cerrarModal();
+                        cargarEventos();
+                    } else {
+                        if (msg) msg.innerHTML = `<span class="text-red-400">❌ ${result.message || 'Error al verificar el pago.'}</span>`;
+                        triggerHaptic('error');
+                    }
+                }).catch(() => {
+                    if (msg) msg.innerHTML = '<span class="text-red-400">❌ Error de red al confirmar el pago.</span>';
+                    triggerHaptic('error');
+                });
+            },
+
+            onError: function () {
+                if (msg && !msg.innerHTML) {
+                    msg.innerHTML = '<span class="text-red-400">❌ Operación cancelada o con error en PayPal.</span>';
+                }
+            }
+        }).render('#hubPaypalButtons');
+    }
+
     async function cancelarAsistencia(eventId) {
-        triggerHaptic('medium'); if (!confirm('¿Retirar tu inscripción?')) return;
+        triggerHaptic('medium');
+        const torneoInfo = hubTorneosCache[eventId] || null;
+        const confirmMsg = (torneoInfo && torneoInfo.is_paid_event)
+            ? '¿Retirar tu inscripción?\n\nAl ser un evento de pago, tu baja generará un aviso en Tesorería para que Administración tramite tu reembolso manualmente.'
+            : '¿Retirar tu inscripción?';
+        if (!confirm(confirmMsg)) return;
         try {
             const res = await fetch(`/api/torneos/${eventId}/asistencia`, { method: 'DELETE', headers: { 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'), 'Accept': 'application/json' }});
             const data = await res.json(); mostrarToast(data.message, !res.ok); if (res.ok) { cargarEventos(); triggerHaptic('heavy'); }
@@ -3056,6 +3214,14 @@
             document.getElementById('manage_stadiums').value = eventData.stadiums;
             document.getElementById('manage_max_players').value = eventData.max_players || '';
 
+            const chkPaid = document.getElementById('manage_is_paid');
+            const inpFee = document.getElementById('manage_entry_fee');
+            if (chkPaid && inpFee) {
+                chkPaid.checked = !!(eventData.is_paid_event || eventData.is_paid);
+                inpFee.value = eventData.effective_entry_fee || eventData.entry_fee || '';
+                toggleHubPaidFeeInput();
+            }
+
             actualizarReglasEventManager(eventData.deck, eventData.configuration);
 
             footer.innerHTML = `
@@ -3066,6 +3232,13 @@
             document.getElementById('eventManagerTitle').innerHTML = '<i class="fas fa-calendar-plus text-cyan-400 mr-2"></i> NUEVO EVENTO';
             document.getElementById('manage_event_id').value = '';
             document.getElementById('manage_note').value = '';
+            const chkPaidNew = document.getElementById('manage_is_paid');
+            const inpFeeNew = document.getElementById('manage_entry_fee');
+            if (chkPaidNew && inpFeeNew) {
+                chkPaidNew.checked = false;
+                inpFeeNew.value = '';
+                toggleHubPaidFeeInput();
+            }
             actualizarReglasEventManager();
 
             footer.innerHTML = `
@@ -3078,12 +3251,30 @@
         document.body.style.overflow = 'hidden';
     }
 
+    function toggleHubPaidFeeInput() {
+        const chk = document.getElementById('manage_is_paid');
+        const box = document.getElementById('manage_entry_fee_box');
+        const inp = document.getElementById('manage_entry_fee');
+        if (!chk || !box) return;
+        if (chk.checked) {
+            box.classList.remove('hidden');
+        } else {
+            box.classList.add('hidden');
+            if (inp) inp.value = '';
+        }
+    }
+
     async function enviarEventManager(e) {
         e.preventDefault();
         triggerHaptic('heavy');
 
         const form = document.getElementById('eventManagerForm');
         const formData = new FormData(form);
+        const chkPaid = document.getElementById('manage_is_paid');
+        if (chkPaid) {
+            formData.set('is_paid', chkPaid.checked ? '1' : '0');
+            if (!chkPaid.checked) formData.delete('entry_fee');
+        }
         const eventId = document.getElementById('manage_event_id').value;
         const isEdit = eventId !== '';
 

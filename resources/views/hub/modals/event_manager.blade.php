@@ -93,22 +93,6 @@
                         </div>
                     </div>
 
-                    <div class="grid grid-cols-2 gap-3 mt-4">
-                        <div>
-                            <label class="text-[10px] text-cyan-400 font-bold tracking-widest uppercase block mb-1">Ciudad *</label>
-                            <input type="text" name="city" id="manage_city" class="w-full bg-gray-800 border border-gray-700 text-white text-sm p-3 rounded-lg focus:border-cyan-400 outline-none" required>
-                        </div>
-                        <div>
-                            <label class="text-[10px] text-cyan-400 font-bold tracking-widest uppercase block mb-1">Lugar Exacto *</label>
-                            <input type="text" name="location" id="manage_location" class="w-full bg-gray-800 border border-gray-700 text-white text-sm p-3 rounded-lg focus:border-cyan-400 outline-none" placeholder="Ej. Parque..." required>
-                        </div>
-                    </div>
-
-                    <div>
-                        <label class="text-[10px] text-cyan-400 font-bold tracking-widest uppercase block mb-1">Ubicación Exacta *</label>
-                        <input type="text" name="location" id="manage_location" class="w-full bg-gray-800 border border-gray-700 text-white text-sm p-3 rounded-lg focus:border-cyan-400 outline-none" placeholder="Ej. Parque del Retiro" required>
-                    </div>
-
                     <div class="grid grid-cols-2 gap-3">
                         <div>
                             <label class="text-[10px] text-cyan-400 font-bold tracking-widest uppercase block mb-1">Fecha *</label>
@@ -136,6 +120,24 @@
                             <input type="number" name="max_players" id="manage_max_players" class="w-full bg-gray-800 border border-gray-700 text-white text-sm p-3 rounded-lg focus:border-cyan-400 outline-none text-center" placeholder="Auto">
                         </div>
                     </div>
+
+                    @if(Auth::check() && Auth::user()->hasRole('admin'))
+                    <!-- Configuración de Evento de Pago (Solo Admin) -->
+                    <div class="p-3 bg-yellow-950/20 rounded-lg border border-yellow-600/50 space-y-3">
+                        <label class="flex items-center gap-3 cursor-pointer">
+                            <input type="checkbox" name="is_paid" id="manage_is_paid" value="1" onchange="toggleHubPaidFeeInput()" class="w-5 h-5 accent-yellow-500">
+                            <span class="text-xs font-bold text-yellow-400 uppercase tracking-wider">
+                                <i class="fab fa-paypal mr-1"></i> Evento de Pago (Solo Admin)
+                            </span>
+                        </label>
+                        <div id="manage_entry_fee_box" class="hidden">
+                            <label class="text-[10px] text-yellow-400 font-bold tracking-widest uppercase block mb-1">
+                                <i class="fas fa-euro-sign mr-1"></i> Precio Inscripción (€)
+                            </label>
+                            <input type="number" step="0.01" min="0.50" max="999.99" name="entry_fee" id="manage_entry_fee" class="w-full bg-gray-800 border border-yellow-600/60 text-white text-sm p-2.5 rounded-lg focus:border-yellow-400 outline-none font-mono font-bold" placeholder="Ej: 5.00">
+                        </div>
+                    </div>
+                    @endif
                 </div>
             </form>
         </div>

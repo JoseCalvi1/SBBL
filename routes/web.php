@@ -69,6 +69,8 @@ Route::middleware('auth')->prefix('api')->group(function () {
 
     // Inscripción, Decks y Arbitraje de Torneos
     Route::post('/torneos/{eventId}/deck', [HubController::class, 'guardarDeck']);
+    Route::post('/torneos/{event}/paypal/order', [EventController::class, 'createEventPayPalOrder'])->name('api.events.paypal.order');
+    Route::post('/torneos/{event}/paypal/capture', [EventController::class, 'captureEventPayPalOrder'])->name('api.events.paypal.capture');
     Route::get('/torneos/{id}/mi-deck', [TournamentEngineController::class, 'getMiDeck']);
     Route::delete('/torneos/{eventId}/asistencia', [HubController::class, 'cancelarAsistencia']);
     Route::post('/torneos/{eventId}/juez', [HubController::class, 'toggleJudge']);

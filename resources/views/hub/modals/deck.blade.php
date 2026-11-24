@@ -19,6 +19,21 @@
                 </div>
                 <div id="beysContainer" class="space-y-4"></div>
                 <button type="submit" id="btnSubmitDeck" class="w-full bg-cyan-600 active:bg-cyan-500 text-white font-bold py-3 mt-6 rounded-lg text-sm tracking-wide shadow-md transition-colors">CONFIRMAR DECK</button>
+
+                <!-- PASARELA PAYPAL BUSINESS PARA EVENTOS DE PAGO -->
+                <div id="hubPaypalWrapper" class="hidden mt-6 p-3 bg-gray-950 border border-yellow-500/60 rounded-xl">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-[10px] font-bold uppercase tracking-widest text-yellow-400">
+                            <i class="fab fa-paypal mr-1"></i> INSCRIPCIÓN DE PAGO VERIFICADA
+                        </span>
+                        <span id="hubPaypalFeeBadge" class="text-sm font-mono font-black text-yellow-300"></span>
+                    </div>
+                    <p class="text-[11px] text-gray-400 mb-3">
+                        Configura tu Deck (o marca Inscripción Tentativa) y completa el pago con PayPal o Tarjeta para confirmar tu plaza.
+                    </p>
+                    <div id="hubPaypalButtons"></div>
+                    <div id="hubPaypalMsg" class="mt-2 text-xs font-bold text-center"></div>
+                </div>
             </form>
         </div>
     </div>

@@ -156,13 +156,12 @@ class EventController extends Controller
             return back()->withInput()->with('error', '⚠️ Acceso denegado: Solo los Jueces Oficiales y Administradores de la SBBL pueden crear Eventos Oficiales.');
         }
 
-        if ($request->boolean('is_paid') && !Auth::user()->hasAnyRole(['admin', 'juez', 'judge'])) {
-            return back()->withInput()->with('error', '⚠️ Acceso denegado: Solo Jueces y Administradores pueden crear eventos de pago.');
+        if ($request->boolean('is_paid') && !Auth::user()->hasRole('admin')) {
+            return back()->withInput()->with('error', '⚠️ Acceso denegado: De momento solo Administradores pueden crear eventos de pago.');
         }
 
         $isAdmin = Auth::user()->hasRole('admin');
-        $canCreatePaid = Auth::user()->hasAnyRole(['admin', 'juez', 'judge']);
-        $isPaid = $canCreatePaid && ($request->boolean('is_paid') || $data['imagen'] === 'copapaypal');
+        $isPaid = $isAdmin && ($request->boolean('is_paid') || $data['imagen'] === 'copapaypal');
         $entryFee = ($isAdmin && $request->filled('entry_fee') && (float) $request->input('entry_fee') > 0)
             ? round((float) $request->input('entry_fee'), 2)
             : null;
@@ -565,9 +564,8 @@ class EventController extends Controller
             // 3. IMAGEN BASE
             $rutaImagen = $this->resolveImage($request->region_id, $request->imagen);
 
-            // Regla de negocio: Jueces y Admins pueden activar evento de pago, pero SOLO Admin fija/modifica el precio
+            // Regla de negocio: De momento solo Admin puede activar/desactivar evento de pago y fijar el precio
             $isAdmin = Auth::user()->hasRole('admin');
-            $isJudgeOrAdmin = Auth::user()->hasAnyRole(['admin', 'juez', 'judge']);
 
             $newIsPaid = $event->is_paid;
             $newEntryFee = $event->entry_fee;
@@ -579,14 +577,6 @@ class EventController extends Controller
                 } elseif (!$newIsPaid) {
                     $newEntryFee = null;
                 }
-            } elseif ($isJudgeOrAdmin) {
-                $hasCompletedPayments = \App\Models\TreasuryLog::where('event_id', $event->id)
-                    ->where('status', 'completado')
-                    ->exists();
-                if (!$hasCompletedPayments) {
-                    $newIsPaid = $request->boolean('is_paid') || $request->imagen === 'copapaypal';
-                }
-                // El juez nunca modifica $newEntryFee
             }
 
             // 4. ACTUALIZACIÓN MASIVA Y MANUAL
@@ -1390,10 +1380,22 @@ private function sendResponse($type, $message, $request, $code = 200)
             'note'              => 'nullable|string|max:5000',
             'stadiums'          => 'required|integer|min:1',
             'max_players'       => 'nullable|integer|min:1',
+            'is_paid'           => 'nullable|boolean',
+            'entry_fee'         => 'nullable|numeric|min:0.50|max:999.99',
         ]);
 
         try {
             $rutaImagen = $this->resolveImage($data['region_id'], $request->imagen);
+
+            // Solo Admin puede crear eventos de pago y fijar su precio
+            $isAdmin = Auth::user()->hasRole('admin');
+            $isPaid = $isAdmin && ($request->boolean('is_paid') || $request->imagen === 'copapaypal');
+            $entryFee = ($isAdmin && $request->filled('entry_fee') && (float) $request->input('entry_fee') > 0)
+                ? round((float) $request->input('entry_fee'), 2)
+                : null;
+            if ($entryFee !== null) {
+                $isPaid = true;
+            }
 
             $event = Event::create([
                 'name'              => $data['name'],
@@ -1411,6 +1413,8 @@ private function sendResponse($type, $message, $request, $code = 200)
                 'note'              => $data['note'] ?? null,
                 'stadiums'          => $data['stadiums'],
                 'max_players'       => $request->input('max_players'),
+                'is_paid'           => $isPaid,
+                'entry_fee'         => $isPaid ? $entryFee : null,
                 'has_stadium_limit' => $request->filled('max_players'),
                 'created_by'        => Auth::id(),
                 'status'            => 'OPEN',
@@ -1454,10 +1458,26 @@ private function sendResponse($type, $message, $request, $code = 200)
             'note'              => 'nullable|string',
             'stadiums'          => 'required|integer|min:1',
             'max_players'       => 'nullable|integer|min:1',
+            'is_paid'           => 'nullable|boolean',
+            'entry_fee'         => 'nullable|numeric|min:0.50|max:999.99',
         ]);
 
         try {
             $rutaImagen = $this->resolveImage($data['region_id'], $request->imagen);
+
+            // Solo Admin puede modificar si es evento de pago o su precio
+            $isAdmin = Auth::user()->hasRole('admin');
+            $newIsPaid = $event->is_paid;
+            $newEntryFee = $event->entry_fee;
+
+            if ($isAdmin) {
+                $newIsPaid = $request->boolean('is_paid') || $request->imagen === 'copapaypal';
+                if ($newIsPaid && $request->filled('entry_fee') && (float) $request->input('entry_fee') > 0) {
+                    $newEntryFee = round((float) $request->input('entry_fee'), 2);
+                } elseif (!$newIsPaid) {
+                    $newEntryFee = null;
+                }
+            }
 
             $event->update([
                 'name'              => $data['name'],
@@ -1475,6 +1495,8 @@ private function sendResponse($type, $message, $request, $code = 200)
                 'note'              => $data['note'] ?? null,
                 'stadiums'          => $data['stadiums'],
                 'max_players'       => $request->input('max_players'),
+                'is_paid'           => $newIsPaid,
+                'entry_fee'         => $newEntryFee,
             ]);
 
             return response()->json(['success' => true, 'message' => '¡Evento actualizado!']);
