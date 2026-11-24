@@ -238,6 +238,12 @@
 @endsection
 
 @section('scripts')
+@php
+    $qualifiedCopyLines = $qualifiedList->map(function ($q) {
+        $pos = $q['puesto'] === 'primero' ? '[1º]' : '[2º]';
+        return $pos . ' ' . $q['user_name'] . ' #' . str_pad($q['user_id'], 4, '0', STR_PAD_LEFT) . ' (' . $q['event_name'] . ')';
+    })->values()->all();
+@endphp
 <script>
 document.addEventListener('DOMContentLoaded', function () {
     const toggle = document.getElementById('toggleOnlyQualified');
@@ -256,7 +262,7 @@ document.addEventListener('DOMContentLoaded', function () {
 });
 
 function copyQualifiedList() {
-    const lines = @json($qualifiedList->map(fn($q) => ($q['puesto'] === 'primero' ? '[1º]' : '[2º]') . ' ' . $q['user_name'] . ' #' . str_pad($q['user_id'], 4, '0', STR_PAD_LEFT) . ' (' . $q['event_name'] . ')')->values()->all());
+    const lines = @json($qualifiedCopyLines);
     if (navigator.clipboard) {
         navigator.clipboard.writeText(lines.join('\n')).then(() => alert('Lista de clasificados copiada al portapapeles.'));
     }
