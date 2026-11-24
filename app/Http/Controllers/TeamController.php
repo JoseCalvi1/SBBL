@@ -243,6 +243,11 @@ class TeamController extends Controller
     public function destroy(Team $equipo)
     {
         $equipo->delete();
+
+        if (str_contains(url()->previous(), '/dashboard/teams')) {
+            return redirect()->back()->with('success', 'Equipo eliminado exitosamente.');
+        }
+
         return redirect()->route('equipos.index')->with('success', 'Equipo eliminado exitosamente.');
     }
 

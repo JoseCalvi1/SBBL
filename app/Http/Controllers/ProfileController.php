@@ -262,58 +262,14 @@ class ProfileController extends Controller
             'net' => $totalNet
         ];
 
-        // 5. RADAR REGIONAL (Estadísticas de Staff y Participación)
-        // Recogemos el filtro de la URL, por defecto el mes y año actuales
-        $radarMonth = $request->input('radar_month', now()->month);
-        $radarYear = $request->input('radar_year', now()->year);
+        // 5. EQUIDAD ARBITRAL (Torneos de Ranking con arbitraje desde la activación del Hub)
+        $radarMonth = $request->input('radar_month', 'all');
+        $radarYear = $request->input('radar_year', 'all');
 
-        $regionalStats = \App\Models\Region::all()->map(function($region) use ($radarMonth, $radarYear) {
-
-            // Contar Staff asignado a esta región (Jueces y Árbitros)
-            $staffInRegion = \App\Models\Profile::where('region_id', $region->id)
-                ->whereHas('user.roles', function($q) {
-                    $q->whereIn('name', ['juez', 'arbitro']);
-                })->count();
-
-            // Preparamos la consulta de eventos en esa región
-            $eventsQuery = \App\Models\Event::where('region_id', $region->id);
-
-            // Aplicamos los filtros de fecha si no han seleccionado "Todos"
-            if ($radarMonth !== 'all') {
-                $eventsQuery->whereMonth('date', $radarMonth);
-            }
-            if ($radarYear !== 'all') {
-                $eventsQuery->whereYear('date', $radarYear);
-            }
-
-            $eventsInPeriod = $eventsQuery->get();
-
-            // Total de Bladers (inscripciones) en esos eventos filtrados
-            $totalPlayersInPeriod = 0;
-            foreach($eventsInPeriod as $event) {
-                $totalPlayersInPeriod += \Illuminate\Support\Facades\DB::table('assist_user_event')
-                    ->where('event_id', $event->id)
-                    ->count();
-            }
-
-            // Cálculo de Medias
-            $eventsCount = $eventsInPeriod->count();
-            $avgPlayersPerEvent = $eventsCount > 0 ? round($totalPlayersInPeriod / $eventsCount, 1) : 0;
-
-            // Ratio de carga de trabajo
-            $workloadRatio = ($staffInRegion > 0 && $eventsCount > 0)
-                ? round($avgPlayersPerEvent / $staffInRegion, 1)
-                : $avgPlayersPerEvent;
-
-            return (object) [
-                'name' => $region->name,
-                'staff_count' => $staffInRegion,
-                'events_count' => $eventsCount,
-                'total_players' => $totalPlayersInPeriod,
-                'avg_players' => $avgPlayersPerEvent,
-                'ratio' => $workloadRatio
-            ];
-        })->sortByDesc('total_players');
+        $arbitrationData = $this->buildArbitrationEquityStats($radarMonth, $radarYear);
+        $regionalStats = $arbitrationData['regionalStats'];
+        $tournamentBreakdown = $arbitrationData['tournamentBreakdown'];
+        $arbitrationSummary = $arbitrationData['summary'];
 
         // 6. USUARIOS VINCULADOS A DISCORD (Sin usar campos nuevos en BD)
         $discordUsers = \App\Models\User::whereNotNull('discord_id')->orderBy('name')->get();
@@ -344,8 +300,9 @@ class ProfileController extends Controller
         return view('profiles.indexAdmin', compact(
             'profiles', 'allUsers', 'subscriptions', 'selectedBlader',
             'bladerHistory', 'selectedBladerId', 'granCopaEvents',
-            'treasuryStats', 'plans', 'regionalStats', 'radarMonth', 'radarYear',
-            'discordUsers', 'discordNamesMap' // <-- Añadimos estas dos variables
+            'treasuryStats', 'plans', 'regionalStats', 'tournamentBreakdown',
+            'arbitrationSummary', 'radarMonth', 'radarYear',
+            'discordUsers', 'discordNamesMap'
         ));
     }
 
@@ -1276,6 +1233,150 @@ public function showPublic($slug)
         $slug = preg_replace('/\s+/', '-', trim($slug));
         $slug = preg_replace('/[^a-z0-9\-_.]/', '', $slug);
         return $slug;
+    }
+
+    /**
+     * Construye las estadísticas de equidad arbitral desde la activación del sistema de arbitraje en el Hub.
+     */
+    private function buildArbitrationEquityStats($radarMonth, $radarYear): array
+    {
+        $hubArbitrationStart = '2026-10-09';
+
+        $eventsQuery = \App\Models\Event::with(['region', 'province', 'judges.roles'])
+            ->whereIn('beys', ['ranking', 'rankingplus'])
+            ->where('date', '>=', $hubArbitrationStart)
+            ->whereHas('judges');
+
+        if ($radarMonth !== 'all') {
+            $eventsQuery->whereMonth('date', $radarMonth);
+        }
+        if ($radarYear !== 'all') {
+            $eventsQuery->whereYear('date', $radarYear);
+        }
+
+        $events = $eventsQuery->orderByDesc('date')->get();
+
+        // Conteo de participantes por evento en una sola consulta agregada
+        $eventIds = $events->pluck('id');
+        $participantsByEvent = collect();
+        if ($eventIds->isNotEmpty()) {
+            $participantsByEvent = \Illuminate\Support\Facades\DB::table('assist_user_event')
+                ->select('event_id', 'user_id')
+                ->whereIn('event_id', $eventIds)
+                ->get()
+                ->groupBy('event_id');
+        }
+
+        $enrichedEvents = $events->map(function ($event) use ($participantsByEvent) {
+            $staffNames = [];
+            $helperNames = [];
+
+            foreach ($event->judges as $judge) {
+                $roles = $judge->roles->pluck('name');
+                $isOfficialStaff = $roles->contains('admin') || $roles->contains('juez') || $roles->contains('arbitro');
+
+                if ($isOfficialStaff) {
+                    $staffNames[] = $judge->name;
+                } else {
+                    $label = $roles->contains('revisor') ? "{$judge->name} (Revisor)" : "{$judge->name} (Manual)";
+                    $helperNames[] = $label;
+                }
+            }
+
+            $eventParticipants = $participantsByEvent->get($event->id, collect());
+            $dateObj = \Carbon\Carbon::parse($event->date);
+
+            return (object) [
+                'id' => $event->id,
+                'name' => $event->name,
+                'beys' => $event->beys,
+                'date' => $event->date,
+                'date_formatted' => $dateObj->format('d/m/Y'),
+                'month_key' => $dateObj->format('Y-m'),
+                'month_label' => mb_strtoupper($dateObj->translatedFormat('F Y')),
+                'region_id' => $event->region_id,
+                'region_name' => $event->region->name ?? 'Sin región',
+                'province_id' => $event->province_id,
+                'province_name' => $event->province->name ?? 'Sin provincia',
+                'user_ids' => $eventParticipants->pluck('user_id')->unique()->values(),
+                'participants_count' => $eventParticipants->count(),
+                'staff_count' => count($staffNames),
+                'helpers_count' => count($helperNames),
+                'total_arbitration' => count($staffNames) + count($helperNames),
+                'staff_names' => $staffNames,
+                'helper_names' => $helperNames,
+            ];
+        });
+
+        $regions = \App\Models\Region::with('provinces')->get();
+
+        $regionalStats = $regions->map(function ($region) use ($enrichedEvents) {
+            $regionEvents = $enrichedEvents->where('region_id', $region->id)->values();
+            $regionSummary = $this->summarizeEventsCollection($regionEvents);
+            $hasMultipleProvinces = $region->provinces->count() > 1;
+
+            $provincesStats = collect();
+            if ($hasMultipleProvinces) {
+                $provincesStats = $region->provinces->map(function ($province) use ($regionEvents) {
+                    $provEvents = $regionEvents->where('province_id', $province->id)->values();
+                    $provSummary = $this->summarizeEventsCollection($provEvents);
+
+                    return (object) array_merge($provSummary, [
+                        'id' => $province->id,
+                        'name' => $province->name,
+                        'monthly_breakdown' => $this->buildMonthlyBreakdown($provEvents),
+                    ]);
+                })->sortByDesc('events_count')->values();
+            }
+
+            return (object) array_merge($regionSummary, [
+                'id' => $region->id,
+                'name' => $region->name,
+                'has_multiple_provinces' => $hasMultipleProvinces,
+                'provinces_stats' => $provincesStats,
+                'monthly_breakdown' => $this->buildMonthlyBreakdown($regionEvents),
+            ]);
+        })->sortByDesc('events_count')->values();
+
+        $globalSummary = $this->summarizeEventsCollection($enrichedEvents);
+
+        return [
+            'regionalStats' => $regionalStats,
+            'tournamentBreakdown' => $enrichedEvents,
+            'summary' => (object) $globalSummary,
+        ];
+    }
+
+    /**
+     * Resume métricas agregadas de una colección de eventos enriquecidos.
+     */
+    private function summarizeEventsCollection($events): array
+    {
+        $uniqueUsers = $events->flatMap(fn ($e) => $e->user_ids)->unique()->count();
+
+        return [
+            'events_count' => $events->count(),
+            'unique_participants' => $uniqueUsers,
+            'total_inscriptions' => $events->sum('participants_count'),
+            'staff_count' => $events->sum('staff_count'),
+            'helpers_count' => $events->sum('helpers_count'),
+            'total_arbitration' => $events->sum('total_arbitration'),
+        ];
+    }
+
+    /**
+     * Agrupa eventos enriquecidos por mes para mostrar el desglose mensual.
+     */
+    private function buildMonthlyBreakdown($events)
+    {
+        return $events->groupBy('month_key')
+            ->sortKeysDesc()
+            ->map(function ($monthEvents) {
+                $summary = $this->summarizeEventsCollection($monthEvents);
+                return (object) array_merge($summary, [
+                    'month_label' => $monthEvents->first()->month_label,
+                ]);
+            })->values();
     }
 
 }

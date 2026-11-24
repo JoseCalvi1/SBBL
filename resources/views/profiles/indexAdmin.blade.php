@@ -127,21 +127,26 @@
     @endif
 
     {{-- NAVEGACIÓN PESTAÑAS --}}
+    @php
+        $isEquityTabActive = request()->has('radar_month') || request()->has('radar_year');
+        $isBladerTabActive = !$isEquityTabActive && request('blader_id');
+        $isRolesTabActive = !$isEquityTabActive && !$isBladerTabActive;
+    @endphp
     <ul class="nav nav-tabs" id="userTabs" role="tablist">
         <li class="nav-item">
-            <a class="nav-link {{ request('blader_id') ? '' : 'active' }}" id="roles-tab" data-bs-toggle="tab" href="#roles" role="tab"><span><i class="fas fa-id-card-alt me-2"></i> ROLES Y ACCESOS</span></a>
+            <a class="nav-link {{ $isRolesTabActive ? 'active' : '' }}" id="roles-tab" data-bs-toggle="tab" href="#roles" role="tab"><span><i class="fas fa-id-card-alt me-2"></i> ROLES Y ACCESOS</span></a>
         </li>
         <li class="nav-item">
             <a class="nav-link" id="subs-tab" data-bs-toggle="tab" href="#subs" role="tab"><span><i class="fas fa-gem me-2"></i> SUSCRIPCIONES</span></a>
         </li>
         <li class="nav-item">
-            <a class="nav-link {{ request('blader_id') ? 'active' : '' }}" id="stats-tab" data-bs-toggle="tab" href="#stats" role="tab"><span><i class="fas fa-search me-2"></i> HISTORIAL DE BLADER</span></a>
+            <a class="nav-link {{ $isBladerTabActive ? 'active' : '' }}" id="stats-tab" data-bs-toggle="tab" href="#stats" role="tab"><span><i class="fas fa-search me-2"></i> HISTORIAL DE BLADER</span></a>
         </li>
         <li class="nav-item">
             <a class="nav-link" id="treasury-tab" data-bs-toggle="tab" href="#treasury" role="tab"><span><i class="fas fa-coins me-2"></i> TESORERÍA</span></a>
         </li>
         <li class="nav-item">
-            <a class="nav-link" id="regional-tab" data-bs-toggle="tab" href="#regional" role="tab"><span><i class="fas fa-map-marked-alt me-2"></i> RADAR REGIONAL</span></a>
+            <a class="nav-link {{ $isEquityTabActive ? 'active' : '' }}" id="regional-tab" data-bs-toggle="tab" href="#regional" role="tab"><span><i class="fas fa-balance-scale me-2"></i> EQUIDAD ARBITRAL</span></a>
         </li>
         <li class="nav-item">
             <a class="nav-link" id="discord-tab" data-bs-toggle="tab" href="#discord" role="tab"><span><i class="fab fa-discord me-2" style="color: #5865F2;"></i> DISCORD</span></a>
@@ -153,7 +158,7 @@
         {{-- =====================================
              PESTAÑA 1: ROLES
              ===================================== --}}
-        <div class="tab-pane fade {{ request('blader_id') ? '' : 'show active' }}" id="roles" role="tabpanel" aria-labelledby="roles-tab">
+        <div class="tab-pane fade {{ $isRolesTabActive ? 'show active' : '' }}" id="roles" role="tabpanel" aria-labelledby="roles-tab">
 
             {{-- PANEL: ASIGNAR NUEVO ROL --}}
             <div class="command-panel p-4 mb-5" style="background: rgba(0,0,0,0.5); border: 2px solid var(--sbbl-gold);">
@@ -522,12 +527,12 @@
             </div>
         </div>
         {{-- =====================================
-             PESTAÑA 5: ESTADÍSTICAS REGIONALES
+             PESTAÑA 5: EQUIDAD ARBITRAL
              ===================================== --}}
-        <div class="tab-pane fade {{ request()->has('radar_month') ? 'show active' : '' }}" id="regional" role="tabpanel" aria-labelledby="regional-tab">
+        <div class="tab-pane fade {{ $isEquityTabActive ? 'show active' : '' }}" id="regional" role="tabpanel" aria-labelledby="regional-tab">
 
-            {{-- FILTROS REGIONALES --}}
-            <div class="command-panel p-4 mb-5" style="background: rgba(0,0,0,0.5); border: 2px solid var(--shonen-cyan);">
+            {{-- FILTROS --}}
+            <div class="command-panel p-4 mb-4" style="background: rgba(0,0,0,0.5); border: 2px solid var(--shonen-cyan);">
                 <form method="GET" action="{{ route('profiles.indexAdmin') }}">
                     <div class="row g-3 align-items-end">
                         <div class="col-md-5">
@@ -544,8 +549,8 @@
                         <div class="col-md-4">
                             <label class="text-white font-bangers fs-5 mb-2">AÑO</label>
                             <select name="radar_year" class="form-control bg-dark text-white border-secondary">
-                                <option value="all" {{ $radarYear === 'all' ? 'selected' : '' }}>-- HISTÓRICO TOTAL --</option>
-                                @for ($y = now()->year; $y >= now()->year - 5; $y--)
+                                <option value="all" {{ $radarYear === 'all' ? 'selected' : '' }}>-- HISTÓRICO DESDE HUB --</option>
+                                @for ($y = now()->year; $y >= 2026; $y--)
                                     <option value="{{ $y }}" {{ $radarYear == $y ? 'selected' : '' }}>{{ $y }}</option>
                                 @endfor
                             </select>
@@ -559,11 +564,11 @@
 
             <div class="text-center mb-4">
                 <h4 class="font-bangers text-white" style="font-size: 2rem;">
-                    <i class="fas fa-map-marked-alt me-2" style="color: var(--shonen-cyan);"></i>
-                    ASISTENCIA POR REGIÓN:
+                    <i class="fas fa-balance-scale me-2" style="color: var(--shonen-cyan);"></i>
+                    EQUIDAD ARBITRAL Y PARTICIPACIÓN:
                     <span class="text-warning">
                         @if($radarMonth === 'all' && $radarYear === 'all')
-                            HISTÓRICO ABSOLUTO
+                            DESDE ACTIVACIÓN HUB (OCT 2026)
                         @elseif($radarMonth === 'all')
                             AÑO {{ $radarYear }}
                         @elseif($radarYear === 'all')
@@ -573,48 +578,216 @@
                         @endif
                     </span>
                 </h4>
-                <p class="text-white-50 small">Análisis de participación y distribución de Jueces/Árbitros por comunidad.</p>
+                <p class="text-white-50 small">Torneos de Ranking con arbitraje asignado desde el Hub (desde el 09/10/2026). Desglose mensual, por comunidad/provincia y torneo a torneo.</p>
             </div>
 
-            <div class="table-responsive">
-                <table class="table table-tactical">
+            {{-- RESUMEN GLOBAL --}}
+            <div class="row g-3 mb-4">
+                <div class="col-md-3 col-6">
+                    <div class="p-3 bg-black border border-info rounded text-center">
+                        <div class="text-white-50 small text-uppercase">Torneos Ranking con Staff</div>
+                        <div class="font-bangers fs-2 text-info">{{ $arbitrationSummary->events_count }}</div>
+                    </div>
+                </div>
+                <div class="col-md-3 col-6">
+                    <div class="p-3 bg-black border border-warning rounded text-center">
+                        <div class="text-white-50 small text-uppercase">Bladers Únicos (Inscripciones)</div>
+                        <div class="font-bangers fs-2 text-warning">
+                            {{ $arbitrationSummary->unique_participants }}
+                            <small class="fs-6 text-white-50">({{ $arbitrationSummary->total_inscriptions }})</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3 col-6">
+                    <div class="p-3 bg-black border border-success rounded text-center">
+                        <div class="text-white-50 small text-uppercase">Staff Oficial Apuntado</div>
+                        <div class="font-bangers fs-2 text-success">{{ $arbitrationSummary->staff_count }}</div>
+                    </div>
+                </div>
+                <div class="col-md-3 col-6">
+                    <div class="p-3 bg-black border border-secondary rounded text-center">
+                        <div class="text-white-50 small text-uppercase">Ayudantes (Revisor / Manual)</div>
+                        <div class="font-bangers fs-2 text-white">{{ $arbitrationSummary->helpers_count }}</div>
+                    </div>
+                </div>
+            </div>
+
+            {{-- TABLA 1: COMUNIDADES (CON DESPLEGABLE DE PROVINCIAS SI HAY > 1 Y DESGLOSE MENSUAL) --}}
+            <div class="mb-2 d-flex justify-content-between align-items-center">
+                <h5 class="font-bangers text-white fs-4 m-0"><i class="fas fa-map-marked-alt me-2 text-info"></i> DESGLOSE POR COMUNIDAD Y MENSUAL</h5>
+                <span class="text-white-50 small">Pulsa en una comunidad con varias provincias o en "Meses" para desplegar el detalle.</span>
+            </div>
+            <div class="table-responsive mb-5">
+                <table class="table table-tactical align-middle">
                     <thead>
                         <tr>
-                            <th>Región</th>
-                            <th class="text-center">Jueces/Árbitros</th>
-                            <th class="text-center">Torneos</th>
-                            <th class="text-center">Bladers Totales</th>
-                            <th class="text-center">Media x Torneo</th>
-                            <th class="text-center">Carga x Árbitro</th>
-                            <th class="text-center">Estado de la Región</th>
+                            <th>Comunidad / Provincia</th>
+                            <th class="text-center">Torneos Ranking</th>
+                            <th class="text-center">Bladers Únicos</th>
+                            <th class="text-center">Staff Oficial</th>
+                            <th class="text-center">Ayudantes</th>
+                            <th class="text-center">Desglose Mensual</th>
                         </tr>
                     </thead>
                     <tbody>
                         @foreach ($regionalStats as $reg)
                             <tr>
-                                <td class="fw-bold fs-5">{{ $reg->name }}</td>
-                                <td class="text-center">
-                                    <span class="badge bg-dark border border-info px-3">{{ $reg->staff_count }}</span>
+                                <td class="fw-bold fs-5">
+                                    @if($reg->has_multiple_provinces)
+                                        <button class="btn btn-sm btn-outline-info me-2 py-0 px-2" type="button" data-bs-toggle="collapse" data-bs-target="#prov-region-{{ $reg->id }}" aria-expanded="false" title="Ver provincias">
+                                            <i class="fas fa-chevron-down"></i>
+                                        </button>
+                                    @endif
+                                    {{ $reg->name }}
+                                    @if($reg->has_multiple_provinces)
+                                        <span class="badge bg-dark border border-secondary text-white-50 ms-1" style="font-size: 0.7rem;">{{ $reg->provinces_stats->count() }} prov.</span>
+                                    @endif
                                 </td>
-                                <td class="text-center">{{ $reg->events_count }}</td>
-                                <td class="text-center fw-bold text-warning fs-5">{{ $reg->total_players }}</td>
-                                <td class="text-center">{{ $reg->avg_players }}</td>
                                 <td class="text-center">
-                                    <span class="fw-bold" style="color: {{ $reg->ratio > 20 ? 'var(--shonen-red)' : ($reg->ratio > 12 ? 'var(--sbbl-gold)' : 'var(--shonen-cyan)') }}">
-                                        {{ $reg->ratio }} <small>Bladers/Árbitro</small>
-                                    </span>
+                                    <span class="badge bg-dark border border-info px-3 fs-6">{{ $reg->events_count }}</span>
+                                </td>
+                                <td class="text-center fw-bold text-warning fs-5">
+                                    {{ $reg->unique_participants }}
+                                    @if($reg->total_inscriptions > $reg->unique_participants)
+                                        <small class="text-white-50 fw-normal fs-6">({{ $reg->total_inscriptions }} insc.)</small>
+                                    @endif
                                 </td>
                                 <td class="text-center">
-                                    @if($reg->events_count > 0 && $reg->ratio > 20)
-                                        <span class="badge bg-danger text-white border border-white"><i class="fas fa-exclamation-triangle me-1"></i> SATURADA</span>
-                                    @elseif($reg->events_count > 0)
-                                        <span class="badge bg-success text-white border border-white"><i class="fas fa-check-circle me-1"></i> ACTIVA</span>
+                                    <span class="badge bg-success px-3 fs-6">{{ $reg->staff_count }}</span>
+                                </td>
+                                <td class="text-center">
+                                    <span class="badge bg-secondary px-3 fs-6">{{ $reg->helpers_count }}</span>
+                                </td>
+                                <td class="text-center">
+                                    @if($reg->monthly_breakdown->isNotEmpty())
+                                        <button class="btn btn-sm btn-outline-warning py-0 px-2" type="button" data-bs-toggle="collapse" data-bs-target="#monthly-region-{{ $reg->id }}">
+                                            <i class="fas fa-calendar-alt me-1"></i> {{ $reg->monthly_breakdown->count() }} {{ $reg->monthly_breakdown->count() === 1 ? 'mes' : 'meses' }}
+                                        </button>
                                     @else
-                                        <span class="badge bg-secondary text-white-50">INACTIVA</span>
+                                        <span class="text-white-50 small">Sin actividad</span>
                                     @endif
                                 </td>
                             </tr>
+
+                            {{-- DESGLOSE MENSUAL DE LA COMUNIDAD --}}
+                            @if($reg->monthly_breakdown->isNotEmpty())
+                                <tr class="collapse" id="monthly-region-{{ $reg->id }}" style="background: rgba(255, 193, 7, 0.05);">
+                                    <td colspan="6" class="p-3">
+                                        <div class="small text-warning fw-bold mb-2"><i class="fas fa-calendar-check me-1"></i> EVOLUCIÓN MENSUAL EN {{ mb_strtoupper($reg->name) }}:</div>
+                                        <div class="d-flex flex-wrap gap-2">
+                                            @foreach($reg->monthly_breakdown as $mStat)
+                                                <div class="p-2 bg-black border border-secondary rounded small">
+                                                    <div class="fw-bold text-info">{{ $mStat->month_label }}</div>
+                                                    <div class="text-white-50">
+                                                        Torneos: <strong class="text-white">{{ $mStat->events_count }}</strong> |
+                                                        Bladers: <strong class="text-warning">{{ $mStat->unique_participants }}</strong> |
+                                                        Staff: <strong class="text-success">{{ $mStat->staff_count }}</strong> |
+                                                        Ayud.: <strong class="text-white">{{ $mStat->helpers_count }}</strong>
+                                                    </div>
+                                                </div>
+                                            @endforeach
+                                        </div>
+                                    </td>
+                                </tr>
+                            @endif
+
+                            {{-- DESPLEGABLE DE PROVINCIAS (SOLO SI HAY MÁS DE 1 PROVINCIA) --}}
+                            @if($reg->has_multiple_provinces)
+                                @foreach($reg->provinces_stats as $prov)
+                                    <tr class="collapse" id="prov-region-{{ $reg->id }}" style="background: rgba(0, 229, 255, 0.04);">
+                                        <td class="ps-5 text-info">
+                                            <i class="fas fa-level-up-alt fa-rotate-90 me-2 text-white-50"></i>
+                                            {{ $prov->name }}
+                                        </td>
+                                        <td class="text-center">{{ $prov->events_count }}</td>
+                                        <td class="text-center text-warning fw-bold">
+                                            {{ $prov->unique_participants }}
+                                            @if($prov->total_inscriptions > $prov->unique_participants)
+                                                <small class="text-white-50 fw-normal">({{ $prov->total_inscriptions }})</small>
+                                            @endif
+                                        </td>
+                                        <td class="text-center"><span class="badge bg-dark border border-success text-success">{{ $prov->staff_count }}</span></td>
+                                        <td class="text-center"><span class="badge bg-dark border border-secondary text-white-50">{{ $prov->helpers_count }}</span></td>
+                                        <td class="text-center">
+                                            @if($prov->monthly_breakdown->isNotEmpty())
+                                                <div class="d-flex flex-wrap justify-content-center gap-1">
+                                                    @foreach($prov->monthly_breakdown as $pm)
+                                                        <span class="badge bg-black border border-secondary text-white-50" style="font-size: 0.72rem;">
+                                                            {{ $pm->month_label }}: <strong class="text-warning">{{ $pm->unique_participants }}</strong> bladers ({{ $pm->events_count }}T)
+                                                        </span>
+                                                    @endforeach
+                                                </div>
+                                            @else
+                                                <span class="text-white-50 small">-</span>
+                                            @endif
+                                        </td>
+                                    </tr>
+                                @endforeach
+                            @endif
                         @endforeach
+                    </tbody>
+                </table>
+            </div>
+
+            {{-- TABLA 2: DESGLOSE TORNEO A TORNEO --}}
+            <div class="mb-2 d-flex justify-content-between align-items-center">
+                <h5 class="font-bangers text-white fs-4 m-0"><i class="fas fa-trophy me-2 text-warning"></i> CONTABILIDAD TORNEO A TORNEO</h5>
+                <span class="badge bg-dark border border-warning text-warning">{{ $tournamentBreakdown->count() }} torneos</span>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-tactical align-middle">
+                    <thead>
+                        <tr>
+                            <th>Fecha</th>
+                            <th>Torneo</th>
+                            <th>Comunidad / Provincia</th>
+                            <th class="text-center">Participantes</th>
+                            <th class="text-center">Staff Oficial</th>
+                            <th class="text-center">Ayudantes (Revisor / Manual)</th>
+                            <th class="text-center">Total Arbitraje</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @forelse($tournamentBreakdown as $t)
+                            <tr>
+                                <td class="text-nowrap">
+                                    <div class="fw-bold text-white">{{ $t->date_formatted }}</div>
+                                    <div class="text-white-50 small">{{ $t->month_label }}</div>
+                                </td>
+                                <td>
+                                    <div class="fw-bold text-warning">{{ $t->name }}</div>
+                                    <span class="badge bg-dark border border-info text-info" style="font-size: 0.7rem;">
+                                        {{ $t->beys === 'rankingplus' ? 'RANKING PLUS' : 'RANKING' }}
+                                    </span>
+                                </td>
+                                <td>
+                                    <div class="text-white fw-bold">{{ $t->region_name }}</div>
+                                    <div class="text-info small">{{ $t->province_name }}</div>
+                                </td>
+                                <td class="text-center fw-bold text-warning fs-5">{{ $t->participants_count }}</td>
+                                <td class="text-center">
+                                    <span class="badge bg-success px-3 fs-6">{{ $t->staff_count }}</span>
+                                    @if(!empty($t->staff_names))
+                                        <div class="text-white-50 small mt-1">{{ implode(', ', $t->staff_names) }}</div>
+                                    @endif
+                                </td>
+                                <td class="text-center">
+                                    <span class="badge bg-secondary px-3 fs-6">{{ $t->helpers_count }}</span>
+                                    @if(!empty($t->helper_names))
+                                        <div class="text-white-50 small mt-1">{{ implode(', ', $t->helper_names) }}</div>
+                                    @endif
+                                </td>
+                                <td class="text-center">
+                                    <span class="badge bg-info text-dark fw-bold px-3 fs-6">{{ $t->total_arbitration }}</span>
+                                </td>
+                            </tr>
+                        @empty
+                            <tr>
+                                <td colspan="7" class="text-center text-white-50 p-5">
+                                    No hay torneos de ranking con equipo arbitral apuntado en el periodo seleccionado.
+                                </td>
+                            </tr>
+                        @endforelse
                     </tbody>
                 </table>
             </div>
@@ -622,9 +795,9 @@
             {{-- LEYENDA TÉCNICA --}}
             <div class="mt-4 p-3 bg-black border border-secondary">
                 <div class="row text-white-50 small">
-                    <div class="col-md-4"><i class="fas fa-info-circle text-info me-1"></i> <strong>Carga x Árbitro:</strong> Cuántos Bladers debe supervisar cada miembro del staff de media por torneo.</div>
-                    <div class="col-md-4"><i class="fas fa-signal text-success me-1"></i> <strong>Saturada (>20):</strong> Indica que se necesita reclutar más Jueces o Árbitros en esa región.</div>
-                    <div class="col-md-4"><i class="fas fa-moon text-secondary me-1"></i> <strong>Inactiva:</strong> Regiones sin torneos registrados en el periodo seleccionado.</div>
+                    <div class="col-md-4"><i class="fas fa-user-shield text-success me-1"></i> <strong>Staff Oficial:</strong> Usuarios apuntados en el Hub con rol Admin, Juez o Árbitro.</div>
+                    <div class="col-md-4"><i class="fas fa-hands-helping text-info me-1"></i> <strong>Ayudantes:</strong> Usuarios con rol Revisor o añadidos manualmente al torneo.</div>
+                    <div class="col-md-4"><i class="fas fa-users text-warning me-1"></i> <strong>Bladers Únicos:</strong> Participantes distintos en ese mes/comunidad (y total de inscripciones entre paréntesis).</div>
                 </div>
             </div>
         </div>
