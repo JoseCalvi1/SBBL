@@ -572,8 +572,9 @@
                                                 <div class="accordion-body p-0 pt-2 ps-3">
                                                     <ul class="nav flex-column">
                                                         <li class="nav-item mb-1"><a class="nav-link admin-sublink text-white" href="{{ route('admin.treasury.index') }}"><i class="fas fa-file-invoice-dollar me-2"></i> Tesorería</a></li>
-                                                        <li class="nav-item mb-1"><a class="nav-link admin-sublink text-white" href="{{ route('productos.index') }}"><i class="fas fa-shopping-bag me-2"></i> Productos</a></li>
-                                                        <li class="nav-item mb-1"><a class="nav-link admin-sublink text-white" href="{{ route('admin.pedidos.index') }}"><i class="fas fa-shopping-bag me-2"></i> Pedidos</a></li>
+                                                        <li class="nav-item mb-1"><a class="nav-link admin-sublink text-white" href="{{ route('admin.raffles.index') }}"><i class="fas fa-ticket-alt me-2"></i> Rifas y Papeletas</a></li>
+                                                        <li class="nav-item mb-1"><a class="nav-link admin-sublink text-white" href="{{ route('productos.index') }}"><i class="fas fa-tags me-2"></i> Productos</a></li>
+                                                        <li class="nav-item mb-1"><a class="nav-link admin-sublink text-white" href="{{ route('admin.pedidos.index') }}"><i class="fas fa-shopping-bag me-2"></i> Pedidos y Envíos</a></li>
                                                     </ul>
                                                 </div>
                                             </div>

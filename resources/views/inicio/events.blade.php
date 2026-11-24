@@ -362,7 +362,7 @@
                 link.className = `event-badge ${getEventColorClass(evt.beys)}`;
                 link.title = `${evt.city || evt.region.name} (${evt.mode === 'beybladex' ? 'X' : 'Burst'})`;
                 link.innerHTML = `
-                    ${evt.beys === 'copapaypal' ? '<i class="fab fa-paypal"></i> ' : ''}
+                    ${(evt.is_paid || evt.beys === 'copapaypal') ? '<i class="fab fa-paypal"></i> ' : ''}
                     ${evt.city || evt.region.name} <span style="opacity:0.6">(${evt.mode === 'beybladex' ? 'X' : 'Burst'})</span>
                 `;
                 cell.appendChild(link);
@@ -408,7 +408,7 @@
 
                     <a href="/events/${evt.id}" class="text-decoration-none" style="color: inherit;">
                         <h4 class="m-0 fw-bold d-flex align-items-center gap-2 text-uppercase" style="font-size: 1.3rem;">
-                            ${evt.beys === 'copapaypal' ? '<i class="fab fa-paypal"></i>' : ''}
+                            ${(evt.is_paid || evt.beys === 'copapaypal') ? '<i class="fab fa-paypal"></i>' : ''}
                             ${evt.city || evt.region.name}
                         </h4>
                         <div class="mt-2 small fw-bold text-uppercase d-flex align-items-center" style="opacity: 0.8;">

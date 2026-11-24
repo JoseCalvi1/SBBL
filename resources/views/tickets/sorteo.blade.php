@@ -1,221 +1,225 @@
 @extends('layouts.app')
 
-@section('content')
-<div class="raffle-container position-relative py-5" style="min-height: 80vh; background: linear-gradient(to bottom, #ff7e5f, #feb47b); overflow: hidden;">
-
-    <h1 class="display-1 fw-bold text-white text-center mb-5 animate__animated animate__pulse">
-        🎄 Rifa Navideña 🎄
-    </h1>
-
-    @if(session('error'))
-        <div class="alert alert-danger w-50 mx-auto">{{ session('error') }}</div>
-    @endif
-
-    <div class="container">
-        <div class="row g-4 justify-content-center">
-
-            <!-- 🟢 TARJETA CONTROL -->
-            <div class="col-lg-5">
-                <div class="card shadow-lg border-0 text-center">
-                    <div class="card-header bg-success text-white fw-bold fs-4">
-                        🎟️ Control de la Rifa
-                    </div>
-
-                    <div class="card-body">
-                        <p class="fs-5 mb-1">
-                            Participantes: <strong>{{ $totalParticipants }}</strong>
-                        </p>
-                        <p class="fs-5 mb-3">
-                            Total de papeletas: <strong>{{ $totalTickets }}</strong>
-                        </p>
-
-                        <!-- Botón comenzar -->
-                        <form id="raffleForm" class="mb-3">
-                            @csrf
-                            <button type="button" id="startRaffle"
-                                class="btn btn-success btn-lg w-100 shadow animate__animated animate__pulse">
-                                ▶️ Comenzar Rifa
-                            </button>
-                        </form>
-
-                        <!-- Temporizador -->
-                        <div id="loading" class="d-none flex-column align-items-center justify-content-center mb-3">
-                            <img src="https://i.gifer.com/YCZH.gif" width="350">
-                            <p class="mt-2">
-                                Revelando ganadores en
-                                <strong><span id="countdown">10</span></strong> segundos...
-                            </p>
-                        </div>
-
-                        <!-- Reset -->
-                        <form action="{{ route('tickets.sorteo.reset') }}" method="POST">
-                            @csrf
-                            @method('DELETE')
-                            <button type="submit" class="btn btn-outline-danger w-100">
-                                🔄 Resetear Rifa
-                            </button>
-                        </form>
-                    </div>
-                </div>
-            </div>
-
-            <!-- 🏆 TARJETA PREMIADOS -->
-            <div class="col-lg-7">
-                <div class="card shadow-lg border-0">
-                    <div class="card-header bg-warning text-dark fw-bold fs-4 text-center">
-                        🏆 Premiados
-                    </div>
-
-                    <div class="card-body py-5">
-                        <div id="winners" class="d-flex flex-wrap justify-content-center gap-4">
-
-                            @foreach($winners as $index => $winner)
-                                @php
-                                    switch($index) {
-                                        case 0: $position = '🥇 1.º Premio'; break;
-                                        case 1: $position = '🥈 2.º Premio'; break;
-                                        case 2: $position = '🥉 3.º Premio'; break;
-                                        default: $position = ($index + 1).'.º Premio'; break;
-                                    }
-                                @endphp
-
-                                <div class="ticket-card" onclick="this.classList.toggle('flipped')">
-                                    <span class="fw-bold text-warning mb-1 d-block text-center">
-                                        {{ $position }}
-                                    </span>
-
-                                    <div class="ticket-inner rounded shadow-lg">
-                                        <div class="ticket-front">
-                                            🎫 {{ $winner['ticket'] }}
-                                        </div>
-                                        <div class="ticket-back">
-                                            👤 {{ $winner['user'] }}
-                                        </div>
-                                    </div>
-                                </div>
-                            @endforeach
-
-                            @if(count($winners) === 0)
-                                <p class="text-muted text-center w-100">
-                                    Aún no hay ganadores
-                                </p>
-                            @endif
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-        </div>
-    </div>
-
-    <!-- ❄️ NIEVE -->
-    <div class="snow"></div>
-</div>
-@endsection
+@section('title', 'Sorteo Oficial SBBL')
 
 @section('styles')
 <style>
-@keyframes snowFall {
-    0% { transform: translateY(-10%); }
-    100% { transform: translateY(100vh); }
-}
-
-.snow {
-    position: absolute;
-    inset: 0;
-    pointer-events: none;
-}
-.snow::before, .snow::after {
-    content: "❄";
-    position: absolute;
-    font-size: 2rem;
-    color: white;
-    animation: snowFall linear infinite;
-}
-.snow::before { left: 15%; animation-duration: 10s; }
-.snow::after { left: 80%; animation-duration: 14s; }
-
-/* Tarjetas flip */
-.ticket-card {
-    width: 220px;
-    height: 130px;
-    perspective: 1000px;
-    cursor: pointer;
-}
-
-.ticket-inner {
-    position: relative;
-    width: 100%;
-    height: 100%;
-    transition: transform 0.8s;
-    transform-style: preserve-3d;
-}
-
-.ticket-card.flipped .ticket-inner {
-    transform: rotateY(180deg);
-}
-
-.ticket-front,
-.ticket-back {
-    position: absolute;
-    inset: 0;
-    backface-visibility: hidden;
-    border-radius: 15px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: bold;
-    font-size: 1.1rem;
-}
-
-.ticket-front {
-    background: #fff;
-}
-
-.ticket-back {
-    background: #198754;
-    color: #fff;
-    transform: rotateY(180deg);
-}
+    .raffle-stage {
+        min-height: 82vh;
+        background: radial-gradient(circle at center, var(--sbbl-blue-1) 0%, #000 100%);
+        overflow: hidden;
+    }
+    .stage-panel {
+        background: var(--sbbl-blue-2);
+        border: 3px solid #000;
+        box-shadow: 8px 8px 0 #000;
+    }
+    .ticket-card-flip {
+        width: 230px;
+        height: 140px;
+        perspective: 1000px;
+        cursor: pointer;
+    }
+    .ticket-inner {
+        position: relative;
+        width: 100%;
+        height: 100%;
+        transition: transform 0.7s;
+        transform-style: preserve-3d;
+    }
+    .ticket-card-flip.flipped .ticket-inner {
+        transform: rotateY(180deg);
+    }
+    .ticket-front,
+    .ticket-back {
+        position: absolute;
+        inset: 0;
+        backface-visibility: hidden;
+        border: 3px solid #000;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+        padding: 12px;
+        text-align: center;
+    }
+    .ticket-front {
+        background: var(--sbbl-gold);
+        color: #000;
+    }
+    .ticket-back {
+        background: #00ff88;
+        color: #000;
+        transform: rotateY(180deg);
+    }
 </style>
 @endsection
 
+@section('content')
+<div class="raffle-stage position-relative py-5">
+    <div class="container">
+        <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
+            <h1 class="font-bangers m-0" style="font-size: 3.4rem; color: var(--sbbl-gold); text-shadow: 2px 2px 0 #000, 4px 4px 0 var(--shonen-red);">
+                🎟️ BOMBO DE SORTEO OFICIAL
+            </h1>
+            <a href="{{ route('admin.raffles.index') }}" class="btn btn-outline-light fw-bold">
+                <i class="fas fa-cog me-1"></i> Gestionar Rifas
+            </a>
+        </div>
+
+        @if(session('success'))
+            <div class="alert alert-shonen alert-shonen-success mb-4 text-center"><div>{{ session('success') }}</div></div>
+        @endif
+        @if(session('error'))
+            <div class="alert alert-shonen alert-shonen-danger mb-4 text-center"><div>{{ session('error') }}</div></div>
+        @endif
+
+        @if(!$selectedRaffle)
+            <div class="stage-panel p-5 text-center text-white">
+                <h3 class="font-Oswald">No hay ninguna rifa creada para sortear.</h3>
+                <a href="{{ route('admin.raffles.index') }}" class="btn btn-warning text-dark fw-bold mt-3">Crear Rifa</a>
+            </div>
+        @else
+            <form method="GET" action="{{ route('tickets.sorteo') }}" class="mb-4">
+                <div class="input-group" style="max-width: 500px;">
+                    <span class="input-group-text bg-black text-warning border-secondary fw-bold">Rifa Seleccionada</span>
+                    <select name="raffle_id" class="form-select bg-dark text-white border-secondary fw-bold" onchange="this.form.submit()">
+                        @foreach($raffles as $r)
+                            <option value="{{ $r->id }}" {{ $selectedRaffle->id === $r->id ? 'selected' : '' }}>
+                                {{ $r->title }} ({{ $r->is_active ? 'Activa' : ($r->drawn_at ? 'Sorteada' : 'Pausada') }})
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
+            </form>
+
+            <div class="row g-4">
+                <div class="col-lg-5">
+                    <div class="stage-panel p-4 text-center text-white h-100">
+                        <h3 class="font-Oswald text-info border-bottom border-secondary pb-2 mb-3">
+                            {{ $selectedRaffle->title }}
+                        </h3>
+
+                        <div class="row g-2 mb-4">
+                            <div class="col-6">
+                                <div class="bg-black p-3 border border-secondary">
+                                    <div class="small text-white-50">PARTICIPANTES</div>
+                                    <div class="font-Oswald fs-2 text-info">{{ $totalParticipants }}</div>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="bg-black p-3 border border-secondary">
+                                    <div class="small text-white-50">PAPELETAS EN BOMBO</div>
+                                    <div class="font-Oswald fs-2 text-warning">{{ $totalTickets }}</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <p class="small text-white-50 mb-3">
+                            Se extraerán <strong>{{ $selectedRaffle->winners_count }}</strong> ganador(es) únicos sin repetir blader.
+                        </p>
+
+                        <form method="POST" action="{{ route('tickets.sorteo.draw') }}" id="drawRaffleForm" class="mb-3">
+                            @csrf
+                            <input type="hidden" name="raffle_id" value="{{ $selectedRaffle->id }}">
+                            <button type="button" id="startRaffle" class="btn btn-success btn-lg w-100 fw-bold border-2 border-dark">
+                                ▶️ INICIAR CUENTA ATRÁS Y SORTEAR
+                            </button>
+                        </form>
+
+                        <div id="loading" class="d-none flex-column align-items-center justify-content-center my-3 p-3 bg-black border border-warning">
+                            <div class="font-bangers text-warning" style="font-size: 3.5rem;" id="countdown">5</div>
+                            <p class="mb-0 text-white fw-bold">Extrayendo papeletas ganadoras...</p>
+                        </div>
+
+                        @if(count($winners) > 0)
+                            <form action="{{ route('tickets.sorteo.reset') }}" method="POST" onsubmit="return confirm('¿Seguro que deseas borrar los ganadores actuales de esta rifa?');">
+                                @csrf
+                                @method('DELETE')
+                                <input type="hidden" name="raffle_id" value="{{ $selectedRaffle->id }}">
+                                <button type="submit" class="btn btn-outline-danger w-100 fw-bold">
+                                    🔄 Reiniciar Ganadores
+                                </button>
+                            </form>
+                        @endif
+                    </div>
+                </div>
+
+                <div class="col-lg-7">
+                    <div class="stage-panel p-4 h-100 text-white">
+                        <h3 class="font-Oswald text-warning text-center border-bottom border-secondary pb-2 mb-4">
+                            🏆 PAPELETAS PREMIADAS (Haz clic para revelar Blader)
+                        </h3>
+
+                        <div class="d-flex flex-wrap justify-content-center gap-4 py-3">
+                            @forelse($winners as $index => $winner)
+                                @php
+                                    if ($index === 0) $position = '🥇 1.º Premio';
+                                    elseif ($index === 1) $position = '🥈 2.º Premio';
+                                    elseif ($index === 2) $position = '🥉 3.º Premio';
+                                    else $position = ($index + 1) . '.º Premio';
+                                @endphp
+                                <div class="ticket-card-flip" onclick="this.classList.toggle('flipped')">
+                                    <span class="fw-bold text-warning mb-1 d-block text-center font-Oswald fs-5">
+                                        {{ $position }}
+                                    </span>
+                                    <div class="ticket-inner">
+                                        <div class="ticket-front">
+                                            <div class="small text-uppercase">Papeleta Premiada</div>
+                                            <div class="font-Oswald fs-4">🎫 {{ $winner['ticket'] }}</div>
+                                            <div class="small opacity-75 mt-1">(Clic para girar)</div>
+                                        </div>
+                                        <div class="ticket-back">
+                                            <div class="small text-uppercase">Ganador Oficial</div>
+                                            <div class="font-Oswald fs-4">👤 {{ $winner['user'] }}</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            @empty
+                                <div class="text-center text-white-50 py-5">
+                                    <i class="fas fa-dice fa-3x mb-3 d-block text-secondary"></i>
+                                    Todavía no se ha realizado el sorteo de esta rifa.
+                                </div>
+                            @endforelse
+                        </div>
+                    </div>
+                </div>
+            </div>
+        @endif
+    </div>
+</div>
+@endsection
 
 @section('scripts')
+@if($selectedRaffle)
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     const startBtn = document.getElementById('startRaffle');
     const loading = document.getElementById('loading');
     const countdown = document.getElementById('countdown');
+    const form = document.getElementById('drawRaffleForm');
+
+    if (!startBtn) return;
 
     startBtn.addEventListener('click', function() {
-        let timeLeft = 10;
+        startBtn.disabled = true;
+        let timeLeft = 5;
         loading.classList.remove('d-none');
+        loading.classList.add('d-flex');
+        countdown.textContent = timeLeft;
 
         const interval = setInterval(() => {
-            countdown.textContent = timeLeft;
             timeLeft--;
-            if(timeLeft < 0){
+            if (timeLeft > 0) {
+                countdown.textContent = timeLeft;
+            } else {
                 clearInterval(interval);
-
-                // Obtener token CSRF directamente desde meta
-                const token = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
-
-                fetch("{{ route('tickets.sorteo.draw') }}", {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json",
-                        "X-CSRF-TOKEN": token
-                    },
-                    body: JSON.stringify({})
-                }).then(response => {
-                    if(response.redirected){
-                        window.location.href = response.url;
-                    }
-                });
+                form.submit();
             }
         }, 1000);
     });
 });
 </script>
+@endif
 @endsection

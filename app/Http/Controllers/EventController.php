@@ -144,14 +144,31 @@ class EventController extends Controller
             'stadiums'          => 'required|integer|min:1',
             'max_players'       => 'nullable|integer|min:1',
             'has_stadium_limit' => 'nullable',
+            'is_paid'           => 'nullable|boolean',
+            'entry_fee'         => 'nullable|numeric|min:0.50|max:999.99',
             // CRÍTICO: Limitar la imagen a 5MB (5120 KB) para evitar error 500
             'image_mod'         => 'nullable|image|mimes:jpeg,png,jpg,webp|max:5120',
         ]);
 
-        // PROTECCIÓN BACKEND: Solo Jueces pueden crear Torneos Oficiales o Copas
-        $categoriasOficiales = ['ranking', 'grancopa', 'hasbro', 'copaespecial1', 'copaespecial2', 'copaespecial3', 'copaespecial4', 'crew_battle'];
-        if (in_array($data['imagen'], $categoriasOficiales) && !Auth::user()->hasAnyRole(['admin', 'juez'])) {
-            return back()->withInput()->with('error', '⚠️ Acceso denegado: Solo los Jueces Oficiales de la SBBL pueden crear Eventos de Ranking y Copas Especiales.');
+        // PROTECCIÓN BACKEND: Solo Jueces y Admins pueden crear Torneos Oficiales o Eventos de Pago
+        $categoriasOficiales = ['ranking', 'grancopa', 'hasbro', 'copaespecial1', 'copaespecial2', 'copaespecial3', 'copaespecial4', 'crew_battle', 'copapaypal'];
+        if (in_array($data['imagen'], $categoriasOficiales) && !Auth::user()->hasAnyRole(['admin', 'juez', 'judge'])) {
+            return back()->withInput()->with('error', '⚠️ Acceso denegado: Solo los Jueces Oficiales y Administradores de la SBBL pueden crear Eventos Oficiales.');
+        }
+
+        if ($request->boolean('is_paid') && !Auth::user()->hasAnyRole(['admin', 'juez', 'judge'])) {
+            return back()->withInput()->with('error', '⚠️ Acceso denegado: Solo Jueces y Administradores pueden crear eventos de pago.');
+        }
+
+        $isAdmin = Auth::user()->hasRole('admin');
+        $canCreatePaid = Auth::user()->hasAnyRole(['admin', 'juez', 'judge']);
+        $isPaid = $canCreatePaid && ($request->boolean('is_paid') || $data['imagen'] === 'copapaypal');
+        $entryFee = ($isAdmin && $request->filled('entry_fee') && (float) $request->input('entry_fee') > 0)
+            ? round((float) $request->input('entry_fee'), 2)
+            : null;
+
+        if ($entryFee !== null) {
+            $isPaid = true;
         }
 
         try {
@@ -184,6 +201,8 @@ class EventController extends Controller
                 'note'              => $data['note'],
                 'stadiums'          => $data['stadiums'],
                 'max_players'       => $request->input('max_players'),
+                'is_paid'           => $isPaid,
+                'entry_fee'         => $isPaid ? $entryFee : null,
                 'has_stadium_limit' => $request->has('has_stadium_limit') || $request->filled('max_players'),
                 'created_by'        => Auth::id(),
                 'status'            => 'OPEN',
@@ -525,6 +544,8 @@ class EventController extends Controller
             'stadiums'          => 'required|integer|min:1',
             'max_players'       => 'nullable|integer|min:1',
             'has_stadium_limit' => 'nullable', // Puede venir como "on", "1" o null
+            'is_paid'           => 'nullable|boolean',
+            'entry_fee'         => 'nullable|numeric|min:0.50|max:999.99',
             'image_mod'         => 'nullable|image|mimes:jpeg,png,jpg,webp|max:5120', // Límite 5MB
             // Campos opcionales que no estaban en tu validate original pero se usan
             'imagen'            => 'required', // Categoría
@@ -538,31 +559,53 @@ class EventController extends Controller
             // 2. PROCESAMIENTO DE IMAGEN (Redimensión)
             if ($request->hasFile('image_mod')) {
                 $file = $request->file('image_mod');
-                // Reutilizamos la función auxiliar resizeAndEncodeImage que te pasé antes
-                // Si no la tienes en este controlador, cópiala del método store
                 $event->image_mod = $this->resizeAndEncodeImage($file);
             }
 
             // 3. IMAGEN BASE
-            // Si cambian la categoría, actualizamos la imagen base
             $rutaImagen = $this->resolveImage($request->region_id, $request->imagen);
 
+            // Regla de negocio: Jueces y Admins pueden activar evento de pago, pero SOLO Admin fija/modifica el precio
+            $isAdmin = Auth::user()->hasRole('admin');
+            $isJudgeOrAdmin = Auth::user()->hasAnyRole(['admin', 'juez', 'judge']);
+
+            $newIsPaid = $event->is_paid;
+            $newEntryFee = $event->entry_fee;
+
+            if ($isAdmin) {
+                $newIsPaid = $request->boolean('is_paid') || $request->imagen === 'copapaypal';
+                if ($newIsPaid && $request->filled('entry_fee') && (float) $request->input('entry_fee') > 0) {
+                    $newEntryFee = round((float) $request->input('entry_fee'), 2);
+                } elseif (!$newIsPaid) {
+                    $newEntryFee = null;
+                }
+            } elseif ($isJudgeOrAdmin) {
+                $hasCompletedPayments = \App\Models\TreasuryLog::where('event_id', $event->id)
+                    ->where('status', 'completado')
+                    ->exists();
+                if (!$hasCompletedPayments) {
+                    $newIsPaid = $request->boolean('is_paid') || $request->imagen === 'copapaypal';
+                }
+                // El juez nunca modifica $newEntryFee
+            }
+
             // 4. ACTUALIZACIÓN MASIVA Y MANUAL
-            // Actualizamos los campos directos validados
             $event->fill([
                 'name'              => $data['name'],
                 'mode'              => $data['mode'],
                 'city'              => $data['city'],
                 'location'          => $data['location'],
                 'region_id'         => $data['region_id'],
-                'province_id'       => $data['province_id'], // <--- NUEVO CAMPO AQUÍ
+                'province_id'       => $data['province_id'],
                 'date'              => $data['event_date'],
                 'time'              => $data['event_time'],
                 'stadiums'          => $data['stadiums'],
-                'max_players'       => $request->input('max_players'), // <-- AÑADIDO
-                'has_stadium_limit' => $request->has('has_stadium_limit') || $request->filled('max_players'), // <-- ACTUALIZADO
+                'max_players'       => $request->input('max_players'),
+                'is_paid'           => $newIsPaid,
+                'entry_fee'         => $newEntryFee,
+                'has_stadium_limit' => $request->has('has_stadium_limit') || $request->filled('max_players'),
                 'imagen'            => $rutaImagen,
-                'beys'              => $request->imagen, // Categoría
+                'beys'              => $request->imagen,
                 'deck'              => $request->deck,
                 'configuration'     => $request->configuration,
                 'note'              => $request->note,
@@ -641,57 +684,9 @@ class EventController extends Controller
                 }
             }
 
-            // --- VALIDACIÓN Y CIERRE DE PAGO (PAYPAL) ---
-            if (in_array($event->beys, ["copapaypal"])) {
-                if (!$request->has('paypal_order_id')) {
-                    return response()->json(['error' => 'Se requiere confirmación de pago para este evento.'], 402);
-                }
-
-                $orderId = $request->paypal_order_id;
-                $gross = $event->beys === 'grancopa' ? 5.00 : 2.00;
-                $fee = 0;
-
-                // INTENTO 1: Buscar la comisión exacta dentro del laberinto del JSON de PayPal
-                try {
-                    if (isset($request->paypal_details['purchase_units'][0]['payments']['captures'][0]['seller_receivable_breakdown']['paypal_fee']['value'])) {
-                        $fee = (float) $request->paypal_details['purchase_units'][0]['payments']['captures'][0]['seller_receivable_breakdown']['paypal_fee']['value'];
-                    }
-                } catch (\Exception $e) {}
-
-                // INTENTO 2 (FALLBACK): Si PayPal la oculta, la calculamos con la tarifa nacional (1,2% + 0,35€)
-                if ($fee <= 0) {
-                    $fee = round(($gross * 0.012) + 0.35, 2);
-                }
-
-                // BUSCAMOS SI YA EXISTE ESTE PAGO (Sea cual sea su estado)
-                $log = \App\Models\TreasuryLog::where('reference_id', $orderId)->first();
-
-                if ($log) {
-                    // Si lo encontramos y estaba pendiente, lo actualizamos.
-                    if ($log->status === 'pendiente') {
-                        $log->status = 'completado';
-                        $log->fee = $fee;
-                        $log->net_amount = $log->gross_amount - $fee;
-                        $log->description = str_replace('Pendiente', 'Completada', $log->description);
-                        $log->save();
-                    }
-                    // Si ya estaba completado, NO HACEMOS NADA. Así evitamos el duplicado.
-
-                } else {
-                    // SOLO creamos uno nuevo si PayPal jamás nos avisó de que estaba pendiente
-                    \App\Models\TreasuryLog::create([
-                        'type' => 'ingreso',
-                        'category' => 'Inscripción Torneo',
-                        'gross_amount' => $gross,
-                        'fee' => $fee,
-                        'net_amount' => $gross - $fee,
-                        'status' => 'completado',
-                        'description' => "Inscripción Completada - " . auth()->user()->name . " - " . $event->name,
-                        'reference_id' => $orderId,
-                        'user_id' => auth()->id(),
-                        'event_id' => $event->id,
-                    ]);
-                }
+            // --- BLOQUEO ESTRICTO DE INSCRIPCIÓN GRATUITA EN EVENTOS DE PAGO ---
+            if ($event->isPaidEvent()) {
+                return $this->assistResponse($request, 'Este es un evento de pago. Debes completar el pago mediante PayPal para inscribirte.', 402);
             }
 
             // --- REGISTRO FINAL EN EL TORNEO ---
@@ -763,15 +758,26 @@ class EventController extends Controller
         return redirect()->back();
     }
 
-    public function noassist(Event $event)
+    public function noassist(Event $event, \App\Services\Payment\TreasuryService $treasuryService)
     {
         // 🔥 PROTECCIÓN: Si el torneo está EN CURSO (LIVE) o CERRADO, nadie puede borrarse
         if ($event->status !== 'OPEN') {
             return redirect()->back()->with('error', '⚠️ Acción bloqueada: No puedes retirarte de un torneo que ya está en curso o finalizado.');
         }
 
-        $event->users()->detach(Auth::id());
-        return redirect()->back();
+        $userId = Auth::id();
+        $event->users()->detach($userId);
+
+        // Si había pagado inscripción en este evento, avisamos a Administración para reembolso manual
+        $flaggedRefund = $treasuryService->flagEventCancellationForRefund($event->id, $userId);
+        if ($flaggedRefund) {
+            return redirect()->back()->with(
+                'success',
+                'Has cancelado tu asistencia. Al tratarse de un evento de pago, Administración ha recibido el aviso para procesar tu reembolso de forma manual.'
+            );
+        }
+
+        return redirect()->back()->with('success', 'Has cancelado tu asistencia al evento.');
     }
 
     // --- GESTIÓN DE RESULTADOS Y STATUS ---
@@ -1163,23 +1169,197 @@ private function sendResponse($type, $message, $request, $code = 200)
         return [2, 1, 1, 1, 1, 1, 1, 1, 1, 1];
     }
 
-    public function logPendingPayment(Request $request, \App\Models\Event $event)
-    {
-        // Creamos el registro en tesorería con estado PENDIENTE
-        \App\Models\TreasuryLog::create([
-            'type' => 'ingreso',
-            'category' => 'Inscripción Torneo',
-            'gross_amount' => $request->amount,
-            'fee' => 0, // Aún no sabemos la comisión exacta
-            'net_amount' => $request->amount,
-            'status' => 'pendiente', // <--- LA CLAVE
-            'description' => "Inscripción Pendiente - " . auth()->user()->name . " - " . $event->name,
-            'reference_id' => $request->paypal_order_id, // El ID temporal de PayPal
-            'user_id' => auth()->id(),
-            'event_id' => $event->id,
+    /**
+     * Crea la orden en PayPal Business (Orders API v2) para inscribirse en un evento de pago.
+     */
+    public function createEventPayPalOrder(
+        Request $request,
+        Event $event,
+        \App\Services\Payment\PayPalService $paypalService
+    ) {
+        if (!Auth::check()) {
+            return response()->json(['error' => 'Debes iniciar sesión para inscribirte.'], 401);
+        }
+
+        $user = Auth::user();
+        $hoy = \Carbon\Carbon::now()->format('Y-m-d');
+        $eventDateStr = \Carbon\Carbon::parse($event->date)->format('Y-m-d');
+
+        if ($event->status !== 'OPEN' || $eventDateStr < $hoy) {
+            return response()->json(['error' => 'El evento no acepta inscripciones actualmente.'], 422);
+        }
+
+        if (!$event->isPaidEvent()) {
+            return response()->json(['error' => 'Este evento no es de pago.'], 422);
+        }
+
+        $entryFee = $event->getEffectiveEntryFee();
+        if ($entryFee === null || $entryFee <= 0) {
+            return response()->json([
+                'error' => 'Este evento de pago está pendiente de que Administración asigne su tarifa.'
+            ], 422);
+        }
+
+        if ($event->users()->where('users.id', $user->id)->exists()) {
+            return response()->json(['error' => 'Ya te encuentras inscrito en este evento.'], 422);
+        }
+
+        // Verificar límites de torneos de ranking si aplica
+        if (in_array($event->beys, ['ranking', 'rankingplus'])) {
+            $date = \Carbon\Carbon::parse($event->date);
+
+            $registeredThisWeek = DB::table('assist_user_event')
+                ->join('events', 'assist_user_event.event_id', '=', 'events.id')
+                ->where('assist_user_event.user_id', $user->id)
+                ->whereBetween('events.date', [$date->copy()->startOfWeek(), $date->copy()->endOfWeek()])
+                ->whereIn('events.beys', ['ranking', 'rankingplus'])
+                ->where('events.id', '!=', $event->id)
+                ->exists();
+
+            if ($registeredThisWeek) {
+                return response()->json(['error' => 'Ya estás inscrito en un torneo de ranking esta semana.'], 422);
+            }
+
+            $monthlyCount = DB::table('assist_user_event')
+                ->join('events', 'assist_user_event.event_id', '=', 'events.id')
+                ->where('assist_user_event.user_id', $user->id)
+                ->whereBetween('events.date', [$date->copy()->startOfMonth(), $date->copy()->endOfMonth()])
+                ->whereIn('events.beys', ['ranking', 'rankingplus'])
+                ->count();
+
+            if ($monthlyCount >= 2) {
+                return response()->json(['error' => 'Has alcanzado el límite mensual de 2 torneos de ranking.'], 422);
+            }
+        }
+
+        try {
+            $customId = "EVENT:{$event->id}:USER:{$user->id}";
+            $refId = "EVT-{$event->id}-U{$user->id}";
+            $desc = "Inscripción Torneo SBBL: {$event->name} ({$user->name})";
+
+            $order = $paypalService->createOrder($entryFee, $desc, $customId, $refId);
+
+            return response()->json([
+                'id' => $order['id'],
+            ]);
+        } catch (\Throwable $e) {
+            Log::error('Error creando orden PayPal de evento: ' . $e->getMessage(), [
+                'event_id' => $event->id,
+                'user_id'  => $user->id,
+            ]);
+            return response()->json(['error' => $e->getMessage()], 500);
+        }
+    }
+
+    /**
+     * Captura y verifica en servidor el pago de PayPal Business, registra el ingreso en Tesorería
+     * e inscribe atómicamente al jugador con su Deck.
+     */
+    public function captureEventPayPalOrder(
+        Request $request,
+        Event $event,
+        \App\Services\Payment\PayPalService $paypalService,
+        \App\Services\Payment\TreasuryService $treasuryService
+    ) {
+        if (!Auth::check()) {
+            return response()->json(['status' => 'error', 'message' => 'Debes iniciar sesión.'], 401);
+        }
+
+        $request->validate([
+            'orderID' => 'required|string|max:128',
         ]);
 
-        return response()->json(['success' => true]);
+        $user = Auth::user();
+        $entryFee = $event->getEffectiveEntryFee();
+
+        if (!$event->isPaidEvent() || $entryFee === null || $entryFee <= 0) {
+            return response()->json(['status' => 'error', 'message' => 'Configuración de tarifa inválida para este evento.'], 422);
+        }
+
+        try {
+            // 1. Capturar y verificar contra la API oficial de PayPal Business
+            $orderData = $paypalService->captureOrder($request->orderID);
+            $verified = $paypalService->extractVerifiedCapture($orderData, $entryFee);
+
+            $expectedCustomId = "EVENT:{$event->id}:USER:{$user->id}";
+            if ($verified['custom_id'] !== '' && $verified['custom_id'] !== $expectedCustomId) {
+                Log::critical('Intento de reutilizar orden PayPal de otro contexto en inscripción de evento', [
+                    'expected' => $expectedCustomId,
+                    'received' => $verified['custom_id'],
+                    'order_id' => $request->orderID,
+                ]);
+                return response()->json([
+                    'status'  => 'error',
+                    'message' => 'La orden de pago no corresponde a esta inscripción.',
+                ], 403);
+            }
+
+            // 2. Transacción atómica: Libro Mayor de Tesorería + Inscripción + Deck
+            DB::transaction(function () use ($request, $event, $user, $verified, $treasuryService) {
+                $treasuryService->recordPayPalIncome([
+                    'category'          => 'Inscripción Torneo',
+                    'gross_amount'      => $verified['gross_amount'],
+                    'fee'               => $verified['fee'],
+                    'net_amount'        => $verified['net_amount'],
+                    'description'       => "Inscripción Torneo: {$event->name} - {$user->name}",
+                    'reference_id'      => $verified['capture_id'],
+                    'paypal_order_id'   => $verified['order_id'],
+                    'paypal_capture_id' => $verified['capture_id'],
+                    'user_id'           => $user->id,
+                    'event_id'          => $event->id,
+                ]);
+
+                $event->users()->syncWithoutDetaching([$user->id]);
+
+                if ($request->boolean('also_judge') && $user->hasAnyRole(['admin', 'juez', 'judge'])) {
+                    $event->judges()->syncWithoutDetaching([$user->id]);
+                }
+
+                if (!$request->boolean('is_tentative') && is_array($request->input('blades'))) {
+                    \App\Models\TournamentResult::where('user_id', $user->id)->where('event_id', $event->id)->delete();
+                    $blades = $request->input('blades', []);
+                    $ratchets = $request->input('ratchets', []);
+                    $bits = $request->input('bits', []);
+                    $overs = $request->input('over_blades', []);
+                    $assists = $request->input('assist_blades', []);
+
+                    foreach ($blades as $idx => $blade) {
+                        if (empty($blade)) continue;
+                        \App\Models\TournamentResult::create([
+                            'user_id'         => $user->id,
+                            'event_id'        => $event->id,
+                            'blade'           => $blade,
+                            'over_blade'      => $overs[$idx] ?? null,
+                            'assist_blade'    => $assists[$idx] ?? null,
+                            'ratchet'         => $ratchets[$idx] ?? null,
+                            'bit'             => $bits[$idx] ?? null,
+                            'victorias'       => 0,
+                            'derrotas'        => 0,
+                            'puntos_ganados'  => 0,
+                            'puntos_perdidos' => 0,
+                        ]);
+                    }
+                }
+            });
+
+            session()->flash('success', '¡Pago verificado e inscripción completada con éxito!');
+
+            return response()->json([
+                'status'  => 'success',
+                'message' => '¡Pago verificado e inscripción completada!',
+            ]);
+        } catch (\Throwable $e) {
+            Log::error('Error capturando pago PayPal de evento: ' . $e->getMessage(), [
+                'event_id' => $event->id,
+                'user_id'  => $user->id,
+                'order_id' => $request->orderID,
+            ]);
+
+            return response()->json([
+                'status'  => 'error',
+                'message' => $e->getMessage(),
+            ], 422);
+        }
     }
 
     // =========================================================================

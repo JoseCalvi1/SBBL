@@ -281,19 +281,29 @@ class ProfileController extends Controller
         $discordNamesMap = [];
 
         if ($guildId && $botToken) {
-            // Hacemos 1 sola petición a Discord pidiendo la lista de miembros
-            $response = \Illuminate\Support\Facades\Http::withHeaders([
-                'Authorization' => "Bot {$botToken}",
-            ])->get("https://discord.com/api/v10/guilds/{$guildId}/members?limit=1000");
+            try {
+                // Hacemos 1 sola petición a Discord pidiendo la lista de miembros
+                $httpReq = \Illuminate\Support\Facades\Http::timeout(8)->withHeaders([
+                    'Authorization' => "Bot {$botToken}",
+                ]);
 
-            if ($response->successful()) {
-                $members = $response->json();
-                foreach ($members as $member) {
-                    $id = $member['user']['id'];
-                    // Cogemos el apodo del servidor, o si no tiene, su nombre global
-                    $name = $member['nick'] ?? $member['user']['global_name'] ?? $member['user']['username'];
-                    $discordNamesMap[$id] = $name;
+                if (app()->environment('local')) {
+                    $httpReq = $httpReq->withoutVerifying();
                 }
+
+                $response = $httpReq->get("https://discord.com/api/v10/guilds/{$guildId}/members?limit=1000");
+
+                if ($response->successful()) {
+                    $members = $response->json();
+                    foreach ($members as $member) {
+                        $id = $member['user']['id'];
+                        // Cogemos el apodo del servidor, o si no tiene, su nombre global
+                        $name = $member['nick'] ?? $member['user']['global_name'] ?? $member['user']['username'];
+                        $discordNamesMap[$id] = $name;
+                    }
+                }
+            } catch (\Throwable $e) {
+                \Illuminate\Support\Facades\Log::warning('ProfileController: No se pudo consultar miembros de Discord: ' . $e->getMessage());
             }
         }
 

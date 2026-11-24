@@ -202,7 +202,7 @@
                                 <div id="stadium-limit-helper" class="text-info small fw-bold mt-2 text-center">Aforo: 20 plazas</div>
                             </div>
 
-                            @if(Auth::user()->hasAnyRole(['admin', 'juez']))
+                            @if(Auth::user()->hasAnyRole(['admin', 'juez', 'judge']))
                             <div class="col-md-4">
                                 <label for="max_players" class="form-label text-warning small text-uppercase fw-bold m-0"><i class="fas fa-edit me-1"></i> Sobrescribir Límite (Juez)</label>
                                 <input type="number" name="max_players" id="max_players" class="form-control dark-input mt-1" value="{{ old('max_players') }}" placeholder="Dejar vacío para auto">
@@ -210,6 +210,36 @@
                             </div>
                             @endif
                         </div>
+
+                        @if(Auth::user()->hasAnyRole(['admin']))
+                        <div class="mt-4 p-4 rounded-3 border border-warning" style="background: rgba(234, 179, 8, 0.06);">
+                            <div class="row align-items-center g-3">
+                                <div class="col-md-7">
+                                    <div class="form-check form-switch">
+                                        <input class="form-check-input me-2" type="checkbox" role="switch" id="is_paid" name="is_paid" value="1" {{ old('is_paid') ? 'checked' : '' }} style="width: 3em; height: 1.5em; cursor: pointer;">
+                                        <label class="form-check-label text-warning fw-bold fs-5" for="is_paid" style="cursor: pointer;">
+                                            <i class="fab fa-paypal me-2"></i> Evento de Pago (PayPal Business)
+                                        </label>
+                                    </div>
+                                    <div class="text-light-muted small mt-1">
+                                        Si se activa, los participantes deberán abonar la inscripción online con PayPal o Tarjeta para confirmar su plaza.
+                                    </div>
+                                </div>
+                                <div class="col-md-5">
+                                    @if(Auth::user()->hasRole('admin'))
+                                        <label for="entry_fee" class="form-label text-warning small text-uppercase fw-bold mb-1">
+                                            <i class="fas fa-euro-sign me-1"></i> Precio Inscripción (€) — Solo Admin
+                                        </label>
+                                        <input type="number" step="0.01" min="0.50" max="999.99" name="entry_fee" id="entry_fee" class="form-control dark-input fw-bold" value="{{ old('entry_fee') }}" placeholder="Ej: 5.00">
+                                    @else
+                                        <div class="p-2 rounded border border-secondary bg-dark text-light-muted small">
+                                            <i class="fas fa-lock text-warning me-1"></i> <strong>Tarifa gestionada por Admin:</strong> Al crear el evento de pago, Administración fijará el precio oficial en euros para abrir las inscripciones.
+                                        </div>
+                                    @endif
+                                </div>
+                            </div>
+                        </div>
+                        @endif
                     </div>
 
                     {{-- PASO 3: DETALLES --}}

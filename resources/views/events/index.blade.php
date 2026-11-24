@@ -165,6 +165,18 @@
                             <i class="fas {{ $currentType['icon'] }} me-1"></i> {{ $currentType['label'] }}
                         </span>
 
+                        @if($event->isPaidEvent())
+                            @if($event->getEffectiveEntryFee() > 0)
+                                <span class="badge bg-warning text-dark border border-dark px-2 py-1 fw-bold">
+                                    <i class="fab fa-paypal me-1"></i> {{ number_format($event->getEffectiveEntryFee(), 2, ',', '.') }} €
+                                </span>
+                            @else
+                                <span class="badge bg-danger text-white border border-warning px-2 py-1 fw-bold">
+                                    <i class="fas fa-euro-sign me-1"></i> FALTA FIJAR PRECIO (ADMIN)
+                                </span>
+                            @endif
+                        @endif
+
                         {{-- Badge de Estado --}}
                         @switch($event->status)
                             @case('OPEN')
@@ -387,7 +399,7 @@
                   <div class="modal-body">
                     <p>¿Cómo deseas validar el evento <strong>{{ $event->name }}</strong>?</p>
 
-                    <form method="POST" action="{{ route('events.actualizarPuntuaciones', ['event' => $event->id, 'mode' => $event->mode]) }}"
+                    <form method="POST" action="{{ route('events.actualizarPuntuaciones', ['event' => $event->id, 'mode' => $event->mode ?: 'beybladex']) }}"
                           id="form-validar-comentario-{{ $event->id }}" style="display: none;">
                         @method('PUT')
                         @csrf
@@ -400,7 +412,7 @@
                   </div>
 
                   <div class="modal-footer d-flex flex-column gap-2">
-                    <form method="POST" action="{{ route('events.actualizarPuntuaciones', ['event' => $event->id, 'mode' => $event->mode]) }}" class="w-100">
+                    <form method="POST" action="{{ route('events.actualizarPuntuaciones', ['event' => $event->id, 'mode' => $event->mode ?: 'beybladex']) }}" class="w-100">
                       @method('PUT')
                       @csrf
                       <button type="submit" class="btn btn-success w-100">Validar sin comentario</button>

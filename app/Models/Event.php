@@ -31,6 +31,8 @@ class Event extends Model
         'challonge',
         'stadiums',          // Nuevo
         'max_players',          // Nuevo
+        'is_paid',
+        'entry_fee',
         'has_stadium_limit', // Nuevo
     ];
 
@@ -38,10 +40,31 @@ class Event extends Model
     // Esto es vital para que 'has_stadium_limit' funcione bien en los @if de la vista
     protected $casts = [
         'has_stadium_limit' => 'boolean', // Convierte 1/0 a true/false
+        'is_paid' => 'boolean',
+        'entry_fee' => 'float',
         'stadiums' => 'integer',
         'max_players' => 'integer',
         'date' => 'datetime',             // Permite usar ->format('d/m/Y') en la vista
     ];
+
+    public function isPaidEvent(): bool
+    {
+        return (bool) $this->is_paid || $this->beys === 'copapaypal' || ((float) $this->entry_fee > 0);
+    }
+
+    public function getEffectiveEntryFee(): ?float
+    {
+        if ($this->entry_fee !== null && (float) $this->entry_fee > 0) {
+            return round((float) $this->entry_fee, 2);
+        }
+
+        // Retrocompatibilidad con eventos antiguos 'copapaypal' sin entry_fee configurado
+        if ($this->beys === 'copapaypal' && !$this->is_paid) {
+            return 2.00;
+        }
+
+        return null;
+    }
 
     // --- 3. RELACIONES ---
 

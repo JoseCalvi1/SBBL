@@ -2,373 +2,401 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Http;
+use App\Models\Raffle;
 use App\Models\Ticket;
 use App\Models\User;
+use App\Services\Payment\PayPalService;
+use App\Services\Payment\TreasuryService;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Str;
 
 class TicketController extends Controller
 {
-    // Muestra el formulario de compra
-    public function showBuyForm()
+    protected $paypalService;
+    protected $treasuryService;
+
+    public function __construct(PayPalService $paypalService, TreasuryService $treasuryService)
     {
-        if (!env('PAYPAL_LIVE_CLIENT_ID')) {
-            abort(500, 'PAYPAL_LIVE_CLIENT_ID no configurado en el entorno.');
-        }
-
-        // --- CONTROL DE AFORO ---
-        // Contamos cuántas entradas de la Beycon se han vendido ya
-        $soldTickets = Ticket::where('identifier', 'like', 'BEYCON%')->count();
-        $soldOut = $soldTickets >= 130;
-
-        // Pasamos la variable $soldOut a la vista por si quieres ocultar el botón en el futuro
-        return view('tickets.buy', compact('soldOut'));
-    }
-
-    // Crea la orden de PayPal
-    public function createOrder(Request $request)
-    {
-        // LIMITAMOS A 5 ENTRADAS MAX POR COMPRA
-        $request->validate(['quantity' => 'required|integer|min:1|max:5']);
-        $quantity = (int) $request->quantity;
-
-        // --- CONTROL DE AFORO ---
-        $soldTickets = Ticket::where('identifier', 'like', 'BEYCON%')->count();
-        $available = 130 - $soldTickets;
-
-        if ($quantity > $available) {
-            return response()->json([
-                'error_details' => 'Aforo superado.',
-                'details' => $available > 0
-                    ? "Solo quedan {$available} entradas disponibles."
-                    : "Las entradas están agotadas (Sold Out)."
-            ], 400); // Devolvemos error 400 para que el frontend lo capture
-        }
-        // ------------------------
-
-        $unitPrice = 5.50; // PRECIO BEYCON (5€ entrada + 0.50€ gestión)
-        $total = number_format($quantity * $unitPrice, 2, '.', '');
-
-        $token = $this->getPaypalAccessToken();
-        if (!$token) {
-            return response()->json([
-                'error_details' => 'No se pudo obtener el token de PayPal para crear la orden.',
-                'details' => 'Revisa credenciales de API o conexión.'
-            ], 200);
-        }
-
-        $base = $this->paypalBaseUrl();
-
-        $response = Http::withToken($token)
-            ->timeout(30)
-            ->asJson() // Aseguramos que se envíe como JSON
-            ->post("{$base}/v2/checkout/orders", [
-                'intent' => 'CAPTURE',
-                'purchase_units' => [
-                    [
-                        'amount' => [
-                            'currency_code' => 'EUR',
-                            'value' => $total
-                        ],
-                        'custom_id' => (string) $quantity,
-                        'description' => "Entrada Beycon - {$quantity} ticket(s)"
-                    ]
-                ],
-                'application_context' => [
-                    'brand_name' => config('app.name'),
-                    'locale' => 'es-ES',
-                    'shipping_preference' => 'NO_SHIPPING',
-                    'user_action' => 'PAY_NOW'
-                ]
-            ]);
-
-        if ($response->failed()) {
-            $details = $response->json() ?? ['message' => 'Error de conexión desconocido'];
-            Log::error('PAYPAL CREATE ORDER FAILED', [
-                'status' => $response->status(),
-                'response_body' => $details,
-            ]);
-            return response()->json([
-                'error_details' => 'Error al crear la orden en PayPal (Servidor).',
-                'details' => $details['message'] ?? 'Verifica logs para detalles del error.',
-                'status_code' => $response->status()
-            ], 200);
-        }
-
-        return response()->json($response->json());
+        $this->paypalService = $paypalService;
+        $this->treasuryService = $treasuryService;
     }
 
     /**
-     * Captura el pago de PayPal y crea los tickets.
-     * FIX CRÍTICO: Envía explícitamente el cuerpo como el string JSON '{}'.
+     * Muestra la página de compra de la rifa activa (solo usuarios autenticados).
+     */
+    public function showBuyForm()
+    {
+        $raffle = Raffle::where('is_active', true)->first();
+        $paypalClientId = $this->paypalService->getClientId();
+        $paypalCurrency = $this->paypalService->getCurrency();
+
+        if (!$raffle) {
+            return view('tickets.buy', [
+                'raffle'          => null,
+                'soldOut'         => false,
+                'userTicketsCount'=> 0,
+                'maxAllowedNow'   => 0,
+                'availableTotal'  => null,
+                'paypalClientId'  => $paypalClientId,
+                'paypalCurrency'  => $paypalCurrency,
+            ]);
+        }
+
+        $soldTickets = $raffle->tickets()->count();
+        $userTicketsCount = Ticket::where('raffle_id', $raffle->id)
+            ->where('user_id', Auth::id())
+            ->count();
+
+        $availableTotal = $raffle->max_tickets !== null
+            ? max(0, $raffle->max_tickets - $soldTickets)
+            : null;
+
+        $remainingForUser = max(0, $raffle->max_per_user - $userTicketsCount);
+        $maxAllowedNow = $availableTotal !== null
+            ? min($availableTotal, $remainingForUser)
+            : $remainingForUser;
+
+        $soldOut = !$raffle->isOpenForPurchase();
+
+        return view('tickets.buy', compact(
+            'raffle',
+            'soldTickets',
+            'soldOut',
+            'userTicketsCount',
+            'maxAllowedNow',
+            'availableTotal',
+            'paypalClientId',
+            'paypalCurrency'
+        ));
+    }
+
+    /**
+     * Crea la orden en PayPal Business para comprar papeletas de la rifa activa.
+     */
+    public function createOrder(Request $request)
+    {
+        if (!Auth::check()) {
+            return response()->json(['error_details' => 'Debes iniciar sesión para comprar papeletas.'], 401);
+        }
+
+        $raffle = Raffle::where('is_active', true)->first();
+        if (!$raffle || !$raffle->isOpenForPurchase()) {
+            return response()->json([
+                'error_details' => 'No hay ninguna rifa disponible para compra en este momento.',
+            ], 422);
+        }
+
+        $request->validate([
+            'quantity' => 'required|integer|min:1|max:' . max(1, $raffle->max_per_user),
+        ]);
+
+        $quantity = (int) $request->quantity;
+        $user = Auth::user();
+
+        if ($raffle->max_tickets !== null) {
+            $soldTickets = $raffle->tickets()->count();
+            $available = max(0, $raffle->max_tickets - $soldTickets);
+            if ($quantity > $available) {
+                return response()->json([
+                    'error_details' => 'Papeletas insuficientes.',
+                    'details'       => $available > 0
+                        ? "Solo quedan {$available} papeletas disponibles."
+                        : 'Las papeletas están agotadas.',
+                ], 422);
+            }
+        }
+
+        $userOwned = Ticket::where('raffle_id', $raffle->id)->where('user_id', $user->id)->count();
+        if (($userOwned + $quantity) > $raffle->max_per_user) {
+            $canBuy = max(0, $raffle->max_per_user - $userOwned);
+            return response()->json([
+                'error_details' => 'Límite por usuario alcanzado.',
+                'details'       => "Ya tienes {$userOwned} papeleta(s). Puedes adquirir como máximo {$canBuy} más en esta rifa.",
+            ], 422);
+        }
+
+        $total = round($quantity * $raffle->ticket_price, 2);
+        $customId = "RAFFLE:{$raffle->id}:USER:{$user->id}:QTY:{$quantity}";
+        $refId = "RIFA-{$raffle->id}-U{$user->id}";
+        $desc = "{$raffle->title} - {$quantity} papeleta(s) ({$user->name})";
+
+        try {
+            $order = $this->paypalService->createOrder($total, $desc, $customId, $refId);
+            return response()->json(['id' => $order['id']]);
+        } catch (\Throwable $e) {
+            Log::error('TicketController: Error creando orden PayPal de rifa', [
+                'raffle_id' => $raffle->id,
+                'user_id'   => $user->id,
+                'error'     => $e->getMessage(),
+            ]);
+            return response()->json([
+                'error_details' => 'No se pudo iniciar el pago en PayPal.',
+                'details'       => $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    /**
+     * Captura y verifica en servidor el pago de PayPal Business, asigna las papeletas al usuario
+     * y registra automáticamente el cobro en Tesorería.
      */
     public function captureOrder(Request $request)
     {
-        if (!auth()->check()) {
-            return response()->json(['error' => 'Usuario no autenticado.'], 401);
+        if (!Auth::check()) {
+            return response()->json(['status' => 'error', 'error' => 'Usuario no autenticado.'], 401);
         }
 
-        $request->validate(['orderID' => 'required|string']);
+        $request->validate([
+            'orderID' => 'required|string|max:128',
+        ]);
 
         $orderId = $request->orderID;
-        $token = $this->getPaypalAccessToken();
+        $user = Auth::user();
 
-        if (! $token) {
-            return response()->json(['status' => 'error', 'error' => 'No se pudo obtener token de PayPal para CAPTURA. Revise credenciales.'], 200);
+        // Idempotencia: si esta orden ya emitió sus papeletas, devolverlas sin duplicar
+        $existingTickets = Ticket::where('paypal_order_id', $orderId)
+            ->where('user_id', $user->id)
+            ->get();
+
+        if ($existingTickets->isNotEmpty()) {
+            return response()->json([
+                'status'  => 'success',
+                'created' => $existingTickets->count(),
+                'tickets' => $existingTickets->pluck('identifier')->values()->all(),
+            ]);
         }
 
-        // Ejecutar la captura usando cURL para garantizar el cuerpo JSON vacío
-        $response = $this->executePaypalCaptureCurl($orderId, $token);
+        try {
+            $orderData = $this->paypalService->captureOrder($orderId);
+            $verified = $this->paypalService->extractVerifiedCapture($orderData);
 
-        // Si la respuesta falló (código de estado 400 o superior)
-        if (data_get($response, 'status_code') >= 400) {
-            $details = data_get($response, 'body');
+            // Validar metadatos firmados en la orden PayPal: RAFFLE:{id}:USER:{uid}:QTY:{qty}
+            if (!preg_match('/^RAFFLE:(\d+):USER:(\d+):QTY:(\d+)$/', $verified['custom_id'], $matches)) {
+                throw new \Exception('Metadatos de orden de rifa inválidos.');
+            }
 
-            Log::error('PAYPAL CAPTURE FAILED', [
+            $raffleId = (int) $matches[1];
+            $orderUserId = (int) $matches[2];
+            $quantity = (int) $matches[3];
+
+            if ($orderUserId !== (int) $user->id) {
+                throw new \Exception('Esta orden de pago pertenece a otro usuario.');
+            }
+
+            $createdIdentifiers = DB::transaction(function () use ($raffleId, $user, $quantity, $verified) {
+                $raffle = Raffle::where('id', $raffleId)->lockForUpdate()->firstOrFail();
+
+                $expectedAmount = round($quantity * $raffle->ticket_price, 2);
+                if (abs($verified['gross_amount'] - $expectedAmount) > 0.01) {
+                    throw new \Exception('El importe abonado no coincide con el coste de las papeletas.');
+                }
+
+                // Verificar de nuevo idempotencia dentro del bloqueo
+                $already = Ticket::where('paypal_capture_id', $verified['capture_id'])->get();
+                if ($already->isNotEmpty()) {
+                    return $already->pluck('identifier')->values()->all();
+                }
+
+                if ($raffle->max_tickets !== null) {
+                    $soldCount = Ticket::where('raffle_id', $raffle->id)->count();
+                    if (($soldCount + $quantity) > $raffle->max_tickets) {
+                        Log::critical('Rifa: Aforo superado justo durante captura PayPal', [
+                            'raffle_id'  => $raffle->id,
+                            'user_id'    => $user->id,
+                            'capture_id' => $verified['capture_id'],
+                        ]);
+                        // Aun así registramos el ingreso en Tesorería marcado con solicitud de reembolso para no perder trazabilidad del dinero cobrado
+                        $this->treasuryService->recordPayPalIncome([
+                            'category'          => 'Rifa',
+                            'gross_amount'      => $verified['gross_amount'],
+                            'fee'               => $verified['fee'],
+                            'net_amount'        => $verified['net_amount'],
+                            'description'       => "EXCESO AFORO Rifa {$raffle->title} - {$user->name} (Reembolsar)",
+                            'notes'             => 'El pago entró cuando se agotaron las papeletas. Reembolsar manualmente.',
+                            'reference_id'      => $verified['capture_id'],
+                            'paypal_order_id'   => $verified['order_id'],
+                            'paypal_capture_id' => $verified['capture_id'],
+                            'user_id'           => $user->id,
+                            'raffle_id'         => $raffle->id,
+                        ])->update(['refund_requested' => true]);
+
+                        throw new \Exception('Las papeletas se agotaron mientras completabas el pago. Tu cobro ha quedado registrado para reembolso inmediato por Administración.');
+                    }
+                }
+
+                $identifiers = [];
+                for ($i = 0; $i < $quantity; $i++) {
+                    $identifier = $this->generateIdentifier($raffle->ticket_prefix);
+                    Ticket::create([
+                        'user_id'           => $user->id,
+                        'raffle_id'         => $raffle->id,
+                        'identifier'        => $identifier,
+                        'paypal_order_id'   => $verified['order_id'],
+                        'paypal_capture_id' => $verified['capture_id'],
+                        'price_paid'        => $raffle->ticket_price,
+                    ]);
+                    $identifiers[] = $identifier;
+                }
+
+                // Registro blindado en Tesorería
+                $this->treasuryService->recordPayPalIncome([
+                    'category'          => 'Rifa',
+                    'gross_amount'      => $verified['gross_amount'],
+                    'fee'               => $verified['fee'],
+                    'net_amount'        => $verified['net_amount'],
+                    'description'       => "Rifa «{$raffle->title}» ({$quantity} papeletas) - {$user->name}",
+                    'reference_id'      => $verified['capture_id'],
+                    'paypal_order_id'   => $verified['order_id'],
+                    'paypal_capture_id' => $verified['capture_id'],
+                    'user_id'           => $user->id,
+                    'raffle_id'         => $raffle->id,
+                ]);
+
+                return $identifiers;
+            });
+
+            return response()->json([
+                'status'  => 'success',
+                'created' => count($createdIdentifiers),
+                'tickets' => $createdIdentifiers,
+            ]);
+        } catch (\Throwable $e) {
+            Log::error('TicketController: Error capturando orden de rifa', [
                 'order_id' => $orderId,
-                'status_code' => data_get($response, 'status_code'),
-                'paypal_response_body' => $details,
+                'user_id'  => $user->id,
+                'error'    => $e->getMessage(),
             ]);
 
             return response()->json([
                 'status' => 'error',
-                'error' => 'Error al capturar la orden en PayPal. ',
-                'status_code' => data_get($response, 'status_code'),
-                'paypal_name' => data_get($details, 'name') ?? 'Error desconocido.',
-                'details' => data_get($details, 'message') ?? 'Verifica logs para más detalles. Error de formato.',
-            ], 200);
-        }
-
-        // --- Procesamiento de Éxito ---
-        $data = data_get($response, 'body');
-
-        // 1. Verificar estado de la orden
-        $status = data_get($data, 'status');
-        if ($status !== 'COMPLETED') {
-            Log::warning('PAYPAL CAPTURE NOT COMPLETED', ['order_id' => $orderId, 'status' => $status]);
-            return response()->json([
-                'status' => 'error',
-                'error' => "Pago no completado por PayPal. Estado: {$status}"
-            ], 200);
-        }
-
-        // 2. Obtener cantidad de tickets
-        $quantity = (int) data_get($data, 'purchase_units.0.custom_id', 0);
-
-        if ($quantity <= 0) {
-            $amount = (float) data_get($data, 'purchase_units.0.payments.captures.0.amount.value', 0);
-            $quantity = (int) round($amount / 5.50); // CÁLCULO AJUSTADO A 5.50€
-        }
-
-        if ($quantity <= 0 || $quantity > 5) {
-            return response()->json([
-                'status' => 'error',
-                'error' => 'Cantidad inválida en la orden o supera el límite de 5.'
-            ], 200);
-        }
-
-        // --- CONTROL DE AFORO FINAL (Seguridad Anti-Concurrencia) ---
-        $soldTickets = Ticket::where('identifier', 'like', 'BEYCON%')->count();
-        if ($soldTickets + $quantity > 130) {
-            Log::error('OVERSELL PREVENTED', ['user' => $request->user()->id, 'qty' => $quantity]);
-            return response()->json([
-                'status' => 'error',
-                'error' => 'Lo sentimos, las entradas se acaban de agotar mientras realizabas el pago. Por favor, contacta con la administración de SBBL para tu reembolso inmediato.'
-            ], 200);
-        }
-        // ------------------------------------------------------------
-
-        $user = $request->user();
-
-        // 3. Crear tickets dentro de transacción
-        DB::beginTransaction();
-        try {
-            $tickets = [];
-            for ($i = 0; $i < $quantity; $i++) {
-                $identifier = $this->generateIdentifier();
-                $tickets[] = Ticket::create([
-                    'user_id' => $user->id,
-                    'identifier' => $identifier
-                ]);
-            }
-            DB::commit();
-
-            return response()->json([
-                'status' => 'success',
-                'created' => count($tickets),
-                'tickets' => array_map(fn($t) => $t->identifier, $tickets)
-            ], 200);
-
-        } catch (\Throwable $e) {
-            DB::rollBack();
-            Log::error('DB TICKET CREATION FAILED', ['error' => $e->getMessage()]);
-            return response()->json([
-                'status' => 'error',
-                'error' => 'Error creando tickets (DB): '.$e->getMessage()
-            ], 200);
+                'error'  => $e->getMessage(),
+            ], 422);
         }
     }
 
-    // ----------------------------------------------------------------------
-    // HELPERS
-    // ----------------------------------------------------------------------
-
-    // Obtener la URL base (Sandbox o Live)
-    private function paypalBaseUrl()
+    private function generateIdentifier(string $prefix): string
     {
-        return env('PAYPAL_MODE') === 'live'
-            ? 'https://api-m.paypal.com'
-            : 'https://api-m.sandbox.paypal.com';
-    }
-
-    // Obtener el Token de Acceso de PayPal
-    private function getPaypalAccessToken()
-    {
-        $client = env('PAYPAL_LIVE_CLIENT_ID');
-        $secret = env('PAYPAL_LIVE_CLIENT_SECRET');
-
-        if (! $client || ! $secret) {
-            Log::error('PAYPAL CREDENTIALS MISSING', ['client' => $client, 'secret_provided' => !empty($secret)]);
-            return null;
-        }
-
-        $base = $this->paypalBaseUrl();
-
-        $res = Http::withBasicAuth($client, $secret)
-            ->timeout(30)
-            ->asForm()
-            ->post("{$base}/v1/oauth2/token", ['grant_type' => 'client_credentials']);
-
-        if ($res->failed()) {
-            Log::error('PAYPAL ACCESS TOKEN FAILED', ['status' => $res->status(), 'body' => $res->body(), 'base_url' => $base]);
-            return null;
-        }
-
-        return data_get($res->json(), 'access_token');
-    }
-
-    // Generar identificador de ticket
-    private function generateIdentifier()
-    {
+        $cleanPrefix = strtoupper(preg_replace('/[^A-Z0-9]/', '', $prefix)) ?: 'RIFA';
         do {
-            $num = str_pad(random_int(0, 999999), 6, '0', STR_PAD_LEFT);
-            $id = 'BEYCON' . now()->year . '-' . $num; // PREFIJO BEYCON
+            $num = str_pad((string) random_int(0, 999999), 6, '0', STR_PAD_LEFT);
+            $id = $cleanPrefix . '-' . $num;
         } while (Ticket::where('identifier', $id)->exists());
 
         return $id;
     }
 
-    // Vista de mis tickets
+    /**
+     * Vista de mis papeletas para el usuario logueado.
+     */
     public function myTickets(Request $request)
     {
-        $tickets = $request->user()->tickets()->latest()->get();
-        return view('tickets.mine', compact('tickets'));
-    }
+        $tickets = $request->user()
+            ->tickets()
+            ->with('raffle')
+            ->latest()
+            ->get();
 
-    private function executePaypalCaptureCurl(string $orderId, string $token)
-    {
-        $base = $this->paypalBaseUrl();
-        $url = "{$base}/v2/checkout/orders/{$orderId}/capture";
+        $activeRaffle = Raffle::where('is_active', true)->first();
 
-        $ch = curl_init($url);
-
-        // Cabeceras estrictas
-        curl_setopt($ch, CURLOPT_HTTPHEADER, [
-            'Content-Type: application/json',
-            'Content-Length: 2', // Debe ser 2, la longitud de "{}"
-            'Authorization: Bearer ' . $token,
-        ]);
-
-        // Cuerpo y método
-        curl_setopt($ch, CURLOPT_CUSTOMREQUEST, 'POST');
-        curl_setopt($ch, CURLOPT_POSTFIELDS, '{}'); // El cuerpo es la cadena literal "{}"
-
-        // Configuración de respuesta
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($ch, CURLOPT_HEADER, false);
-        curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 10);
-        curl_setopt($ch, CURLOPT_TIMEOUT, 30);
-
-        $responseBody = curl_exec($ch);
-        $statusCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-        $error = curl_error($ch);
-
-        curl_close($ch);
-
-        if ($error) {
-            Log::error('PAYPAL CAPTURE CURL FAILED', ['curl_error' => $error]);
-            // Devolvemos un error 500 para la lógica principal
-            return ['status_code' => 500, 'body' => ['message' => 'Error de conexión cURL: ' . $error]];
-        }
-
-        // Devolvemos el cuerpo decodificado y el código de estado
-        return [
-            'status_code' => $statusCode,
-            'body' => json_decode($responseBody, true)
-        ];
+        return view('tickets.mine', compact('tickets', 'activeRaffle'));
     }
 
     // ----------------------------------------------------------------------
-    // SORTEO DE TICKETS
+    // SORTEO DE RIFA (EXCLUSIVO ADMIN)
     // ----------------------------------------------------------------------
 
     public function index(Request $request)
     {
-        // Obtener todos los tickets
-        $tickets = Ticket::all()->toArray();
-        $totalTickets = count($tickets);
-        $totalParticipants = User::whereIn('id', Ticket::pluck('user_id'))->count();
+        $raffles = Raffle::orderByDesc('is_active')->orderByDesc('created_at')->get();
+        $selectedRaffle = $request->filled('raffle_id')
+            ? Raffle::find($request->input('raffle_id'))
+            : ($raffles->firstWhere('is_active', true) ?? $raffles->first());
 
-        $winners = $request->session()->get('winners', []);
+        if (!$selectedRaffle) {
+            return view('tickets.sorteo', [
+                'raffles'           => $raffles,
+                'selectedRaffle'    => null,
+                'totalTickets'      => 0,
+                'totalParticipants' => 0,
+                'winners'           => [],
+            ]);
+        }
 
-        return view('tickets.sorteo', [
-            'totalTickets' => $totalTickets,
-            'totalParticipants' => $totalParticipants,
-            'winners' => $winners
-        ]);
+        $totalTickets = $selectedRaffle->tickets()->count();
+        $totalParticipants = (int) $selectedRaffle->tickets()->distinct('user_id')->count('user_id');
+        $winners = $selectedRaffle->winners_json ?? [];
+
+        return view('tickets.sorteo', compact(
+            'raffles',
+            'selectedRaffle',
+            'totalTickets',
+            'totalParticipants',
+            'winners'
+        ));
     }
 
     public function draw(Request $request)
     {
-        // Limpiar los ganadores anteriores
-        $request->session()->forget('winners');
+        $request->validate([
+            'raffle_id' => 'required|exists:raffles,id',
+        ]);
 
-        $tickets = Ticket::all()->toArray();
+        $raffle = Raffle::findOrFail($request->input('raffle_id'));
+        $tickets = $raffle->tickets()->with('user')->get();
+        $uniqueUsersCount = $tickets->pluck('user_id')->unique()->count();
+        $neededWinners = max(1, (int) $raffle->winners_count);
 
-        if(count($tickets) < 3){
-            return redirect()->back()->with('error', 'No hay suficientes papeletas para la rifa');
+        if ($uniqueUsersCount < $neededWinners) {
+            return redirect()->route('tickets.sorteo', ['raffle_id' => $raffle->id])
+                ->with('error', "Se necesitan al menos {$neededWinners} participantes distintos con papeletas para realizar el sorteo (actualmente hay {$uniqueUsersCount}).");
         }
 
+        $pool = $tickets->all();
         $winners = [];
-        $availableTickets = $tickets;
 
-        for($i=0; $i<3; $i++){
-            $winnerTicket = $availableTickets[array_rand($availableTickets)];
-            $user = User::find($winnerTicket['user_id']);
+        for ($i = 0; $i < $neededWinners; $i++) {
+            $pickedIndex = random_int(0, count($pool) - 1);
+            $winnerTicket = $pool[$pickedIndex];
+            $winnerUser = $winnerTicket->user;
+
             $winners[] = [
-                'ticket' => $winnerTicket['identifier'],
-                'user' => $user->name
+                'position' => $i + 1,
+                'ticket'   => $winnerTicket->identifier,
+                'user_id'  => $winnerTicket->user_id,
+                'user'     => $winnerUser ? $winnerUser->name : 'Usuario #' . $winnerTicket->user_id,
             ];
-            // Quitar todas las papeletas del usuario ganador
-            $availableTickets = array_filter($availableTickets, fn($t) => $t['user_id'] != $winnerTicket['user_id']);
-            $availableTickets = array_values($availableTickets);
+
+            // Excluir el resto de papeletas de ese usuario para que no repita premio
+            $pool = array_values(array_filter($pool, function ($t) use ($winnerTicket) {
+                return (int) $t->user_id !== (int) $winnerTicket->user_id;
+            }));
         }
 
-        // Guardar ganadores en sesión
-        $request->session()->put('winners', $winners);
+        $raffle->update([
+            'winners_json' => $winners,
+            'drawn_at'     => now(),
+            'is_active'    => false, // Al sortearla se cierra automáticamente la venta
+        ]);
 
-        return redirect()->route('tickets.sorteo');
+        return redirect()->route('tickets.sorteo', ['raffle_id' => $raffle->id])
+            ->with('success', "¡Sorteo de «{$raffle->title}» ejecutado y guardado oficialmente!");
     }
 
     public function reset(Request $request)
     {
-        // Borrar los ganadores de la sesión
-        $request->session()->forget('winners');
+        $request->validate([
+            'raffle_id' => 'required|exists:raffles,id',
+        ]);
 
-        // Redirigir de nuevo al sorteo
-        return redirect()->route('tickets.sorteo')->with('success', 'Rifa reiniciada correctamente.');
+        $raffle = Raffle::findOrFail($request->input('raffle_id'));
+        $raffle->update([
+            'winners_json' => null,
+            'drawn_at'     => null,
+        ]);
+
+        return redirect()->route('tickets.sorteo', ['raffle_id' => $raffle->id])
+            ->with('success', 'Ganadores reiniciados correctamente.');
     }
 }

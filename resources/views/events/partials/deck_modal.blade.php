@@ -165,11 +165,26 @@
                             @endforeach
                         </div>
 
-                        <div class="modal-footer border-top border-secondary justify-content-start" style="background-color: #1e293b;">
+                        @php
+                            $requiresEventPayment = !$isUserInscribed && $event->isPaidEvent() && ($event->getEffectiveEntryFee() > 0);
+                        @endphp
+
+                        <div class="modal-footer border-top border-secondary justify-content-between flex-wrap gap-3" style="background-color: #1e293b;">
                             <button type="button" class="btn fw-bold bg-dark text-white border-secondary px-4" data-bs-dismiss="modal">CANCELAR</button>
-                            <button type="submit" class="btn btn-success fw-bold px-5 font-Oswald fs-5" id="submitDeckBtn">
+
+                            <button type="submit" class="btn btn-success fw-bold px-5 font-Oswald fs-5 {{ $requiresEventPayment ? 'd-none' : '' }}" id="submitDeckBtn">
                                 <i class="fas fa-save me-2"></i> <span id="submitDeckBtnText">{{ $isUserInscribed ? 'GUARDAR DECK' : 'CONFIRMAR INSCRIPCIÓN' }}</span>
                             </button>
+
+                            @if($requiresEventPayment)
+                                <div id="event-paypal-wrapper" class="flex-grow-1" style="max-width: 440px;">
+                                    <div class="text-warning small fw-bold mb-2 text-end">
+                                        <i class="fas fa-shield-alt me-1"></i> Pago verificado de {{ number_format($event->getEffectiveEntryFee(), 2, ',', '.') }} € vía PayPal Business
+                                    </div>
+                                    <div id="event-paypal-buttons"></div>
+                                    <div id="eventPaypalMsg" class="mt-2 small fw-bold text-end"></div>
+                                </div>
+                            @endif
                         </div>
                     </form>
                 </div>
@@ -319,6 +334,8 @@
         document.getElementById('judgeEditingBanner').classList.remove('d-none');
         document.getElementById('deckModalTitleText').innerText = `EDITAR DECK DE: ${userName.toUpperCase()}`;
         document.getElementById('submitDeckBtnText').innerText = `GUARDAR DECK DE ${userName.toUpperCase()}`;
+        document.getElementById('submitDeckBtn')?.classList.remove('d-none');
+        document.getElementById('event-paypal-wrapper')?.classList.add('d-none');
         
         const btnUlt = document.getElementById('btnCargarUltimoDeckWeb');
         if (btnUlt) btnUlt.classList.add('d-none');
@@ -364,4 +381,124 @@
     function resetModalToOwnUser() {
         window.location.reload();
     }
+
+    @if(!$isUserInscribed && $event->isPaidEvent() && ($event->getEffectiveEntryFee() > 0))
+    document.addEventListener("DOMContentLoaded", function () {
+        const paypalContainer = document.getElementById('event-paypal-buttons');
+        const paypalMsg = document.getElementById('eventPaypalMsg');
+        const deckForm = document.getElementById('deckForm');
+
+        // Impedir envío por Enter sin pagar cuando no está en Modo Juez
+        if (deckForm) {
+            deckForm.addEventListener('submit', function (e) {
+                const targetUid = document.getElementById('web_target_user_id')?.value;
+                if (!targetUid) {
+                    e.preventDefault();
+                }
+            });
+        }
+
+        if (!paypalContainer) return;
+
+        if (typeof window.paypal === 'undefined') {
+            paypalMsg.innerHTML = '<span class="text-danger">⚠️ Pasarela de PayPal no disponible. Revisa las credenciales configuradas.</span>';
+            return;
+        }
+
+        function validateDeckBeforePayPal() {
+            const isTent = document.getElementById('tentativeCheck')?.checked;
+            if (isTent) return true;
+
+            for (let i = 1; i <= numBeysModalWeb; i++) {
+                const b = document.getElementById(`blade_${i}`)?.value;
+                const r = document.getElementById(`ratchet_${i}`)?.value;
+                const bt = document.getElementById(`bit_${i}`)?.value;
+                if (!b || !r || !bt) {
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        window.paypal.Buttons({
+            style: { color: 'gold', shape: 'rect', label: 'pay', height: 42 },
+
+            createOrder: function () {
+                paypalMsg.innerHTML = '';
+                if (!validateDeckBeforePayPal()) {
+                    paypalMsg.innerHTML = '<span class="text-danger">❌ Selecciona las piezas obligatorias de tu Deck o activa "Inscripción Tentativa" antes de pagar.</span>';
+                    return Promise.reject(new Error('Deck incompleto'));
+                }
+
+                return fetch("{{ route('events.paypal.order', $event->id) }}", {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                    },
+                    body: JSON.stringify({})
+                }).then(async function (res) {
+                    const data = await res.json();
+                    if (!res.ok || !data.id) {
+                        paypalMsg.innerHTML = `<span class="text-danger">❌ ${data.error || 'No se pudo iniciar la orden en PayPal.'}</span>`;
+                        throw new Error(data.error || 'createOrder error');
+                    }
+                    return data.id;
+                });
+            },
+
+            onApprove: function (data) {
+                paypalMsg.innerHTML = '<span class="text-warning"><i class="fas fa-spinner fa-spin me-1"></i> Verificando pago e inscribiendo...</span>';
+
+                const isTent = !!(document.getElementById('tentativeCheck')?.checked);
+                const alsoJudge = !!(document.getElementById('alsoJudgeCheck')?.checked);
+                const blades = [], ratchets = [], bits = [], over_blades = [], assist_blades = [];
+
+                for (let i = 1; i <= numBeysModalWeb; i++) {
+                    blades.push(document.getElementById(`blade_${i}`)?.value || '');
+                    ratchets.push(document.getElementById(`ratchet_${i}`)?.value || '');
+                    bits.push(document.getElementById(`bit_${i}`)?.value || '');
+                    over_blades.push(document.getElementById(`over_${i}`)?.value || '');
+                    assist_blades.push(document.getElementById(`assist_${i}`)?.value || '');
+                }
+
+                return fetch("{{ route('events.paypal.capture', $event->id) }}", {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                    },
+                    body: JSON.stringify({
+                        orderID: data.orderID,
+                        is_tentative: isTent,
+                        also_judge: alsoJudge,
+                        blades: blades,
+                        ratchets: ratchets,
+                        bits: bits,
+                        over_blades: over_blades,
+                        assist_blades: assist_blades
+                    })
+                }).then(async function (res) {
+                    const result = await res.json();
+                    if (res.ok && result.status === 'success') {
+                        paypalMsg.innerHTML = '<span class="text-success">✅ ¡Pago confirmado! Recargando evento...</span>';
+                        window.location.reload();
+                    } else {
+                        paypalMsg.innerHTML = `<span class="text-danger">❌ ${result.message || 'Error al verificar la captura del pago.'}</span>`;
+                    }
+                }).catch(function () {
+                    paypalMsg.innerHTML = '<span class="text-danger">❌ Error de red al confirmar la inscripción. Si se efectuó el cargo, queda protegido vía Webhook.</span>';
+                });
+            },
+
+            onError: function () {
+                if (!paypalMsg.innerHTML) {
+                    paypalMsg.innerHTML = '<span class="text-danger">❌ No se completó la operación en la ventana de PayPal.</span>';
+                }
+            }
+        }).render('#event-paypal-buttons');
+    });
+    @endif
 </script>

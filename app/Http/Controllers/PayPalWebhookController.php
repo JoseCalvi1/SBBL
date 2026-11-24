@@ -2,190 +2,238 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Http;
+use App\Models\Carrito;
+use App\Models\Event;
+use App\Models\Raffle;
 use App\Models\Subscription;
-use App\Models\TreasuryLog;
+use App\Services\Payment\PayPalService;
+use App\Services\Payment\TreasuryService;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 
 class PayPalWebhookController extends Controller
 {
+    protected $paypalService;
+    protected $treasuryService;
+
+    public function __construct(PayPalService $paypalService, TreasuryService $treasuryService)
+    {
+        $this->paypalService = $paypalService;
+        $this->treasuryService = $treasuryService;
+    }
+
     public function handle(Request $request)
     {
         try {
-            // 1️⃣ Log del webhook completo
-            Log::info('Webhook PayPal recibido', $request->all());
+            $event = (string) $request->input('event_type', '');
+            $resource = $request->input('resource', []);
 
-            $mode = config('paypal.mode');
-            $clientId = $mode === 'sandbox'
-                ? config('paypal.sandbox.client_id')
-                : config('paypal.live.client_id');
+            Log::info("PayPal Webhook recibido: {$event}", [
+                'id'          => $request->input('id'),
+                'resource_id' => $resource['id'] ?? null,
+            ]);
 
-            $secret = $mode === 'sandbox'
-                ? config('paypal.sandbox.client_secret')
-                : config('paypal.live.client_secret');
-
-            $base = $mode === 'sandbox'
-                ? 'https://api-m.sandbox.paypal.com'
-                : 'https://api-m.paypal.com';
-
-            // Obtener Access Token
-            $tokenResp = Http::withBasicAuth($clientId, $secret)
-                ->asForm()
-                ->post($base . '/v1/oauth2/token', [
-                    'grant_type' => 'client_credentials'
+            // 1. Verificación criptográfica de firma PayPal
+            if (!$this->paypalService->verifyWebhookSignature($request)) {
+                Log::error('PayPal Webhook rechazado: firma inválida.', [
+                    'event_type' => $event,
                 ]);
-
-            $accessToken = $tokenResp->json()['access_token'] ?? null;
-
-            // 2️⃣ Verificar firma solo si está definido el webhook_id
-            $verifyResp = null;
-            if ($webhookId = env('PAYPAL_WEBHOOK_ID')) {
-                $verifyBody = [
-                    'transmission_id' => $request->header('PAYPAL-TRANSMISSION-ID'),
-                    'transmission_time' => $request->header('PAYPAL-TRANSMISSION-TIME'),
-                    'cert_url' => $request->header('PAYPAL-CERT-URL'),
-                    'auth_algo' => $request->header('PAYPAL-AUTH-ALGO'),
-                    'transmission_sig' => $request->header('PAYPAL-TRANSMISSION-SIG'),
-                    'webhook_id' => $webhookId,
-                    'webhook_event' => json_decode($request->getContent(), true),
-                ];
-
-                $verifyResp = Http::withToken($accessToken)
-                    ->post("$base/v1/notifications/verify-webhook-signature", $verifyBody);
-
-                Log::info('Respuesta verificación PayPal', $verifyResp->json());
-
-                if ($verifyResp->json()['verification_status'] !== 'SUCCESS') {
-                    Log::error('⚠️ Webhook PayPal no verificado en producción', $verifyResp->json());
-                    return response()->json(['ok' => false, 'verified' => false], 400);
-                }
+                return response()->json(['ok' => false, 'verified' => false], 400);
             }
 
+            // 2. Reembolsos y Reversiones de Pagos Únicos (Eventos, Rifas, Tienda)
+            if (in_array($event, ['PAYMENT.CAPTURE.REFUNDED', 'PAYMENT.CAPTURE.REVERSED'], true)) {
+                $refundId = $resource['id'] ?? null;
+                $captureId = data_get($resource, 'supplementary_data.related_ids.capture_id');
 
-            // 3️⃣ Procesar el evento
-            $event = $request->input('event_type');
-            $resource = $request->input('resource');
+                if (!$captureId && isset($resource['links']) && is_array($resource['links'])) {
+                    foreach ($resource['links'] as $link) {
+                        if (($link['rel'] ?? '') === 'up' && !empty($link['href'])) {
+                            if (preg_match('#/captures/([A-Z0-9]+)#i', $link['href'], $m)) {
+                                $captureId = $m[1];
+                                break;
+                            }
+                        }
+                    }
+                }
 
-            // 🔍 Extraer el ID de suscripción de forma más robusta
-            if (in_array($event, ['PAYMENT.SALE.COMPLETED', 'PAYMENT.CAPTURE.COMPLETED'])) {
+                // En PAYMENT.CAPTURE.REVERSED el propio resource suele ser el capture o referenciarlo
+                if (!$captureId && $event === 'PAYMENT.CAPTURE.REVERSED') {
+                    $captureId = $resource['id'] ?? null;
+                }
+
+                if ($captureId) {
+                    $updatedLog = $this->treasuryService->markRefundedByCaptureId($captureId, $refundId);
+                    Log::info("Webhook reembolso procesado para captura {$captureId}", [
+                        'treasury_log_found' => (bool) $updatedLog,
+                    ]);
+                }
+
+                return response()->json(['ok' => true]);
+            }
+
+            // 3. Detectar si el evento pertenece a una Suscripción o a un Pago Único (Orders v2)
+            $subId = null;
+            if (in_array($event, ['PAYMENT.SALE.COMPLETED', 'PAYMENT.CAPTURE.COMPLETED'], true)) {
                 $subId = $resource['billing_agreement_id']
-                    ?? ($resource['supplementary_data']['related_ids']['billing_agreement_id'] ?? null);
-            } else {
+                    ?? data_get($resource, 'supplementary_data.related_ids.billing_agreement_id');
+            } elseif (strpos($event, 'BILLING.SUBSCRIPTION.') === 0) {
                 $subId = $resource['id']
                     ?? $resource['subscription_id']
-                    ?? ($resource['supplementary_data']['related_ids']['billing_agreement_id'] ?? null);
+                    ?? data_get($resource, 'supplementary_data.related_ids.billing_agreement_id');
             }
 
+            // 3A. Pago Único completado (Evento de pago, Rifa o Tienda Merch)
+            if ($event === 'PAYMENT.CAPTURE.COMPLETED' && !$subId) {
+                $this->handleOneTimeCaptureCompleted($resource);
+                return response()->json(['ok' => true]);
+            }
+
+            // 3B. Flujo de Suscripciones recurrentes
             if (!$subId) {
-                Log::warning('Webhook recibido sin subscription_id', $request->all());
-                return response()->json(['ok' => true, 'message' => 'Evento sin subscription_id']);
+                return response()->json(['ok' => true, 'message' => 'Evento ignorado']);
             }
-
-            Log::info("Procesando evento {$event} para suscripción {$subId}");
 
             $sub = Subscription::where('paypal_subscription_id', $subId)->first();
 
-            // Crear registro si no existe (aunque sea APPROVAL_PENDING)
             if (!$sub) {
                 $sub = Subscription::create([
-                    'user_id' => null, // mapear con tu lógica si quieres
-                    'plan_id' => $resource['plan_id'] ?? null,
-                    'period' => 'monthly', // ajustar según tu lógica
+                    'user_id'                => null,
+                    'plan_id'                => $resource['plan_id'] ?? null,
+                    'period'                 => 'monthly',
                     'paypal_subscription_id' => $subId,
-                    'status' => $event === 'BILLING.SUBSCRIPTION.CREATED' ? 'pending' : 'active',
-                    'started_at' => now(),
-                    'ended_at' => now()->addMonth(),
+                    'status'                 => $event === 'BILLING.SUBSCRIPTION.CREATED' ? 'pending' : 'active',
+                    'started_at'             => now(),
+                    'ended_at'               => now()->addMonth(),
                 ]);
-                Log::info("Nueva suscripción creada para {$subId}");
             }
 
-            // 4️⃣ Actualizar según evento
             switch ($event) {
                 case 'BILLING.SUBSCRIPTION.CANCELLED':
                 case 'BILLING.SUBSCRIPTION.SUSPENDED':
                 case 'BILLING.SUBSCRIPTION.EXPIRED':
-                    $sub->status = 'canceled';
-                    $sub->save();
-                    Log::info("Suscripción {$subId} cancelada/suspendida/expirada");
+                    $sub->update(['status' => 'canceled']);
                     break;
 
                 case 'BILLING.SUBSCRIPTION.ACTIVATED':
-                    $sub->status = 'active';
-                    $sub->save();
-                    Log::info("Suscripción {$subId} activada");
+                    $sub->update(['status' => 'active']);
                     break;
 
                 case 'PAYMENT.SALE.COMPLETED':
                 case 'PAYMENT.CAPTURE.COMPLETED':
-                    if ($sub->period === 'monthly') {
-                        $sub->ended_at = $sub->ended_at ? $sub->ended_at->addMonth() : now()->addMonth();
-                    } else {
-                        $sub->ended_at = $sub->ended_at ? $sub->ended_at->addYear() : now()->addYear();
-                    }
-                    $sub->status = 'active';
-                    $sub->save();
-                    Log::info("Pago completado para {$subId}. Nueva fecha de finalización: {$sub->ended_at}");
+                    $newEnd = $sub->period === 'monthly'
+                        ? ($sub->ended_at ? $sub->ended_at->copy()->addMonth() : now()->addMonth())
+                        : ($sub->ended_at ? $sub->ended_at->copy()->addYear() : now()->addYear());
 
-                    // 💸 REGISTRO AUTOMÁTICO EN TESORERÍA (Renovaciones)
-                    try {
-                        // El ID de la transacción concreta (vital para no mezclar meses/renovaciones)
-                        $transactionId = $resource['id'] ?? null;
+                    $sub->update([
+                        'status'   => 'active',
+                        'ended_at' => $newEnd,
+                    ]);
 
-                        if ($transactionId) {
-                            // Evitar duplicados si PayPal reenvía el mismo webhook dos veces por accidente
-                            $logExists = TreasuryLog::where('reference_id', $transactionId)->exists();
+                    $transactionId = $resource['id'] ?? null;
+                    $grossAmount = (float) ($resource['amount']['total'] ?? $resource['amount']['value'] ?? 0);
 
-                            if (!$logExists) {
-                                // PayPal a veces manda el importe en 'total' (v1) y otras en 'value' (v2)
-                                $grossAmount = (float) ($resource['amount']['total'] ?? $resource['amount']['value'] ?? 0);
-
-                                // Intentamos sacar la comisión de PayPal
-                                $fee = (float) ($resource['transaction_fee']['value'] ?? 0);
-
-                                // Si PayPal no manda la comisión, aplicamos el Fallback matemático (3.4% + 0.35€)
-                                if ($fee <= 0 && $grossAmount > 0) {
-                                    $fee = round(($grossAmount * 0.034) + 0.35, 2);
-                                }
-
-                                if ($grossAmount > 0) {
-                                    $userName = $sub->user ? $sub->user->name : 'Usuario Desconocido';
-
-                                    TreasuryLog::create([
-                                        'type' => 'ingreso',
-                                        'category' => 'Suscripción',
-                                        'gross_amount' => $grossAmount,
-                                        'fee' => $fee,
-                                        'net_amount' => $grossAmount - $fee,
-                                        'status' => 'completado', // <-- IMPRESCINDIBLE
-                                        'description' => "Renovación Suscripción - " . $userName,
-                                        'reference_id' => $transactionId,
-                                        'user_id' => $sub->user_id,
-                                    ]);
-                                    Log::info("Ingreso registrado en tesorería para transacción: {$transactionId}");
-                                } else {
-                                    Log::warning("No se pudo extraer el importe bruto para la transacción: {$transactionId}");
-                                }
-                            } else {
-                                Log::info("La transacción {$transactionId} ya estaba registrada en tesorería. Se ignoró el duplicado.");
-                            }
-                        } else {
-                             Log::warning("No se encontró el ID de transacción en el webhook para la suscripción {$subId}");
+                    if ($transactionId && $grossAmount > 0) {
+                        $fee = (float) ($resource['transaction_fee']['value']
+                            ?? data_get($resource, 'seller_receivable_breakdown.paypal_fee.value', 0));
+                        if ($fee <= 0) {
+                            $fee = round(($grossAmount * 0.029) + 0.35, 2);
                         }
-                    } catch (\Exception $e) {
-                        Log::error("Error registrando la tesorería del webhook: " . $e->getMessage());
+
+                        $userName = $sub->user ? $sub->user->name : 'Suscriptor';
+                        $this->treasuryService->recordPayPalIncome([
+                            'category'          => 'Suscripción',
+                            'gross_amount'      => $grossAmount,
+                            'fee'               => $fee,
+                            'net_amount'        => round($grossAmount - $fee, 2),
+                            'description'       => "Renovación Suscripción - {$userName}",
+                            'reference_id'      => $transactionId,
+                            'paypal_capture_id' => $transactionId,
+                            'user_id'           => $sub->user_id,
+                        ]);
                     }
                     break;
             }
 
             return response()->json(['ok' => true]);
-
-        } catch (\Exception $e) {
-            Log::error('Error en webhook PayPal: ' . $e->getMessage(), [
-                'request' => $request->all(),
+        } catch (\Throwable $e) {
+            Log::error('Error en PayPalWebhookController: ' . $e->getMessage(), [
                 'trace' => $e->getTraceAsString(),
             ]);
-            return response()->json(['ok' => false, 'message' => 'Error procesando webhook'], 500);
+            return response()->json(['ok' => false, 'message' => 'Error interno procesando webhook'], 500);
         }
+    }
+
+    /**
+     * Red de seguridad contable para pagos únicos (Orders v2):
+     * Garantiza que cualquier cobro capturado en PayPal quede asentado en Tesorería aunque
+     * el navegador del cliente se haya cerrado antes de completar la llamada AJAX de retorno.
+     */
+    protected function handleOneTimeCaptureCompleted(array $resource): void
+    {
+        $captureId = $resource['id'] ?? null;
+        if (!$captureId) {
+            return;
+        }
+
+        $orderId = data_get($resource, 'supplementary_data.related_ids.order_id');
+        $gross = round((float) data_get($resource, 'amount.value', 0), 2);
+        if ($gross <= 0) {
+            return;
+        }
+
+        $feeVal = data_get($resource, 'seller_receivable_breakdown.paypal_fee.value');
+        $netVal = data_get($resource, 'seller_receivable_breakdown.net_amount.value');
+
+        $fee = $feeVal !== null ? round((float) $feeVal, 2) : round(($gross * 0.029) + 0.35, 2);
+        $net = $netVal !== null ? round((float) $netVal, 2) : round($gross - $fee, 2);
+
+        $customId = (string) ($resource['custom_id'] ?? '');
+        $category = 'PayPal Web';
+        $description = "Cobro PayPal Business ({$captureId})";
+        $userId = null;
+        $eventId = null;
+        $raffleId = null;
+        $carritoId = null;
+
+        if (preg_match('/^EVENT:(\d+):USER:(\d+)$/', $customId, $m)) {
+            $eventId = (int) $m[1];
+            $userId = (int) $m[2];
+            $category = 'Inscripción Torneo';
+            $ev = Event::find($eventId);
+            $description = 'Inscripción Torneo (Webhook): ' . ($ev ? $ev->name : "#{$eventId}");
+            // Asegurar inscripción si el cliente cerró la pestaña
+            if ($ev) {
+                $ev->users()->syncWithoutDetaching([$userId]);
+            }
+        } elseif (preg_match('/^RAFFLE:(\d+):USER:(\d+):QTY:(\d+)$/', $customId, $m)) {
+            $raffleId = (int) $m[1];
+            $userId = (int) $m[2];
+            $category = 'Rifa';
+            $raf = Raffle::find($raffleId);
+            $description = 'Rifa (Webhook): ' . ($raf ? $raf->title : "#{$raffleId}");
+        } elseif (preg_match('/^SHOP:(\d+):REF:([A-Z0-9\-]+)$/', $customId, $m)) {
+            $carritoId = (int) $m[1];
+            $ref = $m[2];
+            $category = 'Tienda / Merch';
+            $carrito = Carrito::find($carritoId);
+            $userId = $carrito ? $carrito->user_id : null;
+            $description = "Pedido Merch {$ref} (Webhook)" . ($carrito ? " - {$carrito->nombre}" : '');
+        }
+
+        $this->treasuryService->recordPayPalIncome([
+            'category'          => $category,
+            'gross_amount'      => $gross,
+            'fee'               => $fee,
+            'net_amount'        => $net,
+            'description'       => $description,
+            'reference_id'      => $captureId,
+            'paypal_order_id'   => $orderId,
+            'paypal_capture_id' => $captureId,
+            'user_id'           => $userId,
+            'event_id'          => $eventId,
+            'raffle_id'         => $raffleId,
+            'carrito_id'        => $carritoId,
+        ]);
     }
 }

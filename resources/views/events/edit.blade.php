@@ -98,7 +98,7 @@
                                     @if (Auth::user()->hasAnyRole(['admin', 'juez']))
                                         <option value="copaespecial1" {{ (old('imagen', $event->beys) == 'copaespecial1') ? 'selected' : '' }}>Copa SOLO CX</option>
                                     @endif
-    
+
 
                                 </select>
                             </div>
@@ -154,6 +154,41 @@
                             </div>
                             @endif
                         </div>
+
+                        @if(Auth::user()->hasAnyRole(['admin']))
+                        <div class="mt-4 p-4 rounded-3 border border-warning" style="background: rgba(234, 179, 8, 0.06);">
+                            <div class="row align-items-center g-3">
+                                <div class="col-md-7">
+                                    <div class="form-check form-switch">
+                                        <input class="form-check-input me-2" type="checkbox" role="switch" id="is_paid" name="is_paid" value="1" {{ old('is_paid', $event->isPaidEvent()) ? 'checked' : '' }} style="width: 3em; height: 1.5em; cursor: pointer;">
+                                        <label class="form-check-label text-warning fw-bold fs-5" for="is_paid" style="cursor: pointer;">
+                                            <i class="fab fa-paypal me-2"></i> Evento de Pago (PayPal Business)
+                                        </label>
+                                    </div>
+                                    <div class="text-light-muted small mt-1">
+                                        El importe cobrado queda registrado automáticamente en el Libro Mayor de Tesorería.
+                                    </div>
+                                </div>
+                                <div class="col-md-5">
+                                    @if(Auth::user()->hasRole('admin'))
+                                        <label for="entry_fee" class="form-label text-warning small text-uppercase fw-bold mb-1">
+                                            <i class="fas fa-euro-sign me-1"></i> Precio Inscripción (€) — Solo Admin
+                                        </label>
+                                        <input type="number" step="0.01" min="0.50" max="999.99" name="entry_fee" id="entry_fee" class="form-control dark-input fw-bold" value="{{ old('entry_fee', $event->getEffectiveEntryFee()) }}" placeholder="Ej: 5.00">
+                                    @else
+                                        <div class="p-2 rounded border border-secondary bg-dark text-light-muted small">
+                                            <i class="fas fa-lock text-warning me-1"></i> <strong>Precio actual:</strong>
+                                            @if($event->getEffectiveEntryFee() > 0)
+                                                <span class="text-warning fw-bold">{{ number_format($event->getEffectiveEntryFee(), 2, ',', '.') }} €</span>
+                                            @else
+                                                <span>Pendiente de asignar por Admin</span>
+                                            @endif
+                                        </div>
+                                    @endif
+                                </div>
+                            </div>
+                        </div>
+                        @endif
                     </div>
 
                     {{-- PASO 3: DETALLES --}}
@@ -318,7 +353,7 @@ document.addEventListener("DOMContentLoaded", function () {
             Array.from(deckSelect.options).forEach(opt => opt.disabled = false);
         }
     }
-    
+
     // Escuchador extra para la categoría
     document.getElementById("imagen").addEventListener("change", updateDeckOptions);
 

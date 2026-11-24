@@ -604,11 +604,41 @@
                                 </div>
                             @endif
 
-                            @if($event->beys === "copapaypal")
-                                <div class="text-center p-4 border border-secondary" style="background: #111;">
-                                    <p class="text-white font-Oswald fs-3 mb-3">COSTE DE INSCRIPCIÓN: <span style="color: var(--sbbl-gold);">{{ $event->beys === "grancopa" ? '5€' : '2€' }}</span></p>
-                                    <div id="paypal-button-container" class="d-flex justify-content-center"></div>
-                                </div>
+                            @if($event->isPaidEvent())
+                                @php $effectiveFee = $event->getEffectiveEntryFee(); @endphp
+                                @if($effectiveFee === null)
+                                    <div class="text-center p-4 border border-warning" style="background: #111;">
+                                        <p class="text-warning font-Oswald fs-3 mb-2">
+                                            <i class="fas fa-hourglass-half me-2"></i> INSCRIPCIÓN DE PAGO PENDIENTE DE TARIFA
+                                        </p>
+                                        <p class="text-white-50 fw-bold mb-0">
+                                            Administración está configurando el precio oficial de este evento. Las inscripciones se habilitarán en cuanto quede fijado.
+                                        </p>
+                                        @if(Auth::user()->hasRole('admin'))
+                                            <a href="{{ route('events.edit', $event->id) }}" class="btn btn-warning text-dark fw-bold mt-3 border-2 border-dark">
+                                                <i class="fas fa-euro-sign me-1"></i> FIJAR PRECIO AHORA (ADMIN)
+                                            </a>
+                                        @endif
+                                    </div>
+                                @else
+                                    <div class="text-center p-4 border border-warning" style="background: #111;">
+                                        <p class="text-white font-Oswald fs-3 mb-3">
+                                            COSTE DE INSCRIPCIÓN: <span style="color: var(--sbbl-gold);">{{ number_format($effectiveFee, 2, ',', '.') }} €</span>
+                                        </p>
+                                        <button type="button" class="btn-shonen w-100 text-center" data-bs-toggle="modal" data-bs-target="#formModal" style="background: var(--sbbl-gold); color: #000; border-color: #000; padding: 15px; font-size: 1.7rem;"
+                                            @if(in_array($event->beys, ['ranking', 'rankingplus']) &&
+                                            ((isset($rankingTournamentsLeft) && $rankingTournamentsLeft == 0) || (isset($isRegistered) && $isRegistered)))
+                                            disabled style="background: #555 !important; color: #888 !important; border-color: #333 !important; cursor: not-allowed; box-shadow: none;"
+                                            @endif>
+                                            <span>
+                                                <i class="fab fa-paypal me-2"></i> INSCRIBIRSE Y PAGAR ({{ number_format($effectiveFee, 2, ',', '.') }} €)
+                                                @if(in_array($event->beys, ['ranking', 'rankingplus']) && isset($rankingTournamentsLeft))
+                                                    <span class="badge bg-black text-white ms-3 border border-white" style="font-size: 1rem; vertical-align: middle;">Restantes: {{ $rankingTournamentsLeft }}</span>
+                                                @endif
+                                            </span>
+                                        </button>
+                                    </div>
+                                @endif
                             @else
                                 <button type="button" class="btn-shonen w-100 text-center" data-bs-toggle="modal" data-bs-target="#formModal" style="background: #00ff00; color: #000; border-color: #000; padding: 15px; font-size: 1.8rem;"
                                     @if(in_array($event->beys, ['ranking', 'rankingplus']) &&
@@ -898,6 +928,11 @@
             </div>
             <div class="modal-body text-center p-4" style="background: var(--sbbl-blue-2);">
                 <p class="text-white fw-bold fs-5 mb-0">¿REALMENTE QUIERES CANCELAR TU ASISTENCIA AL EVENTO?</p>
+                @if($event->isPaidEvent())
+                    <div class="alert bg-dark border border-warning text-warning small fw-bold mt-3 mb-0">
+                        <i class="fas fa-info-circle me-1"></i> Al ser un evento de pago, tu baja generará un aviso automático en Tesorería para que Administración gestione tu reembolso de forma manual.
+                    </div>
+                @endif
             </div>
             <div class="modal-footer border-top border-dark d-flex justify-content-center gap-3" style="background: #000;">
                 <button type="button" class="btn fw-bold bg-dark text-white border border-secondary" data-bs-dismiss="modal">MANTENER POSICIÓN</button>
@@ -966,14 +1001,19 @@
     </div>
 </div>
 
-@include('events.partials.deck_modal')
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 
 @php
-    $paypalClientId = config('paypal.mode') === 'sandbox' ? config('paypal.sandbox.client_id') : config('paypal.live.client_id');
+    $paypalServiceWeb = app(\App\Services\Payment\PayPalService::class);
+    $paypalClientId = $paypalServiceWeb->getClientId();
+    $paypalCurrency = $paypalServiceWeb->getCurrency();
 @endphp
-<script src="https://www.paypal.com/sdk/js?client-id={{ $paypalClientId }}&currency=EUR"></script>
+@if($event->isPaidEvent() && $event->getEffectiveEntryFee() > 0 && !empty($paypalClientId))
+    <script src="https://www.paypal.com/sdk/js?client-id={{ $paypalClientId }}&currency={{ $paypalCurrency }}"></script>
+@endif
+
+@include('events.partials.deck_modal')
 
 <script>
     // 1. Apuntarse / Salir como Juez desde la Web (Reutiliza el endpoint del Hub)

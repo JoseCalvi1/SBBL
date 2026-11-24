@@ -86,16 +86,15 @@ class PayPalController extends Controller
                     // Ajusta estos valores a la tarifa real que te apliquen.
                     $estimatedFee = round(($grossAmount * 0.034) + 0.35, 2);
 
-                    TreasuryLog::create([
-                        'type' => 'ingreso',
-                        'category' => 'Suscripción',
-                        'gross_amount' => $grossAmount,
-                        'fee' => $estimatedFee,
-                        'net_amount' => $grossAmount - $estimatedFee,
-                        'description' => "Alta Suscripción " . ucfirst($plan->name) . " - " . $user->name,
-                        'reference_id' => $request->subscription_id,
-                        'user_id' => $user->id,
-                        // 'event_id' => null, // No aplica a eventos
+                    app(\App\Services\Payment\TreasuryService::class)->recordPayPalIncome([
+                        'category'          => 'Suscripción',
+                        'gross_amount'      => $grossAmount,
+                        'fee'               => $estimatedFee,
+                        'net_amount'        => round($grossAmount - $estimatedFee, 2),
+                        'description'       => "Alta Suscripción " . ucfirst($plan->name) . " - " . $user->name,
+                        'reference_id'      => $request->subscription_id,
+                        'paypal_order_id'   => $request->subscription_id,
+                        'user_id'           => $user->id,
                     ]);
                 }
             });

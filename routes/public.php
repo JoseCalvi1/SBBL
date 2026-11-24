@@ -3,6 +3,7 @@
 use App\Http\Controllers\AccountController;
 use App\Http\Controllers\Admin\InventoryController;
 use App\Http\Controllers\Admin\PedidoController;
+use App\Http\Controllers\Admin\RaffleController;
 use App\Http\Controllers\Admin\TreasuryController;
 use App\Http\Controllers\ArticleController;
 use App\Http\Controllers\BeybladeCollectionController;
@@ -134,7 +135,8 @@ Route::domain($dominio)->group(function () {
     Route::put('/events/{event}/update-video', [EventController::class, 'updateVideo'])->name('events.updateVideo');
     Route::put('/events/{event}/updatePuestos', [EventController::class, 'updatePuestos'])->name('events.updatePuestos');
     Route::put('/events/{event}/{mode}/actualizarPuntuaciones', [EventController::class, 'actualizarPuntuaciones'])->name('events.actualizarPuntuaciones');
-    Route::post('/events/{event}/paypal-pending', [EventController::class, 'logPendingPayment'])->name('events.paypal.pending');
+    Route::post('/events/{event}/paypal/order', [EventController::class, 'createEventPayPalOrder'])->middleware('auth')->name('events.paypal.order');
+    Route::post('/events/{event}/paypal/capture', [EventController::class, 'captureEventPayPalOrder'])->middleware('auth')->name('events.paypal.capture');
 
     Route::post('/event/{event}/review/start', [EventController::class, 'startReview'])->name('event.review.start');
     Route::post('/events/{event}/review', [EventController::class, 'submitReview'])->name('event.review');
@@ -313,7 +315,8 @@ Route::domain($dominio)->group(function () {
     Route::post('/carrito/add/{producto}', [CarritoController::class, 'add'])->name('carrito.add');
     Route::post('/carrito/update/{producto}', [CarritoController::class, 'update'])->name('carrito.update');
     Route::delete('/carrito/remove/{producto}', [CarritoController::class, 'remove'])->name('carrito.remove');
-    Route::post('/carrito/checkout', [CarritoController::class, 'checkout'])->name('carrito.checkout');
+    Route::post('/carrito/paypal/order', [CarritoController::class, 'createPaypalOrder'])->name('carrito.paypal.order');
+    Route::post('/carrito/paypal/capture', [CarritoController::class, 'capturePaypalOrder'])->name('carrito.paypal.capture');
     Route::get('/paypal/success', [CarritoController::class, 'paypalSuccess'])->name('paypal.success');
     Route::get('/paypal/cancel', [CarritoController::class, 'paypalCancel'])->name('paypal.cancel');
 
@@ -321,14 +324,11 @@ Route::domain($dominio)->group(function () {
     Route::post('/paypal/webhook', [PayPalWebhookController::class, 'handle']);
 
     Route::middleware('auth')->group(function () {
-        // Tickets y Sorteos
+        // Compra y consulta de Papeletas de Rifa (Requiere login)
         Route::get('/tickets/buy', [TicketController::class, 'showBuyForm'])->name('tickets.buy');
         Route::post('/paypal/order', [TicketController::class, 'createOrder'])->name('paypal.order');
         Route::post('/paypal/capture', [TicketController::class, 'captureOrder'])->name('paypal.capture');
         Route::get('/tickets/my', [TicketController::class, 'myTickets'])->name('tickets.mine');
-        Route::get('/sorteo', [TicketController::class, 'index'])->name('tickets.sorteo');
-        Route::post('/sorteo/ganadores', [TicketController::class, 'draw'])->name('tickets.sorteo.draw');
-        Route::delete('/sorteo', [TicketController::class, 'reset'])->name('tickets.sorteo.reset');
 
         // Vinculación Discord
         Route::get('/auth/discord/redirect', [DiscordController::class, 'redirectToDiscord'])->name('discord.login');
@@ -355,7 +355,7 @@ Route::domain($dominio)->group(function () {
 
     // Exclusivo Middleware Admin (Auth + Rol Admin)
     Route::middleware(['auth', 'admin'])->group(function () {
-        // Inventario, Tesorería y Suscripciones
+        // Inventario, Tesorería, Rifas y Suscripciones
         Route::get('/dashboard/admin/inventory', [InventoryController::class, 'index'])->name('admin.inventory.index');
         Route::post('/admin/inventory', [InventoryController::class, 'store'])->name('admin.inventory.store');
         Route::put('/admin/inventory/{id}', [InventoryController::class, 'update'])->name('admin.inventory.update');
@@ -364,6 +364,19 @@ Route::domain($dominio)->group(function () {
         Route::get('/dashboard/admin/treasury', [TreasuryController::class, 'index'])->name('admin.treasury.index');
         Route::post('/admin/treasury/income', [TreasuryController::class, 'storeIncome'])->name('admin.treasury.income.store');
         Route::post('/admin/treasury/expense', [TreasuryController::class, 'storeExpense'])->name('admin.treasury.expense.store');
+        Route::put('/admin/treasury/{log}/refund', [TreasuryController::class, 'markRefunded'])->name('admin.treasury.refund');
+        Route::post('/admin/treasury/reset', [TreasuryController::class, 'resetPeriod'])->name('admin.treasury.reset');
+        Route::get('/admin/treasury/export', [TreasuryController::class, 'exportCsv'])->name('admin.treasury.export');
+
+        // Gestión de Rifas y Bombo de Sorteo (Exclusivo Admin)
+        Route::get('/dashboard/admin/raffles', [RaffleController::class, 'index'])->name('admin.raffles.index');
+        Route::post('/admin/raffles', [RaffleController::class, 'store'])->name('admin.raffles.store');
+        Route::put('/admin/raffles/{raffle}', [RaffleController::class, 'update'])->name('admin.raffles.update');
+        Route::put('/admin/raffles/{raffle}/toggle', [RaffleController::class, 'toggleActive'])->name('admin.raffles.toggle');
+        Route::get('/dashboard/admin/raffles/{raffle}/tickets', [RaffleController::class, 'showTickets'])->name('admin.raffles.tickets');
+        Route::get('/sorteo', [TicketController::class, 'index'])->name('tickets.sorteo');
+        Route::post('/sorteo/ganadores', [TicketController::class, 'draw'])->name('tickets.sorteo.draw');
+        Route::delete('/sorteo', [TicketController::class, 'reset'])->name('tickets.sorteo.reset');
 
         Route::delete('/admin/historial/borrar/{id}', [ProfileController::class, 'destroyHistory'])->name('admin.history.destroy');
         Route::post('/admin/suscripciones', [ProfileController::class, 'storeSubscription'])->name('admin.subscriptions.store');
@@ -382,6 +395,7 @@ Route::domain($dominio)->group(function () {
         Route::get('/dashboard/admin/announcements', [InicioController::class, 'anuncios'])->name('index.anuncios');
         Route::post('/dashboard/admin/announcements/send', [InicioController::class, 'sendAnuncio'])->name('index.announcements.send');
 
+        Route::put('/dashboard/pedidos-settings', [PedidoController::class, 'updateSettings'])->name('admin.pedidos.settings');
         Route::get('/dashboard/pedidos', [PedidoController::class, 'index'])->name('admin.pedidos.index');
         Route::get('/dashboard/pedidos/{pedido}', [PedidoController::class, 'show'])->name('admin.pedidos.show');
         Route::put('/dashboard/pedidos/{pedido}', [PedidoController::class, 'update'])->name('admin.pedidos.update');

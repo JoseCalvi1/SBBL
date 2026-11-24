@@ -7,13 +7,35 @@ use Illuminate\Database\Eloquent\Model;
 
 class Carrito extends Model
 {
-    protected $fillable = ['session_id','nombre','email','direccion','enviado','referencia',
-    'metodo_pago',
-    'estado_pago',
-    'estado_envio',
-    'total',
-    'total_lagartos',
-    'solicitado',];
+    use HasFactory;
+
+    protected $fillable = [
+        'user_id',
+        'session_id',
+        'nombre',
+        'email',
+        'telefono',
+        'direccion',
+        'tipo_entrega',
+        'enviado',
+        'referencia',
+        'paypal_order_id',
+        'paypal_capture_id',
+        'metodo_pago',
+        'estado_pago',
+        'estado_envio',
+        'total',
+        'gastos_envio',
+        'total_lagartos',
+        'solicitado',
+    ];
+
+    protected $casts = [
+        'enviado'      => 'boolean',
+        'solicitado'   => 'boolean',
+        'total'        => 'float',
+        'gastos_envio' => 'float',
+    ];
 
     public function productos()
     {
@@ -22,4 +44,13 @@ class Carrito extends Model
                     ->withTimestamps();
     }
 
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
+
+    public function treasuryLog()
+    {
+        return $this->hasOne(TreasuryLog::class, 'carrito_id');
+    }
 }
