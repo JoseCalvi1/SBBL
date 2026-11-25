@@ -484,10 +484,10 @@
 
                         <div class="mvp-stats d-flex flex-wrap gap-3">
                             <span><i class="fas fa-star"></i> {{ $bestUser->total_puntos ?? '0' }} Pts</span>
-                            <span><i class="fas fa-trophy text-white"></i> <span class="text-white">{{ $bestUserRecord->total_victorias_combo ?? '0' }} Win</span></span>
+                            <span><i class="fas fa-trophy text-white"></i> <span class="text-white">{{ $bestUserRecord->total_victorias_mes ?? $bestUserRecord->total_victorias_combo ?? '0' }} Win</span></span>
                             <span>
                                 <i class="fas fa-cog"></i>
-                                @if($bestUserRecord)
+                                @if($bestUserRecord && !empty($bestUserRecord->blade))
                                     {{ $bestUserRecord->blade }}/{{ $bestUserRecord->ratchet }}/{{ $bestUserRecord->bit }}
                                 @else
                                     Sin datos

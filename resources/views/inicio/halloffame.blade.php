@@ -336,7 +336,7 @@
                     <div class="month-tile">
                         <img src="{{ $blader->profile->avatar_url }}" class="rounded-circle mb-3" width="70" height="70" style="object-fit: cover; border: 3px solid #000; background: #fff;">
                         <div class="text-white fw-bold text-truncate fs-6">{{ $blader->name }}</div>
-                        <div class="month-date">{{ \Carbon\Carbon::parse($mes)->translatedFormat('M Y') }}</div>
+                        <div class="month-date">{{ \Carbon\Carbon::createFromFormat('Y-m', $mes)->startOfMonth()->translatedFormat('M Y') }}</div>
                     </div>
                     @endforeach
                 @else

@@ -14,7 +14,7 @@ class QualifierController extends Controller
         $showAllSeasons = $request->boolean('all_seasons');
         $seasonStart = config('sbbl.season_start', '2026-09-01');
 
-        $query = Event::with(['region', 'province', 'users.region'])
+        $query = Event::with(['region', 'province', 'users.profile.region'])
             ->where('beys', 'clasificatorio')
             ->where('status', '!=', 'INVALID');
 
