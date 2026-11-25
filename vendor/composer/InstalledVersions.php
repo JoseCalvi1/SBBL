@@ -30,7 +30,7 @@ private static $installed = array (
     'aliases' => 
     array (
     ),
-    'reference' => 'fd11dc64af2df7093c59cff9cf4c6c4367bc7f65',
+    'reference' => '1b02f8efa35edc848511cd3c4e2265f94b0dd31d',
     'name' => 'laravel/laravel',
   ),
   'versions' => 
@@ -156,15 +156,6 @@ private static $installed = array (
       array (
       ),
       'reference' => '3c921a1cdba35b68a7f0ccffc6dffc1995b18267',
-    ),
-    'fakerphp/faker' => 
-    array (
-      'pretty_version' => 'v1.15.0',
-      'version' => '1.15.0.0',
-      'aliases' => 
-      array (
-      ),
-      'reference' => '89c6201c74db25fa759ff16e78a4d8f32547770e',
     ),
     'fideloper/proxy' => 
     array (
@@ -487,7 +478,7 @@ private static $installed = array (
       'aliases' => 
       array (
       ),
-      'reference' => 'fd11dc64af2df7093c59cff9cf4c6c4367bc7f65',
+      'reference' => '1b02f8efa35edc848511cd3c4e2265f94b0dd31d',
     ),
     'laravel/sail' => 
     array (
